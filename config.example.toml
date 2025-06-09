@@ -1,0 +1,29 @@
+[bot]
+token = "YOUR TOKEN HERE"
+guild_id = 711880297272381856
+status = "DM POUR SUPPORT"
+typing_proxy_from_user = true
+typing_proxy_from_staff = true
+
+[command]
+prefix = "!"
+
+[thread]
+inbox_category_id = 1376462463847505960
+embedded_message = true
+user_message_color = "3d54ff"
+staff_message_color = "ff3126"
+block_quote = true
+
+[language]
+default_language = "en"
+auto_detect = true
+fallback_language = "en"
+supported_languages = ["en", "fr", "es", "de"]
+
+[error_handling]
+show_detailed_errors = false
+log_errors = true
+send_error_embeds = true
+auto_delete_error_messages = true
+error_message_ttl = 30

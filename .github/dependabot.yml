@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Enable version updates for Cargo (Rust)
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@modmailbot_rs"
+    assignees:
+      - "@modmailbot_rs"
+    labels:
+      - "dependencies"
+      - "rust"
+    commit-message:
+      prefix: "cargo"
+      include: "scope"
+
+  # Enable version updates for npm (Node.js)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@modmailbot_rs"
+    assignees:
+      - "@modmailbot_rs"
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "npm"
+      include: "scope"
+    ignore:
+      # Ignore major version updates for critical packages
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

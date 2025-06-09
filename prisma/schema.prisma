@@ -1,0 +1,37 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:../db/db.sqlite"
+}
+
+model blocked_users {
+  user_id    String   @id
+  user_name  String
+  blocked_by String
+  blocked_at DateTime @default(now())
+  expires_at DateTime @default(now())
+}
+
+model threads {
+  id              String            @id @unique
+  user_id         Int
+  user_name       String
+  channel_id      String
+  created_at      DateTime          @default(now())
+  next_message_number Int?          @default(1)
+  status          Int               @default(1)
+  thread_messages thread_messages[]
+}
+
+model thread_messages {
+  id            Int   @id @unique() @default(autoincrement())
+  thread_id     String
+  thread        threads  @relation(fields: [thread_id], references: [id])
+  user_id       Int
+  user_name     String
+  is_anonymous  Boolean
+  dm_message_id String?
+  inbox_message_id String?
+  message_number Int?
+  created_at    DateTime @default(now())
+  content       String
+}

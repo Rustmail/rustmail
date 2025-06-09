@@ -1,0 +1,9 @@
+/target
+config.toml
+/src/generated/prisma
+node_modules
+.env
+db/db.sqlite
+.idea
+.sqlx
+migrations
