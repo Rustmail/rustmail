@@ -1,16 +1,21 @@
-use std::{collections::HashMap, pin::Pin, sync::Arc, future::Future};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message},
     async_trait,
 };
 
-use crate::commands::{edit_command::edit, help::help, reply::reply, test_errors::{test_errors, test_language, test_all_errors}};
+use crate::commands::{
+    edit::edit_command::edit,
+    help::help,
+    reply::reply,
+    test_errors::{test_all_errors, test_errors, test_language},
+};
+use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
+use crate::errors::{ModmailResult, common};
 use crate::utils::send_to_thread::send_to_thread;
 use crate::{commands::ping::ping, config::Config};
 use crate::{modules::threads::create_channel, utils::wrap_command};
-use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{ModmailResult, common};
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -40,22 +45,31 @@ impl MessageHandler {
     }
 }
 
-async fn manage_incoming_message(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+async fn manage_incoming_message(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+) -> ModmailResult<()> {
     if msg.author.bot {
         return Ok(());
     }
 
-    let pool = config.db_pool.as_ref()
+    let pool = config
+        .db_pool
+        .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
-    let error_handler = config.error_handler.as_ref()
+    let error_handler = config
+        .error_handler
+        .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
     if thread_exists(msg.author.id, pool).await {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
-            let channel_id_num = channel_id_str.parse::<u64>()
+            let channel_id_num = channel_id_str
+                .parse::<u64>()
                 .map_err(|_| common::validation_failed("Invalid channel ID format"))?;
-            
+
             let channel_id = ChannelId::new(channel_id_num);
 
             if let Err(e) = send_to_thread(ctx, channel_id, msg, config, false).await {
@@ -67,7 +81,7 @@ async fn manage_incoming_message(ctx: &Context, msg: &Message, config: &Config) 
     } else {
         create_channel(ctx, msg, config).await;
     }
-    
+
     Ok(())
 }
 
