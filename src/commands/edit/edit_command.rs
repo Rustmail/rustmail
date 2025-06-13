@@ -1,3 +1,4 @@
+use crate::db::update_message_content;
 use crate::errors::{ModmailResult, common};
 use crate::{config::Config, utils::extract_reply_content::extract_reply_content};
 use serenity::all::{Context, Message};
@@ -42,7 +43,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
     let edit_result = edit_messages(
         ctx,
         msg.channel_id,
-        dm_msg_id,
+        dm_msg_id.clone(),
         inbox_msg_id,
         &thread_message,
         &dm_message,
@@ -64,6 +65,13 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                 .await;
 
             cleanup_command_message(ctx, msg).await;
+            match dm_msg_id {
+                Some(dm_msg_id) => {
+                    let _ =
+                        update_message_content(&dm_msg_id, &command_input.new_content, pool).await;
+                }
+                None => {}
+            }
             Ok(())
         }
         crate::commands::edit::message_ops::EditResult::PartialSuccess(warning) => {

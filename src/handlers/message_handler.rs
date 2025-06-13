@@ -38,6 +38,7 @@ impl MessageHandler {
         wrap_command!(h.commands, "ping", ping);
         wrap_command!(h.commands, ["reply", "r"], reply);
         wrap_command!(h.commands, ["edit", "e"], edit);
+        wrap_command!(h.commands, ["close", "c"], close);
         wrap_command!(h.commands, "test_errors", test_errors);
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);

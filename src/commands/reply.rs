@@ -1,28 +1,20 @@
 use crate::config::Config;
-use crate::db::operations::{
-    get_next_message_number, get_thread_by_channel_id, insert_staff_message,
-};
+use crate::db::operations::{get_next_message_number, insert_staff_message};
 use crate::db::repr::Thread;
 use crate::errors::{ModmailResult, common};
 use crate::utils::extract_reply_content::extract_reply_content;
+use crate::utils::fetch_thread::fetch_thread;
 use crate::utils::format_ticket_message::Sender::Staff;
 use crate::utils::format_ticket_message::{
     MessageDestination, TicketMessage, format_ticket_message_with_destination,
 };
 
 use serenity::all::{Attachment, Context, CreateAttachment, CreateMessage, Message, UserId};
-use sqlx::SqlitePool;
 
 enum ReplyIntent {
     Text(String),
     Attachments(Vec<CreateAttachment>),
     TextAndAttachments(String, Vec<CreateAttachment>),
-}
-
-async fn fetch_thread(db_pool: &SqlitePool, channel_id: &str) -> ModmailResult<Thread> {
-    get_thread_by_channel_id(channel_id, db_pool)
-        .await
-        .ok_or_else(|| common::thread_not_found())
 }
 
 async fn build_reply_message(

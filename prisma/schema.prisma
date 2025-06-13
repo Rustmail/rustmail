@@ -34,4 +34,5 @@ model thread_messages {
   message_number Int?
   created_at    DateTime @default(now())
   content       String
+  thread_status Int
 }

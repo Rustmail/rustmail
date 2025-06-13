@@ -1,3 +1,4 @@
+pub mod close;
 pub mod edit;
 pub mod help;
 pub mod ping;
