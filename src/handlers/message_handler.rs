@@ -6,6 +6,7 @@ use serenity::{
 };
 
 use crate::commands::{
+    close::close,
     edit::edit_command::edit,
     help::help,
     reply::reply,
