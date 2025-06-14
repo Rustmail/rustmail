@@ -32,9 +32,9 @@ pub async fn insert_user_message(
     sqlx::query!(
         r#"
         INSERT INTO thread_messages (
-            thread_id, user_id, user_name, is_anonymous, dm_message_id, content
+            thread_id, user_id, user_name, is_anonymous, dm_message_id, content, thread_status
         ) VALUES (
-            ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?
         )
         "#,
         thread_id,
@@ -42,7 +42,8 @@ pub async fn insert_user_message(
         user_name,
         is_anonymous,
         dm_message_id,
-        content
+        content,
+        1
     )
     .execute(pool)
     .await?;
@@ -72,9 +73,9 @@ pub async fn insert_staff_message(
     sqlx::query!(
         r#"
         INSERT INTO thread_messages (
-            thread_id, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, message_number, content
+            thread_id, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, message_number, content, thread_status
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
         "#,
         thread_id,
@@ -84,7 +85,8 @@ pub async fn insert_staff_message(
         dm_msg_id,
         inbox_message_id,
         message_number,
-        content
+        content,
+        1
     )
     .execute(pool)
     .await?;
