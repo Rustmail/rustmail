@@ -1,3 +1,5 @@
+use std::f32::NAN;
+
 use crate::config::Config;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, Timestamp, UserId};
@@ -12,6 +14,10 @@ pub enum Sender {
         user_id: UserId,
         role: Option<String>,
         message_number: Option<u64>,
+    },
+    System {
+        user_id: UserId,
+        username: String,
     },
 }
 
@@ -60,6 +66,9 @@ async fn create_embed_message(
             &config.thread.staff_message_color,
             *message_number,
         ),
+        Sender::System { user_id, username } => {
+            (user_id, username, &config.thread.system_message_color, None)
+        }
     };
     let avatar_url = get_user_avatar_url(ctx, *user_id).await;
     let mut embed = CreateEmbed::new()
@@ -87,6 +96,7 @@ fn create_classic_message(
 ) -> String {
     match sender {
         Sender::User { username, .. } => format!("**{}** : {}", username, content),
+        Sender::System { username, .. } => format!("**{}** : {}", username, content),
         Sender::Staff {
             username,
             role,

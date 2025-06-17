@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::db::operations::{get_next_message_number, insert_staff_message};
 use crate::db::repr::Thread;
 use crate::errors::{ModmailResult, common};
+use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use crate::utils::format_ticket_message::Sender::Staff;
@@ -75,19 +76,6 @@ async fn download_attachments(attachments: &[Attachment]) -> Vec<CreateAttachmen
     }
 
     downloaded_attachments
-}
-
-fn build_message_from_ticket(tmsg: TicketMessage, mut msg_builder: CreateMessage) -> CreateMessage {
-    match tmsg {
-        TicketMessage::Plain(txt) => {
-            msg_builder = msg_builder.content(txt);
-        }
-        TicketMessage::Embed(embed) => {
-            msg_builder = msg_builder.embed(embed);
-        }
-    }
-
-    msg_builder
 }
 
 pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {

@@ -112,6 +112,7 @@ mod tests {
                 embedded_message: false,
                 user_message_color: "ffffff".to_string(),
                 staff_message_color: "ffffff".to_string(),
+                system_message_color: "ffffff".to_string(),
                 block_quote: false,
             },
             language: crate::config::LanguageConfig::default(),

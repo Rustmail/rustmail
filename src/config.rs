@@ -38,6 +38,7 @@ pub struct ThreadConfig {
     pub embedded_message: bool,
     pub user_message_color: String,
     pub staff_message_color: String,
+    pub system_message_color: String,
     pub block_quote: bool,
 }
 
