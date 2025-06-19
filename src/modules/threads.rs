@@ -47,7 +47,21 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
         let _ = channel.send_message(&ctx.http, thread_message).await;
 
         match create_thread(&channel, msg, pool).await {
-            Ok(_) => println!("Thread created successfully"),
+            Ok(_) => {
+                let response = format_ticket_message(
+                    &ctx,
+                    Sender::System {
+                        user_id: ctx.cache.current_user().id,
+                        username: ctx.cache.current_user().name.clone(),
+                    },
+                    &config.bot.welcome_message,
+                    config,
+                );
+                let response = response.await;
+                let dm_message = build_message_from_ticket(response, CreateMessage::new());
+                let _ = msg.channel_id.send_message(&ctx.http, dm_message).await;
+                println!("Thread created successfully");
+            }
             Err(e) => eprintln!("Error creating thread: {}", e),
         }
         if let Err(e) = send_to_thread(ctx, channel.id, msg, config, false).await {

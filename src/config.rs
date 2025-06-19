@@ -23,6 +23,7 @@ pub struct BotConfig {
     pub token: String,
     pub guild_id: u64,
     pub status: String,
+    pub welcome_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
 }

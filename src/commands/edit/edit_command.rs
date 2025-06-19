@@ -107,6 +107,7 @@ mod tests {
                 token: "test".to_string(),
                 guild_id: 12345,
                 status: "test".to_string(),
+                welcome_message: "Welcome to the server!".to_string(),
                 typing_proxy_from_user: false,
                 typing_proxy_from_staff: false,
             },
