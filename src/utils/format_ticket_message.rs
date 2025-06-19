@@ -1,5 +1,3 @@
-use std::f32::NAN;
-
 use crate::config::Config;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, Timestamp, UserId};
