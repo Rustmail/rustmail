@@ -53,16 +53,18 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     match edit_result {
         crate::commands::edit::message_ops::EditResult::Success => {
-            let _ = error_handler
-                .send_success_message(
-                    ctx,
-                    msg.channel_id,
-                    "success.message_edited",
-                    None,
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await;
+            if config.thread.edit_success_message {
+                let _ = error_handler
+                    .send_success_message(
+                        ctx,
+                        msg.channel_id,
+                        "success.message_edited",
+                        None,
+                        Some(msg.author.id),
+                        msg.guild_id.map(|g| g.get()),
+                    )
+                    .await;
+            }
 
             cleanup_command_message(ctx, msg).await;
             match dm_msg_id {
@@ -75,11 +77,15 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
             Ok(())
         }
         crate::commands::edit::message_ops::EditResult::PartialSuccess(warning) => {
-            let _ = msg.reply(ctx, warning).await;
+            if config.thread.edit_partial_success_message {
+                let _ = msg.reply(ctx, warning).await;
+            }
             Ok(())
         }
         crate::commands::edit::message_ops::EditResult::Failure(error_msg) => {
-            let _ = msg.reply(ctx, error_msg).await;
+            if config.thread.edit_failure_message {
+                let _ = msg.reply(ctx, error_msg).await;
+            }
             Err(common::validation_failed("Edit operation failed"))
         }
     }
@@ -114,6 +120,9 @@ mod tests {
                 staff_message_color: "ffffff".to_string(),
                 system_message_color: "ffffff".to_string(),
                 block_quote: false,
+                edit_success_message: true,
+                edit_partial_success_message: true,
+                edit_failure_message: true,
             },
             language: crate::config::LanguageConfig::default(),
             error_handling: crate::config::ErrorHandlingConfig::default(),

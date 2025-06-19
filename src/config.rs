@@ -40,6 +40,9 @@ pub struct ThreadConfig {
     pub staff_message_color: String,
     pub system_message_color: String,
     pub block_quote: bool,
+    pub edit_success_message: bool,
+    pub edit_partial_success_message: bool,
+    pub edit_failure_message: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
