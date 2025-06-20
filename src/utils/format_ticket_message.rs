@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, Timestamp, UserId};
+use crate::i18n::get_translated_message;
+use tokio::runtime::Handle;
 
 pub enum Sender {
     User {
@@ -74,15 +76,21 @@ async fn create_embed_message(
         .description(format!(">>> {}", content))
         .color(Colour::new(hex_string_to_int(color) as u32))
         .timestamp(Timestamp::now());
-
     if let (Some(msg_num), MessageDestination::Thread) = (message_number, destination) {
-        let footer_text = format!(
-            "Message #{} • {}edit {} pour modifier",
-            msg_num, config.command.prefix, msg_num
-        );
+        use std::collections::HashMap;
+        let mut params = HashMap::new();
+        params.insert("number".to_string(), msg_num.to_string());
+        params.insert("prefix".to_string(), config.command.prefix.clone());
+        let footer_text = get_translated_message(
+            config,
+            "reply_numbering.footer",
+            Some(&params),
+            Some(*user_id),
+            None,
+            None
+        ).await;
         embed = embed.footer(serenity::all::CreateEmbedFooter::new(footer_text));
     }
-
     embed
 }
 
@@ -106,12 +114,21 @@ fn create_classic_message(
             } else {
                 format!("**{}** : {}", username, content)
             };
-
             if let (Some(msg_num), MessageDestination::Thread) = (message_number, destination) {
-                format!(
-                    "{}\n\n*Message #{} - `{}edit {}` pour modifier*",
-                    base_message, msg_num, config.command.prefix, msg_num
-                )
+                use std::collections::HashMap;
+                let mut params = HashMap::new();
+                params.insert("number".to_string(), msg_num.to_string());
+                params.insert("prefix".to_string(), config.command.prefix.clone());
+                // Pas d'user_id ici, donc pas de contexte utilisateur précis
+                let footer = Handle::current().block_on(get_translated_message(
+                    config,
+                    "reply_numbering.text_footer",
+                    Some(&params),
+                    None,
+                    None,
+                    None
+                ));
+                format!("{}\n\n{}", base_message, footer)
             } else {
                 base_message
             }

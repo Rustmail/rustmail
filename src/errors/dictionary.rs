@@ -2,6 +2,8 @@ use crate::errors::types::*;
 use crate::i18n::languages::{Language, PluralForm};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::i18n::language::en::load_english_messages;
+use crate::i18n::language::fr::load_french_messages;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDictionary {
@@ -90,8 +92,8 @@ impl ErrorDictionary {
 
     fn load_default_messages(&mut self) {
         match self.language {
-            Language::English => self.load_english_messages(),
-            Language::French => self.load_french_messages(),
+            Language::English => load_english_messages(self),
+            Language::French => load_french_messages(self),
             Language::Spanish => self.load_spanish_messages(),
             Language::German => self.load_german_messages(),
             Language::Italian => self.load_italian_messages(),
@@ -102,355 +104,6 @@ impl ErrorDictionary {
             Language::Korean => self.load_korean_messages(),
             Language::Chinese => self.load_chinese_messages(),
         }
-    }
-
-    fn load_english_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Failed to connect to the database")
-                .with_description("The bot couldn't establish a connection to the database")
-                .with_help(
-                    "Check database configuration and ensure the database server is running",
-                ),
-        );
-
-        self.messages.insert(
-            "database.query_failed".to_string(),
-            ErrorMessage::new("Database query failed: {error}")
-                .with_description("A database operation failed unexpectedly"),
-        );
-
-        self.messages.insert(
-            "database.not_found".to_string(),
-            ErrorMessage::new("Record not found in database")
-                .with_description("The requested data could not be found"),
-        );
-
-        self.messages.insert(
-            "discord.channel_not_found".to_string(),
-            ErrorMessage::new("Channel not found").with_description(
-                "The specified channel doesn't exist or the bot doesn't have access to it",
-            ),
-        );
-
-        self.messages.insert(
-            "discord.user_not_found".to_string(),
-            ErrorMessage::new("User not found")
-                .with_description("The specified user doesn't exist or is not accessible"),
-        );
-
-        self.messages.insert(
-            "discord.permission_denied".to_string(),
-            ErrorMessage::new("Permission denied").with_description(
-                "The bot doesn't have the required permissions to perform this action",
-            ),
-        );
-
-        self.messages.insert(
-            "discord.dm_creation_failed".to_string(),
-            ErrorMessage::new("Failed to create DM channel")
-                .with_description("Couldn't create a direct message channel with the user"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Invalid command format")
-                .with_description("The command syntax is incorrect")
-                .with_help("Use `{prefix}help` to see the correct command format"),
-        );
-
-        self.messages.insert(
-            "command.missing_arguments".to_string(),
-            ErrorMessage::new("Missing required arguments")
-                .with_description("This command requires additional parameters"),
-        );
-
-        self.messages.insert(
-            "command.invalid_arguments".to_string(),
-            ErrorMessage::new("Invalid arguments: {arguments}")
-                .with_description("One or more arguments are invalid"),
-        );
-
-        self.messages.insert(
-            "command.unknown_command".to_string(),
-            ErrorMessage::new("Unknown command: {command}")
-                .with_description("The specified command doesn't exist")
-                .with_help("Use `{prefix}help` to see available commands"),
-        );
-
-        self.messages.insert(
-            "command.insufficient_permissions".to_string(),
-            ErrorMessage::new("Insufficient permissions")
-                .with_description("You don't have the required permissions to use this command"),
-        );
-
-        self.messages.insert(
-            "thread.not_found".to_string(),
-            ErrorMessage::new("Thread not found")
-                .with_description("No active thread found for this user or channel"),
-        );
-
-        self.messages.insert(
-            "thread.already_exists".to_string(),
-            ErrorMessage::new("Thread already exists")
-                .with_description("You already have an active support thread"),
-        );
-
-        self.messages.insert(
-            "thread.creation_failed".to_string(),
-            ErrorMessage::new("Failed to create thread")
-                .with_description("An error occurred while creating the support thread"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Message not found")
-                .with_description("The specified message could not be found"),
-        );
-
-        self.messages.insert(
-            "message.number_not_found".to_string(),
-            ErrorMessage::new("Message #{number} not found")
-                .with_description("No message with this number exists"),
-        );
-
-        self.messages.insert(
-            "message.edit_failed".to_string(),
-            ErrorMessage::new("Failed to edit message")
-                .with_description("An error occurred while editing the message"),
-        );
-
-        self.messages.insert(
-            "message.send_failed".to_string(),
-            ErrorMessage::new("Failed to send message")
-                .with_description("An error occurred while sending the message"),
-        );
-
-        self.messages.insert(
-            "message.too_long".to_string(),
-            ErrorMessage::new("Message is too long")
-                .with_description("Discord messages cannot exceed 2000 characters"),
-        );
-
-        self.messages.insert(
-            "message.empty".to_string(),
-            ErrorMessage::new("Message cannot be empty")
-                .with_description("Please provide a message to send"),
-        );
-
-        self.messages.insert(
-            "validation.invalid_input".to_string(),
-            ErrorMessage::new("Invalid input: {input}")
-                .with_description("The provided input is not valid"),
-        );
-
-        self.messages.insert(
-            "validation.out_of_range".to_string(),
-            ErrorMessage::new("Value out of range: {range}")
-                .with_description("The value must be within the specified range"),
-        );
-
-        self.messages.insert(
-            "validation.required_field_missing".to_string(),
-            ErrorMessage::new("Required field missing: {field}")
-                .with_description("This field is required and cannot be empty"),
-        );
-
-        self.messages.insert(
-            "permission.not_staff_member".to_string(),
-            ErrorMessage::new("You are not a staff member")
-                .with_description("This command is only available to staff members"),
-        );
-
-        self.messages.insert(
-            "permission.user_blocked".to_string(),
-            ErrorMessage::new("User is blocked")
-                .with_description("This user has been blocked from using the support system"),
-        );
-
-        self.messages.insert(
-            "success.message_sent".to_string(),
-            ErrorMessage::new("Message sent successfully! (Message #{number})")
-                .with_description("Your message has been delivered")
-                .with_help("Use `{prefix}edit {number}` to modify this message"),
-        );
-
-        self.messages.insert(
-            "success.message_edited".to_string(),
-            ErrorMessage::new("Message edited successfully")
-                .with_description("The message has been updated in both the thread and DM"),
-        );
-
-        self.messages.insert(
-            "success.thread_created".to_string(),
-            ErrorMessage::new("Support thread created")
-                .with_description("A new support thread has been created for you"),
-        );
-
-        self.messages.insert(
-            "general.loading".to_string(),
-            ErrorMessage::new("Loading...")
-                .with_description("Please wait while the operation completes"),
-        );
-
-        self.messages.insert(
-            "general.processing".to_string(),
-            ErrorMessage::new("Processing your request...")
-                .with_description("This may take a few moments"),
-        );
-    }
-
-    fn load_french_messages(&mut self) {
-        self.messages.insert("database.connection_failed".to_string(),
-            ErrorMessage::new("Échec de connexion à la base de données")
-                .with_description("Le bot n'a pas pu établir une connexion à la base de données")
-                .with_help("Vérifiez la configuration de la base de données et assurez-vous que le serveur est en marche"));
-
-        self.messages.insert(
-            "database.query_failed".to_string(),
-            ErrorMessage::new("Échec de la requête de base de données : {error}").with_description(
-                "Une opération de base de données a échoué de manière inattendue",
-            ),
-        );
-
-        self.messages.insert(
-            "database.not_found".to_string(),
-            ErrorMessage::new("Enregistrement non trouvé dans la base de données")
-                .with_description("Les données demandées n'ont pas pu être trouvées"),
-        );
-
-        self.messages.insert(
-            "discord.channel_not_found".to_string(),
-            ErrorMessage::new("Canal non trouvé")
-                .with_description("Le canal spécifié n'existe pas ou le bot n'y a pas accès"),
-        );
-
-        self.messages.insert(
-            "discord.user_not_found".to_string(),
-            ErrorMessage::new("Utilisateur non trouvé")
-                .with_description("L'utilisateur spécifié n'existe pas ou n'est pas accessible"),
-        );
-
-        self.messages.insert(
-            "discord.permission_denied".to_string(),
-            ErrorMessage::new("Permission refusée").with_description(
-                "Le bot n'a pas les permissions requises pour effectuer cette action",
-            ),
-        );
-
-        self.messages.insert(
-            "discord.dm_creation_failed".to_string(),
-            ErrorMessage::new("Échec de création du canal DM").with_description(
-                "Impossible de créer un canal de message privé avec l'utilisateur",
-            ),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Format de commande invalide")
-                .with_description("La syntaxe de la commande est incorrecte")
-                .with_help("Utilisez `{prefix}help` pour voir le format correct de la commande"),
-        );
-
-        self.messages.insert(
-            "command.missing_arguments".to_string(),
-            ErrorMessage::new("Arguments requis manquants")
-                .with_description("Cette commande nécessite des paramètres supplémentaires"),
-        );
-
-        self.messages.insert(
-            "command.invalid_arguments".to_string(),
-            ErrorMessage::new("Arguments invalides : {arguments}")
-                .with_description("Un ou plusieurs arguments sont invalides"),
-        );
-
-        self.messages.insert(
-            "command.unknown_command".to_string(),
-            ErrorMessage::new("Commande inconnue : {command}")
-                .with_description("La commande spécifiée n'existe pas")
-                .with_help("Utilisez `{prefix}help` pour voir les commandes disponibles"),
-        );
-
-        self.messages.insert(
-            "command.insufficient_permissions".to_string(),
-            ErrorMessage::new("Permissions insuffisantes").with_description(
-                "Vous n'avez pas les permissions requises pour utiliser cette commande",
-            ),
-        );
-
-        self.messages.insert(
-            "thread.not_found".to_string(),
-            ErrorMessage::new("Thread non trouvé")
-                .with_description("Aucun thread actif trouvé pour cet utilisateur ou ce canal"),
-        );
-
-        self.messages.insert(
-            "thread.already_exists".to_string(),
-            ErrorMessage::new("Thread existe déjà")
-                .with_description("Vous avez déjà un thread de support actif"),
-        );
-
-        self.messages.insert(
-            "thread.creation_failed".to_string(),
-            ErrorMessage::new("Échec de création du thread").with_description(
-                "Une erreur s'est produite lors de la création du thread de support",
-            ),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Message non trouvé")
-                .with_description("Le message spécifié n'a pas pu être trouvé"),
-        );
-
-        self.messages.insert(
-            "message.number_not_found".to_string(),
-            ErrorMessage::new("Message #{number} non trouvé")
-                .with_description("Aucun message avec ce numéro n'existe"),
-        );
-
-        self.messages.insert(
-            "message.edit_failed".to_string(),
-            ErrorMessage::new("Échec de modification du message")
-                .with_description("Une erreur s'est produite lors de la modification du message"),
-        );
-
-        self.messages.insert(
-            "message.send_failed".to_string(),
-            ErrorMessage::new("Échec d'envoi du message")
-                .with_description("Une erreur s'est produite lors de l'envoi du message"),
-        );
-
-        self.messages.insert(
-            "message.too_long".to_string(),
-            ErrorMessage::new("Message trop long")
-                .with_description("Les messages Discord ne peuvent pas dépasser 2000 caractères"),
-        );
-
-        self.messages.insert(
-            "message.empty".to_string(),
-            ErrorMessage::new("Le message ne peut pas être vide")
-                .with_description("Veuillez fournir un message à envoyer"),
-        );
-
-        self.messages.insert(
-            "success.message_sent".to_string(),
-            ErrorMessage::new("Message envoyé avec succès ! (Message #{number})")
-                .with_description("Votre message a été livré")
-                .with_help("Utilisez `{prefix}edit {number}` pour modifier ce message"),
-        );
-
-        self.messages.insert(
-            "success.message_edited".to_string(),
-            ErrorMessage::new("Message modifié avec succès")
-                .with_description("Le message a été mis à jour dans le thread et en DM"),
-        );
-
-        self.messages.insert(
-            "success.thread_created".to_string(),
-            ErrorMessage::new("Thread de support créé")
-                .with_description("Un nouveau thread de support a été créé pour vous"),
-        );
     }
 
     fn load_spanish_messages(&mut self) {
@@ -623,6 +276,16 @@ impl DictionaryManager {
         manager.load_language(Language::English);
         manager.load_language(Language::French);
 
+        manager
+    }
+
+    pub fn with_fallback_language(fallback: Language) -> Self {
+        let mut manager = Self {
+            dictionaries: HashMap::new(),
+            fallback_language: fallback,
+        };
+        manager.load_language(Language::English);
+        manager.load_language(Language::French);
         manager
     }
 

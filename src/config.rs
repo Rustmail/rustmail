@@ -49,7 +49,6 @@ pub struct ThreadConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct LanguageConfig {
     pub default_language: String,
-    pub auto_detect: bool,
     pub fallback_language: String,
     pub supported_languages: Vec<String>,
 }
@@ -87,7 +86,9 @@ pub fn load_config(path: &str) -> Config {
         );
     }
 
-    let error_handler = Arc::new(ErrorHandler::new());
+    let default_lang = config.language.get_default_language();
+    let fallback_lang = config.language.get_fallback_language();
+    let error_handler = Arc::new(ErrorHandler::with_languages(default_lang, fallback_lang));
     config.error_handler = Some(error_handler);
 
     config
@@ -97,7 +98,6 @@ impl Default for LanguageConfig {
     fn default() -> Self {
         Self {
             default_language: "en".to_string(),
-            auto_detect: true,
             fallback_language: "en".to_string(),
             supported_languages: vec!["en".to_string(), "fr".to_string()],
         }

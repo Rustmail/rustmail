@@ -15,7 +15,7 @@ use crate::commands::{
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
 use crate::utils::send_to_thread::send_to_thread;
-use crate::{commands::ping::ping, config::Config};
+use crate::config::Config;
 use crate::{modules::threads::create_channel, utils::wrap_command};
 
 type CommandFunc = Arc<StaticCommandFunc>;
@@ -36,7 +36,6 @@ impl MessageHandler {
             commands: HashMap::new(),
         };
         wrap_command!(h.commands, "help", help);
-        wrap_command!(h.commands, "ping", ping);
         wrap_command!(h.commands, ["reply", "r"], reply);
         wrap_command!(h.commands, ["edit", "e"], edit);
         wrap_command!(h.commands, ["close", "c"], close);

@@ -24,6 +24,19 @@ impl ErrorHandler {
         }
     }
 
+    pub fn with_languages(default_language: Language, fallback_language: Language) -> Self {
+        Self {
+            dictionary_manager: Arc::new(RwLock::new(DictionaryManager::with_fallback_language(fallback_language))),
+            user_languages: Arc::new(RwLock::new(HashMap::new())),
+            guild_languages: Arc::new(RwLock::new(HashMap::new())),
+            default_language,
+        }
+    }
+
+    pub fn with_default_language(language: Language) -> Self {
+        Self::with_languages(language, Language::English)
+    }
+
     pub async fn get_user_language(&self, user_id: UserId, guild_id: Option<u64>) -> Language {
         if let Some(prefs) = self.user_languages.read().await.get(&user_id) {
             return prefs.primary;
@@ -291,6 +304,11 @@ impl ErrorHandler {
 
     pub fn is_language_supported(&self, language: Language) -> bool {
         self.get_supported_languages().contains(&language)
+    }
+
+    pub async fn get_dictionary_message(&self, language: Language, key: &str, params: Option<&std::collections::HashMap<String, String>>, count: Option<i64>) -> String {
+        let dict_manager = self.dictionary_manager.read().await;
+        dict_manager.get_message(language, key, params, count)
     }
 }
 
