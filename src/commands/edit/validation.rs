@@ -1,5 +1,6 @@
 use serenity::all::{Context, Message};
-use crate::errors::{ModmailError, ModmailResult, CommandError, ValidationError as ErrorValidationError, command_error, validation_error};
+use crate::errors::{ModmailError, ModmailResult, CommandError, ValidationError as ErrorValidationError, command_error};
+use crate::i18n::get_translated_message;
 
 #[derive(Debug)]
 pub struct EditCommandInput {
@@ -29,26 +30,27 @@ impl From<ValidationError> for ModmailError {
 }
 
 impl ValidationError {
-    pub fn error_message(&self) -> &'static str {
-        match self {
-            ValidationError::InvalidFormat => {
-                "❌ Format de commande invalide. Utilisation : `edit <numéro> <nouveau message>`"
-            }
-            ValidationError::MissingMessageNumber => {
-                "❌ Format invalide. Il manque le numéro du message. Exemple : `edit 3 Nouveau message`"
-            }
-            ValidationError::MissingContent => {
-                "❌ Format invalide. Il manque le contenu. Exemple : `edit 3 Nouveau message`"
-            }
-            ValidationError::InvalidMessageNumber => {
-                "❌ Le numéro du message est invalide. Il doit être un nombre positif."
-            }
-            ValidationError::EmptyContent => "❌ Le nouveau message ne peut pas être vide.",
-        }
+    pub async fn _error_message(&self, config: &crate::config::Config, msg: &Message) -> String {
+        let key = match self {
+            ValidationError::InvalidFormat => "edit.validation.invalid_format",
+            ValidationError::MissingMessageNumber => "edit.validation.missing_number",
+            ValidationError::MissingContent => "edit.validation.missing_content",
+            ValidationError::InvalidMessageNumber => "edit.validation.invalid_number",
+            ValidationError::EmptyContent => "edit.validation.empty_content",
+        };
+        get_translated_message(
+            config,
+            key,
+            None,
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+            None
+        ).await
     }
 
-    pub async fn send_error(&self, ctx: &Context, msg: &Message) {
-        let _ = msg.reply(ctx, self.error_message()).await;
+    pub async fn _send_error(&self, ctx: &Context, msg: &Message, config: &crate::config::Config) {
+        let error_msg = self._error_message(config, msg).await;
+        let _ = msg.reply(ctx, error_msg).await;
     }
 }
 

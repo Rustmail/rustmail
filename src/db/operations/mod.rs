@@ -2,9 +2,9 @@ pub mod init;
 pub mod messages;
 pub mod threads;
 
-pub use init::{close_database, health_check, init_database, run_migrations};
+pub use init::init_database;
 pub use messages::{
-    MessageIds, ThreadMessage, delete_message, get_message_ids_by_number, get_message_number_by_id, get_thread_messages,
+    get_message_ids_by_number, get_message_number_by_id,
     insert_staff_message, insert_user_message, update_message_content,
 };
 pub use threads::{

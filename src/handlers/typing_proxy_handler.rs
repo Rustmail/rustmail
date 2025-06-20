@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::db::db::{get_thread_by_id, get_user_id_from_thread_id};
+use crate::db::{get_thread_channel_by_user_id, get_user_id_from_channel_id};
 use serenity::all::{ChannelId, Context, EventHandler, TypingStartEvent, UserId};
 use serenity::async_trait;
 use sqlx::SqlitePool;
@@ -21,8 +21,7 @@ impl TypingProxyHandler {
 }
 
 async fn handle_user_typing(ctx: &Context, event: &TypingStartEvent, pool: &SqlitePool) {
-    let existing_thread = get_thread_by_id(event.user_id, pool).await;
-    if let Some(channel_id_str) = existing_thread {
+    if let Some(channel_id_str) = get_thread_channel_by_user_id(event.user_id, pool).await {
         if let Ok(channel_id_num) = channel_id_str.parse::<u64>() {
             let channel_id = ChannelId::new(channel_id_num);
             let typing = channel_id.start_typing(&ctx.http);
@@ -32,29 +31,19 @@ async fn handle_user_typing(ctx: &Context, event: &TypingStartEvent, pool: &Sqli
             });
         }
     }
-    return;
 }
 
 async fn handle_staff_typing(ctx: &Context, event: &TypingStartEvent, pool: &SqlitePool) {
-    let user_id = match get_user_id_from_thread_id(event.channel_id.get().to_string(), pool).await {
-        Some(user_id) => UserId::new(user_id as u64),
-        None => {
-            eprintln!("Error fetching user ID from thread ID");
-            return;
-        }
-    };
-
-    let dm_channel = user_id.create_dm_channel(&ctx.http).await;
-    match dm_channel {
-        Ok(channel) => {
-            let typing = channel.start_typing(&ctx.http);
+    if let Some(user_id_val) =
+        get_user_id_from_channel_id(&event.channel_id.to_string(), pool).await
+    {
+        let user_id = UserId::new(user_id_val as u64);
+        if let Ok(dm_channel) = user_id.create_dm_channel(&ctx.http).await {
+            let typing = dm_channel.start_typing(&ctx.http);
             spawn(async move {
                 sleep(Duration::from_secs(5)).await;
                 typing.stop();
             });
-        }
-        Err(e) => {
-            eprintln!("Error creating dm channel for typing: {:?}", e);
         }
     }
 }
@@ -72,13 +61,11 @@ impl EventHandler for TypingProxyHandler {
                 return;
             }
         };
-        if self.config.bot.typing_proxy_from_user && !event.guild_id.is_some() {
+        if self.config.bot.typing_proxy_from_user && event.guild_id.is_none() {
             handle_user_typing(&ctx, &event, pool).await;
-            return;
         }
         if self.config.bot.typing_proxy_from_staff && event.guild_id.is_some() {
             handle_staff_typing(&ctx, &event, pool).await;
-            return;
         }
     }
 }

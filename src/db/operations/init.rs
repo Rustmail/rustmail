@@ -21,19 +21,19 @@ pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
     Ok(pool)
 }
 
-pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn _run_migrations(_pool: &SqlitePool) -> Result<(), sqlx::Error> {
     println!("Database migrations completed (using Prisma schema)");
     Ok(())
 }
 
-pub async fn health_check(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn _health_check(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("SELECT 1").execute(pool).await?;
 
     println!("Database health check passed");
     Ok(())
 }
 
-pub async fn close_database(pool: SqlitePool) {
+pub async fn _close_database(pool: SqlitePool) {
     pool.close().await;
     println!("Database connection pool closed");
 }
