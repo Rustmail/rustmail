@@ -130,3 +130,16 @@ pub async fn close_thread(thread_id: &str, pool: &SqlitePool) -> Result<(), Erro
 pub async fn thread_exists(user_id: UserId, pool: &SqlitePool) -> bool {
     get_thread_channel_by_user_id(user_id, pool).await.is_some()
 }
+
+pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
+    sqlx::query_as!(
+        Thread,
+        "SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1"
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap_or_else(|err| {
+        eprintln!("Erreur lors de la récupération des threads : {}", err);
+        vec![]
+    })
+}
