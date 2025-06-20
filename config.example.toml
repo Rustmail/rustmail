@@ -15,6 +15,12 @@ user_message_color = "3d54ff"
 staff_message_color = "ff3126"
 block_quote = true
 
+[notifications]
+show_success_on_edit = true
+show_partial_success_on_edit = true
+show_failure_on_edit = true
+show_success_on_reply = true
+
 [language]
 default_language = "en"
 auto_detect = true

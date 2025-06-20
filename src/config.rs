@@ -12,6 +12,7 @@ pub struct Config {
     pub thread: ThreadConfig,
     pub language: LanguageConfig,
     pub error_handling: ErrorHandlingConfig,
+    pub notifications: NotificationsConfig,
     #[serde(skip)]
     pub db_pool: Option<SqlitePool>,
     #[serde(skip)]
@@ -41,9 +42,14 @@ pub struct ThreadConfig {
     pub staff_message_color: String,
     pub system_message_color: String,
     pub block_quote: bool,
-    pub edit_success_message: bool,
-    pub edit_partial_success_message: bool,
-    pub edit_failure_message: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct NotificationsConfig {
+    pub show_success_on_edit: bool,
+    pub show_partial_success_on_edit: bool,
+    pub show_failure_on_edit: bool,
+    pub show_success_on_reply: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -51,6 +57,7 @@ pub struct LanguageConfig {
     pub default_language: String,
     pub fallback_language: String,
     pub supported_languages: Vec<String>,
+    pub error_message_ttl: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -100,6 +107,7 @@ impl Default for LanguageConfig {
             default_language: "en".to_string(),
             fallback_language: "en".to_string(),
             supported_languages: vec!["en".to_string(), "fr".to_string()],
+            error_message_ttl: Some(30),
         }
     }
 }
@@ -112,6 +120,17 @@ impl Default for ErrorHandlingConfig {
             send_error_embeds: true,
             auto_delete_error_messages: true,
             error_message_ttl: Some(30),
+        }
+    }
+}
+
+impl Default for NotificationsConfig {
+    fn default() -> Self {
+        Self {
+            show_success_on_edit: true,
+            show_partial_success_on_edit: true,
+            show_failure_on_edit: true,
+            show_success_on_reply: true,
         }
     }
 }

@@ -55,7 +55,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     match edit_result {
         crate::commands::edit::message_ops::EditResult::Success => {
-            if config.thread.edit_success_message {
+            if config.notifications.show_success_on_edit {
                 let _ = error_handler
                     .send_success_message(
                         ctx,
@@ -79,13 +79,13 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
             Ok(())
         }
         crate::commands::edit::message_ops::EditResult::PartialSuccess(warning) => {
-            if config.thread.edit_partial_success_message {
+            if config.notifications.show_partial_success_on_edit {
                 let _ = msg.reply(ctx, warning).await;
             }
             Ok(())
         }
         crate::commands::edit::message_ops::EditResult::Failure(error_msg) => {
-            if config.thread.edit_failure_message {
+            if config.notifications.show_failure_on_edit {
                 let _ = msg.reply(ctx, error_msg).await;
             }
             Err(common::validation_failed("Edit operation failed"))
@@ -123,10 +123,8 @@ mod tests {
                 staff_message_color: "ffffff".to_string(),
                 system_message_color: "ffffff".to_string(),
                 block_quote: false,
-                edit_success_message: true,
-                edit_partial_success_message: true,
-                edit_failure_message: true,
             },
+            notifications: crate::config::NotificationsConfig::default(),
             language: crate::config::LanguageConfig::default(),
             error_handling: crate::config::ErrorHandlingConfig::default(),
             db_pool: None,

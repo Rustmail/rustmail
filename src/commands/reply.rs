@@ -234,5 +234,22 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         eprintln!("Error inserting staff message: {}", e);
     }
 
+    if config.notifications.show_success_on_reply {
+        if let Some(error_handler) = &config.error_handler {
+            let mut params = std::collections::HashMap::new();
+            params.insert("number".to_string(), next_message_number.to_string());
+            let _ = error_handler
+                .send_success_message(
+                    ctx,
+                    msg.channel_id,
+                    "success.message_sent",
+                    Some(params),
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await;
+        }
+    }
+
     Ok(())
 }
