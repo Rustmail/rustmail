@@ -26,7 +26,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
     validate_edit_permissions(command_input.message_number, msg.author.id, pool).await?;
 
     let (dm_msg_id, inbox_msg_id) =
-        get_message_ids(command_input.message_number, msg.author.id, pool)
+        get_message_ids(command_input.message_number, msg.author.id, pool, config, ctx, msg)
             .await
             .map_err(|_| common::message_number_not_found(command_input.message_number))?;
 
@@ -48,6 +48,8 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         &thread_message,
         &dm_message,
         pool,
+        config,
+        msg,
     )
     .await;
 

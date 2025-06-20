@@ -2,7 +2,6 @@ use serenity::all::{Message, UserId};
 use sqlx::{Error, SqlitePool};
 
 use crate::config::Config;
-use crate::db::get_thread_id_by_user_id;
 use crate::db::operations::threads::{
     get_next_message_number, get_user_name_from_thread_id, increment_message_number,
 };
@@ -99,10 +98,10 @@ pub async fn insert_staff_message(
 pub async fn get_message_ids_by_number(
     message_number: i64,
     user_id: UserId,
+    thread_id: &str,
     pool: &SqlitePool,
 ) -> Option<MessageIds> {
     let user_id_i64 = user_id.get() as i64;
-    let thread_id = get_thread_id_by_user_id(user_id, pool).await;
 
     let result = sqlx::query!(
         "SELECT dm_message_id, inbox_message_id FROM thread_messages WHERE user_id = ? AND message_number = ? AND thread_id = ?",

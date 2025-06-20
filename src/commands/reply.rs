@@ -9,8 +9,10 @@ use crate::utils::format_ticket_message::Sender::Staff;
 use crate::utils::format_ticket_message::{
     MessageDestination, TicketMessage, format_ticket_message_with_destination,
 };
+use crate::i18n::get_translated_message;
 
 use serenity::all::{Attachment, Context, CreateAttachment, CreateMessage, Message, UserId};
+use tokio::runtime::Handle;
 
 enum ReplyIntent {
     Text(String),
@@ -20,7 +22,7 @@ enum ReplyIntent {
 
 async fn build_reply_message(
     ctx: &Context,
-    thread: &Thread,
+    staff_username: &str,
     content: &str,
     user_id: UserId,
     message_number: Option<u64>,
@@ -30,7 +32,7 @@ async fn build_reply_message(
     format_ticket_message_with_destination(
         ctx,
         Staff {
-            username: thread.user_name.clone(),
+            username: staff_username.to_string(),
             user_id,
             role: None,
             message_number,
@@ -88,9 +90,15 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        return Err(common::validation_failed(
-            "Please provide a message to send to the user.",
-        ));
+        let error_msg = get_translated_message(
+            config,
+            "reply.missing_content",
+            None,
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+            None
+        ).await;
+        return Err(common::validation_failed(&error_msg));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
@@ -109,7 +117,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         ReplyIntent::Text(text) => {
             let thread_tmsg = build_reply_message(
                 ctx,
-                &thread,
+                &msg.author.name,
                 &text,
                 msg.author.id,
                 Some(next_message_number),
@@ -121,7 +129,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
             let dm_tmsg = build_reply_message(
                 ctx,
-                &thread,
+                &msg.author.name,
                 &text,
                 msg.author.id,
                 Some(next_message_number),
@@ -142,7 +150,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         ReplyIntent::TextAndAttachments(text, files) => {
             let thread_tmsg = build_reply_message(
                 ctx,
-                &thread,
+                &msg.author.name,
                 &text,
                 msg.author.id,
                 Some(next_message_number),
@@ -154,7 +162,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
             let dm_tmsg = build_reply_message(
                 ctx,
-                &thread,
+                &msg.author.name,
                 &text,
                 msg.author.id,
                 Some(next_message_number),
@@ -175,16 +183,42 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
     let _ = msg.delete(&ctx.http).await;
 
-    let thread_response = msg
+    let thread_response = match msg
         .channel_id
         .send_message(&ctx.http, thread_msg_builder)
         .await
-        .map_err(|_| common::validation_failed("Failed to send the message to the channel."))?;
+    {
+        Ok(msg) => msg,
+        Err(_) => {
+            let err_msg = get_translated_message(
+                config,
+                "reply.send_failed_thread",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None
+            ).await;
+            return Err(common::validation_failed(&err_msg));
+        }
+    };
 
-    let dm_response = dm_channel
+    let dm_response = match dm_channel
         .send_message(&ctx.http, dm_msg_builder)
         .await
-        .map_err(|_| common::validation_failed("Failed to send the message to the user in DM."))?;
+    {
+        Ok(msg) => msg,
+        Err(_) => {
+            let err_msg = get_translated_message(
+                config,
+                "reply.send_failed_dm",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None
+            ).await;
+            return Err(common::validation_failed(&err_msg));
+        }
+    };
 
     if let Err(e) = insert_staff_message(
         &thread_response,
