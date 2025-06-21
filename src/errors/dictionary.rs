@@ -387,6 +387,24 @@ impl DictionaryManager {
                 MessageError::MessageEmpty => ("message.empty".to_string(), None),
                 _ => ("message.not_found".to_string(), None),
             },
+            ModmailError::Validation(validation_err) => match validation_err {
+                ValidationError::InvalidInput(input) => {
+                    let mut params = HashMap::new();
+                    params.insert("input".to_string(), input.clone());
+                    ("validation.invalid_input".to_string(), Some(params))
+                }
+                ValidationError::OutOfRange(range) => {
+                    let mut params = HashMap::new();
+                    params.insert("range".to_string(), range.clone());
+                    ("validation.out_of_range".to_string(), Some(params))
+                }
+                ValidationError::RequiredFieldMissing(field) => {
+                    let mut params = HashMap::new();
+                    params.insert("field".to_string(), field.clone());
+                    ("validation.required_field_missing".to_string(), Some(params))
+                }
+                _ => ("validation.invalid_input".to_string(), None),
+            },
             ModmailError::Permission(perm_err) => match perm_err {
                 PermissionError::NotStaffMember => {
                     ("permission.not_staff_member".to_string(), None)
@@ -394,7 +412,12 @@ impl DictionaryManager {
                 PermissionError::UserBlocked => ("permission.user_blocked".to_string(), None),
                 _ => ("permission.insufficient_permissions".to_string(), None),
             },
-            _ => ("general.unknown_error".to_string(), None),
+            ModmailError::Config(_) => ("config.invalid_configuration".to_string(), None),
+            ModmailError::Generic(msg) => {
+                let mut params = HashMap::new();
+                params.insert("message".to_string(), msg.clone());
+                ("general.unknown_error".to_string(), Some(params))
+            }
         }
     }
 }

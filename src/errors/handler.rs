@@ -337,10 +337,10 @@ pub struct FormattedMessage {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorSeverity {
-    Critical, // Bot-breaking errors
-    High,     // Major functionality errors
-    Medium,   // Minor functionality issues
-    Low,      // User input errors
+    Critical,
+    High,
+    Medium,
+    Low,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

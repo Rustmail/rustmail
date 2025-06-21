@@ -1,6 +1,8 @@
 use serenity::Error as SerenityError;
 use sqlx::Error as SqlxError;
 use std::fmt;
+use std::io;
+use std::error;
 
 #[derive(Debug, Clone)]
 pub enum ModmailError {
@@ -307,10 +309,10 @@ impl From<toml::de::Error> for ModmailError {
     }
 }
 
-impl From<std::io::Error> for ModmailError {
-    fn from(err: std::io::Error) -> Self {
+impl From<io::Error> for ModmailError {
+    fn from(err: io::Error) -> Self {
         match err.kind() {
-            std::io::ErrorKind::NotFound => ModmailError::Config(ConfigError::FileNotFound),
+            io::ErrorKind::NotFound => ModmailError::Config(ConfigError::FileNotFound),
             _ => ModmailError::Generic(err.to_string()),
         }
     }
@@ -382,12 +384,12 @@ macro_rules! permission_error {
 
 pub type ModmailResult<T> = Result<T, ModmailError>;
 
-impl std::error::Error for ModmailError {}
-impl std::error::Error for DatabaseError {}
-impl std::error::Error for DiscordError {}
-impl std::error::Error for CommandError {}
-impl std::error::Error for ThreadError {}
-impl std::error::Error for MessageError {}
-impl std::error::Error for ConfigError {}
-impl std::error::Error for ValidationError {}
-impl std::error::Error for PermissionError {}
+impl error::Error for ModmailError {}
+impl error::Error for DatabaseError {}
+impl error::Error for DiscordError {}
+impl error::Error for CommandError {}
+impl error::Error for ThreadError {}
+impl error::Error for MessageError {}
+impl error::Error for ConfigError {}
+impl error::Error for ValidationError {}
+impl error::Error for PermissionError {}
