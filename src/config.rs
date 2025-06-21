@@ -22,11 +22,23 @@ pub struct Config {
 #[derive(Debug, Deserialize, Clone)]
 pub struct BotConfig {
     pub token: String,
-    pub guild_id: u64,
+    pub mode: ServerMode,
     pub status: String,
     pub welcome_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum ServerMode {
+    Single {
+        guild_id: u64,
+    },
+    Dual {
+        community_guild_id: u64,
+        staff_guild_id: u64,
+    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -153,5 +165,56 @@ impl LanguageConfig {
 
     pub fn is_language_supported(&self, language: Language) -> bool {
         self.get_supported_languages().contains(&language)
+    }
+}
+
+impl BotConfig {
+    pub fn get_community_guild_id(&self) -> u64 {
+        match &self.mode {
+            ServerMode::Single { guild_id } => *guild_id,
+            ServerMode::Dual { community_guild_id, .. } => *community_guild_id,
+        }
+    }
+
+    pub fn get_staff_guild_id(&self) -> u64 {
+        match &self.mode {
+            ServerMode::Single { guild_id } => *guild_id,
+            ServerMode::Dual { staff_guild_id, .. } => *staff_guild_id,
+        }
+    }
+
+    pub fn is_dual_mode(&self) -> bool {
+        matches!(self.mode, ServerMode::Dual { .. })
+    }
+}
+
+impl Config {
+    pub async fn validate_servers(&self, http: &serenity::http::Http) -> Result<(), String> {
+        match &self.bot.mode {
+            ServerMode::Single { guild_id } => {
+                let guild_id = serenity::all::GuildId::new(*guild_id);
+                if let Err(_) = guild_id.to_partial_guild(http).await {
+                    return Err(format!("Serveur principal introuvable: {}", guild_id));
+                }
+            }
+            ServerMode::Dual { community_guild_id, staff_guild_id } => {
+                let community_guild_id = serenity::all::GuildId::new(*community_guild_id);
+                let staff_guild_id = serenity::all::GuildId::new(*staff_guild_id);
+                
+                if let Err(_) = community_guild_id.to_partial_guild(http).await {
+                    return Err(format!("Serveur communautaire introuvable: {}", community_guild_id));
+                }
+                
+                if let Err(_) = staff_guild_id.to_partial_guild(http).await {
+                    return Err(format!("Serveur staff introuvable: {}", staff_guild_id));
+                }
+                
+                if community_guild_id == staff_guild_id {
+                    return Err("Les serveurs communautaire et staff doivent être différents".to_string());
+                }
+            }
+        }
+        
+        Ok(())
     }
 }

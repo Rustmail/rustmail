@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "blocked_users" (
+CREATE TABLE IF NOT EXISTS "blocked_users" (
     "user_id" TEXT NOT NULL PRIMARY KEY,
     "user_name" TEXT NOT NULL,
     "blocked_by" TEXT NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE "blocked_users" (
 );
 
 -- CreateTable
-CREATE TABLE "threads" (
+CREATE TABLE IF NOT EXISTS "threads" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "user_id" INTEGER NOT NULL,
     "user_name" TEXT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "threads" (
 );
 
 -- CreateTable
-CREATE TABLE "thread_messages" (
+CREATE TABLE IF NOT EXISTS "thread_messages" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "thread_id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
@@ -35,8 +35,8 @@ CREATE TABLE "thread_messages" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "threads_id_key" ON "threads"("id");
+CREATE UNIQUE INDEX IF NOT EXISTS "threads_id_key" ON "threads"("id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "thread_messages_id_key" ON "thread_messages"("id");
+CREATE UNIQUE INDEX IF NOT EXISTS "thread_messages_id_key" ON "thread_messages"("id");
 
