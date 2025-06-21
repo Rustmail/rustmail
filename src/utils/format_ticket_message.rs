@@ -119,7 +119,6 @@ fn create_classic_message(
                 let mut params = HashMap::new();
                 params.insert("number".to_string(), msg_num.to_string());
                 params.insert("prefix".to_string(), config.command.prefix.clone());
-                // Pas d'user_id ici, donc pas de contexte utilisateur précis
                 let footer = Handle::current().block_on(get_translated_message(
                     config,
                     "reply_numbering.text_footer",
