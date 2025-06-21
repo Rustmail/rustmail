@@ -19,6 +19,7 @@ model threads {
   created_at      DateTime          @default(now())
   next_message_number Int?          @default(1)
   status          Int               @default(1)
+  user_left       Boolean           @default(false)
   thread_messages thread_messages[]
 }
 
