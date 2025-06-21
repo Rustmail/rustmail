@@ -8,9 +8,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_help("Vérifiez la configuration de la base de données et assurez-vous que le serveur est en marche"));
     dict.messages.insert(
         "database.query_failed".to_string(),
-        ErrorMessage::new("Échec de la requête de base de données : {error}").with_description(
-            "Une opération de base de données a échoué de manière inattendue",
-        ),
+        ErrorMessage::new("Échec de la requête de base de données : {error}")
+            .with_description("Une opération de base de données a échoué"),
     );
     dict.messages.insert(
         "database.not_found".to_string(),
@@ -29,15 +28,18 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.permission_denied".to_string(),
-        ErrorMessage::new("Permission refusée").with_description(
-            "Le bot n'a pas les permissions requises pour effectuer cette action",
-        ),
+        ErrorMessage::new("Permission refusée")
+            .with_description("Le bot n'a pas les permissions requises pour effectuer cette action"),
     );
     dict.messages.insert(
         "discord.dm_creation_failed".to_string(),
-        ErrorMessage::new("Échec de création du canal DM").with_description(
-            "Impossible de créer un canal de message privé avec l'utilisateur",
-        ),
+        ErrorMessage::new("Échec de création du canal DM")
+            .with_description("Impossible de créer un canal de message privé avec l'utilisateur"),
+    );
+    dict.messages.insert(
+        "discord.api_error".to_string(),
+        ErrorMessage::new("Erreur de l'API Discord")
+            .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
         "command.invalid_format".to_string(),
@@ -112,6 +114,21 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "message.empty".to_string(),
         ErrorMessage::new("Le message ne peut pas être vide")
             .with_description("Veuillez fournir un message à envoyer"),
+    );
+    dict.messages.insert(
+        "validation.invalid_input".to_string(),
+        ErrorMessage::new("Entrée invalide : {input}")
+            .with_description("L'entrée fournie n'est pas valide"),
+    );
+    dict.messages.insert(
+        "validation.out_of_range".to_string(),
+        ErrorMessage::new("Valeur hors limites : {range}")
+            .with_description("La valeur doit être dans la plage spécifiée"),
+    );
+    dict.messages.insert(
+        "validation.required_field_missing".to_string(),
+        ErrorMessage::new("Champ requis manquant : {field}")
+            .with_description("Ce champ est requis et ne peut pas être vide"),
     );
     dict.messages.insert(
         "success.message_sent".to_string(),
@@ -223,5 +240,57 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "edit.edit_failed_dm".to_string(),
         ErrorMessage::new("❌ Échec de la modification du message en DM.")
             .with_description("Le bot n'a pas pu modifier le message en message privé."),
+    );
+    dict.messages.insert(
+        "permission.insufficient_permissions".to_string(),
+        ErrorMessage::new("Permissions insuffisantes")
+            .with_description("Vous n'avez pas les permissions nécessaires pour cette action"),
+    );
+    dict.messages.insert(
+        "server.wrong_guild_single".to_string(),
+        ErrorMessage::new("Serveur incorrect")
+            .with_description("Vous devez être dans le serveur principal pour ouvrir un ticket")
+            .with_help("Rejoignez le serveur principal pour pouvoir contacter le support"),
+    );
+    dict.messages.insert(
+        "server.wrong_guild_dual".to_string(),
+        ErrorMessage::new("Serveur incorrect")
+            .with_description("Vous devez être dans le serveur communautaire pour ouvrir un ticket")
+            .with_help("Rejoignez le serveur communautaire pour pouvoir contacter le support"),
+    );
+    dict.messages.insert(
+        "server.not_in_community".to_string(),
+        ErrorMessage::new("Utilisateur non trouvé dans le serveur communautaire")
+            .with_description("L'utilisateur doit être membre du serveur communautaire"),
+    );
+    dict.messages.insert(
+        "user.left_server".to_string(),
+        ErrorMessage::new("❌ **ERREUR** : Impossible d'envoyer le message car l'utilisateur **{username}** n'est plus membre du serveur communautaire.")
+            .with_description("L'utilisateur a quitté le serveur communautaire"),
+    );
+    dict.messages.insert(
+        "user.left_server_close".to_string(),
+        ErrorMessage::new("ℹ️ **INFORMATION** : Le ticket a été fermé. L'utilisateur **{username}** n'est plus membre du serveur communautaire, donc aucun message de fermeture ne lui a été envoyé.")
+            .with_description("Information lors de la fermeture d'un ticket d'un utilisateur qui a quitté"),
+    );
+    dict.messages.insert(
+        "user.left_server_notification".to_string(),
+        ErrorMessage::new("⚠️ **ALERTE** : L'utilisateur **{username}** (ID: {user_id}) a quitté le serveur.\n\nLe thread reste ouvert mais vous ne pouvez plus envoyer de messages à cet utilisateur.")
+            .with_description("Notification quand un utilisateur quitte le serveur"),
+    );
+    dict.messages.insert(
+        "reply.user_not_found".to_string(),
+        ErrorMessage::new("Utilisateur non trouvé")
+            .with_description("L'utilisateur n'existe pas ou n'est pas accessible"),
+    );
+    dict.messages.insert(
+        "config.invalid_configuration".to_string(),
+        ErrorMessage::new("Configuration invalide")
+            .with_description("La configuration du bot est incorrecte"),
+    );
+    dict.messages.insert(
+        "general.unknown_error".to_string(),
+        ErrorMessage::new("Erreur inconnue : {message}")
+            .with_description("Une erreur inattendue s'est produite"),
     );
 } 

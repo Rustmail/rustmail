@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::str;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Language {
@@ -236,13 +238,13 @@ impl Default for Language {
     }
 }
 
-impl std::fmt::Display for Language {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Language {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.native_name())
     }
 }
 
-impl std::str::FromStr for Language {
+impl str::FromStr for Language {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -352,11 +354,6 @@ impl LanguageDetector {
             "zh-CN" | "zh-TW" => Some(Language::Chinese),
             _ => None,
         }
-    }
-
-    pub fn from_text_content(_text: &str) -> Option<Language> {
-        // This is a placeholder for a more sophisticated language detection (whatlang seems to be fine i think)
-        None
     }
 
     pub fn get_preferred_language(

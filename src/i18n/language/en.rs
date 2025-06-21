@@ -5,15 +5,12 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "database.connection_failed".to_string(),
         ErrorMessage::new("Failed to connect to the database")
-            .with_description("The bot couldn't establish a connection to the database")
-            .with_help(
-                "Check database configuration and ensure the database server is running",
-            ),
+            .with_description("The bot couldn't establish a connection to the database"),
     );
     dict.messages.insert(
         "database.query_failed".to_string(),
         ErrorMessage::new("Database query failed: {error}")
-            .with_description("A database operation failed unexpectedly"),
+            .with_description("A database operation failed"),
     );
     dict.messages.insert(
         "database.not_found".to_string(),
@@ -22,9 +19,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.channel_not_found".to_string(),
-        ErrorMessage::new("Channel not found").with_description(
-            "The specified channel doesn't exist or the bot doesn't have access to it",
-        ),
+        ErrorMessage::new("Channel not found")
+            .with_description("The specified channel doesn't exist or the bot doesn't have access to it"),
     );
     dict.messages.insert(
         "discord.user_not_found".to_string(),
@@ -33,14 +29,18 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.permission_denied".to_string(),
-        ErrorMessage::new("Permission denied").with_description(
-            "The bot doesn't have the required permissions to perform this action",
-        ),
+        ErrorMessage::new("Permission denied")
+            .with_description("The bot doesn't have the required permissions to perform this action"),
     );
     dict.messages.insert(
         "discord.dm_creation_failed".to_string(),
         ErrorMessage::new("Failed to create DM channel")
             .with_description("Couldn't create a direct message channel with the user"),
+    );
+    dict.messages.insert(
+        "discord.api_error".to_string(),
+        ErrorMessage::new("Discord API error")
+            .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
         "command.invalid_format".to_string(),
@@ -229,5 +229,57 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "reply_numbering.text_footer".to_string(),
         ErrorMessage::new("*Message #{number} - `{prefix}edit {number}` to edit*")
             .with_description("Footer for plain text messages with message number and edit command."),
+    );
+    dict.messages.insert(
+        "permission.insufficient_permissions".to_string(),
+        ErrorMessage::new("Insufficient permissions")
+            .with_description("You don't have the required permissions for this action"),
+    );
+    dict.messages.insert(
+        "server.wrong_guild_single".to_string(),
+        ErrorMessage::new("Wrong server")
+            .with_description("You must be in the main server to open a ticket")
+            .with_help("Join the main server to contact support"),
+    );
+    dict.messages.insert(
+        "server.wrong_guild_dual".to_string(),
+        ErrorMessage::new("Wrong server")
+            .with_description("You must be in the community server to open a ticket")
+            .with_help("Join the community server to contact support"),
+    );
+    dict.messages.insert(
+        "server.not_in_community".to_string(),
+        ErrorMessage::new("User not found in community server")
+            .with_description("The user must be a member of the community server"),
+    );
+    dict.messages.insert(
+        "user.left_server".to_string(),
+        ErrorMessage::new("❌ **ERROR** : Unable to send message because user **{username}** is no longer a member of the community server.")
+            .with_description("The user has left the community server"),
+    );
+    dict.messages.insert(
+        "user.left_server_close".to_string(),
+        ErrorMessage::new("ℹ️ **INFORMATION** : The ticket has been closed. User **{username}** is no longer a member of the community server, so no closure message was sent to them.")
+            .with_description("Information when closing a ticket for a user who has left"),
+    );
+    dict.messages.insert(
+        "user.left_server_notification".to_string(),
+        ErrorMessage::new("⚠️ **ALERT** : User **{username}** (ID: {user_id}) has left the server.\n\nThe thread remains open but you can no longer send messages to this user.")
+            .with_description("Notification when a user leaves the server"),
+    );
+    dict.messages.insert(
+        "reply.user_not_found".to_string(),
+        ErrorMessage::new("User not found")
+            .with_description("The user doesn't exist or is not accessible"),
+    );
+    dict.messages.insert(
+        "config.invalid_configuration".to_string(),
+        ErrorMessage::new("Invalid configuration")
+            .with_description("The bot configuration is incorrect"),
+    );
+    dict.messages.insert(
+        "general.unknown_error".to_string(),
+        ErrorMessage::new("Unknown error: {message}")
+            .with_description("An unexpected error occurred"),
     );
 } 
