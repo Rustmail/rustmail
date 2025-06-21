@@ -58,6 +58,7 @@ pub async fn insert_staff_message(
     is_anonymous: bool,
     pool: &SqlitePool,
     config: &Config,
+    message_number: u64,
 ) -> Result<(), Error> {
     let inbox_message_id = inbox_msg.id.to_string();
     let user_id = staff_user_id.get() as i64;
@@ -67,7 +68,7 @@ pub async fn insert_staff_message(
         .unwrap_or_else(|| "Unknown".to_string());
 
     let content = extract_message_content(inbox_msg, config);
-    let message_number = get_next_message_number(thread_id, pool).await as i64;
+    let message_number_i64 = message_number as i64;
 
     sqlx::query!(
         r#"
@@ -83,14 +84,12 @@ pub async fn insert_staff_message(
         is_anonymous,
         dm_msg_id,
         inbox_message_id,
-        message_number,
+        message_number_i64,
         content,
         1
     )
     .execute(pool)
     .await?;
-
-    increment_message_number(thread_id, pool).await?;
 
     Ok(())
 }

@@ -106,7 +106,7 @@ pub async fn create_thread(
     let channel_id = channel.id.to_string();
     let thread_id = Uuid::new_v4().to_string();
 
-    sqlx::query!(
+    match sqlx::query!(
         "INSERT INTO threads (id, user_id, user_name, channel_id) VALUES (?, ?, ?, ?)",
         thread_id,
         user_id,
@@ -114,9 +114,22 @@ pub async fn create_thread(
         channel_id
     )
     .execute(pool)
-    .await?;
-
-    Ok(thread_id)
+    .await {
+        Ok(_) => Ok(thread_id),
+        Err(Error::Database(db_err)) if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) => {
+            // SQLite constraint violation - thread already exists for this user
+            // Get the existing thread ID
+            if let Some(existing_thread_id) = sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await? {
+                Ok(existing_thread_id)
+            } else {
+                Err(Error::Database(db_err))
+            }
+        }
+        Err(e) => Err(e),
+    }
 }
 
 pub async fn close_thread(thread_id: &str, pool: &SqlitePool) -> Result<(), Error> {
@@ -132,14 +145,30 @@ pub async fn thread_exists(user_id: UserId, pool: &SqlitePool) -> bool {
 }
 
 pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
-    sqlx::query_as!(
-        Thread,
+    let rows = sqlx::query!(
         "SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1"
     )
     .fetch_all(pool)
     .await
-    .unwrap_or_else(|err| {
-        eprintln!("Erreur lors de la récupération des threads : {}", err);
-        vec![]
-    })
+    .unwrap_or_default();
+
+    rows.into_iter()
+        .map(|row| Thread {
+            id: row.id,
+            user_id: row.user_id,
+            user_name: row.user_name,
+            channel_id: row.channel_id,
+        })
+        .collect()
+}
+
+// TODO: Implémenter quand la colonne user_left sera ajoutée à la base de données
+pub async fn update_thread_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<(), Error> {
+    // Temporairement désactivé jusqu'à ce que la colonne user_left soit ajoutée
+    Ok(())
+}
+
+pub async fn is_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<bool, Error> {
+    // Temporairement désactivé jusqu'à ce que la colonne user_left soit ajoutée
+    Ok(false)
 }
