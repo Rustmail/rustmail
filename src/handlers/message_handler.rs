@@ -51,6 +51,10 @@ async fn manage_incoming_message(
     msg: &Message,
     config: &Config,
 ) -> ModmailResult<()> {
+    if msg.content.starts_with(&config.command.prefix) {
+        return Ok(());
+    }
+
     if msg.author.bot {
         return Ok(());
     }
@@ -65,7 +69,33 @@ async fn manage_incoming_message(
         .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
-    if thread_exists(msg.author.id, pool).await {
+    if let Some(guild_id) = msg.guild_id {
+        let community_guild_id = config.bot.get_community_guild_id();
+        if guild_id.get() != community_guild_id {
+            let error_key = if config.bot.is_dual_mode() {
+                "server.wrong_guild_dual"
+            } else {
+                "server.wrong_guild_single"
+            };
+            
+            let error_msg = crate::i18n::get_translated_message(
+                config,
+                error_key,
+                None,
+                Some(msg.author.id),
+                Some(guild_id.get()),
+                None
+            ).await;
+            
+            let error = common::validation_failed(&error_msg);
+            let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+            return Err(error);
+        }
+    }
+
+    let thread_exists = thread_exists(msg.author.id, pool).await;
+    
+    if thread_exists {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str
                 .parse::<u64>()
@@ -89,7 +119,7 @@ async fn manage_incoming_message(
 #[async_trait]
 impl EventHandler for MessageHandler {
     async fn message(&self, ctx: Context, msg: Message) {
-        if !msg.guild_id.is_some() {
+        if msg.guild_id.is_none() {
             if let Err(error) = manage_incoming_message(&ctx, &msg, &self.config).await {
                 if let Some(error_handler) = &self.config.error_handler {
                     let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
@@ -99,24 +129,27 @@ impl EventHandler for MessageHandler {
             }
             return;
         }
-        let message_content = &msg.clone().content;
-        if !message_content.starts_with(&self.config.command.prefix) {
-            return;
-        }
-        let mut command_name = &message_content[1..];
 
-        if let Some(i) = message_content.find(" ") {
-            command_name = &message_content[self.config.command.prefix.len()..i];
-        }
+        let message_content = &msg.content;
+        if message_content.starts_with(&self.config.command.prefix) {
+            let mut command_name = &message_content[1..];
 
-        if let Some(command_func) = self.commands.get(command_name) {
-            if let Err(error) = command_func(ctx.clone(), msg.clone(), self.config.clone()).await {
-                if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
-                } else {
-                    eprintln!("Command error: {}", error);
+            if let Some(i) = message_content.find(" ") {
+                command_name = &message_content[self.config.command.prefix.len()..i];
+            }
+
+            if let Some(command_func) = self.commands.get(command_name) {
+                if let Err(error) = command_func(ctx.clone(), msg.clone(), self.config.clone()).await {
+                    if let Some(error_handler) = &self.config.error_handler {
+                        let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                    } else {
+                        eprintln!("Command error: {}", error);
+                    }
                 }
             }
+            return;
         }
+
+        return;
     }
 }
