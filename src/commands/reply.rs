@@ -1,18 +1,17 @@
 use crate::config::Config;
-use crate::db::operations::{get_next_message_number, insert_staff_message};
-use crate::db::repr::Thread;
+use crate::db::operations::{increment_message_number, insert_staff_message, get_next_message_number};
 use crate::errors::{ModmailResult, common};
 use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use crate::utils::format_ticket_message::Sender::Staff;
 use crate::utils::format_ticket_message::{
-    MessageDestination, TicketMessage, format_ticket_message_with_destination,
+    MessageDestination, TicketMessage, format_ticket_message_with_destination, Sender::User,
 };
 use crate::i18n::get_translated_message;
+use std::collections::HashMap;
 
-use serenity::all::{Attachment, Context, CreateAttachment, CreateMessage, Message, UserId};
-use tokio::runtime::Handle;
+use serenity::all::{Attachment, Context, CreateAttachment, CreateMessage, Message, UserId, GuildId};
 
 enum ReplyIntent {
     Text(String),
@@ -104,12 +103,64 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
 
     let user_id = UserId::new(thread.user_id as u64);
-    let dm_channel = user_id
-        .create_dm_channel(&ctx.http)
-        .await
-        .map_err(|_| common::user_not_found())?;
-    let next_message_number = get_next_message_number(&thread.id, db_pool).await;
+    
+    let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
+    let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
+    
+    if !user_still_member {
+        let mut params = HashMap::new();
+        params.insert("username".to_string(), thread.user_name.clone());
+        
+        let error_message = get_translated_message(
+            config,
+            "user.left_server",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+            None
+        ).await;
+        
+        let error_response = format_ticket_message_with_destination(
+            ctx,
+            User {
+                username: msg.author.name.clone(),
+                user_id: msg.author.id,
+            },
+            &error_message,
+            config,
+            MessageDestination::Thread,
+        ).await;
 
+        let error_message_builder = match error_response {
+            TicketMessage::Plain(content) => CreateMessage::new().content(content),
+            TicketMessage::Embed(embed) => CreateMessage::new().embed(embed),
+        };
+        
+        let _ = msg.channel_id.send_message(&ctx.http, error_message_builder).await;
+        return Ok(());
+    }
+    
+    let dm_channel = match user_id.create_dm_channel(&ctx.http).await {
+        Ok(channel) => channel,
+        Err(_) => {
+            let err_msg = get_translated_message(
+                config,
+                "reply.user_not_found",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None
+            ).await;
+            return Err(common::user_not_found());
+        }
+    };
+    
+    let next_message_number = get_next_message_number(&thread.id, db_pool).await;
+    
+    if let Err(e) = increment_message_number(&thread.id, db_pool).await {
+        eprintln!("Erreur lors de l'incrémentation du numéro de message: {}", e);
+    }
+    
     let mut thread_msg_builder = CreateMessage::default();
     let mut dm_msg_builder = CreateMessage::default();
 
@@ -202,11 +253,8 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         }
     };
 
-    let dm_response = match dm_channel
-        .send_message(&ctx.http, dm_msg_builder)
-        .await
-    {
-        Ok(msg) => msg,
+    let dm_response = match dm_channel.send_message(&ctx.http, dm_msg_builder).await {
+        Ok(msg) => Some(msg),
         Err(_) => {
             let err_msg = get_translated_message(
                 config,
@@ -222,12 +270,13 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
     if let Err(e) = insert_staff_message(
         &thread_response,
-        Some(dm_response.id.to_string()),
+        dm_response.map(|response| response.id.to_string()),
         &thread.id,
         msg.author.id,
         false,
         db_pool,
         config,
+        next_message_number,
     )
     .await
     {
@@ -236,7 +285,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
     if config.notifications.show_success_on_reply {
         if let Some(error_handler) = &config.error_handler {
-            let mut params = std::collections::HashMap::new();
+            let mut params = HashMap::new();
             params.insert("number".to_string(), next_message_number.to_string());
             let _ = error_handler
                 .send_success_message(

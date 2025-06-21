@@ -4,6 +4,7 @@ use crate::utils::format_ticket_message::{Sender, TicketMessage, format_ticket_m
 use serenity::all::{Context, EditMessage, Message, MessageId, UserId};
 use crate::i18n::get_translated_message;
 use tokio::runtime::Handle;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum EditResult {
@@ -19,7 +20,7 @@ impl EditResult {
             EditResult::PartialSuccess(warning) => ("edit.partial_success", Some(warning)),
             EditResult::Failure(error) => ("edit.failure", Some(error)),
         };
-        let mut param_map = std::collections::HashMap::new();
+        let mut param_map = HashMap::new();
         if let Some(text) = params {
             param_map.insert("details".to_string(), text.clone());
         }

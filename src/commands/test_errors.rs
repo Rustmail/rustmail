@@ -4,6 +4,7 @@ use crate::errors::{
     ValidationError, common,
 };
 use serenity::all::{Colour, Context, CreateEmbed, CreateMessage, Message};
+use std::collections::HashMap;
 
 pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let error_handler = config
@@ -34,7 +35,7 @@ pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> Modma
         "channel" => common::channel_not_found(),
         "number" => common::message_number_not_found(42),
         "success" => {
-            let mut params = std::collections::HashMap::new();
+            let mut params = HashMap::new();
             params.insert("number".to_string(), "5".to_string());
 
             let _ = error_handler

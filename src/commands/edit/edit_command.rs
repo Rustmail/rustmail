@@ -107,7 +107,7 @@ mod tests {
         Config {
             bot: BotConfig {
                 token: "test".to_string(),
-                guild_id: 12345,
+                mode: crate::config::ServerMode::Dual { community_guild_id: 184848, staff_guild_id: 64456},
                 status: "test".to_string(),
                 welcome_message: "Welcome to the server!".to_string(),
                 typing_proxy_from_user: false,
