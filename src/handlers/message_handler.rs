@@ -15,6 +15,7 @@ use crate::commands::{
     test_errors::{test_all_errors, test_errors, test_language},
     move_thread::move_thread,
     new_thread::new_thread,
+    delete::delete,
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
@@ -47,6 +48,7 @@ impl MessageHandler {
         wrap_command!(h.commands, "alert", alert);
         wrap_command!(h.commands, ["move", "mv"], move_thread);
         wrap_command!(h.commands, ["nt", "new_thread"], new_thread);
+        wrap_command!(h.commands, "delete", delete);
         wrap_command!(h.commands, "test_errors", test_errors);
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);
