@@ -167,3 +167,58 @@ pub async fn update_thread_user_left(_channel_id: &str, _pool: &SqlitePool) -> R
 pub async fn is_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<bool, Error> {
     Ok(false)
 }
+
+pub async fn set_alert_for_staff(
+    staff_user_id: serenity::all::UserId,
+    thread_user_id: i64,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    let staff_user_id_i64= staff_user_id.get() as i64;
+    sqlx::query!(
+        "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE",
+        staff_user_id_i64,
+        thread_user_id
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query!(
+        "INSERT INTO staff_alerts (staff_user_id, thread_user_id) VALUES (?, ?)",
+        staff_user_id_i64,
+        thread_user_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn get_staff_alerts_for_user(
+    thread_user_id: i64,
+    pool: &SqlitePool,
+) -> Result<Vec<i64>, Error> {
+    let alerts = sqlx::query!(
+        "SELECT staff_user_id FROM staff_alerts WHERE thread_user_id = ? AND used = FALSE",
+        thread_user_id
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(alerts.into_iter().map(|row| row.staff_user_id).collect())
+}
+
+pub async fn mark_alert_as_used(
+    staff_user_id: i64,
+    thread_user_id: i64,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    sqlx::query!(
+        "UPDATE staff_alerts SET used = TRUE WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE",
+        staff_user_id,
+        thread_user_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
