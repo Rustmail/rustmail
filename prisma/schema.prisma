@@ -37,3 +37,11 @@ model thread_messages {
   content       String
   thread_status Int
 }
+
+model staff_alerts {
+  id             Int      @id @default(autoincrement())
+  staff_user_id  Int
+  thread_user_id Int
+  created_at     DateTime @default(now())
+  used           Boolean  @default(false)
+}
