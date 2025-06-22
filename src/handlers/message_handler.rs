@@ -10,6 +10,7 @@ use crate::commands::{
     edit::edit_command::edit,
     help::help,
     reply::reply,
+    recover::recover,
     test_errors::{test_all_errors, test_errors, test_language},
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
@@ -39,6 +40,7 @@ impl MessageHandler {
         wrap_command!(h.commands, ["reply", "r"], reply);
         wrap_command!(h.commands, ["edit", "e"], edit);
         wrap_command!(h.commands, ["close", "c"], close);
+        wrap_command!(h.commands, "recover", recover);
         wrap_command!(h.commands, "test_errors", test_errors);
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);

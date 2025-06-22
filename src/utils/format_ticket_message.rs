@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::utils::hex_string_to_int::hex_string_to_int;
-use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, Timestamp, UserId};
+use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp, UserId};
 use crate::i18n::get_translated_message;
 use tokio::runtime::Handle;
 
@@ -89,7 +89,7 @@ async fn create_embed_message(
             None,
             None
         ).await;
-        embed = embed.footer(serenity::all::CreateEmbedFooter::new(footer_text));
+        embed = embed.footer(CreateEmbedFooter::new(footer_text));
     }
     embed
 }
