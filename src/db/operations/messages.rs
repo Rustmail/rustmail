@@ -291,6 +291,88 @@ pub async fn insert_recovered_message(
     Ok(())
 }
 
+pub async fn get_message_ids_by_message_id(
+    message_id: &str,
+    pool: &SqlitePool,
+) -> Option<MessageIds> {
+    let result = sqlx::query!(
+        "SELECT dm_message_id, inbox_message_id FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?",
+        message_id,
+        message_id
+    )
+    .fetch_optional(pool)
+    .await;
+
+    match result {
+        Ok(Some(row)) => Some(MessageIds {
+            dm_message_id: row.dm_message_id,
+            inbox_message_id: row.inbox_message_id,
+        }),
+        Ok(None) => None,
+        Err(e) => {
+            eprintln!("Database error getting message IDs by message ID: {:?}", e);
+            None
+        }
+    }
+}
+
+pub async fn update_inbox_message_id(
+    dm_message_id: &str,
+    inbox_message_id: &str,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    sqlx::query!(
+        "UPDATE thread_messages SET inbox_message_id = ? WHERE dm_message_id = ?",
+        inbox_message_id,
+        dm_message_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn insert_user_message_with_ids(
+    dm_msg: &Message,
+    thread_msg: &Message,
+    thread_id: &str,
+    is_anonymous: bool,
+    pool: &SqlitePool,
+    config: &Config,
+) -> Result<(), Error> {
+    let user_id = dm_msg.author.id.get() as i64;
+    let dm_message_id = dm_msg.id.to_string();
+    let inbox_message_id = thread_msg.id.to_string();
+
+    let user_name = get_user_name_from_thread_id(thread_id, pool)
+        .await
+        .unwrap_or_else(|| dm_msg.author.name.clone());
+
+    let content = extract_message_content(dm_msg, config);
+
+    sqlx::query!(
+        r#"
+        INSERT INTO thread_messages (
+            thread_id, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, content, thread_status
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?
+        )
+        "#,
+        thread_id,
+        user_id,
+        user_name,
+        is_anonymous,
+        dm_message_id,
+        inbox_message_id,
+        content,
+        1
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 #[derive(Debug, Clone)]
 pub struct ThreadMessage {
     pub id: i64,

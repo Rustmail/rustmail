@@ -1,10 +1,48 @@
 use crate::config::Config;
-use crate::db::operations::{get_thread_id_by_user_id, insert_user_message, is_user_left, get_staff_alerts_for_user, mark_alert_as_used};
+use crate::db::operations::{get_thread_id_by_user_id, insert_user_message_with_ids, is_user_left, get_staff_alerts_for_user, mark_alert_as_used};
 use crate::utils::format_ticket_message::Sender::User;
 use crate::utils::format_ticket_message::{TicketMessage, format_ticket_message_with_destination, MessageDestination};
-use serenity::all::{ChannelId, Context, CreateMessage, Message, GuildId};
+use crate::utils::build_message_from_ticket::build_message_from_ticket;
+use serenity::all::{ChannelId, Context, CreateMessage, Message, GuildId, CreateEmbed, CreateAttachment, Attachment};
 use crate::i18n::get_translated_message;
 use std::collections::HashMap;
+
+fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
+    let mut content = msg.content.clone();
+    let mut attachment_urls = Vec::new();
+
+    for embed in &msg.embeds {
+        if let Some(image) = &embed.image {
+            let url = &image.url;
+            if url.contains(".gif") || url.contains("tenor.com") || url.contains("giphy.com") {
+                attachment_urls.push(url.clone());
+            }
+        }
+        
+        if let Some(thumbnail) = &embed.thumbnail {
+            let url = &thumbnail.url;
+            if url.contains(".gif") || url.contains("tenor.com") || url.contains("giphy.com") {
+                attachment_urls.push(url.clone());
+            }
+        }
+    }
+    (content, attachment_urls)
+}
+
+async fn download_attachment(url: &str) -> Option<CreateAttachment> {
+    match reqwest::get(url).await {
+        Ok(response) => {
+            match response.bytes().await {
+                Ok(bytes) => {
+                    let filename = url.split('/').last().unwrap_or("attachment");
+                    Some(CreateAttachment::bytes(bytes, filename))
+                }
+                Err(_) => None,
+            }
+        }
+        Err(_) => None,
+    }
+}
 
 pub async fn send_to_thread(
     ctx: &Context,
@@ -96,26 +134,30 @@ pub async fn send_to_thread(
         }
     }
 
+    let (content, attachment_urls) = extract_message_content_with_media(msg);
+
     let ticket_msg = format_ticket_message_with_destination(
         ctx,
         User {
             username: msg.author.name.clone(),
             user_id: msg.author.id,
         },
-        &msg.content,
+        &content,
         config,
         MessageDestination::DirectMessage,
     )
     .await;
 
-    let sent_msg = match ticket_msg {
-        TicketMessage::Plain(content) => channel_id.say(&ctx.http, content).await,
-        TicketMessage::Embed(embed) => {
-            channel_id
-                .send_message(&ctx.http, CreateMessage::new().embed(embed))
-                .await
+    let mut message_builder = CreateMessage::new();
+    message_builder = build_message_from_ticket(ticket_msg, message_builder);
+    
+    for url in attachment_urls {
+        if let Some(attachment) = download_attachment(&url).await {
+            message_builder = message_builder.add_file(attachment);
         }
-    };
+    }
+
+    let sent_msg = channel_id.send_message(&ctx.http, message_builder).await;
 
     let sent_msg = match sent_msg {
         Ok(msg) => msg,
@@ -133,7 +175,8 @@ pub async fn send_to_thread(
         }
     };
 
-    if let Err(e) = insert_user_message(
+    if let Err(e) = insert_user_message_with_ids(
+        msg,
         &sent_msg,
         &thread_id,
         is_anonymous,

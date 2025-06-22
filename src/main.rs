@@ -1,5 +1,5 @@
 use config::load_config;
-use handlers::{message_handler::MessageHandler, ready_handler::ReadyHandler, member_handler::MemberHandler};
+use handlers::{message_handler::MessageHandler, ready_handler::ReadyHandler, member_handler::MemberHandler, reaction_handler::ReactionHandler};
 use serenity::{
     all::{ClientBuilder, GatewayIntents},
     prelude::TypeMapKey,
@@ -36,12 +36,15 @@ async fn main() {
         | GatewayIntents::GUILD_MESSAGE_TYPING
         | GatewayIntents::DIRECT_MESSAGE_TYPING
         | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_PRESENCES;
+        | GatewayIntents::GUILD_PRESENCES
+        | GatewayIntents::GUILD_MESSAGE_REACTIONS
+        | GatewayIntents::DIRECT_MESSAGE_REACTIONS;
     let mut client: serenity::Client = ClientBuilder::new(config.bot.token.clone(), intents)
         .event_handler(ReadyHandler::new(&config))
         .event_handler(MessageHandler::new(&config))
         .event_handler(TypingProxyHandler::new(&config))
         .event_handler(MemberHandler::new(&config))
+        .event_handler(ReactionHandler::new(&config))
         .await
         .expect("Failed to create client.");
 
