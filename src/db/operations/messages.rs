@@ -96,15 +96,12 @@ pub async fn insert_staff_message(
 
 pub async fn get_message_ids_by_number(
     message_number: i64,
-    user_id: UserId,
+    _user_id: UserId,
     thread_id: &str,
     pool: &SqlitePool,
 ) -> Option<MessageIds> {
-    let user_id_i64 = user_id.get() as i64;
-
     let result = sqlx::query!(
-        "SELECT dm_message_id, inbox_message_id FROM thread_messages WHERE user_id = ? AND message_number = ? AND thread_id = ?",
-        user_id_i64,
+        "SELECT dm_message_id, inbox_message_id FROM thread_messages WHERE message_number = ? AND thread_id = ?",
         message_number,
         thread_id
     )
@@ -198,10 +195,33 @@ pub async fn update_message_content(
 }
 
 pub async fn delete_message(message_id: &str, pool: &SqlitePool) -> Result<(), Error> {
+    sqlx::query!("DELETE FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?", message_id, message_id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn update_message_numbers_after_deletion(
+    channel_id: &str,
+    deleted_number: i64,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    let thread_id = match sqlx::query_scalar!(
+        "SELECT id FROM threads WHERE channel_id = ? AND status = 1",
+        channel_id
+    )
+    .fetch_optional(pool)
+    .await? {
+        Some(id) => id,
+        None => return Ok(()),
+    };
+
     sqlx::query!(
-        "DELETE FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?",
-        message_id,
-        message_id
+        "UPDATE thread_messages SET message_number = message_number - 1 
+         WHERE thread_id = ? AND message_number > ? AND message_number IS NOT NULL",
+        thread_id,
+        deleted_number
     )
     .execute(pool)
     .await?;
