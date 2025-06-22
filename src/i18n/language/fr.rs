@@ -364,4 +364,59 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
             .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
     );
+    dict.messages.insert(
+        "new_thread.missing_user".to_string(),
+        ErrorMessage::new("❌ Veuillez spécifier un utilisateur. Utilisation : `{prefix}new <id_utilisateur_ou_mention>`")
+            .with_description("L'ID utilisateur ou la mention est manquant dans la commande new_thread"),
+    );
+    dict.messages.insert(
+        "new_thread.user_has_thread".to_string(),
+        ErrorMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
+            .with_description("L'utilisateur a déjà un thread ouvert"),
+    );
+    dict.messages.insert(
+        "new_thread.user_has_thread_with_link".to_string(),
+        ErrorMessage::new("❌ {user} a déjà un thread de support actif\n\n📎 **Lien du thread :** <#{channel_id}>")
+            .with_description("L'utilisateur a déjà un thread ouvert avec un lien vers celui-ci"),
+    );
+    dict.messages.insert(
+        "new_thread.user_not_found".to_string(),
+        ErrorMessage::new("❌ Utilisateur non trouvé")
+            .with_description("L'utilisateur spécifié n'existe pas ou n'est pas accessible"),
+    );
+    dict.messages.insert(
+        "new_thread.user_not_in_community".to_string(),
+        ErrorMessage::new("❌ L'utilisateur n'est pas membre du serveur communautaire")
+            .with_description("L'utilisateur doit être dans le serveur communautaire pour créer un thread"),
+    );
+    dict.messages.insert(
+        "new_thread.channel_creation_failed".to_string(),
+        ErrorMessage::new("❌ Échec de création du canal de thread de support")
+            .with_description("Une erreur s'est produite lors de la création du canal de thread"),
+    );
+    dict.messages.insert(
+        "new_thread.database_error".to_string(),
+        ErrorMessage::new("❌ Échec de création du thread dans la base de données")
+            .with_description("Une erreur s'est produite lors de la sauvegarde du thread dans la base de données"),
+    );
+    dict.messages.insert(
+        "new_thread.welcome_message".to_string(),
+        ErrorMessage::new("🎫 **Thread de support créé pour {user}**\n\nCe thread a été créé par le staff. Vous pouvez maintenant communiquer avec l'équipe de support.")
+            .with_description("Message de bienvenue dans le thread nouvellement créé"),
+    );
+    dict.messages.insert(
+        "new_thread.dm_notification".to_string(),
+        ErrorMessage::new("🎫 **Thread de support ouvert**\n\nUn membre du staff a initié une conversation de support avec vous. Vous pouvez maintenant communiquer avec l'équipe de support.")
+            .with_description("Notification DM envoyée à l'utilisateur quand un thread est créé"),
+    );
+    dict.messages.insert(
+        "new_thread.success_with_dm".to_string(),
+        ErrorMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\nNotification DM envoyée avec succès.")
+            .with_description("Message de succès quand le thread est créé et le DM envoyé"),
+    );
+    dict.messages.insert(
+        "new_thread.success_without_dm".to_string(),
+        ErrorMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n⚠️ Impossible d'envoyer la notification DM (l'utilisateur peut avoir désactivé les DMs).")
+            .with_description("Message de succès quand le thread est créé mais le DM échoue"),
+    );
 } 

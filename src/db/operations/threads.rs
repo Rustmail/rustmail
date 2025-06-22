@@ -97,6 +97,39 @@ pub async fn increment_message_number(thread_id: &str, pool: &SqlitePool) -> Res
     Ok(())
 }
 
+pub async fn create_thread_for_user(
+    channel: &GuildChannel,
+    user_id: i64,
+    user_name: &str,
+    pool: &SqlitePool,
+) -> Result<String, Error> {
+    let channel_id = channel.id.to_string();
+    let thread_id = Uuid::new_v4().to_string();
+
+    match sqlx::query!(
+        "INSERT INTO threads (id, user_id, user_name, channel_id) VALUES (?, ?, ?, ?)",
+        thread_id,
+        user_id,
+        user_name,
+        channel_id
+    )
+    .execute(pool)
+    .await {
+        Ok(_) => Ok(thread_id),
+        Err(Error::Database(db_err)) if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) => {
+            if let Some(existing_thread_id) = sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await? {
+                Ok(existing_thread_id)
+            } else {
+                Err(Error::Database(db_err))
+            }
+        }
+        Err(e) => Err(e),
+    }
+}
+
 pub async fn create_thread(
     channel: &GuildChannel,
     msg: &Message,
