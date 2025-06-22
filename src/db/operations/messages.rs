@@ -226,40 +226,70 @@ fn extract_message_content(msg: &Message, config: &Config) -> String {
     content
 }
 
-// pub async fn get_latest_thread_message(
-//     thread_id: &str,
-//     pool: &SqlitePool,
-// ) -> Result<ThreadMessage, Error> {
-//     let row = sqlx::query!(
-//         r#"
-//         SELECT id, thread_id, user_id, user_name, is_anonymous,
-//                dm_message_id, inbox_message_id, message_number,
-//                created_at as "created_at: String", content
-//         FROM thread_messages
-//         WHERE thread_id = ?
-//         ORDER BY created_at DESC
-//         LIMIT 1
-//         "#,
-//         thread_id
-//     )
-//     .fetch_optional(pool)
-//     .await;
+pub async fn get_latest_thread_message(
+    thread_id: &str,
+    pool: &SqlitePool,
+) -> Result<Option<ThreadMessage>, Error> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, thread_id, user_id, user_name, is_anonymous,
+               dm_message_id, inbox_message_id, message_number,
+               created_at as "created_at: String", content
+        FROM thread_messages
+        WHERE thread_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        "#,
+        thread_id
+    )
+    .fetch_optional(pool)
+    .await?;
 
-//     let latest = row.map(|row| ThreadMessage {
-//         id: row.id as i64,
-//         thread_id: row.thread_id,
-//         user_id: row.user_id,
-//         user_name: row.user_name,
-//         is_anonymous: row.is_anonymous,
-//         dm_message_id: row.dm_message_id,
-//         inbox_message_id: row.inbox_message_id,
-//         message_number: row.message_number,
-//         created_at: row.created_at,
-//         content: row.content,
-//     });
+    let latest = row.map(|row| ThreadMessage {
+        id: row.id as i64,
+        thread_id: row.thread_id,
+        user_id: row.user_id,
+        user_name: row.user_name,
+        is_anonymous: row.is_anonymous,
+        dm_message_id: row.dm_message_id,
+        inbox_message_id: row.inbox_message_id,
+        message_number: row.message_number,
+        created_at: row.created_at,
+        content: row.content,
+    });
 
-//     latest
-// }
+    Ok(latest)
+}
+
+pub async fn insert_recovered_message(
+    thread_id: &str,
+    user_id: i64,
+    user_name: &str,
+    dm_message_id: &str,
+    content: &str,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    sqlx::query!(
+        r#"
+        INSERT INTO thread_messages (
+            thread_id, user_id, user_name, is_anonymous, dm_message_id, content, thread_status
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?
+        )
+        "#,
+        thread_id,
+        user_id,
+        user_name,
+        false,
+        dm_message_id,
+        content,
+        1
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct ThreadMessage {

@@ -117,8 +117,6 @@ pub async fn create_thread(
     .await {
         Ok(_) => Ok(thread_id),
         Err(Error::Database(db_err)) if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) => {
-            // SQLite constraint violation - thread already exists for this user
-            // Get the existing thread ID
             if let Some(existing_thread_id) = sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
                 .bind(user_id)
                 .fetch_optional(pool)
@@ -162,13 +160,10 @@ pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
         .collect()
 }
 
-// TODO: Implémenter quand la colonne user_left sera ajoutée à la base de données
 pub async fn update_thread_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<(), Error> {
-    // Temporairement désactivé jusqu'à ce que la colonne user_left soit ajoutée
     Ok(())
 }
 
 pub async fn is_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<bool, Error> {
-    // Temporairement désactivé jusqu'à ce que la colonne user_left soit ajoutée
     Ok(false)
 }
