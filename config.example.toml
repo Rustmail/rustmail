@@ -1,16 +1,14 @@
 [bot]
 token = "YOUR TOKEN HERE"
-
-# Mode de serveur : "single" pour un seul serveur, "dual" pour deux serveurs séparés
-# Mode Mono Serveur (comme avant)
-mode = { type = "single", guild_id = 711880297272381856 }
-
-# Mode Double Serveur (nouveau)
-# mode = { type = "dual", community_guild_id = 711880297272381856, staff_guild_id = 123456789012345678 }
-
+staff_guild_id = 711880297272311856
 status = "DM POUR SUPPORT"
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
+
+[bot.mode]
+type = "dual"
+community_guild_id = 1209687980506562590
+staff_guild_id = 71188029857472311856
 
 [command]
 prefix = "!"
