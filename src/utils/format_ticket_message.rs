@@ -73,9 +73,13 @@ async fn create_embed_message(
     let avatar_url = get_user_avatar_url(ctx, *user_id).await;
     let mut embed = CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url))
-        .description(format!(">>> {}", content))
         .color(Colour::new(hex_string_to_int(color) as u32))
         .timestamp(Timestamp::now());
+    
+    if !content.trim().is_empty() {
+        embed = embed.description(format!(">>> {}", content));
+    }
+    
     if let (Some(msg_num), MessageDestination::Thread) = (message_number, destination) {
         use std::collections::HashMap;
         let mut params = HashMap::new();
@@ -100,6 +104,10 @@ fn create_classic_message(
     config: &Config,
     destination: MessageDestination,
 ) -> String {
+    if content.trim().is_empty() {
+        return String::new();
+    }
+    
     match sender {
         Sender::User { username, .. } => format!("**{}** : {}", username, content),
         Sender::System { username, .. } => format!("**{}** : {}", username, content),
