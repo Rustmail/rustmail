@@ -418,4 +418,34 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("✅ Support thread created for {user} in <#{channel_id}> by {staff}\n\n⚠️ Could not send DM notification (user may have DMs disabled).")
             .with_description("Success message when thread is created but DM fails"),
     );
+    dict.messages.insert(
+        "delete.not_in_thread".to_string(),
+        ErrorMessage::new("❌ This command can only be used in a support thread")
+            .with_description("The delete command must be used in a thread channel"),
+    );
+    dict.messages.insert(
+        "delete.missing_number".to_string(),
+        ErrorMessage::new("❌ Please specify a message number. Usage: `{prefix}delete <number>`")
+            .with_description("The message number is missing in the delete command"),
+    );
+    dict.messages.insert(
+        "delete.message_not_found".to_string(),
+        ErrorMessage::new("❌ Message #{number} not found")
+            .with_description("No message with this number exists in this thread"),
+    );
+    dict.messages.insert(
+        "delete.discord_delete_failed".to_string(),
+        ErrorMessage::new("❌ Failed to delete message from Discord")
+            .with_description("An error occurred while deleting the message from Discord"),
+    );
+    dict.messages.insert(
+        "delete.database_delete_failed".to_string(),
+        ErrorMessage::new("❌ Failed to delete message from database")
+            .with_description("An error occurred while deleting the message from the database"),
+    );
+    dict.messages.insert(
+        "delete.success".to_string(),
+        ErrorMessage::new("✅ Message #{number} has been deleted successfully")
+            .with_description("Confirmation that the message has been deleted"),
+    );
 } 

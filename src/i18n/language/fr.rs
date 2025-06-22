@@ -429,4 +429,34 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n⚠️ Impossible d'envoyer la notification DM (l'utilisateur peut avoir désactivé les DMs).")
             .with_description("Message de succès quand le thread est créé mais le DM échoue"),
     );
+    dict.messages.insert(
+        "delete.not_in_thread".to_string(),
+        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+            .with_description("La commande delete doit être utilisée dans un canal de thread"),
+    );
+    dict.messages.insert(
+        "delete.missing_number".to_string(),
+        ErrorMessage::new("❌ Veuillez spécifier un numéro de message. Utilisation : `{prefix}delete <numéro>`")
+            .with_description("Le numéro de message est manquant dans la commande delete"),
+    );
+    dict.messages.insert(
+        "delete.message_not_found".to_string(),
+        ErrorMessage::new("❌ Message #{number} non trouvé")
+            .with_description("Aucun message avec ce numéro n'existe dans ce thread"),
+    );
+    dict.messages.insert(
+        "delete.discord_delete_failed".to_string(),
+        ErrorMessage::new("❌ Échec de suppression du message depuis Discord")
+            .with_description("Une erreur s'est produite lors de la suppression du message depuis Discord"),
+    );
+    dict.messages.insert(
+        "delete.database_delete_failed".to_string(),
+        ErrorMessage::new("❌ Échec de suppression du message depuis la base de données")
+            .with_description("Une erreur s'est produite lors de la suppression du message depuis la base de données"),
+    );
+    dict.messages.insert(
+        "delete.success".to_string(),
+        ErrorMessage::new("✅ Message #{number} a été supprimé avec succès")
+            .with_description("Confirmation que le message a été supprimé"),
+    );
 } 
