@@ -282,4 +282,25 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("Unknown error: {message}")
             .with_description("An unexpected error occurred"),
     );
+
+    dict.messages.insert(
+        "recovery.messages_recovered".to_string(),
+        ErrorMessage::new("📥 **{count} message(s) recovered** during bot downtime")
+            .with_description("Notification of recovered missing messages"),
+    );
+    dict.messages.insert(
+        "recovery.summary".to_string(),
+        ErrorMessage::new("Recovery completed: {total} messages recovered in {threads} threads ({failed} failures)")
+            .with_description("Summary of message recovery"),
+    );
+    dict.messages.insert(
+        "recovery.started".to_string(),
+        ErrorMessage::new("🔄 Starting recovery of missing messages...")
+            .with_description("Recovery start notification"),
+    );
+    dict.messages.insert(
+        "recovery.completed".to_string(),
+        ErrorMessage::new("✅ Message recovery completed")
+            .with_description("Recovery completion notification"),
+    );
 } 

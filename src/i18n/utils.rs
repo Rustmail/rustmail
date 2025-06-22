@@ -14,7 +14,7 @@ pub async fn get_translated_message(
         let language = if let Some(uid) = user_id {
             error_handler.get_user_language(uid, guild_id).await
         } else {
-            error_handler.get_user_language(UserId::new(0), None).await
+            config.language.get_default_language()
         };
         error_handler.get_dictionary_message(language, key, params, count).await
     } else {

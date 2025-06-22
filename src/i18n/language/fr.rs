@@ -293,4 +293,25 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("Erreur inconnue : {message}")
             .with_description("Une erreur inattendue s'est produite"),
     );
+    
+    dict.messages.insert(
+        "recovery.messages_recovered".to_string(),
+        ErrorMessage::new("📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot")
+            .with_description("Notification de récupération de messages manqués"),
+    );
+    dict.messages.insert(
+        "recovery.summary".to_string(),
+        ErrorMessage::new("Récupération terminée : {total} messages récupérés dans {threads} threads ({failed} échecs)")
+            .with_description("Résumé de la récupération des messages"),
+    );
+    dict.messages.insert(
+        "recovery.started".to_string(),
+        ErrorMessage::new("🔄 Début de la récupération des messages manqués...")
+            .with_description("Notification de début de récupération"),
+    );
+    dict.messages.insert(
+        "recovery.completed".to_string(),
+        ErrorMessage::new("✅ Récupération des messages terminée")
+            .with_description("Notification de fin de récupération"),
+    );
 } 
