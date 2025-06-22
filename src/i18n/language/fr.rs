@@ -334,4 +334,34 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("**Nouveau message reçu de {user} !**")
             .with_description("Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert"),
     );
+    dict.messages.insert(
+        "move.not_in_thread".to_string(),
+        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+            .with_description("La commande move doit être utilisée dans un canal de thread"),
+    );
+    dict.messages.insert(
+        "move.missing_category".to_string(),
+        ErrorMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move <nom_catégorie>`")
+            .with_description("Le nom de la catégorie est manquant dans la commande move"),
+    );
+    dict.messages.insert(
+        "move.failed_to_fetch_categories".to_string(),
+        ErrorMessage::new("❌ Échec de récupération des catégories du serveur")
+            .with_description("Le bot n'a pas pu récupérer la liste des catégories du serveur"),
+    );
+    dict.messages.insert(
+        "move.category_not_found".to_string(),
+        ErrorMessage::new("❌ Catégorie '{category}' non trouvée")
+            .with_description("Aucune catégorie avec ce nom n'existe sur le serveur"),
+    );
+    dict.messages.insert(
+        "move.failed_to_move".to_string(),
+        ErrorMessage::new("❌ Échec du déplacement du thread vers la catégorie spécifiée")
+            .with_description("Une erreur s'est produite lors du déplacement du thread"),
+    );
+    dict.messages.insert(
+        "move.success".to_string(),
+        ErrorMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
+            .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
+    );
 } 
