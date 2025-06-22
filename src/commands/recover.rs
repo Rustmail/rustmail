@@ -2,7 +2,9 @@ use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::modules::message_recovery::recover_missing_messages;
 use crate::i18n::get_translated_message;
-use serenity::all::{Context, Message};
+use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
+use crate::utils::build_message_from_ticket::build_message_from_ticket;
+use serenity::all::{Context, Message, CreateMessage};
 use std::collections::HashMap;
 
 pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
@@ -24,7 +26,25 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
     )
     .await;
 
-    let _ = msg.channel_id.send_message(&ctx.http, serenity::all::CreateMessage::new().content(&confirmation_message)).await;
+    let bot_user_id = ctx.cache.current_user().id;
+    let bot_username = ctx.cache.current_user().name.clone();
+    
+    let confirmation_ticket = format_ticket_message_with_destination(
+        ctx,
+        Sender::System {
+            user_id: bot_user_id,
+            username: bot_username.clone(),
+        },
+        &confirmation_message,
+        config,
+        MessageDestination::Thread,
+    )
+    .await;
+
+    let mut message_builder = CreateMessage::new();
+    message_builder = build_message_from_ticket(confirmation_ticket, message_builder);
+    
+    let _ = msg.channel_id.send_message(&ctx.http, message_builder).await;
 
     let ctx_clone = ctx.clone();
     let config_clone = config.clone();
@@ -52,7 +72,22 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
         )
         .await;
 
-        let _ = channel_id.send_message(&ctx_clone.http, serenity::all::CreateMessage::new().content(&summary_message)).await;
+        let summary_ticket = format_ticket_message_with_destination(
+            &ctx_clone,
+            Sender::System {
+                user_id: bot_user_id,
+                username: bot_username,
+            },
+            &summary_message,
+            &config_clone,
+            MessageDestination::Thread,
+        )
+        .await;
+
+        let mut summary_builder = CreateMessage::new();
+        summary_builder = build_message_from_ticket(summary_ticket, summary_builder);
+        
+        let _ = channel_id.send_message(&ctx_clone.http, summary_builder).await;
     });
 
     Ok(())
