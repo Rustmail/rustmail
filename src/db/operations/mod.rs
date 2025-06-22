@@ -9,6 +9,7 @@ pub use messages::{
     get_latest_thread_message, get_message_ids_by_number,
     insert_recovered_message, insert_staff_message,
     update_message_content, get_message_ids_by_message_id, insert_user_message_with_ids,
+    delete_message, update_message_numbers_after_deletion,
 };
 pub use threads::{
     close_thread, create_thread, create_thread_for_user, get_all_opened_threads, get_thread_by_channel_id,
