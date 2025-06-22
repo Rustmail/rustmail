@@ -201,6 +201,23 @@ pub async fn is_user_left(_channel_id: &str, _pool: &SqlitePool) -> Result<bool,
     Ok(false)
 }
 
+pub async fn cancel_alert_for_staff(
+    staff_user_id: serenity::all::UserId,
+    thread_user_id: i64,
+    pool: &SqlitePool,
+) -> Result<(), Error> {
+    let staff_user_id_i64 = staff_user_id.get() as i64;
+    sqlx::query!(
+        "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ?",
+        staff_user_id_i64,
+        thread_user_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 pub async fn set_alert_for_staff(
     staff_user_id: serenity::all::UserId,
     thread_user_id: i64,

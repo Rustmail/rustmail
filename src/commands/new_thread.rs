@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::errors::{ModmailResult, common};
-use crate::db::operations::{thread_exists, get_thread_channel_by_user_id};
+use crate::db::operations::{thread_exists, create_thread_for_user, get_thread_channel_by_user_id};
 use crate::i18n::get_translated_message;
 use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
 use crate::utils::build_message_from_ticket::build_message_from_ticket;
@@ -56,6 +56,16 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
         Err(e) => {
             eprintln!("Failed to create channel: {}", e);
             send_error_message(ctx, msg, config, "new_thread.channel_creation_failed", None).await;
+            return Ok(());
+        }
+    };
+
+    let _ = match create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool).await {
+        Ok(thread_id) => thread_id,
+        Err(e) => {
+            eprintln!("Failed to create thread in database: {}", e);
+            let _ = guild_channel.delete(&ctx.http).await;
+            send_error_message(ctx, msg, config, "new_thread.database_error", None).await;
             return Ok(());
         }
     };

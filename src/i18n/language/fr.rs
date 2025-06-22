@@ -335,6 +335,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert"),
     );
     dict.messages.insert(
+        "alert.cancel_failed".to_string(),
+        ErrorMessage::new("❌ Échec de l'annulation de l'alerte")
+            .with_description("Une erreur s'est produite lors de l'annulation de l'alerte"),
+    );
+    dict.messages.insert(
+        "alert.cancel_confirmation".to_string(),
+        ErrorMessage::new("🔕 Alerte annulée ! Vous ne serez plus notifié quand {user} enverra un nouveau message")
+            .with_description("Confirmation que l'alerte a été annulée"),
+    );
+    dict.messages.insert(
         "move.not_in_thread".to_string(),
         ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
             .with_description("La commande move doit être utilisée dans un canal de thread"),

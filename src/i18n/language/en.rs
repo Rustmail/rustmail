@@ -324,6 +324,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("Ping staff when user sends a new message after alert command"),
     );
     dict.messages.insert(
+        "alert.cancel_failed".to_string(),
+        ErrorMessage::new("❌ Failed to cancel alert")
+            .with_description("An error occurred while canceling the alert"),
+    );
+    dict.messages.insert(
+        "alert.cancel_confirmation".to_string(),
+        ErrorMessage::new("🔕 Alert canceled! You will no longer be notified when {user} sends message")
+            .with_description("Confirmation that the alert has been canceled"),
+    );
+    dict.messages.insert(
         "move.not_in_thread".to_string(),
         ErrorMessage::new("❌ This command can only be used in a support thread")
             .with_description("The move command must be used in a thread channel"),
