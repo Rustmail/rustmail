@@ -7,3 +7,4 @@ pub mod alert;
 pub mod test_errors;
 pub mod move_thread;
 pub mod new_thread;
+pub mod delete;
