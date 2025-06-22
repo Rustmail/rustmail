@@ -303,4 +303,24 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("✅ Message recovery completed")
             .with_description("Recovery completion notification"),
     );
+    dict.messages.insert(
+        "alert.not_in_thread".to_string(),
+        ErrorMessage::new("❌ This command can only be used in a support thread")
+            .with_description("The alert command must be used in a thread channel"),
+    );
+    dict.messages.insert(
+        "alert.set_failed".to_string(),
+        ErrorMessage::new("❌ Failed to set alert")
+            .with_description("An error occurred while setting the alert"),
+    );
+    dict.messages.insert(
+        "alert.confirmation".to_string(),
+        ErrorMessage::new("🔔 Alert set! You will be notified when {user} sends their next message")
+            .with_description("Confirmation that the alert has been set"),
+    );
+    dict.messages.insert(
+        "alert.ping_message".to_string(),
+        ErrorMessage::new("**New message received from {user}!**")
+            .with_description("Ping staff when user sends a new message after alert command"),
+    );
 } 

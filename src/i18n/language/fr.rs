@@ -314,4 +314,24 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ErrorMessage::new("✅ Récupération des messages terminée")
             .with_description("Notification de fin de récupération"),
     );
+    dict.messages.insert(
+        "alert.not_in_thread".to_string(),
+        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+            .with_description("La commande alert doit être utilisée dans un canal de thread"),
+    );
+    dict.messages.insert(
+        "alert.set_failed".to_string(),
+        ErrorMessage::new("❌ Échec de la définition de l'alerte")
+            .with_description("Une erreur s'est produite lors de la définition de l'alerte"),
+    );
+    dict.messages.insert(
+        "alert.confirmation".to_string(),
+        ErrorMessage::new("🔔 Alerte définie ! Vous serez notifié quand {user} enverra son prochain message")
+            .with_description("Confirmation que l'alerte a été définie"),
+    );
+    dict.messages.insert(
+        "alert.ping_message".to_string(),
+        ErrorMessage::new("**Nouveau message reçu de {user} !**")
+            .with_description("Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert"),
+    );
 } 
