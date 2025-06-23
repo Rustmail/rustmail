@@ -1,7 +1,6 @@
 use crate::config::Config;
-use crate::events;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
-use serenity::all::{ActivityData};
+use serenity::all::ActivityData;
 use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
@@ -23,7 +22,7 @@ impl ReadyHandler {
 #[async_trait]
 impl EventHandler for ReadyHandler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        events::ready::handle(&ctx, ready).await;
+        println!("{} is online !", ready.user.name);
         ctx.set_activity(Option::from(ActivityData::playing(&self.config.bot.status)));
 
         let config = self.config.clone();

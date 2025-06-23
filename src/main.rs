@@ -1,17 +1,19 @@
+use crate::handlers::typing_proxy_handler::TypingProxyHandler;
 use config::load_config;
-use handlers::{message_handler::MessageHandler, ready_handler::ReadyHandler, member_handler::MemberHandler, reaction_handler::ReactionHandler};
+use handlers::{
+    member_handler::MemberHandler, message_handler::MessageHandler,
+    reaction_handler::ReactionHandler, ready_handler::ReadyHandler,
+};
 use serenity::{
     all::{ClientBuilder, GatewayIntents},
     prelude::TypeMapKey,
 };
-use crate::handlers::typing_proxy_handler::TypingProxyHandler;
 use std::process;
 
 mod commands;
 mod config;
 mod db;
 mod errors;
-mod events;
 mod handlers;
 mod i18n;
 mod modules;
@@ -25,7 +27,9 @@ impl TypeMapKey for Database {
 
 #[tokio::main]
 async fn main() {
-    let pool = db::operations::init_database().await.expect("An error occured!");
+    let pool = db::operations::init_database()
+        .await
+        .expect("An error occured!");
     println!("Database connected!");
 
     let mut config = load_config("config.toml");
@@ -50,17 +54,24 @@ async fn main() {
 
     if let Err(e) = config.validate_servers(&client.http).await {
         eprintln!("Erreur de validation de configuration: {}", e);
-        eprintln!("Vérifiez que les IDs de serveur sont corrects et que le bot a accès aux serveurs.");
+        eprintln!(
+            "Vérifiez que les IDs de serveur sont corrects et que le bot a accès aux serveurs."
+        );
         process::exit(1);
     }
 
     println!("Configuration validée avec succès!");
     if config.bot.is_dual_mode() {
-        println!("Mode: Double serveur (Communautaire: {}, Staff: {})", 
-                 config.bot.get_community_guild_id(), 
-                 config.bot.get_staff_guild_id());
+        println!(
+            "Mode: Double serveur (Communautaire: {}, Staff: {})",
+            config.bot.get_community_guild_id(),
+            config.bot.get_staff_guild_id()
+        );
     } else {
-        println!("Mode: Serveur unique (ID: {})", config.bot.get_community_guild_id());
+        println!(
+            "Mode: Serveur unique (ID: {})",
+            config.bot.get_community_guild_id()
+        );
     }
 
     if let Err(e) = client.start().await {
