@@ -1,10 +1,15 @@
 use crate::config::Config;
+use crate::db::operations::{
+    delete_message, get_message_ids_by_number, get_thread_by_channel_id,
+    get_user_id_from_channel_id, update_message_numbers_after_deletion,
+};
 use crate::errors::{ModmailResult, common};
-use crate::db::operations::{get_message_ids_by_number, get_user_id_from_channel_id, delete_message, update_message_numbers_after_deletion, get_thread_by_channel_id};
 use crate::i18n::get_translated_message;
-use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
 use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use serenity::all::{Context, Message, CreateMessage, UserId, MessageId};
+use crate::utils::format_ticket_message::{
+    MessageDestination, Sender, format_ticket_message_with_destination,
+};
+use serenity::all::{Context, CreateMessage, Message, MessageId, UserId};
 use std::collections::HashMap;
 
 pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
@@ -15,22 +20,26 @@ pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailRes
 
     let (user_id, thread) = get_thread_info(ctx, msg, config, pool).await?;
     let message_number = extract_message_number(msg, config).await;
-    
+
     if message_number.is_none() {
         send_delete_message(ctx, msg, config, "delete.missing_number", None).await;
         return Ok(());
     }
 
     let message_number = message_number.unwrap();
-    let message_ids = get_message_ids(ctx, msg, config, user_id, &thread, message_number, pool).await?;
-    
+    let message_ids =
+        get_message_ids(ctx, msg, config, user_id, &thread, message_number, pool).await?;
+
     delete_discord_messages(ctx, msg, config, user_id, &message_ids).await;
     delete_database_message(&message_ids, pool, ctx, msg, config).await?;
     update_message_numbers(&thread.channel_id, message_number, pool).await;
-    
-    let mut params = HashMap::new();
-    params.insert("number".to_string(), message_number.to_string());
-    send_delete_message(ctx, msg, config, "delete.success", Some(&params)).await;
+
+    if config.notifications.show_success_on_delete {
+        let mut params = HashMap::new();
+        params.insert("number".to_string(), message_number.to_string());
+        send_delete_message(ctx, msg, config, "delete.success", Some(&params)).await;
+    }
+    let _ = msg.delete(&ctx.http).await;
 
     Ok(())
 }
@@ -70,7 +79,14 @@ async fn get_message_ids(
     message_number: i64,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<crate::db::operations::messages::MessageIds> {
-    match get_message_ids_by_number(message_number, UserId::new(user_id as u64), &thread.id, pool).await {
+    match get_message_ids_by_number(
+        message_number,
+        UserId::new(user_id as u64),
+        &thread.id,
+        pool,
+    )
+    .await
+    {
         Some(ids) => Ok(ids),
         None => {
             let mut params = HashMap::new();
@@ -100,7 +116,11 @@ async fn delete_inbox_message(
 ) {
     if let Some(inbox_msg_id) = &message_ids.inbox_message_id {
         if let Ok(msg_id) = inbox_msg_id.parse::<u64>() {
-            if let Err(e) = msg.channel_id.delete_message(&ctx.http, MessageId::new(msg_id)).await {
+            if let Err(e) = msg
+                .channel_id
+                .delete_message(&ctx.http, MessageId::new(msg_id))
+                .await
+            {
                 eprintln!("Failed to delete inbox message: {}", e);
                 send_delete_message(ctx, msg, config, "delete.discord_delete_failed", None).await;
             }
@@ -154,11 +174,7 @@ async fn delete_database_message(
     Ok(())
 }
 
-async fn update_message_numbers(
-    channel_id: &str,
-    message_number: i64,
-    pool: &sqlx::SqlitePool,
-) {
+async fn update_message_numbers(channel_id: &str, message_number: i64, pool: &sqlx::SqlitePool) {
     if let Err(e) = update_message_numbers_after_deletion(channel_id, message_number, pool).await {
         eprintln!("Failed to update message numbers: {}", e);
     }
@@ -168,11 +184,11 @@ async fn extract_message_number(msg: &Message, config: &Config) -> Option<i64> {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
     let command_name = "delete";
-    
+
     if content.starts_with(&format!("{}{}", prefix, command_name)) {
         let start = prefix.len() + command_name.len();
         let args = content[start..].trim();
-        
+
         if args.is_empty() {
             return None;
         }
@@ -206,7 +222,7 @@ async fn send_delete_message(
         None,
     )
     .await;
-    
+
     let ticket_message = format_ticket_message_with_destination(
         ctx,
         Sender::System {
@@ -221,6 +237,9 @@ async fn send_delete_message(
 
     let mut message_builder = CreateMessage::default();
     message_builder = build_message_from_ticket(ticket_message, message_builder);
-    
-    let _ = msg.channel_id.send_message(&ctx.http, message_builder).await;
-} 
+
+    let _ = msg
+        .channel_id
+        .send_message(&ctx.http, message_builder)
+        .await;
+}
