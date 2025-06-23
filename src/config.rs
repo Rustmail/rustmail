@@ -25,6 +25,7 @@ pub struct BotConfig {
     pub mode: ServerMode,
     pub status: String,
     pub welcome_message: String,
+    pub close_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
 }
@@ -62,6 +63,7 @@ pub struct NotificationsConfig {
     pub show_partial_success_on_edit: bool,
     pub show_failure_on_edit: bool,
     pub show_success_on_reply: bool,
+    pub show_success_on_delete: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -143,6 +145,7 @@ impl Default for NotificationsConfig {
             show_partial_success_on_edit: true,
             show_failure_on_edit: true,
             show_success_on_reply: true,
+            show_success_on_delete: true,
         }
     }
 }
@@ -172,7 +175,9 @@ impl BotConfig {
     pub fn get_community_guild_id(&self) -> u64 {
         match &self.mode {
             ServerMode::Single { guild_id } => *guild_id,
-            ServerMode::Dual { community_guild_id, .. } => *community_guild_id,
+            ServerMode::Dual {
+                community_guild_id, ..
+            } => *community_guild_id,
         }
     }
 
@@ -197,24 +202,32 @@ impl Config {
                     return Err(format!("Serveur principal introuvable: {}", guild_id));
                 }
             }
-            ServerMode::Dual { community_guild_id, staff_guild_id } => {
+            ServerMode::Dual {
+                community_guild_id,
+                staff_guild_id,
+            } => {
                 let community_guild_id = serenity::all::GuildId::new(*community_guild_id);
                 let staff_guild_id = serenity::all::GuildId::new(*staff_guild_id);
-                
+
                 if let Err(_) = community_guild_id.to_partial_guild(http).await {
-                    return Err(format!("Serveur communautaire introuvable: {}", community_guild_id));
+                    return Err(format!(
+                        "Serveur communautaire introuvable: {}",
+                        community_guild_id
+                    ));
                 }
-                
+
                 if let Err(_) = staff_guild_id.to_partial_guild(http).await {
                     return Err(format!("Serveur staff introuvable: {}", staff_guild_id));
                 }
-                
+
                 if community_guild_id == staff_guild_id {
-                    return Err("Les serveurs communautaire et staff doivent être différents".to_string());
+                    return Err(
+                        "Les serveurs communautaire et staff doivent être différents".to_string(),
+                    );
                 }
             }
         }
-        
+
         Ok(())
     }
 }

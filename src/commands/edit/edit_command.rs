@@ -25,10 +25,16 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     validate_edit_permissions(command_input.message_number, msg.author.id, pool).await?;
 
-    let (dm_msg_id, inbox_msg_id) =
-        get_message_ids(command_input.message_number, msg.author.id, pool, config, ctx, msg)
-            .await
-            .map_err(|_| common::message_number_not_found(command_input.message_number))?;
+    let (dm_msg_id, inbox_msg_id) = get_message_ids(
+        command_input.message_number,
+        msg.author.id,
+        pool,
+        config,
+        ctx,
+        msg,
+    )
+    .await
+    .map_err(|_| common::message_number_not_found(command_input.message_number))?;
 
     let (thread_message, dm_message) = format_new_message(
         ctx,
@@ -107,9 +113,13 @@ mod tests {
         Config {
             bot: BotConfig {
                 token: "test".to_string(),
-                mode: crate::config::ServerMode::Dual { community_guild_id: 184848, staff_guild_id: 64456},
+                mode: crate::config::ServerMode::Dual {
+                    community_guild_id: 184848,
+                    staff_guild_id: 64456,
+                },
                 status: "test".to_string(),
                 welcome_message: "Welcome to the server!".to_string(),
+                close_message: "Thank you for your message!".to_string(),
                 typing_proxy_from_user: false,
                 typing_proxy_from_staff: false,
             },

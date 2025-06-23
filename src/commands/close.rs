@@ -1,16 +1,16 @@
-use serenity::all::{Context, CreateMessage, Message, UserId, GuildId};
+use serenity::all::{Context, CreateMessage, GuildId, Message, UserId};
 use std::collections::HashMap;
 
 use crate::{
     config::Config,
     db::close_thread,
     errors::{ModmailResult, common},
+    i18n::get_translated_message,
     utils::{
         build_message_from_ticket::build_message_from_ticket,
         fetch_thread::fetch_thread,
-        format_ticket_message::{Sender, format_ticket_message}
+        format_ticket_message::{Sender, format_ticket_message},
     },
-    i18n::get_translated_message,
 };
 
 pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
@@ -34,8 +34,9 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                     None,
                     Some(msg.author.id),
                     msg.guild_id.map(|g| g.get()),
-                    None
-                ).await;
+                    None,
+                )
+                .await;
                 return Err(common::user_not_found());
             }
         };
@@ -46,7 +47,7 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 user_id: ctx.cache.current_user().id,
                 username: ctx.cache.current_user().name.clone(),
             },
-            &config.bot.welcome_message,
+            &config.bot.close_message,
             config,
         );
         let close_message = close_message.await;
@@ -55,16 +56,17 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     } else {
         let mut params = HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());
-        
+
         let info_message = get_translated_message(
             config,
             "user.left_server_close",
             Some(&params),
             Some(msg.author.id),
             msg.guild_id.map(|g| g.get()),
-            None
-        ).await;
-        
+            None,
+        )
+        .await;
+
         let info_response = format_ticket_message(
             &ctx,
             Sender::System {
