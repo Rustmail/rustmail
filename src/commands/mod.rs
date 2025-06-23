@@ -1,10 +1,11 @@
+pub mod alert;
+pub mod anonreply;
 pub mod close;
+pub mod delete;
 pub mod edit;
 pub mod help;
-pub mod reply;
-pub mod recover;
-pub mod alert;
-pub mod test_errors;
 pub mod move_thread;
 pub mod new_thread;
-pub mod delete;
+pub mod recover;
+pub mod reply;
+pub mod test_errors;

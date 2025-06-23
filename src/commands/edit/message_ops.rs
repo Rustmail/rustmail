@@ -1,10 +1,14 @@
 use crate::config::Config;
-use crate::db::operations::{get_message_ids_by_number, get_user_id_from_channel_id, get_thread_by_channel_id};
-use crate::utils::format_ticket_message::{Sender, TicketMessage, format_ticket_message_with_destination, MessageDestination};
-use serenity::all::{Context, EditMessage, Message, MessageId, UserId};
+use crate::db::operations::{
+    get_message_ids_by_number, get_thread_by_channel_id, get_user_id_from_channel_id,
+};
 use crate::i18n::get_translated_message;
-use tokio::runtime::Handle;
+use crate::utils::format_ticket_message::{
+    MessageDestination, Sender, TicketMessage, format_ticket_message_with_destination,
+};
+use serenity::all::{Context, EditMessage, Message, MessageId, UserId};
 use std::collections::HashMap;
+use tokio::runtime::Handle;
 
 #[derive(Debug)]
 pub enum EditResult {
@@ -27,11 +31,16 @@ impl EditResult {
         let message = get_translated_message(
             config,
             key,
-            if params.is_some() { Some(&param_map) } else { None },
+            if params.is_some() {
+                Some(&param_map)
+            } else {
+                None
+            },
             Some(msg.author.id),
             msg.guild_id.map(|g| g.get()),
-            None
-        ).await;
+            None,
+        )
+        .await;
         let _ = msg.reply(ctx, message).await;
     }
 }
@@ -47,7 +56,15 @@ pub async fn get_message_ids(
     let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await {
         Some(thread) => thread,
         None => {
-            let error = get_translated_message(config, "thread.not_found", None, Some(msg.author.id), msg.guild_id.map(|g|g.get()), None).await;
+            let error = get_translated_message(
+                config,
+                "thread.not_found",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None,
+            )
+            .await;
             return Err(error);
         }
     };
@@ -61,8 +78,9 @@ pub async fn get_message_ids(
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None
-            ).await;
+                None,
+            )
+            .await;
             Err(error)
         }
     }
@@ -89,7 +107,7 @@ pub async fn format_new_message(
         MessageDestination::Thread,
     )
     .await;
-    
+
     let dm_message = format_ticket_message_with_destination(
         ctx,
         Sender::Staff {
@@ -103,7 +121,7 @@ pub async fn format_new_message(
         MessageDestination::DirectMessage,
     )
     .await;
-    
+
     (thread_message, dm_message)
 }
 
@@ -124,8 +142,9 @@ pub async fn edit_inbox_message(
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None
-            ).await);
+                None,
+            )
+            .await);
         }
     };
 
@@ -137,15 +156,17 @@ pub async fn edit_inbox_message(
     if channel_id
         .edit_message(&ctx.http, message_id, edit_message)
         .await
-        .is_err() {
+        .is_err()
+    {
         return Err(get_translated_message(
             config,
             "edit.edit_failed_thread",
             None,
             Some(msg.author.id),
             msg.guild_id.map(|g| g.get()),
-            None
-        ).await);
+            None,
+        )
+        .await);
     }
 
     Ok(())
@@ -169,14 +190,13 @@ pub async fn edit_dm_message(
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None
-            ).await);
+                None,
+            )
+            .await);
         }
     };
 
-    let thread_user_id = match get_user_id_from_channel_id(&channel_id.to_string(), pool)
-        .await
-    {
+    let thread_user_id = match get_user_id_from_channel_id(&channel_id.to_string(), pool).await {
         Some(id) => id,
         None => {
             return Err(get_translated_message(
@@ -185,8 +205,9 @@ pub async fn edit_dm_message(
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None
-            ).await);
+                None,
+            )
+            .await);
         }
     };
 
@@ -201,8 +222,9 @@ pub async fn edit_dm_message(
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None
-            ).await);
+                None,
+            )
+            .await);
         }
     };
 
@@ -214,15 +236,17 @@ pub async fn edit_dm_message(
     if dm_channel
         .edit_message(&ctx.http, message_id, edit_message)
         .await
-        .is_err() {
+        .is_err()
+    {
         return Err(get_translated_message(
             config,
             "edit.edit_failed_dm",
             None,
             Some(msg.author.id),
             msg.guild_id.map(|g| g.get()),
-            None
-        ).await);
+            None,
+        )
+        .await);
     }
 
     Ok(())

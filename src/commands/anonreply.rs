@@ -7,89 +7,21 @@ use crate::i18n::get_translated_message;
 use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
-use crate::utils::format_ticket_message::Sender::Staff;
 use crate::utils::format_ticket_message::{
     MessageDestination, Sender::User, TicketMessage, format_ticket_message_with_destination,
 };
 use std::collections::HashMap;
 
-use serenity::all::{
-    Attachment, Context, CreateAttachment, CreateMessage, GuildId, Message, UserId,
-};
+use crate::utils::reply_intent::{ReplyIntent, build_reply_message, extract_intent};
+use serenity::all::{Context, CreateMessage, GuildId, Message, UserId};
 
-enum ReplyIntent {
-    Text(String),
-    Attachments(Vec<CreateAttachment>),
-    TextAndAttachments(String, Vec<CreateAttachment>),
-}
-
-async fn build_reply_message(
-    ctx: &Context,
-    staff_username: &str,
-    content: &str,
-    user_id: UserId,
-    message_number: Option<u64>,
-    config: &Config,
-    destination: MessageDestination,
-) -> TicketMessage {
-    format_ticket_message_with_destination(
-        ctx,
-        Staff {
-            username: staff_username.to_string(),
-            user_id,
-            role: None,
-            message_number,
-        },
-        content,
-        config,
-        destination,
-    )
-    .await
-}
-
-async fn extract_intent(
-    content: Option<String>,
-    attachments: &[Attachment],
-) -> Option<ReplyIntent> {
-    let attachments = download_attachments(attachments).await;
-
-    match (content, attachments.is_empty()) {
-        (Some(c), true) => Some(ReplyIntent::Text(c)),
-        (None, false) => Some(ReplyIntent::Attachments(attachments)),
-        (Some(c), false) => Some(ReplyIntent::TextAndAttachments(c, attachments)),
-        (None, true) => None,
-    }
-}
-
-async fn download_attachments(attachments: &[Attachment]) -> Vec<CreateAttachment> {
-    let mut downloaded_attachments = Vec::new();
-
-    for attachment in attachments {
-        if let Ok(response) = reqwest::get(&attachment.url).await {
-            if let Ok(bytes) = response.bytes().await {
-                downloaded_attachments
-                    .push(CreateAttachment::bytes(bytes, attachment.filename.clone()));
-            } else {
-                eprintln!(
-                    "Failed to read bytes from attachment: {}",
-                    attachment.filename
-                );
-            }
-        } else {
-            eprintln!("Failed to download attachment: {}", attachment.filename);
-        }
-    }
-
-    downloaded_attachments
-}
-
-pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
         .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
-    let content = extract_reply_content(&msg.content, &config.command.prefix, &["reply", "r"]);
+    let content = extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
@@ -106,16 +38,13 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
-
     let user_id = UserId::new(thread.user_id as u64);
-
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
 
     if !user_still_member {
         let mut params = HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());
-
         let error_message = get_translated_message(
             config,
             "user.left_server",
@@ -125,7 +54,6 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             None,
         )
         .await;
-
         let error_response = format_ticket_message_with_destination(
             ctx,
             User {
@@ -137,12 +65,10 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             MessageDestination::Thread,
         )
         .await;
-
         let error_message_builder = match error_response {
             TicketMessage::Plain(content) => CreateMessage::new().content(content),
             TicketMessage::Embed(embed) => CreateMessage::new().embed(embed),
         };
-
         let _ = msg
             .channel_id
             .send_message(&ctx.http, error_message_builder)
@@ -167,7 +93,6 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     };
 
     let next_message_number = get_next_message_number(&thread.id, db_pool).await;
-
     if let Err(e) = increment_message_number(&thread.id, db_pool).await {
         eprintln!(
             "Erreur lors de l'incrémentation du numéro de message: {}",
@@ -183,11 +108,12 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             let thread_tmsg = build_reply_message(
                 ctx,
                 &msg.author.name,
-                &text,
                 msg.author.id,
+                &text,
                 Some(next_message_number),
                 config,
                 MessageDestination::Thread,
+                true,
             )
             .await;
             thread_msg_builder = build_message_from_ticket(thread_tmsg, thread_msg_builder);
@@ -195,11 +121,12 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             let dm_tmsg = build_reply_message(
                 ctx,
                 &msg.author.name,
-                &text,
                 msg.author.id,
+                &text,
                 Some(next_message_number),
                 config,
                 MessageDestination::DirectMessage,
+                true,
             )
             .await;
             dm_msg_builder = build_message_from_ticket(dm_tmsg, dm_msg_builder);
@@ -216,11 +143,12 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             let thread_tmsg = build_reply_message(
                 ctx,
                 &msg.author.name,
-                &text,
                 msg.author.id,
+                &text,
                 Some(next_message_number),
                 config,
                 MessageDestination::Thread,
+                true,
             )
             .await;
             thread_msg_builder = build_message_from_ticket(thread_tmsg, thread_msg_builder);
@@ -228,11 +156,12 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             let dm_tmsg = build_reply_message(
                 ctx,
                 &msg.author.name,
-                &text,
                 msg.author.id,
+                &text,
                 Some(next_message_number),
                 config,
                 MessageDestination::DirectMessage,
+                true,
             )
             .await;
             dm_msg_builder = build_message_from_ticket(dm_tmsg, dm_msg_builder);

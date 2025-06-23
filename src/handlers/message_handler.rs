@@ -6,21 +6,22 @@ use serenity::{
 };
 
 use crate::commands::{
+    alert::alert,
+    anonreply::anonreply,
     close::close,
+    delete::delete,
     edit::edit_command::edit,
     help::help,
-    reply::reply,
-    recover::recover,
-    alert::alert,
-    test_errors::{test_all_errors, test_errors, test_language},
     move_thread::move_thread,
     new_thread::new_thread,
-    delete::delete,
+    recover::recover,
+    reply::reply,
+    test_errors::{test_all_errors, test_errors, test_language},
 };
+use crate::config::Config;
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
 use crate::utils::send_to_thread::send_to_thread;
-use crate::config::Config;
 use crate::{modules::threads::create_channel, utils::wrap_command};
 
 type CommandFunc = Arc<StaticCommandFunc>;
@@ -49,6 +50,7 @@ impl MessageHandler {
         wrap_command!(h.commands, ["move", "mv"], move_thread);
         wrap_command!(h.commands, ["nt", "new_thread"], new_thread);
         wrap_command!(h.commands, "delete", delete);
+        wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
         wrap_command!(h.commands, "test_errors", test_errors);
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);
@@ -87,16 +89,17 @@ async fn manage_incoming_message(
             } else {
                 "server.wrong_guild_single"
             };
-            
+
             let error_msg = crate::i18n::get_translated_message(
                 config,
                 error_key,
                 None,
                 Some(msg.author.id),
                 Some(guild_id.get()),
-                None
-            ).await;
-            
+                None,
+            )
+            .await;
+
             let error = common::validation_failed(&error_msg);
             let _ = error_handler.reply_with_error(ctx, msg, &error).await;
             return Err(error);
@@ -104,7 +107,7 @@ async fn manage_incoming_message(
     }
 
     let thread_exists = thread_exists(msg.author.id, pool).await;
-    
+
     if thread_exists {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str
@@ -149,7 +152,9 @@ impl EventHandler for MessageHandler {
             }
 
             if let Some(command_func) = self.commands.get(command_name) {
-                if let Err(error) = command_func(ctx.clone(), msg.clone(), self.config.clone()).await {
+                if let Err(error) =
+                    command_func(ctx.clone(), msg.clone(), self.config.clone()).await
+                {
                     if let Some(error_handler) = &self.config.error_handler {
                         let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
                     } else {

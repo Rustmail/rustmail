@@ -1,15 +1,24 @@
 use crate::config::Config;
-use crate::utils::hex_string_to_int::hex_string_to_int;
-use serenity::all::{Colour, Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp, UserId};
 use crate::i18n::get_translated_message;
+use crate::utils::hex_string_to_int::hex_string_to_int;
+use serenity::all::{
+    Colour, Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp, UserId,
+};
 use tokio::runtime::Handle;
 
+#[derive(Debug, Clone)]
 pub enum Sender {
     User {
         user_id: UserId,
         username: String,
     },
     Staff {
+        username: String,
+        user_id: UserId,
+        role: Option<String>,
+        message_number: Option<u64>,
+    },
+    StaffAnonymous {
         username: String,
         user_id: UserId,
         role: Option<String>,
@@ -66,20 +75,32 @@ async fn create_embed_message(
             &config.thread.staff_message_color,
             *message_number,
         ),
+        Sender::StaffAnonymous {
+            user_id,
+            username,
+            message_number,
+            ..
+        } => (
+            user_id,
+            username,
+            &config.thread.staff_message_color,
+            *message_number,
+        ),
         Sender::System { user_id, username } => {
             (user_id, username, &config.thread.system_message_color, None)
         }
     };
     let avatar_url = get_user_avatar_url(ctx, *user_id).await;
+
     let mut embed = CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url))
         .color(Colour::new(hex_string_to_int(color) as u32))
         .timestamp(Timestamp::now());
-    
+
     if !content.trim().is_empty() {
         embed = embed.description(format!(">>> {}", content));
     }
-    
+
     if let (Some(msg_num), MessageDestination::Thread) = (message_number, destination) {
         use std::collections::HashMap;
         let mut params = HashMap::new();
@@ -91,8 +112,9 @@ async fn create_embed_message(
             Some(&params),
             Some(*user_id),
             None,
-            None
-        ).await;
+            None,
+        )
+        .await;
         embed = embed.footer(CreateEmbedFooter::new(footer_text));
     }
     embed
@@ -107,7 +129,7 @@ fn create_classic_message(
     if content.trim().is_empty() {
         return String::new();
     }
-    
+
     match sender {
         Sender::User { username, .. } => format!("**{}** : {}", username, content),
         Sender::System { username, .. } => format!("**{}** : {}", username, content),
@@ -133,7 +155,35 @@ fn create_classic_message(
                     Some(&params),
                     None,
                     None,
-                    None
+                    None,
+                ));
+                format!("{}\n\n{}", base_message, footer)
+            } else {
+                base_message
+            }
+        }
+        Sender::StaffAnonymous {
+            role,
+            message_number,
+            ..
+        } => {
+            let base_message = if let Some(role) = role {
+                format!("**Support** [{}] : {}", role, content)
+            } else {
+                format!("**Support** : {}", content)
+            };
+            if let (Some(msg_num), MessageDestination::Thread) = (message_number, destination) {
+                use std::collections::HashMap;
+                let mut params = HashMap::new();
+                params.insert("number".to_string(), msg_num.to_string());
+                params.insert("prefix".to_string(), config.command.prefix.clone());
+                let footer = Handle::current().block_on(get_translated_message(
+                    config,
+                    "reply_numbering.text_footer",
+                    Some(&params),
+                    None,
+                    None,
+                    None,
                 ));
                 format!("{}\n\n{}", base_message, footer)
             } else {

@@ -195,9 +195,13 @@ pub async fn update_message_content(
 }
 
 pub async fn delete_message(message_id: &str, pool: &SqlitePool) -> Result<(), Error> {
-    sqlx::query!("DELETE FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?", message_id, message_id)
-        .execute(pool)
-        .await?;
+    sqlx::query!(
+        "DELETE FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?",
+        message_id,
+        message_id
+    )
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
@@ -212,7 +216,8 @@ pub async fn update_message_numbers_after_deletion(
         channel_id
     )
     .fetch_optional(pool)
-    .await? {
+    .await?
+    {
         Some(id) => id,
         None => return Ok(()),
     };
