@@ -2,6 +2,8 @@
 token = "YOUR TOKEN HERE"
 staff_guild_id = 711880297272311856
 status = "DM POUR SUPPORT"
+welcome_message = "Votre message à bien été reçu par l'équipe Staff ! Nous vous répondrons dès que possible."
+close_message = "Merci d'avoir contacté le support ! Ton ticket est désormais clos."
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
 
