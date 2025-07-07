@@ -7,7 +7,7 @@ edition = "2024"
 serde = { version = "*", features = ["derive"] }
 serenity = "0.12.4"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "macros"] }
-tokio = { version = "1.45.1", features = ["rt-multi-thread"] }
+tokio = { version = "1.46.1", features = ["rt-multi-thread"] }
 toml = "0.8.23"
 reqwest = "0.12.20"
 async-trait = "0.1.88"
