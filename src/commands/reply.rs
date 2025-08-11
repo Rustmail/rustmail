@@ -7,9 +7,8 @@ use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use std::collections::HashMap;
 
-use serenity::all::{
-    Attachment, Context, CreateAttachment, GuildId, Message, UserId,
-};
+use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
+use crate::utils::hex_string_to_int::hex_string_to_int;
 use crate::utils::message_builder::MessageBuilder;
 
 enum ReplyIntent {
@@ -123,10 +122,11 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .to_user(user_id)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .send()
                 .await;
 
@@ -187,9 +187,10 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
                 .with_message_number(next_message_number)
                 .add_attachments(files)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .to_user(user_id)
                 .send()
                 .await;
@@ -219,10 +220,11 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .to_user(user_id)
                 .send()
                 .await;
