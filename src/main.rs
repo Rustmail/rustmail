@@ -4,10 +4,7 @@ use handlers::{
     member_handler::MemberHandler, message_handler::MessageHandler,
     reaction_handler::ReactionHandler, ready_handler::ReadyHandler,
 };
-use serenity::{
-    all::{ClientBuilder, GatewayIntents},
-    prelude::TypeMapKey,
-};
+use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
 
 mod commands;
@@ -20,10 +17,6 @@ mod modules;
 mod utils;
 
 pub struct Database;
-
-impl TypeMapKey for Database {
-    type Value = sqlx::SqlitePool;
-}
 
 #[tokio::main]
 async fn main() {

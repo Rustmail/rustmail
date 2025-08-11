@@ -122,6 +122,7 @@ mod tests {
                 close_message: "Thank you for your message!".to_string(),
                 typing_proxy_from_user: false,
                 typing_proxy_from_staff: false,
+                logs_channel_id: 64456,
             },
             command: CommandConfig {
                 prefix: "!".to_string(),

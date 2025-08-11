@@ -28,6 +28,7 @@ pub struct BotConfig {
     pub close_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
+    pub logs_channel_id: u64,
 }
 
 #[derive(Debug, Deserialize, Clone)]
