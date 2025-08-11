@@ -7,7 +7,7 @@ use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use std::collections::HashMap;
 
-use serenity::all::{Attachment, Color, Context, CreateAttachment, GuildId, Message, UserId};
+use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use crate::utils::message_builder::MessageBuilder;
 
