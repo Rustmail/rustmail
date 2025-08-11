@@ -1,5 +1,5 @@
 use crate::errors::types::*;
-use crate::i18n::languages::{Language, PluralForm};
+use crate::i18n::languages::Language;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::i18n::language::en::load_english_messages;
@@ -36,11 +36,6 @@ impl ErrorMessage {
 
     pub fn with_help(mut self, help: &str) -> Self {
         self.help = Some(help.to_string());
-        self
-    }
-
-    pub fn with_plurals(mut self, plurals: HashMap<String, String>) -> Self {
-        self.plurals = Some(plurals);
         self
     }
 

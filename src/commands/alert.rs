@@ -2,10 +2,10 @@ use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::db::operations::{get_user_id_from_channel_id, set_alert_for_staff, cancel_alert_for_staff};
 use crate::i18n::get_translated_message;
-use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use serenity::all::{Context, Message, CreateMessage};
+use serenity::all::{Context, Message};
 use std::collections::HashMap;
+use serenity::all::colours::roles::GREEN;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -103,23 +103,13 @@ async fn send_alert_message(
         None,
     )
     .await;
-    
-    let ticket_message = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &message_content,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
 
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(ticket_message, message_builder);
-    
-    let _ = msg.channel_id.send_message(&ctx.http, message_builder).await;
+    let _ = MessageBuilder::staff_message(ctx, config, bot_user_id, bot_user.name.clone())
+        .content(message_content)
+        .to_channel(msg.channel_id)
+        .color(GREEN.0)
+        .send()
+        .await;
 }
 
 async fn extract_alert_action(msg: &Message, config: &Config) -> bool {

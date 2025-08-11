@@ -8,5 +8,6 @@ pub mod hex_string_to_int;
 pub mod reply_intent;
 pub mod send_to_thread;
 pub mod wrap_command;
+pub mod message_builder;
 
 pub use crate::wrap_command;

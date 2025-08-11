@@ -2,10 +2,9 @@ use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::db::operations::{thread_exists, create_thread_for_user, get_thread_channel_by_user_id};
 use crate::i18n::get_translated_message;
-use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Message, UserId};
+use serenity::all::{ChannelId, Context, GuildId, Message, UserId};
 use std::collections::HashMap;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -124,13 +123,6 @@ async fn extract_user_id(msg: &Message, config: &Config) -> Option<UserId> {
 }
 
 async fn send_welcome_message(ctx: &Context, channel: &serenity::model::channel::GuildChannel, config: &Config, user: &serenity::model::user::User) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
     
@@ -144,22 +136,11 @@ async fn send_welcome_message(ctx: &Context, channel: &serenity::model::channel:
     )
     .await;
 
-    let welcome_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &welcome_msg,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(welcome_ticket, message_builder);
-
-    let _ = channel.id.send_message(&ctx.http, message_builder).await;
+    let _ = MessageBuilder::system_message(&ctx, config)
+        .content(welcome_msg)
+        .to_channel(channel.id)
+        .send()
+        .await;
 }
 
 async fn send_dm_to_user(
@@ -168,13 +149,6 @@ async fn send_dm_to_user(
     config: &Config, 
     _channel: &serenity::model::channel::GuildChannel
 ) -> Result<(), serenity::Error> {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return Err(serenity::Error::Other("Failed to get bot user")),
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let dm_msg = get_translated_message(
         config,
         "new_thread.dm_notification",
@@ -185,22 +159,12 @@ async fn send_dm_to_user(
     )
     .await;
 
-    let dm_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &dm_msg,
-        config,
-        MessageDestination::DirectMessage,
-    )
-    .await;
+    let _ = MessageBuilder::system_message(&ctx, config)
+        .content(dm_msg)
+        .to_user(user.id)
+        .send()
+        .await;
 
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(dm_ticket, message_builder);
-
-    user.dm(&ctx.http, message_builder).await?;
     Ok(())
 }
 
@@ -211,13 +175,6 @@ async fn send_error_message(
     error_key: &str, 
     params: Option<&HashMap<String, String>>
 ) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let error_msg = get_translated_message(
         config,
         error_key,
@@ -227,23 +184,12 @@ async fn send_error_message(
         None,
     )
     .await;
-    
-    let error_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &error_msg,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
 
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(error_ticket, message_builder);
-    
-    let _ = msg.channel_id.send_message(&ctx.http, message_builder).await;
+    let _ = MessageBuilder::system_message(&ctx, config)
+        .content(error_msg)
+        .to_channel(msg.channel_id)
+        .send()
+        .await;
 }
 
 async fn send_success_message(
@@ -254,13 +200,6 @@ async fn send_success_message(
     channel: &serenity::model::channel::GuildChannel,
     dm_sent: bool
 ) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
     params.insert("channel_id".to_string(), channel.id.to_string());
@@ -282,20 +221,9 @@ async fn send_success_message(
     )
     .await;
 
-    let confirmation_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &confirmation_msg,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(confirmation_ticket, message_builder);
-
-    let _ = msg.channel_id.send_message(&ctx.http, message_builder).await;
+    let _ = MessageBuilder::system_message(&ctx, config)
+        .content(confirmation_msg)
+        .to_channel(msg.channel_id)
+        .send()
+        .await;
 } 

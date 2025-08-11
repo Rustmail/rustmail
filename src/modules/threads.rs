@@ -1,5 +1,4 @@
 use crate::db::operations::create_thread;
-use crate::db::thread_exists;
 use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::format_duration_since::format_duration_since;
 use crate::utils::format_ticket_message::Sender;
