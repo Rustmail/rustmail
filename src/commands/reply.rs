@@ -3,48 +3,19 @@ use crate::db::operations::{
     get_next_message_number, increment_message_number, insert_staff_message,
 };
 use crate::errors::{ModmailResult, common};
-use crate::i18n::get_translated_message;
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
-use crate::utils::format_ticket_message::Sender::Staff;
-use crate::utils::format_ticket_message::{
-    MessageDestination, Sender::User, TicketMessage, format_ticket_message_with_destination,
-};
 use std::collections::HashMap;
 
 use serenity::all::{
-    Attachment, Context, CreateAttachment, CreateMessage, GuildId, Message, UserId,
+    Attachment, Context, CreateAttachment, GuildId, Message, UserId,
 };
+use crate::utils::message_builder::MessageBuilder;
 
 enum ReplyIntent {
     Text(String),
     Attachments(Vec<CreateAttachment>),
     TextAndAttachments(String, Vec<CreateAttachment>),
-}
-
-async fn build_reply_message(
-    ctx: &Context,
-    staff_username: &str,
-    content: &str,
-    user_id: UserId,
-    message_number: Option<u64>,
-    config: &Config,
-    destination: MessageDestination,
-) -> TicketMessage {
-    format_ticket_message_with_destination(
-        ctx,
-        Staff {
-            username: staff_username.to_string(),
-            user_id,
-            role: None,
-            message_number,
-        },
-        content,
-        config,
-        destination,
-    )
-    .await
 }
 
 async fn extract_intent(
@@ -93,78 +64,44 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        let error_msg = get_translated_message(
-            config,
-            "reply.missing_content",
-            None,
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
-        )
-        .await;
-        return Err(common::validation_failed(&error_msg));
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "reply.missing_content",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            ).await
+            .color(0xFF0000)
+            .reply_to(msg.clone())
+            .send_and_forget()
+            .await;
+
+        return Err(common::validation_failed("Missing content"));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
-
+    let username: String = thread.user_name;
     let user_id = UserId::new(thread.user_id as u64);
-
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
 
     if !user_still_member {
         let mut params = HashMap::new();
-        params.insert("username".to_string(), thread.user_name.clone());
+        params.insert("username".to_string(), username.clone());
 
-        let error_message = get_translated_message(
-            config,
-            "user.left_server",
-            Some(&params),
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
-        )
-        .await;
-
-        let error_response = format_ticket_message_with_destination(
-            ctx,
-            User {
-                username: msg.author.name.clone(),
-                user_id: msg.author.id,
-            },
-            &error_message,
-            config,
-            MessageDestination::Thread,
-        )
-        .await;
-
-        let error_message_builder = match error_response {
-            TicketMessage::Plain(content) => CreateMessage::new().content(content),
-            TicketMessage::Embed(embed) => CreateMessage::new().embed(embed),
-        };
-
-        let _ = msg
-            .channel_id
-            .send_message(&ctx.http, error_message_builder)
-            .await;
-        return Ok(());
-    }
-
-    let dm_channel = match user_id.create_dm_channel(&ctx.http).await {
-        Ok(channel) => channel,
-        Err(_) => {
-            let err_msg = get_translated_message(
-                config,
-                "reply.user_not_found",
-                None,
+        MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
+            .translated_content(
+                "user.left_server",
+                Some(&params),
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-                None,
-            )
+            ).await
+            .to_channel(msg.channel_id)
+            .send_and_forget()
             .await;
-            return Err(common::user_not_found());
-        }
-    };
+
+        return Ok(());
+    }
 
     let next_message_number = get_next_message_number(&thread.id, db_pool).await;
 
@@ -175,128 +112,137 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         );
     }
 
-    let mut thread_msg_builder = CreateMessage::default();
-    let mut dm_msg_builder = CreateMessage::default();
+    let _ = msg.delete(&ctx.http).await;
 
     match intent {
         ReplyIntent::Text(text) => {
-            let thread_tmsg = build_reply_message(
-                ctx,
-                &msg.author.name,
-                &text,
-                msg.author.id,
-                Some(next_message_number),
-                config,
-                MessageDestination::Thread,
-            )
-            .await;
-            thread_msg_builder = build_message_from_ticket(thread_tmsg, thread_msg_builder);
+            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .content(&text)
+                .with_message_number(next_message_number)
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
 
-            let dm_tmsg = build_reply_message(
-                ctx,
-                &msg.author.name,
-                &text,
+            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .content(&text)
+                .with_message_number(next_message_number)
+                .to_user(user_id)
+                .send()
+                .await;
+
+            let thread_msg = match thread_response {
+                Ok(msg) => msg,
+                Err(_) => {
+                    MessageBuilder::system_message(ctx, config)
+                        .translated_content(
+                            "reply.send_failed_thread",
+                            None,
+                            Some(msg.author.id),
+                            msg.guild_id.map(|g| g.get()),
+                        ).await
+                        .color(0xFF0000)
+                        .to_channel(msg.channel_id)
+                        .send_and_forget()
+                        .await;
+                    return Err(common::validation_failed("Failed to send to thread"));
+                }
+            };
+
+            let dm_msg = match dm_response {
+                Ok(msg) => Some(msg.id.to_string()),
+                Err(_) => {
+                    MessageBuilder::system_message(ctx, config)
+                        .translated_content(
+                            "reply.send_failed_dm",
+                            None,
+                            Some(msg.author.id),
+                            msg.guild_id.map(|g| g.get()),
+                        ).await
+                        .color(0xFFA500)
+                        .to_channel(msg.channel_id)
+                        .send_and_forget()
+                        .await;
+                    None
+                }
+            };
+
+            if let Err(e) = insert_staff_message(
+                &thread_msg,
+                dm_msg,
+                &thread.id,
                 msg.author.id,
-                Some(next_message_number),
+                true,
+                db_pool,
                 config,
-                MessageDestination::DirectMessage,
-            )
-            .await;
-            dm_msg_builder = build_message_from_ticket(dm_tmsg, dm_msg_builder);
+                next_message_number,
+            ).await {
+                eprintln!("Error inserting staff message: {}", e);
+            }
         }
         ReplyIntent::Attachments(files) => {
-            for file in files.clone() {
-                thread_msg_builder = thread_msg_builder.add_file(file);
-            }
-            for file in files {
-                dm_msg_builder = dm_msg_builder.add_file(file);
+            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .with_message_number(next_message_number)
+                .add_attachments(files.clone())
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
+
+            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .with_message_number(next_message_number)
+                .add_attachments(files)
+                .to_user(user_id)
+                .send()
+                .await;
+
+            let thread_msg = thread_response.map_err(|_| common::validation_failed("Failed to send to thread"))?;
+            let dm_msg = dm_response.ok().map(|msg| msg.id.to_string());
+
+            if let Err(e) = insert_staff_message(
+                &thread_msg,
+                dm_msg,
+                &thread.id,
+                msg.author.id,
+                true,
+                db_pool,
+                config,
+                next_message_number,
+            ).await {
+                eprintln!("Error inserting staff message: {}", e);
             }
         }
         ReplyIntent::TextAndAttachments(text, files) => {
-            let thread_tmsg = build_reply_message(
-                ctx,
-                &msg.author.name,
-                &text,
+            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .content(&text)
+                .with_message_number(next_message_number)
+                .add_attachments(files.clone())
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
+
+            let dm_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+                .content(&text)
+                .with_message_number(next_message_number)
+                .add_attachments(files)
+                .to_user(user_id)
+                .send()
+                .await;
+
+            let thread_msg = thread_response.map_err(|_| common::validation_failed("Failed to send to thread"))?;
+            let dm_msg = dm_response.ok().map(|msg| msg.id.to_string());
+
+            if let Err(e) = insert_staff_message(
+                &thread_msg,
+                dm_msg,
+                &thread.id,
                 msg.author.id,
-                Some(next_message_number),
+                false,
+                db_pool,
                 config,
-                MessageDestination::Thread,
-            )
-            .await;
-            thread_msg_builder = build_message_from_ticket(thread_tmsg, thread_msg_builder);
-
-            let dm_tmsg = build_reply_message(
-                ctx,
-                &msg.author.name,
-                &text,
-                msg.author.id,
-                Some(next_message_number),
-                config,
-                MessageDestination::DirectMessage,
-            )
-            .await;
-            dm_msg_builder = build_message_from_ticket(dm_tmsg, dm_msg_builder);
-
-            for file in files.clone() {
-                thread_msg_builder = thread_msg_builder.add_file(file);
-            }
-            for file in files {
-                dm_msg_builder = dm_msg_builder.add_file(file);
+                next_message_number,
+            ).await {
+                eprintln!("Error inserting staff message: {}", e);
             }
         }
-    }
-
-    let _ = msg.delete(&ctx.http).await;
-
-    let thread_response = match msg
-        .channel_id
-        .send_message(&ctx.http, thread_msg_builder)
-        .await
-    {
-        Ok(msg) => msg,
-        Err(_) => {
-            let err_msg = get_translated_message(
-                config,
-                "reply.send_failed_thread",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
-            )
-            .await;
-            return Err(common::validation_failed(&err_msg));
-        }
-    };
-
-    let dm_response = match dm_channel.send_message(&ctx.http, dm_msg_builder).await {
-        Ok(msg) => Some(msg),
-        Err(_) => {
-            let err_msg = get_translated_message(
-                config,
-                "reply.send_failed_dm",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
-            )
-            .await;
-            return Err(common::validation_failed(&err_msg));
-        }
-    };
-
-    if let Err(e) = insert_staff_message(
-        &thread_response,
-        dm_response.map(|response| response.id.to_string()),
-        &thread.id,
-        msg.author.id,
-        false,
-        db_pool,
-        config,
-        next_message_number,
-    )
-    .await
-    {
-        eprintln!("Error inserting staff message: {}", e);
     }
 
     if config.notifications.show_success_on_reply {

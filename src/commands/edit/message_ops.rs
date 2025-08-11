@@ -8,7 +8,6 @@ use crate::utils::format_ticket_message::{
 };
 use serenity::all::{Context, EditMessage, Message, MessageId, UserId};
 use std::collections::HashMap;
-use tokio::runtime::Handle;
 
 #[derive(Debug)]
 pub enum EditResult {

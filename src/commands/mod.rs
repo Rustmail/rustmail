@@ -3,7 +3,6 @@ pub mod anonreply;
 pub mod close;
 pub mod delete;
 pub mod edit;
-pub mod help;
 pub mod move_thread;
 pub mod new_thread;
 pub mod recover;

@@ -2,12 +2,9 @@ use crate::config::Config;
 use crate::db::operations::get_user_id_from_channel_id;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use crate::utils::format_ticket_message::{
-    MessageDestination, Sender, format_ticket_message_with_destination,
-};
-use serenity::all::{ChannelId, Context, CreateMessage, EditChannel, GuildId, Message};
+use serenity::all::{ChannelId, Context, EditChannel, GuildId, Message};
 use std::collections::HashMap;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -111,13 +108,6 @@ async fn send_error_message(
     error_key: &str,
     params: Option<&HashMap<String, String>>,
 ) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let error_msg = get_translated_message(
         config,
         error_key,
@@ -128,35 +118,14 @@ async fn send_error_message(
     )
     .await;
 
-    let error_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &error_msg,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(error_ticket, message_builder);
-
-    let _ = msg
-        .channel_id
-        .send_message(&ctx.http, message_builder)
+    let _ = MessageBuilder::system_message(ctx, config)
+        .content(error_msg)
+        .to_channel(msg.channel_id)
+        .send()
         .await;
 }
 
 async fn send_success_message(ctx: &Context, msg: &Message, config: &Config, category_name: &str) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let mut params = HashMap::new();
     params.insert("category".to_string(), category_name.to_string());
     params.insert("staff".to_string(), msg.author.name.clone());
@@ -171,25 +140,13 @@ async fn send_success_message(ctx: &Context, msg: &Message, config: &Config, cat
     )
     .await;
 
-    let confirmation_ticket = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &confirmation_msg,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(confirmation_ticket, message_builder);
-
-    let _ = msg
-        .channel_id
-        .send_message(&ctx.http, message_builder)
+    let _ = MessageBuilder::system_message(&ctx, config)
+        .content(confirmation_msg)
+        .to_channel(msg.channel_id)
+        .send()
         .await;
+
+    let _ = msg.delete(&ctx.http).await;
 }
 
 fn find_best_match_category(
