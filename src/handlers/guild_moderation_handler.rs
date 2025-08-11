@@ -34,7 +34,5 @@ impl EventHandler for GuildModerationHandler {
         guild_id: GuildId,
     ) {
         let log_channel_id = ChannelId::new(self.config.bot.logs_channel_id);
-
-        let message_builder = build_reply_message(ticket_message, message_builder);
     }
 }

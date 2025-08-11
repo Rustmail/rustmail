@@ -61,10 +61,6 @@ async fn manage_incoming_message(
     msg: &Message,
     config: &Config,
 ) -> ModmailResult<()> {
-    if msg.content.starts_with(&config.command.prefix) {
-        return Ok(());
-    }
-
     if msg.author.bot {
         return Ok(());
     }
