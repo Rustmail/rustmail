@@ -11,7 +11,6 @@ use crate::commands::{
     close::close,
     delete::delete,
     edit::edit_command::edit,
-    help::help,
     move_thread::move_thread,
     new_thread::new_thread,
     recover::recover,
@@ -41,7 +40,6 @@ impl MessageHandler {
             config: config.clone(),
             commands: HashMap::new(),
         };
-        wrap_command!(h.commands, "help", help);
         wrap_command!(h.commands, ["reply", "r"], reply);
         wrap_command!(h.commands, ["edit", "e"], edit);
         wrap_command!(h.commands, ["close", "c"], close);

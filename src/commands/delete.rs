@@ -5,12 +5,9 @@ use crate::db::operations::{
 };
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use crate::utils::format_ticket_message::{
-    MessageDestination, Sender, format_ticket_message_with_destination,
-};
-use serenity::all::{Context, CreateMessage, Message, MessageId, UserId};
+use serenity::all::{Context, Message, MessageId, UserId};
 use std::collections::HashMap;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -206,13 +203,6 @@ async fn send_delete_message(
     message_key: &str,
     params: Option<&HashMap<String, String>>,
 ) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
     let message_content = get_translated_message(
         config,
         message_key,
@@ -223,23 +213,9 @@ async fn send_delete_message(
     )
     .await;
 
-    let ticket_message = format_ticket_message_with_destination(
-        ctx,
-        Sender::System {
-            user_id: bot_user_id,
-            username: bot_user.name.clone(),
-        },
-        &message_content,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::default();
-    message_builder = build_message_from_ticket(ticket_message, message_builder);
-
-    let _ = msg
-        .channel_id
-        .send_message(&ctx.http, message_builder)
+    let _ = MessageBuilder::system_message(ctx, config)
+        .content(message_content)
+        .to_channel(msg.channel_id)
+        .send()
         .await;
 }
