@@ -4,11 +4,9 @@ use handlers::{
     member_handler::MemberHandler, message_handler::MessageHandler,
     reaction_handler::ReactionHandler, ready_handler::ReadyHandler,
 };
-use serenity::{
-    all::{ClientBuilder, GatewayIntents},
-    prelude::TypeMapKey,
-};
+use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
+use crate::handlers::guild_moderation_handler::GuildModerationHandler;
 
 mod commands;
 mod config;
@@ -20,10 +18,6 @@ mod modules;
 mod utils;
 
 pub struct Database;
-
-impl TypeMapKey for Database {
-    type Value = sqlx::SqlitePool;
-}
 
 #[tokio::main]
 async fn main() {
@@ -42,13 +36,15 @@ async fn main() {
         | GatewayIntents::GUILD_MEMBERS
         | GatewayIntents::GUILD_PRESENCES
         | GatewayIntents::GUILD_MESSAGE_REACTIONS
-        | GatewayIntents::DIRECT_MESSAGE_REACTIONS;
+        | GatewayIntents::DIRECT_MESSAGE_REACTIONS
+        | GatewayIntents::GUILD_MODERATION;
     let mut client: serenity::Client = ClientBuilder::new(config.bot.token.clone(), intents)
         .event_handler(ReadyHandler::new(&config))
         .event_handler(MessageHandler::new(&config))
         .event_handler(TypingProxyHandler::new(&config))
         .event_handler(MemberHandler::new(&config))
         .event_handler(ReactionHandler::new(&config))
+        .event_handler(GuildModerationHandler::new(&config))
         .await
         .expect("Failed to create client.");
 
