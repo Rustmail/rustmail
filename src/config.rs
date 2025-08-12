@@ -28,7 +28,10 @@ pub struct BotConfig {
     pub close_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
-    pub logs_channel_id: u64,
+    pub enable_logs: bool,
+
+    #[serde(default)]
+    pub logs_channel_id: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -107,6 +110,8 @@ pub fn load_config(path: &str) -> Config {
             config.language.default_language
         );
     }
+
+    config.bot.validate_logs_config().expect("Invalid logs configuration !");
 
     let default_lang = config.language.get_default_language();
     let fallback_lang = config.language.get_fallback_language();
@@ -191,6 +196,15 @@ impl BotConfig {
 
     pub fn is_dual_mode(&self) -> bool {
         matches!(self.mode, ServerMode::Dual { .. })
+    }
+
+    pub fn validate_logs_config(&self) -> Result<(), String> {
+        match (self.enable_logs, self.logs_channel_id) {
+            (true, None) => Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string()),
+            (false, Some(_)) => Err("'logs_channel_id' must not be filled in if 'enable_logs' is false".to_string()),
+            (true, Some(_)) => Ok(()),
+            (false, None) => Ok(())
+        }
     }
 }
 
