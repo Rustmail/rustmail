@@ -33,10 +33,6 @@ impl ErrorHandler {
         }
     }
 
-    pub fn with_default_language(language: Language) -> Self {
-        Self::with_languages(language, Language::English)
-    }
-
     pub async fn get_user_language(&self, user_id: UserId, guild_id: Option<u64>) -> Language {
         if let Some(prefs) = self.user_languages.read().await.get(&user_id) {
             return prefs.primary;

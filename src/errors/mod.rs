@@ -3,25 +3,19 @@ pub mod handler;
 pub mod types;
 
 pub use types::{
-    CommandError, ConfigError, DatabaseError, DiscordError, MessageError, ModmailError,
+    CommandError, DatabaseError, DiscordError, MessageError, ModmailError,
     ModmailResult, PermissionError, ThreadError, ValidationError,
 };
 
-pub use dictionary::{DictionaryManager, ErrorDictionary, ErrorMessage};
-
-pub use handler::{
-    ErrorContext, ErrorHandler, ErrorHandling, ErrorSeverity, FormattedError, FormattedMessage,
-    MessageType,
-};
+pub use dictionary::{ErrorDictionary, ErrorMessage};
 
 pub use crate::{
-    command_error, database_error, discord_error, handle_error, message_error, permission_error,
-    send_success, thread_error, translate_error, validation_error,
+    command_error, database_error, discord_error, message_error, permission_error,
+    thread_error, validation_error,
 };
 
 pub mod common {
     use super::*;
-    use serenity::all::UserId;
 
     pub fn not_found(entity: &str) -> ModmailError {
         database_error!(NotFound, entity)
@@ -122,6 +116,7 @@ pub mod conversions {
 
 #[cfg(test)]
 pub mod test_utils {
+    use crate::errors::handler::ErrorHandler;
     use super::*;
     use crate::i18n::languages::Language;
 
@@ -146,60 +141,5 @@ pub mod test_utils {
             ModmailError::Generic(_) => "Generic",
         };
         assert_eq!(actual_type, expected_type);
-    }
-}
-
-#[cfg(test)]
-pub mod tests;
-
-pub mod constants {
-    pub mod database {
-        pub const CONNECTION_FAILED: &str = "database.connection_failed";
-        pub const QUERY_FAILED: &str = "database.query_failed";
-        pub const NOT_FOUND: &str = "database.not_found";
-        pub const TRANSACTION_FAILED: &str = "database.transaction_failed";
-    }
-
-    pub mod discord {
-        pub const CHANNEL_NOT_FOUND: &str = "discord.channel_not_found";
-        pub const USER_NOT_FOUND: &str = "discord.user_not_found";
-        pub const PERMISSION_DENIED: &str = "discord.permission_denied";
-        pub const DM_CREATION_FAILED: &str = "discord.dm_creation_failed";
-        pub const API_ERROR: &str = "discord.api_error";
-    }
-
-    pub mod command {
-        pub const INVALID_FORMAT: &str = "command.invalid_format";
-        pub const MISSING_ARGUMENTS: &str = "command.missing_arguments";
-        pub const INVALID_ARGUMENTS: &str = "command.invalid_arguments";
-        pub const UNKNOWN_COMMAND: &str = "command.unknown_command";
-        pub const INSUFFICIENT_PERMISSIONS: &str = "command.insufficient_permissions";
-    }
-
-    pub mod thread {
-        pub const NOT_FOUND: &str = "thread.not_found";
-        pub const ALREADY_EXISTS: &str = "thread.already_exists";
-        pub const CREATION_FAILED: &str = "thread.creation_failed";
-    }
-
-    pub mod message {
-        pub const NOT_FOUND: &str = "message.not_found";
-        pub const NUMBER_NOT_FOUND: &str = "message.number_not_found";
-        pub const EDIT_FAILED: &str = "message.edit_failed";
-        pub const SEND_FAILED: &str = "message.send_failed";
-        pub const TOO_LONG: &str = "message.too_long";
-        pub const EMPTY: &str = "message.empty";
-    }
-
-    pub mod permission {
-        pub const NOT_STAFF_MEMBER: &str = "permission.not_staff_member";
-        pub const USER_BLOCKED: &str = "permission.user_blocked";
-        pub const INSUFFICIENT_PERMISSIONS: &str = "permission.insufficient_permissions";
-    }
-
-    pub mod success {
-        pub const MESSAGE_SENT: &str = "success.message_sent";
-        pub const MESSAGE_EDITED: &str = "success.message_edited";
-        pub const THREAD_CREATED: &str = "success.thread_created";
     }
 }

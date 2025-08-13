@@ -4,6 +4,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::i18n::language::en::load_english_messages;
 use crate::i18n::language::fr::load_french_messages;
+use crate::i18n::language::cn::load_chinese_messages;
+use crate::i18n::language::dt::load_dutch_messages;
+use crate::i18n::language::gr::load_german_messages;
+use crate::i18n::language::it::load_italian_messages;
+use crate::i18n::language::jp::load_japanese_messages;
+use crate::i18n::language::kr::load_korean_messages;
+use crate::i18n::language::pr::load_portuguese_messages;
+use crate::i18n::language::ru::load_russian_messages;
+use crate::i18n::language::sp::load_spanish_messages;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDictionary {
@@ -89,169 +98,16 @@ impl ErrorDictionary {
         match self.language {
             Language::English => load_english_messages(self),
             Language::French => load_french_messages(self),
-            Language::Spanish => self.load_spanish_messages(),
-            Language::German => self.load_german_messages(),
-            Language::Italian => self.load_italian_messages(),
-            Language::Portuguese => self.load_portuguese_messages(),
-            Language::Dutch => self.load_dutch_messages(),
-            Language::Russian => self.load_russian_messages(),
-            Language::Japanese => self.load_japanese_messages(),
-            Language::Korean => self.load_korean_messages(),
-            Language::Chinese => self.load_chinese_messages(),
+            Language::Spanish => load_spanish_messages(self),
+            Language::German => load_german_messages(self),
+            Language::Italian => load_italian_messages(self),
+            Language::Portuguese => load_portuguese_messages(self),
+            Language::Dutch => load_dutch_messages(self),
+            Language::Russian => load_russian_messages(self),
+            Language::Japanese => load_japanese_messages(self),
+            Language::Korean => load_korean_messages(self),
+            Language::Chinese => load_chinese_messages(self),
         }
-    }
-
-    fn load_spanish_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Error al conectar con la base de datos"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Formato de comando inválido"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Mensaje no encontrado"),
-        );
-    }
-
-    fn load_german_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Datenbankverbindung fehlgeschlagen"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Ungültiges Befehlsformat"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Nachricht nicht gefunden"),
-        );
-    }
-
-    fn load_italian_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Connessione al database fallita"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Formato comando non valido"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Messaggio non trovato"),
-        );
-    }
-
-    fn load_portuguese_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Falha na conexão com o banco de dados"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Formato de comando inválido"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Mensagem não encontrada"),
-        );
-    }
-
-    fn load_dutch_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Databaseverbinding mislukt"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Ongeldig commandoformaat"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Bericht niet gevonden"),
-        );
-    }
-
-    fn load_russian_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("Не удалось подключиться к базе данных"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("Неверный формат команды"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("Сообщение не найдено"),
-        );
-    }
-
-    fn load_japanese_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("データベース接続に失敗しました"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("無効なコマンド形式"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("メッセージが見つかりません"),
-        );
-    }
-
-    fn load_korean_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("데이터베이스 연결 실패"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("잘못된 명령어 형식"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("메시지를 찾을 수 없습니다"),
-        );
-    }
-
-    fn load_chinese_messages(&mut self) {
-        self.messages.insert(
-            "database.connection_failed".to_string(),
-            ErrorMessage::new("数据库连接失败"),
-        );
-
-        self.messages.insert(
-            "command.invalid_format".to_string(),
-            ErrorMessage::new("命令格式无效"),
-        );
-
-        self.messages.insert(
-            "message.not_found".to_string(),
-            ErrorMessage::new("未找到消息"),
-        );
     }
 }
 
