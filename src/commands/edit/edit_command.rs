@@ -3,10 +3,9 @@ use crate::errors::{ModmailResult, common};
 use crate::{config::Config, utils::extract_reply_content::extract_reply_content};
 use serenity::all::{Context, Message};
 
-use crate::commands::edit::message_ops::{
-    cleanup_command_message, edit_messages, format_new_message, get_message_ids,
-};
-use crate::commands::edit::validation::{parse_edit_command, validate_edit_permissions};
+use crate::commands::edit::message_ops::{cleanup_command_message, edit_messages, format_new_message, get_message_ids};
+use crate::commands::edit::validation::{parse_edit_command, validate_edit_permissions, EditCommandInput};
+use crate::errors::common::message_not_found;
 
 pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -19,48 +18,45 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
-    let raw_content = extract_command_content(msg, config)?;
+    let raw_content: String = match extract_command_content(msg, config) {
+        Ok(content) => content,
+        Err(e) => return Err(e)
+    };
 
-    let command_input = parse_edit_command(&raw_content)?;
+    let command_input: EditCommandInput = match parse_edit_command(&raw_content) {
+        Ok(command_input) => command_input,
+        Err(e) => return Err(e)
+    };
 
-    validate_edit_permissions(command_input.message_number, msg.author.id, pool).await?;
+    match validate_edit_permissions(command_input.message_number, msg.channel_id, msg.author.id, pool).await {
+        Ok(()) => (),
+        Err(e) => return Err(e)
+    };
 
-    let (dm_msg_id, inbox_msg_id) = get_message_ids(
-        command_input.message_number,
-        msg.author.id,
-        pool,
-        config,
-        ctx,
-        msg,
-    )
-    .await
-    .map_err(|_| common::message_number_not_found(command_input.message_number))?;
+    let ids = match get_message_ids(command_input.message_number, msg.author.id, pool, ctx, msg).await {
+        Ok(ids) => ids,
+        Err(e) => return Err(e)
+    };
 
-    let (thread_message, dm_message) = format_new_message(
-        ctx,
-        &msg.author.name,
-        msg.author.id,
-        &command_input.new_content,
-        Some(command_input.message_number as u64),
-        config,
-    )
-    .await;
+    let dm_msg_id = match ids.dm_message_id {
+        Some(msg_id) => msg_id,
+        None => return Err(message_not_found("")),
+    };
 
-    let edit_result = edit_messages(
-        ctx,
-        msg.channel_id,
-        dm_msg_id.clone(),
-        inbox_msg_id,
-        &thread_message,
-        &dm_message,
-        pool,
-        config,
-        msg,
-    )
-    .await;
+    let inbox_message_id = match ids.inbox_message_id {
+        Some(msg_id) => msg_id,
+        None => return Err(message_not_found("")),
+    };
+
+    let edited_messages_builder = match format_new_message(ctx, &msg, &command_input.new_content, &inbox_message_id, command_input.message_number as u64, config, pool).await {
+        Ok(edited_messages) => edited_messages,
+        Err(e) => return Err(e)
+    };
+
+    let edit_result = edit_messages(ctx, msg.channel_id, dm_msg_id.clone(), inbox_message_id.clone(), edited_messages_builder, pool, config).await;
 
     match edit_result {
-        crate::commands::edit::message_ops::EditResult::Success => {
+        Ok(()) => {
             if config.notifications.show_success_on_edit {
                 let _ = error_handler
                     .send_success_message(
@@ -72,30 +68,18 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                         msg.guild_id.map(|g| g.get()),
                     )
                     .await;
-            }
+            };
 
             cleanup_command_message(ctx, msg).await;
-            match dm_msg_id {
-                Some(dm_msg_id) => {
-                    let _ =
-                        update_message_content(&dm_msg_id, &command_input.new_content, pool).await;
-                }
-                None => {}
+
+            match update_message_content(&dm_msg_id, &command_input.new_content, pool).await {
+                Ok(()) => (),
+                Err(e) => return Err(e)
             }
+
             Ok(())
-        }
-        crate::commands::edit::message_ops::EditResult::PartialSuccess(warning) => {
-            if config.notifications.show_partial_success_on_edit {
-                let _ = msg.reply(ctx, warning).await;
-            }
-            Ok(())
-        }
-        crate::commands::edit::message_ops::EditResult::Failure(error_msg) => {
-            if config.notifications.show_failure_on_edit {
-                let _ = msg.reply(ctx, error_msg).await;
-            }
-            Err(common::validation_failed("Edit operation failed"))
-        }
+        },
+        Err(e) => Err(e)
     }
 }
 

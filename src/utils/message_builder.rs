@@ -1,10 +1,7 @@
 use crate::config::Config;
 use crate::i18n::get_translated_message;
 use crate::utils::hex_string_to_int::hex_string_to_int;
-use serenity::all::{
-    ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor,
-    CreateEmbedFooter, CreateMessage, Message, Timestamp, UserId,
-};
+use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -33,6 +30,7 @@ pub enum MessageTarget {
     Reply(Message),
 }
 
+#[derive(Debug, Clone)]
 pub struct MessageBuilder<'a> {
     ctx: &'a Context,
     config: &'a Config,
@@ -94,10 +92,12 @@ impl<'a> MessageBuilder<'a> {
         self
     }
 
-    pub fn as_anonymous_staff(mut self, user_id: UserId) -> Self {
+    pub fn as_anonymous_staff(mut self, ctx: &Context, user_id: UserId) -> Self {
+        let bot_name = ctx.cache.current_user().name.clone();
+
         self.sender = Some(MessageSender::Staff {
             user_id,
-            username: "Support".to_string(),
+            username: bot_name,
             role: None,
             message_number: None,
             anonymous: true,
@@ -250,7 +250,7 @@ impl<'a> MessageBuilder<'a> {
                     ..
                 } => {
                     let display_name = if *anonymous {
-                        "Support".to_string()
+                        self.ctx.cache.current_user().name.clone()
                     } else if let Some(role) = role {
                         format!("{} [{}]", username, role)
                     } else {
@@ -331,7 +331,7 @@ impl<'a> MessageBuilder<'a> {
                 ..
             }) => {
                 let display_name = if *anonymous {
-                    "Support".to_string()
+                    self.ctx.cache.current_user().name.clone()
                 } else if let Some(role) = role {
                     format!("{} [{}]", username, role)
                 } else {
@@ -375,25 +375,6 @@ impl<'a> MessageBuilder<'a> {
         }
     }
 
-    async fn build_create_message(&self) -> CreateMessage {
-        let mut message = CreateMessage::new();
-
-        if self.should_use_embed().await {
-            message = message.embed(self.build_embed().await);
-        } else {
-            let content = self.build_plain_message();
-            if !content.is_empty() {
-                message = message.content(content);
-            }
-        }
-
-        for attachment in &self.attachments {
-            message = message.add_file(attachment.clone());
-        }
-
-        message
-    }
-
     pub async fn send(self) -> Result<Message, serenity::Error> {
         let target = self.target.clone()
             .ok_or_else(|| serenity::Error::Other("No target specified for message"))?;
@@ -415,6 +396,40 @@ impl<'a> MessageBuilder<'a> {
                     .await
             }
         }
+    }
+
+    pub async fn build_create_message(&self) -> CreateMessage {
+        let mut message = CreateMessage::new();
+
+        if self.should_use_embed().await {
+            message = message.embed(self.build_embed().await);
+        } else {
+            let content = self.build_plain_message();
+            if !content.is_empty() {
+                message = message.content(content);
+            }
+        }
+
+        for attachment in &self.attachments {
+            message = message.add_file(attachment.clone());
+        }
+
+        message
+    }
+
+    pub async fn build_edit_message(&self) -> EditMessage {
+        let mut message = EditMessage::new();
+
+        if self.should_use_embed().await {
+            message = message.embed(self.build_embed().await);
+        } else {
+            let content = self.build_plain_message();
+            if !content.is_empty() {
+                message = message.content(content);
+            }
+        }
+
+        message
     }
 
     pub async fn build(self) -> CreateMessage {
@@ -448,7 +463,7 @@ impl<'a> MessageBuilder<'a> {
     }
 
     pub fn anonymous_staff_message(ctx: &'a Context, config: &'a Config, user_id: UserId) -> Self {
-        Self::new(ctx, config).as_anonymous_staff(user_id)
+        Self::new(ctx, config).as_anonymous_staff(ctx, user_id)
     }
 
     pub fn system_message(ctx: &'a Context, config: &'a Config) -> Self {
