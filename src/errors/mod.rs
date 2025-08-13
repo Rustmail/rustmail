@@ -21,6 +21,10 @@ pub mod common {
         database_error!(NotFound, entity)
     }
 
+    pub fn incorrect_message_id(entity: &str) -> ModmailError {
+        message_error!(MessageNotFound, entity)
+    }
+
     pub fn permission_denied() -> ModmailError {
         permission_error!(InsufficientPermissions)
     }
@@ -41,8 +45,8 @@ pub mod common {
         thread_error!(ThreadNotFound)
     }
 
-    pub fn message_not_found() -> ModmailError {
-        message_error!(MessageNotFound)
+    pub fn message_not_found(entity: &str) -> ModmailError {
+        message_error!(MessageNotFound, entity)
     }
 
     pub fn message_number_not_found(number: i64) -> ModmailError {
