@@ -3,6 +3,8 @@ use sqlx::{Error, SqlitePool};
 
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
+use crate::errors::ModmailResult;
+use crate::errors::common::message_not_found;
 
 #[derive(Debug, Clone)]
 pub struct MessageIds {
@@ -85,7 +87,7 @@ pub async fn update_message_content(
     message_id: &str,
     new_content: &str,
     pool: &SqlitePool,
-) -> Result<(), Error> {
+) -> ModmailResult<()> {
     sqlx::query!(
         "UPDATE thread_messages SET content = ? WHERE dm_message_id = ? OR inbox_message_id = ?",
         new_content,
@@ -284,6 +286,41 @@ pub async fn insert_user_message_with_ids(
     .await?;
 
     Ok(())
+}
+
+pub async fn get_thread_message_by_inbox_message_id(inbox_message_id: &str, pool: &SqlitePool) -> ModmailResult<ThreadMessage> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, thread_id, user_id, user_name, is_anonymous,
+               dm_message_id, inbox_message_id, message_number,
+               created_at as "created_at: String", content
+        FROM thread_messages
+        WHERE inbox_message_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        "#,
+        inbox_message_id
+    )
+        .fetch_optional(pool)
+        .await?;
+
+    let latest: ThreadMessage = match row.map(|row| ThreadMessage {
+        id: row.id as i64,
+        thread_id: row.thread_id,
+        user_id: row.user_id,
+        user_name: row.user_name,
+        is_anonymous: row.is_anonymous,
+        dm_message_id: row.dm_message_id,
+        inbox_message_id: row.inbox_message_id,
+        message_number: row.message_number,
+        created_at: row.created_at,
+        content: row.content,
+    }) {
+        Some(row) => row,
+        None => return Err(message_not_found("Unable to retrieve thread_message from inbox_message_id")),
+    };
+
+    Ok(latest)
 }
 
 #[derive(Debug, Clone)]
