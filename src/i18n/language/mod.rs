@@ -1,2 +1,11 @@
 pub mod en;
 pub mod fr;
+pub mod sp;
+pub mod gr;
+pub mod it;
+pub mod dt;
+pub mod ru;
+pub mod jp;
+pub mod kr;
+pub mod cn;
+pub mod pr;
