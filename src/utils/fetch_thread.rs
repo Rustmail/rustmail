@@ -1,5 +1,4 @@
 use sqlx::SqlitePool;
-
 use crate::{
     db::{get_thread_by_channel_id, repr::Thread},
     errors::{ModmailResult, common},

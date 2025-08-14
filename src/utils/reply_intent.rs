@@ -1,8 +1,4 @@
-use crate::config::Config;
-use crate::utils::format_ticket_message::{
-    MessageDestination, Sender, TicketMessage, format_ticket_message_with_destination,
-};
-use serenity::all::{Attachment, Context, CreateAttachment, UserId};
+use serenity::all::{Attachment, CreateAttachment};
 
 pub enum ReplyIntent {
     Text(String),
@@ -44,40 +40,4 @@ pub async fn download_attachments(attachments: &[Attachment]) -> Vec<CreateAttac
     }
 
     downloaded_attachments
-}
-
-pub async fn build_reply_message(
-    ctx: &Context,
-    username: &str,
-    user_id: UserId,
-    content: &str,
-    message_number: Option<u64>,
-    config: &Config,
-    destination: MessageDestination,
-    is_anonymous: bool,
-) -> TicketMessage {
-    let anonymous_username = match ctx.http.get_current_user().await {
-        Ok(user) => user.name.clone(),
-        Err(_) => "System".to_string(),
-    };
-    let bot_id = match ctx.http.get_current_user().await {
-        Ok(user) => user.id,
-        Err(_) => user_id,
-    };
-    let sender = if is_anonymous {
-        Sender::StaffAnonymous {
-            username: anonymous_username,
-            user_id: bot_id,
-            role: None,
-            message_number,
-        }
-    } else {
-        Sender::Staff {
-            username: username.to_string(),
-            user_id,
-            role: None,
-            message_number,
-        }
-    };
-    format_ticket_message_with_destination(ctx, sender, content, config, destination).await
 }

@@ -4,11 +4,10 @@ use crate::db::operations::{
     get_last_recovery_timestamp, update_last_recovery_timestamp,
 };
 use crate::i18n::get_translated_message;
-use crate::utils::format_ticket_message::{Sender, format_ticket_message_with_destination, MessageDestination};
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
-use serenity::all::{Context, CreateMessage, UserId, ChannelId, MessageId, GetMessages, Message};
+use serenity::all::{Context, UserId, ChannelId, MessageId, GetMessages, Message};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+use crate::utils::message_builder::MessageBuilder;
 
 pub struct MessageRecoveryResult {
     pub thread_id: String,
@@ -187,25 +186,11 @@ async fn recover_messages_for_thread(
             continue;
         }
 
-        let thread_message = format_ticket_message_with_destination(
-            ctx,
-            Sender::User {
-                user_id: message.author.id,
-                username: message.author.name.clone(),
-            },
-            &content,
-            config,
-            MessageDestination::Thread,
-        )
-        .await;
-
-        let mut message_builder = CreateMessage::default();
-        message_builder = build_message_from_ticket(thread_message, message_builder);
-
-        if let Err(e) = channel_id.send_message(&ctx.http, message_builder).await {
-            eprintln!("Failed to send recovered message to thread: {}", e);
-            continue;
-        }
+        let _ = MessageBuilder::user_message(ctx, config, message.author.id, message.author.name.clone())
+            .content(content)
+            .to_channel(channel_id)
+            .send()
+            .await;
 
         recovered_count += 1;
     }
@@ -213,45 +198,12 @@ async fn recover_messages_for_thread(
     if recovered_count > 0 {
         let mut params = HashMap::new();
         params.insert("count".to_string(), recovered_count.to_string());
-        
-        let notification_message = get_translated_message(
-            config,
-            "recovery.messages_recovered",
-            Some(&params),
-            Some(user_id),
-            None,
-            None,
-        )
-        .await;
 
-        let bot_user = match ctx.http.get_current_user().await {
-            Ok(user) => user,
-            Err(_) => {
-                return MessageRecoveryResult {
-                    thread_id: thread.id.clone(),
-                    recovered_count: 0,
-                    success: false,
-                    error_message: Some("Failed to get bot user".to_string()),
-                };
-            }
-        };
-
-        let notification = format_ticket_message_with_destination(
-            ctx,
-            Sender::System {
-                user_id: bot_user_id,
-                username: bot_user.name.clone(),
-            },
-            &notification_message,
-            config,
-            MessageDestination::Thread,
-        )
-        .await;
-
-        let mut notification_builder = CreateMessage::default();
-        notification_builder = build_message_from_ticket(notification, notification_builder);
-
-        let _ = channel_id.send_message(&ctx.http, notification_builder).await;
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content("recovery.messages_recovered", Some(&params), Some(user_id), None).await
+            .to_channel(channel_id)
+            .send()
+            .await;
     }
 
     MessageRecoveryResult {

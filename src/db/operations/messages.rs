@@ -1,6 +1,5 @@
 use serenity::all::{Message, UserId};
 use sqlx::{Error, SqlitePool};
-
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
 use crate::errors::ModmailResult;

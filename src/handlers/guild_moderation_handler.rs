@@ -5,7 +5,10 @@ use serenity::{
     async_trait,
 };
 use serenity::all::audit_log::Action;
-use serenity::all::{AutoModAction, ChannelAction, ChannelOverwriteAction, CreatorMonetizationAction, EmojiAction, IntegrationAction, InviteAction, MemberAction, MessageAction, RoleAction, ScheduledEventAction, StageInstanceAction, StickerAction, ThreadAction, User, VoiceChannelStatusAction, WebhookAction};
+use serenity::all::{AutoModAction, ChannelAction, ChannelOverwriteAction, CreatorMonetizationAction,
+                    EmojiAction, IntegrationAction, InviteAction, MemberAction, MessageAction,
+                    RoleAction, ScheduledEventAction, StageInstanceAction, StickerAction,
+                    ThreadAction, VoiceChannelStatusAction, WebhookAction};
 pub use crate::config::Config;
 use crate::utils::message_builder::MessageBuilder;
 

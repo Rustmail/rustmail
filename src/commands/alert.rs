@@ -1,7 +1,6 @@
 use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::db::operations::{get_user_id_from_channel_id, set_alert_for_staff, cancel_alert_for_staff};
-use crate::i18n::get_translated_message;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use serenity::all::colours::roles::GREEN;
@@ -94,18 +93,8 @@ async fn send_alert_message(
 
     let bot_user_id = ctx.cache.current_user().id;
 
-    let message_content = get_translated_message(
-        config,
-        message_key,
-        params,
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
-
     let _ = MessageBuilder::staff_message(ctx, config, bot_user_id, bot_user.name.clone())
-        .content(message_content)
+        .translated_content(message_key, params, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
         .to_channel(msg.channel_id)
         .color(GREEN.0)
         .send()

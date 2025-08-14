@@ -1,5 +1,4 @@
 use serenity::all::{Context, GuildId, Message};
-
 use crate::utils::format_duration_since::format_duration_since;
 
 pub async fn get_member_join_date(

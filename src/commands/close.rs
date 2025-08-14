@@ -1,11 +1,9 @@
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
-
 use crate::{
     config::Config,
     db::close_thread,
     errors::{ModmailResult, common},
-    i18n::get_translated_message,
     utils::fetch_thread::fetch_thread,
 };
 use crate::utils::message_builder::MessageBuilder;
@@ -31,18 +29,13 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         let mut params = HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());
 
-        let info_message = get_translated_message(
-            config,
-            "user.left_server_close",
-            Some(&params),
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
-        )
-        .await;
-
         let _ = MessageBuilder::system_message(ctx, config)
-            .content(info_message)
+            .translated_content(
+                "user.left_server_close",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get())
+            ).await
             .to_channel(msg.channel_id)
             .send()
             .await;

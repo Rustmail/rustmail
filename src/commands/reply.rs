@@ -6,7 +6,6 @@ use crate::errors::{ModmailResult, common};
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use std::collections::HashMap;
-
 use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use crate::utils::message_builder::MessageBuilder;
@@ -115,14 +114,14 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
     match intent {
         ReplyIntent::Text(text) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .to_user(user_id)
@@ -180,14 +179,14 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             }
         }
         ReplyIntent::Attachments(files) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .with_message_number(next_message_number)
                 .add_attachments(files.clone())
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .with_message_number(next_message_number)
                 .add_attachments(files)
                 .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
@@ -212,7 +211,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             }
         }
         ReplyIntent::TextAndAttachments(text, files) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files.clone())
@@ -220,7 +219,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files)
