@@ -93,7 +93,8 @@ impl<'a> MessageBuilder<'a> {
     }
 
     pub fn as_anonymous_staff(mut self, ctx: &Context, user_id: UserId) -> Self {
-        let bot_name = ctx.cache.current_user().name.clone();
+    pub fn as_anonymous_staff(mut self, user_id: UserId) -> Self {
+        let bot_name = self.ctx.cache.current_user().name.clone();
 
         self.sender = Some(MessageSender::Staff {
             user_id,
