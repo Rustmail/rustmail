@@ -148,19 +148,10 @@ async fn send_dm_to_user(
     user: &serenity::model::user::User, 
     config: &Config, 
     _channel: &serenity::model::channel::GuildChannel
-) -> Result<(), serenity::Error> {
-    let dm_msg = get_translated_message(
-        config,
-        "new_thread.dm_notification",
-        None,
-        Some(user.id),
-        None,
-        None,
-    )
-    .await;
+) -> ModmailResult<()> {
 
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(dm_msg)
+        .translated_content("new_thread.dm_notification", None, Some(user.id), None).await
         .to_user(user.id)
         .send()
         .await;
@@ -210,19 +201,9 @@ async fn send_success_message(
     } else {
         "new_thread.success_without_dm"
     };
-    
-    let confirmation_msg = get_translated_message(
-        config,
-        success_key,
-        Some(&params),
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
 
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(confirmation_msg)
+        .translated_content(success_key, None, Some(user.id), None).await
         .to_channel(msg.channel_id)
         .send()
         .await;

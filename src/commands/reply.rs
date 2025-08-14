@@ -248,20 +248,17 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     }
 
     if config.notifications.show_success_on_reply {
-        if let Some(error_handler) = &config.error_handler {
-            let mut params = HashMap::new();
-            params.insert("number".to_string(), next_message_number.to_string());
-            let _ = error_handler
-                .send_success_message(
-                    ctx,
-                    msg.channel_id,
-                    "success.message_sent",
-                    Some(params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await;
-        }
+        let mut params = HashMap::new();
+        params.insert("number".to_string(), next_message_number.to_string());
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content("success.message_sent",
+                                Some(&params),
+                                Some(msg.author.id),
+                                msg.guild_id.map(|g| g.get())).await
+            .to_channel(msg.channel_id)
+            .send()
+            .await;
     }
 
     Ok(())
