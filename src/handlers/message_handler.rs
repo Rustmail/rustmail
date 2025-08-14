@@ -1,5 +1,4 @@
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message},
     async_trait,
@@ -22,6 +21,7 @@ use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
 use crate::utils::send_to_thread::send_to_thread;
 use crate::{modules::threads::create_channel, utils::wrap_command};
+use crate::i18n::get_translated_message;
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -84,7 +84,7 @@ async fn manage_incoming_message(
                 "server.wrong_guild_single"
             };
 
-            let error_msg = crate::i18n::get_translated_message(
+            let error_msg = get_translated_message(
                 config,
                 error_key,
                 None,
@@ -100,9 +100,7 @@ async fn manage_incoming_message(
         }
     }
 
-    let thread_exists = thread_exists(msg.author.id, pool).await;
-
-    if thread_exists {
+    if thread_exists(msg.author.id, pool).await {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str
                 .parse::<u64>()

@@ -4,7 +4,6 @@ use crate::db::operations::{
     get_user_id_from_channel_id, update_message_numbers_after_deletion,
 };
 use crate::errors::{ModmailResult, common};
-use crate::i18n::get_translated_message;
 use serenity::all::{Context, Message, MessageId, UserId};
 use std::collections::HashMap;
 use crate::utils::message_builder::MessageBuilder;
@@ -203,18 +202,13 @@ async fn send_delete_message(
     message_key: &str,
     params: Option<&HashMap<String, String>>,
 ) {
-    let message_content = get_translated_message(
-        config,
-        message_key,
-        params,
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
-
     let _ = MessageBuilder::system_message(ctx, config)
-        .content(message_content)
+        .translated_content(
+            message_key,
+            params,
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get())
+        ).await
         .to_channel(msg.channel_id)
         .send()
         .await;

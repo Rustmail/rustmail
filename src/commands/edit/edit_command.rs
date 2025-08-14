@@ -2,7 +2,6 @@ use crate::db::update_message_content;
 use crate::errors::{ModmailResult, common};
 use crate::{config::Config, utils::extract_reply_content::extract_reply_content};
 use serenity::all::{Context, Message};
-
 use crate::commands::edit::message_ops::{cleanup_command_message, edit_messages, format_new_message, get_message_ids};
 use crate::commands::edit::validation::{parse_edit_command, validate_edit_permissions, EditCommandInput};
 use crate::errors::common::{invalid_command, message_not_found};

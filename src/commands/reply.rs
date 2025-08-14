@@ -2,12 +2,13 @@ use crate::config::Config;
 use crate::db::operations::{
     get_next_message_number, increment_message_number, insert_staff_message,
 };
-use crate::errors::{ModmailResult, common};
+use crate::errors::{ModmailResult, common, ModmailError, ThreadError};
 use crate::utils::extract_reply_content::extract_reply_content;
 use crate::utils::fetch_thread::fetch_thread;
 use std::collections::HashMap;
-
 use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
+use crate::errors::common::validation_failed;
+use crate::errors::MessageError::MessageEmpty;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use crate::utils::message_builder::MessageBuilder;
 
@@ -63,66 +64,34 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "reply.missing_content",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            ).await
-            .color(0xFF0000)
-            .reply_to(msg.clone())
-            .send_and_forget()
-            .await;
-
-        return Err(common::validation_failed("Missing content"));
+        return Err(ModmailError::Message(MessageEmpty));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
-    let username: String = thread.user_name;
     let user_id = UserId::new(thread.user_id as u64);
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
 
     if !user_still_member {
-        let mut params = HashMap::new();
-        params.insert("username".to_string(), username.clone());
-
-        MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
-            .translated_content(
-                "user.left_server",
-                Some(&params),
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            ).await
-            .to_channel(msg.channel_id)
-            .send_and_forget()
-            .await;
-
-        return Ok(());
+        return Err(ModmailError::Thread(ThreadError::UserNotInTheServer));
     }
 
     let next_message_number = get_next_message_number(&thread.id, db_pool).await;
 
-    if let Err(e) = increment_message_number(&thread.id, db_pool).await {
-        eprintln!(
-            "Erreur lors de l'incrémentation du numéro de message: {}",
-            e
-        );
-    }
+    increment_message_number(&thread.id, db_pool).await?;
 
     let _ = msg.delete(&ctx.http).await;
 
     match intent {
         ReplyIntent::Text(text) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .to_user(user_id)
@@ -180,14 +149,14 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             }
         }
         ReplyIntent::Attachments(files) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .with_message_number(next_message_number)
                 .add_attachments(files.clone())
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .with_message_number(next_message_number)
                 .add_attachments(files)
                 .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
@@ -212,7 +181,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             }
         }
         ReplyIntent::TextAndAttachments(text, files) => {
-            let thread_response = MessageBuilder::staff_message(ctx, config, user_id, username.clone())
+            let thread_response = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files.clone())
@@ -220,7 +189,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::user_message(ctx, config, user_id, username.clone())
+            let dm_response = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files)
@@ -248,20 +217,17 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     }
 
     if config.notifications.show_success_on_reply {
-        if let Some(error_handler) = &config.error_handler {
-            let mut params = HashMap::new();
-            params.insert("number".to_string(), next_message_number.to_string());
-            let _ = error_handler
-                .send_success_message(
-                    ctx,
-                    msg.channel_id,
-                    "success.message_sent",
-                    Some(params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await;
-        }
+        let mut params = HashMap::new();
+        params.insert("number".to_string(), next_message_number.to_string());
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content("success.message_sent",
+                                Some(&params),
+                                Some(msg.author.id),
+                                msg.guild_id.map(|g| g.get())).await
+            .to_channel(msg.channel_id)
+            .send()
+            .await;
     }
 
     Ok(())

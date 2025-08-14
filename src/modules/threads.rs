@@ -1,13 +1,12 @@
 use crate::db::operations::create_thread;
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use crate::utils::format_duration_since::format_duration_since;
-use crate::utils::format_ticket_message::Sender;
 use crate::utils::send_to_thread::send_to_thread;
 use crate::{
-    config::Config, utils::format_ticket_message::format_ticket_message,
+    config::Config,
     utils::get_member_join_date::get_member_join_date,
 };
-use serenity::all::{ChannelId, Context, CreateChannel, CreateMessage, GuildId, Message};
+use serenity::all::{ChannelId, Context, CreateChannel, GuildId, Message};
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let pool = match &config.db_pool {
@@ -40,10 +39,7 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
         .category(ChannelId::new(config.thread.inbox_category_id));
     
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
-    let member_join_date = match get_member_join_date(ctx, msg, community_guild_id).await {
-        Some(date) => date,
-        None => "Unknown".to_string(),
-    };
+    let member_join_date = get_member_join_date(ctx, msg, community_guild_id).await.unwrap_or_else(|| "Unknown".to_string());
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     if let Ok(channel) = staff_guild_id.create_channel(&ctx.http, channel_builder).await {
@@ -54,33 +50,20 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
             msg.author.name,
             member_join_date
         );
-        let response = format_ticket_message(
-            &ctx,
-            Sender::System {
-                user_id: ctx.cache.current_user().id,
-                username: ctx.cache.current_user().name.clone(),
-            },
-            &open_thread_message,
-            config,
-        );
-        let response = response.await;
-        let thread_message = build_message_from_ticket(response, CreateMessage::new());
-        let _ = channel.send_message(&ctx.http, thread_message).await;
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .to_channel(channel.id)
+            .content(open_thread_message)
+            .send()
+            .await;
 
         match create_thread(&channel, msg, pool).await {
             Ok(_) => {
-                let response = format_ticket_message(
-                    &ctx,
-                    Sender::System {
-                        user_id: ctx.cache.current_user().id,
-                        username: ctx.cache.current_user().name.clone(),
-                    },
-                    &config.bot.welcome_message,
-                    config,
-                );
-                let response = response.await;
-                let dm_message = build_message_from_ticket(response, CreateMessage::new());
-                let _ = msg.channel_id.send_message(&ctx.http, dm_message).await;
+                let _ = MessageBuilder::system_message(ctx, config)
+                    .content(&config.bot.welcome_message)
+                    .to_user(msg.author.id)
+                    .send()
+                    .await;
                 println!("Thread created successfully");
             }
             Err(e) => {

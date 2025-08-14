@@ -1,5 +1,4 @@
 use serenity::all::CreateMessage;
-
 use crate::utils::format_ticket_message::TicketMessage;
 
 pub fn build_message_from_ticket(

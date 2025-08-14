@@ -1,8 +1,7 @@
 use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::db::operations::{thread_exists, create_thread_for_user, get_thread_channel_by_user_id};
-use crate::i18n::get_translated_message;
-use serenity::all::{ChannelId, Context, GuildId, Message, UserId};
+use serenity::all::{ChannelId, Context, GuildChannel, GuildId, Message, User, UserId};
 use std::collections::HashMap;
 use crate::utils::message_builder::MessageBuilder;
 
@@ -71,7 +70,7 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
 
     send_welcome_message(ctx, &guild_channel, config, &user).await;
 
-    match send_dm_to_user(ctx, &user, config, &guild_channel).await {
+    match send_dm_to_user(ctx, &user, config).await {
         Ok(_) => {
             send_success_message(ctx, msg, config, &user, &guild_channel, true).await;
         }
@@ -122,22 +121,12 @@ async fn extract_user_id(msg: &Message, config: &Config) -> Option<UserId> {
     None
 }
 
-async fn send_welcome_message(ctx: &Context, channel: &serenity::model::channel::GuildChannel, config: &Config, user: &serenity::model::user::User) {
+async fn send_welcome_message(ctx: &Context, channel: &GuildChannel, config: &Config, user: &User) {
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
-    
-    let welcome_msg = get_translated_message(
-        config,
-        "new_thread.welcome_message",
-        Some(&params),
-        None,
-        Some(channel.guild_id.get()),
-        None,
-    )
-    .await;
 
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(welcome_msg)
+        .translated_content("new_thread.welcome_message", Some(&params), None, Some(channel.guild_id.get())).await
         .to_channel(channel.id)
         .send()
         .await;
@@ -145,22 +134,12 @@ async fn send_welcome_message(ctx: &Context, channel: &serenity::model::channel:
 
 async fn send_dm_to_user(
     ctx: &Context, 
-    user: &serenity::model::user::User, 
-    config: &Config, 
-    _channel: &serenity::model::channel::GuildChannel
-) -> Result<(), serenity::Error> {
-    let dm_msg = get_translated_message(
-        config,
-        "new_thread.dm_notification",
-        None,
-        Some(user.id),
-        None,
-        None,
-    )
-    .await;
+    user: &User,
+    config: &Config
+) -> ModmailResult<()> {
 
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(dm_msg)
+        .translated_content("new_thread.dm_notification", None, Some(user.id), None).await
         .to_user(user.id)
         .send()
         .await;
@@ -175,18 +154,8 @@ async fn send_error_message(
     error_key: &str, 
     params: Option<&HashMap<String, String>>
 ) {
-    let error_msg = get_translated_message(
-        config,
-        error_key,
-        params,
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
-
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(error_msg)
+        .translated_content(error_key, params, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
         .to_channel(msg.channel_id)
         .send()
         .await;
@@ -196,8 +165,8 @@ async fn send_success_message(
     ctx: &Context, 
     msg: &Message, 
     config: &Config, 
-    user: &serenity::model::user::User, 
-    channel: &serenity::model::channel::GuildChannel,
+    user: &User,
+    channel: &GuildChannel,
     dm_sent: bool
 ) {
     let mut params = HashMap::new();
@@ -210,19 +179,9 @@ async fn send_success_message(
     } else {
         "new_thread.success_without_dm"
     };
-    
-    let confirmation_msg = get_translated_message(
-        config,
-        success_key,
-        Some(&params),
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
 
     let _ = MessageBuilder::system_message(&ctx, config)
-        .content(confirmation_msg)
+        .translated_content(success_key, Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
         .to_channel(msg.channel_id)
         .send()
         .await;

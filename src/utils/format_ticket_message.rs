@@ -193,16 +193,6 @@ fn create_classic_message(
     }
 }
 
-pub async fn format_ticket_message(
-    ctx: &Context,
-    sender: Sender,
-    content: &str,
-    config: &Config,
-) -> TicketMessage {
-    format_ticket_message_with_destination(ctx, sender, content, config, MessageDestination::Thread)
-        .await
-}
-
 pub async fn format_ticket_message_with_destination(
     ctx: &Context,
     sender: Sender,
