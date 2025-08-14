@@ -48,12 +48,12 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     let dm_msg_id = match ids.dm_message_id {
         Some(msg_id) => msg_id,
-        None => return Err(message_not_found("")),
+        None => return Err(message_not_found("Inbox message ID not found")),
     };
 
     let inbox_message_id = match ids.inbox_message_id {
         Some(msg_id) => msg_id,
-        None => return Err(message_not_found("")),
+        None => return Err(message_not_found("DM message ID not found")),
     };
 
     let edited_messages_builder = match format_new_message(

@@ -44,7 +44,7 @@ pub async fn format_new_message<'a>(
         pool
     ).await {
         Ok(thread_message) => thread_message,
-        Err(e) => return Err(permission_denied())
+        Err(..) => return Err(permission_denied())
     };
 
     let bot_user = match ctx.http.get_current_user().await {
@@ -149,7 +149,7 @@ pub async fn edit_dm_message<'a>(
 
     let edit_result: ModmailResult<()> = match dm_channel
         .edit_message(&ctx.http, message_id, edit_dm_msg)
-        .await 
+        .await
     {
         Ok(_) => Ok(()),
         Err(e) => return Err(
