@@ -123,7 +123,7 @@ pub async fn validate_edit_permissions(
         pool
     ).await {
         Ok(thread_message) => thread_message,
-        Err(e) => return Err(permission_denied())
+        Err(..) => return Err(permission_denied())
     };
 
     if thread_message.user_id != user_id.get() as i64 {
