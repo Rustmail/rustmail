@@ -228,7 +228,11 @@ pub async fn is_user_left(channel_id: &str, pool: &SqlitePool) -> Result<bool, E
         .fetch_all(pool)
         .await?;
 
-    Ok(thread[0].user_left)
+    if let Some(row) = thread.get(0) {
+        Ok(row.user_left)
+    } else {
+        Ok(false)
+    }
 }
 
 pub async fn cancel_alert_for_staff(
