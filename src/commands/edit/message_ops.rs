@@ -2,306 +2,193 @@ use crate::config::Config;
 use crate::db::operations::{
     get_message_ids_by_number, get_thread_by_channel_id, get_user_id_from_channel_id,
 };
-use crate::i18n::get_translated_message;
-use crate::utils::format_ticket_message::{
-    MessageDestination, Sender, TicketMessage, format_ticket_message_with_destination,
-};
-use serenity::all::{Context, EditMessage, Message, MessageId, UserId};
-use std::collections::HashMap;
-
-#[derive(Debug)]
-pub enum EditResult {
-    Success,
-    PartialSuccess(String),
-    Failure(String),
-}
-
-impl EditResult {
-    pub async fn _send_feedback(&self, ctx: &Context, msg: &Message, config: &Config) {
-        let (key, params) = match self {
-            EditResult::Success => ("edit.success", None),
-            EditResult::PartialSuccess(warning) => ("edit.partial_success", Some(warning)),
-            EditResult::Failure(error) => ("edit.failure", Some(error)),
-        };
-        let mut param_map = HashMap::new();
-        if let Some(text) = params {
-            param_map.insert("details".to_string(), text.clone());
-        }
-        let message = get_translated_message(
-            config,
-            key,
-            if params.is_some() {
-                Some(&param_map)
-            } else {
-                None
-            },
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
-        )
-        .await;
-        let _ = msg.reply(ctx, message).await;
-    }
-}
+use serenity::all::{ChannelId, Context, EditMessage, Message, MessageId, UserId};
+use sqlx::SqlitePool;
+use crate::db::messages::{get_thread_message_by_inbox_message_id, MessageIds};
+use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
+use crate::errors::MessageError::{DmAccessFailed, EditFailed};
+use crate::errors::{ModmailError, ModmailResult};
+use crate::errors::DiscordError::ApiError;
+use crate::utils::hex_string_to_int::hex_string_to_int;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn get_message_ids(
     message_number: i64,
     user_id: UserId,
-    pool: &sqlx::SqlitePool,
-    config: &Config,
+    pool: &SqlitePool,
     _ctx: &Context,
     msg: &Message,
-) -> Result<(Option<String>, Option<String>), String> {
+) -> ModmailResult<MessageIds> {
     let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await {
         Some(thread) => thread,
-        None => {
-            let error = get_translated_message(
-                config,
-                "thread.not_found",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
-            )
-            .await;
-            return Err(error);
-        }
+        None => return Err(thread_not_found())
     };
 
     match get_message_ids_by_number(message_number, user_id, &thread.id, pool).await {
-        Some(message_ids) => Ok((message_ids.dm_message_id, message_ids.inbox_message_id)),
-        None => {
-            let error = get_translated_message(
-                config,
-                "edit.not_found",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
-            )
-            .await;
-            Err(error)
-        }
+        Some(message_ids) => Ok(message_ids),
+        None => Err(not_found("message not found"))
     }
 }
 
-pub async fn format_new_message(
-    ctx: &Context,
-    staff_username: &str,
-    staff_user_id: UserId,
+pub async fn format_new_message<'a>(
+    ctx: &'a Context,
+    msg: &Message,
     content: &str,
-    message_number: Option<u64>,
-    config: &Config,
-) -> (TicketMessage, TicketMessage) {
-    let thread_message = format_ticket_message_with_destination(
-        ctx,
-        Sender::Staff {
-            username: staff_username.to_string(),
-            user_id: staff_user_id,
-            role: None,
-            message_number,
-        },
-        content,
-        config,
-        MessageDestination::Thread,
-    )
-    .await;
+    inbox_message_id: &str,
+    message_number: u64,
+    config: &'a Config,
+    pool: &SqlitePool,
+) -> ModmailResult<(MessageBuilder<'a>, MessageBuilder<'a>)> {
+    let thread_message = match get_thread_message_by_inbox_message_id(
+        &inbox_message_id,
+        pool
+    ).await {
+        Ok(thread_message) => thread_message,
+        Err(..) => return Err(permission_denied())
+    };
 
-    let dm_message = format_ticket_message_with_destination(
-        ctx,
-        Sender::Staff {
-            username: staff_username.to_string(),
-            user_id: staff_user_id,
-            role: None,
-            message_number,
-        },
-        content,
-        config,
-        MessageDestination::DirectMessage,
-    )
-    .await;
+    let bot_user = match ctx.http.get_current_user().await {
+        Ok(user) => user,
+        Err(e) => return Err(
+            ModmailError::Discord(
+                ApiError(
+                    format!("Unable to get bot user for edit command ! : {}", e)
+                )
+            )
+        )
+    };
 
-    (thread_message, dm_message)
+    if thread_message.is_anonymous {
+        Ok(
+            (MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
+                .content(content.to_string())
+                .with_message_number(message_number),
+            MessageBuilder::user_message(ctx, config, bot_user.id, bot_user.name.clone())
+                .content(content.to_string())
+            )
+        )
+    } else {
+        Ok(
+            (MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+                .content(content.to_string())
+                .with_message_number(message_number),
+            MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
+                .content(content.to_string())
+            )
+        )
+    }
 }
 
 pub async fn edit_inbox_message(
     ctx: &Context,
-    channel_id: serenity::all::ChannelId,
+    channel_id: ChannelId,
     inbox_msg_id: &str,
-    thread_message: &TicketMessage,
-    config: &Config,
-    msg: &Message,
-) -> Result<(), String> {
+    edit_message: EditMessage,
+) -> ModmailResult<()> {
     let message_id = match inbox_msg_id.parse::<u64>() {
         Ok(id) => MessageId::new(id),
-        Err(_) => {
-            return Err(get_translated_message(
-                config,
-                "edit.invalid_id_thread",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
+        Err(e) => return Err(
+            incorrect_message_id(
+                &format!("Unable to parse inbox_msg_id (String) into message id (MessageId) : {}", e)
             )
-            .await);
-        }
-    };
-
-    let edit_message = match thread_message {
-        TicketMessage::Plain(text) => EditMessage::new().content(text),
-        TicketMessage::Embed(embed) => EditMessage::new().embed(embed.clone()),
-    };
-
-    if channel_id
-        .edit_message(&ctx.http, message_id, edit_message)
-        .await
-        .is_err()
-    {
-        return Err(get_translated_message(
-            config,
-            "edit.edit_failed_thread",
-            None,
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
         )
-        .await);
-    }
+    };
 
-    Ok(())
+    match channel_id.edit_message(&ctx.http, message_id, edit_message).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(
+            ModmailError::Message(
+                EditFailed(
+                    e.to_string()
+                )
+            )
+        )
+    }
 }
 
-pub async fn edit_dm_message(
+pub async fn edit_dm_message<'a>(
     ctx: &Context,
+    channel_id: ChannelId,
     dm_msg_id: &str,
-    channel_id: serenity::all::ChannelId,
-    dm_message: &TicketMessage,
-    pool: &sqlx::SqlitePool,
-    config: &Config,
-    msg: &Message,
-) -> Result<(), String> {
+    edit_dm_builder: MessageBuilder<'a>,
+    pool: &SqlitePool,
+    config: &Config
+) -> ModmailResult<()> {
     let message_id = match dm_msg_id.parse::<u64>() {
         Ok(id) => MessageId::new(id),
-        Err(_) => {
-            return Err(get_translated_message(
-                config,
-                "edit.invalid_id_dm",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
+        Err(e) => return Err(
+            incorrect_message_id(
+                &format!("Unable to parse inbox_msg_id (String) into message id (MessageId) : {}", e)
             )
-            .await);
-        }
+        )
     };
 
-    let thread_user_id = match get_user_id_from_channel_id(&channel_id.to_string(), pool).await {
-        Some(id) => id,
-        None => {
-            return Err(get_translated_message(
-                config,
-                "thread.not_found",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
-            )
-            .await);
-        }
+    let user_id = match get_user_id_from_channel_id(&channel_id.get().to_string(), pool).await {
+        Some(user_id) => UserId::new(user_id as u64),
+        None => return Err(
+            not_found("user not found")
+        )
     };
 
-    let user_id = UserId::new(thread_user_id as u64);
+    let edit_dm_msg = edit_dm_builder
+        .to_user(user_id)
+        .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
+        .build_edit_message()
+        .await;
 
     let dm_channel = match user_id.create_dm_channel(&ctx.http).await {
         Ok(channel) => channel,
-        Err(_) => {
-            return Err(get_translated_message(
-                config,
-                "edit.dm_access_failed",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-                None,
+        Err(e) => return Err(
+            ModmailError::Message(
+                DmAccessFailed(
+                    format!("Unable to access user DM (Maybe the user doesn't allow private messages from bots) : {}", e)
+                )
             )
-            .await);
-        }
-    };
-
-    let edit_message = match dm_message {
-        TicketMessage::Plain(text) => EditMessage::new().content(text),
-        TicketMessage::Embed(embed) => EditMessage::new().embed(embed.clone()),
-    };
-
-    if dm_channel
-        .edit_message(&ctx.http, message_id, edit_message)
-        .await
-        .is_err()
-    {
-        return Err(get_translated_message(
-            config,
-            "edit.edit_failed_dm",
-            None,
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-            None,
         )
-        .await);
-    }
+    };
 
-    Ok(())
+    let edit_result: ModmailResult<()> = match dm_channel
+        .edit_message(&ctx.http, message_id, edit_dm_msg)
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(e) => return Err(
+            ModmailError::Message(
+                EditFailed(
+                    e.to_string()
+                )
+            )
+        )
+    };
+
+    edit_result
 }
 
-pub async fn edit_messages(
+pub async fn edit_messages<'a>(
     ctx: &Context,
-    channel_id: serenity::all::ChannelId,
-    dm_msg_id: Option<String>,
-    inbox_msg_id: Option<String>,
-    thread_message: &TicketMessage,
-    dm_message: &TicketMessage,
-    pool: &sqlx::SqlitePool,
-    config: &Config,
-    msg: &Message,
-) -> EditResult {
-    let mut inbox_success = false;
-    let mut dm_success = false;
-    let mut warnings = Vec::new();
+    channel_id: ChannelId,
+    dm_msg_id: String,
+    inbox_msg_id: String,
+    edited_message_builder: (MessageBuilder<'a>, MessageBuilder<'a>),
+    pool: &SqlitePool,
+    config: &Config
+) -> ModmailResult<()> {
 
-    if let Some(inbox_id) = inbox_msg_id {
-        match edit_inbox_message(ctx, channel_id, &inbox_id, thread_message, config, msg).await {
-            Ok(()) => inbox_success = true,
-            Err(error) => {
-                warnings.push(error);
-            }
-        }
-    }
+    let (inbox_msg_builder, dm_msg_builder) = edited_message_builder;
 
-    if let Some(dm_id) = dm_msg_id {
-        match edit_dm_message(ctx, &dm_id, channel_id, dm_message, pool, config, msg).await {
-            Ok(()) => dm_success = true,
-            Err(error) => {
-                warnings.push(error);
-            }
-        }
-    }
+    let edit_inbox_msg = inbox_msg_builder.build_edit_message().await;
 
-    match (inbox_success, dm_success, warnings.is_empty()) {
-        (true, true, true) => EditResult::Success,
-        (true, true, false) => EditResult::Success,
-        (true, false, _) => EditResult::PartialSuccess(
-            "⚠️ Message modifié dans le thread mais échec de la modification en DM.".to_string(),
-        ),
-        (false, true, _) => EditResult::PartialSuccess(
-            "⚠️ Message modifié en DM mais échec de la modification dans le thread.".to_string(),
-        ),
-        (false, false, _) => {
-            let error_msg = if warnings.is_empty() {
-                "❌ Échec de la modification des messages.".to_string()
-            } else {
-                warnings.join(" ")
-            };
-            EditResult::Failure(error_msg)
-        }
-    }
+    match edit_inbox_message(ctx, channel_id, &inbox_msg_id, edit_inbox_msg).await {
+        Ok(()) => (),
+        Err(e) => return Err(e),
+    };
+
+    match edit_dm_message(ctx, channel_id, &dm_msg_id, dm_msg_builder, pool, config).await {
+        Ok(()) => (),
+        Err(e) => return Err(e),
+    };
+
+    Ok(())
 }
 
 pub async fn cleanup_command_message(ctx: &Context, msg: &Message) {

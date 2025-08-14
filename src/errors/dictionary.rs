@@ -226,7 +226,11 @@ impl DictionaryManager {
                 _ => ("thread.not_found".to_string(), None),
             },
             ModmailError::Message(msg_err) => match msg_err {
-                MessageError::MessageNotFound => ("message.not_found".to_string(), None),
+                MessageError::MessageNotFound(msg) => {
+                    let mut params = HashMap::new();
+                    params.insert("message".to_string(), msg.to_string());
+                    ("message.not_found".to_string(), Some(params))
+                },
                 MessageError::MessageNumberNotFound(num) => {
                     let mut params = HashMap::new();
                     params.insert("number".to_string(), num.to_string());

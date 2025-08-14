@@ -89,7 +89,7 @@ async fn get_message_ids(
             let mut params = HashMap::new();
             params.insert("number".to_string(), message_number.to_string());
             send_delete_message(ctx, msg, config, "delete.message_not_found", Some(&params)).await;
-            Err(common::message_not_found())
+            Err(common::message_not_found("Try an other message number."))
         }
     }
 }

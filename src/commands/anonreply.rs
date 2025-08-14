@@ -9,6 +9,7 @@ use crate::utils::message_builder::MessageBuilder;
 use crate::utils::reply_intent::{ReplyIntent, extract_intent};
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
+use crate::utils::hex_string_to_int::hex_string_to_int;
 
 pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
@@ -66,6 +67,7 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
     let _ = msg.delete(&ctx.http).await;
 
     let bot_user_id = ctx.cache.current_user().id;
+    let bot_user_name = ctx.cache.current_user().name.clone();
 
     match intent {
         ReplyIntent::Text(text) => {
@@ -76,9 +78,10 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::anonymous_staff_message(ctx, config, bot_user_id)
+            let dm_response = MessageBuilder::user_message(ctx, config, bot_user_id, bot_user_name)
                 .content(&text)
                 .with_message_number(next_message_number)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .to_user(user_id)
                 .send()
                 .await;
@@ -140,9 +143,10 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::anonymous_staff_message(ctx, config, bot_user_id)
+            let dm_response = MessageBuilder::user_message(ctx, config, bot_user_id, bot_user_name)
                 .with_message_number(next_message_number)
                 .add_attachments(files)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .to_user(user_id)
                 .send()
                 .await;
@@ -172,10 +176,11 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 .send()
                 .await;
 
-            let dm_response = MessageBuilder::anonymous_staff_message(ctx, config, bot_user_id)
+            let dm_response = MessageBuilder::user_message(ctx, config, bot_user_id, bot_user_name)
                 .content(&text)
                 .with_message_number(next_message_number)
                 .add_attachments(files)
+                .color(hex_string_to_int(&config.thread.staff_message_color) as u32)
                 .to_user(user_id)
                 .send()
                 .await;

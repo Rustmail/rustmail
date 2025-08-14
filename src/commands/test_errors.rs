@@ -28,7 +28,7 @@ pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> Modma
         "validation" | "val" => ModmailError::Validation(ValidationError::InvalidInput(
             "Test validation error".to_string(),
         )),
-        "message" | "msg" => ModmailError::Message(MessageError::MessageNotFound),
+        "message" | "msg" => ModmailError::Message(MessageError::MessageNotFound("reason".to_string())),
         "thread" => common::thread_not_found(),
         "permission" | "perm" => common::permission_denied(),
         "user" => common::user_not_found(),
@@ -212,7 +212,7 @@ pub async fn test_all_errors(ctx: &Context, msg: &Message, config: &Config) -> M
             ModmailError::Command(CommandError::InvalidFormat),
         ),
         ("Thread Error", common::thread_not_found()),
-        ("Message Error", common::message_not_found()),
+        ("Message Error", common::message_not_found("reason")),
         ("User Error", common::user_not_found()),
         (
             "Validation Error",

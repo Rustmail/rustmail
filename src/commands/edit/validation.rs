@@ -1,5 +1,8 @@
-use serenity::all::{Context, Message};
+use serenity::all::{ChannelId, Context, Message, UserId};
+use crate::db::{get_message_ids_by_number, get_thread_by_channel_id};
+use crate::db::messages::get_thread_message_by_inbox_message_id;
 use crate::errors::{ModmailError, ModmailResult, CommandError, ValidationError as ErrorValidationError, command_error};
+use crate::errors::common::{not_found, permission_denied, thread_not_found};
 use crate::i18n::get_translated_message;
 
 #[derive(Debug)]
@@ -66,7 +69,7 @@ pub fn parse_edit_command(raw_content: &str) -> ModmailResult<EditCommandInput> 
     let message_number_str = parts.next().ok_or(ValidationError::MissingMessageNumber)?;
     let message_content = parts.next().ok_or(ValidationError::MissingContent)?;
 
-    let message_number = message_number_str
+    let message_number: i64 = message_number_str
         .parse::<i64>()
         .map_err(|_| ValidationError::InvalidMessageNumber)?;
 
@@ -86,10 +89,47 @@ pub fn parse_edit_command(raw_content: &str) -> ModmailResult<EditCommandInput> 
 }
 
 pub async fn validate_edit_permissions(
-    _message_number: i64,
-    _user_id: serenity::all::UserId,
-    _pool: &sqlx::SqlitePool,
+    message_number: i64,
+    channel_id: ChannelId,
+    user_id: UserId,
+    pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
+    let thread_id = match get_thread_by_channel_id(&channel_id.to_string(), pool).await {
+        Some(thread) => thread.id,
+        None => return Err(thread_not_found())
+    };
+
+    let ids = match get_message_ids_by_number(
+        message_number,
+        user_id,
+        &thread_id,
+        pool
+    ).await {
+        Some(ids) => ids,
+        None => return Err(
+            not_found("An error occurred during the retrieval of message_ids in the edit command.")
+        ),
+    };
+
+    let inbox_message_id = match ids.inbox_message_id {
+        Some(inbox_message_id) => inbox_message_id,
+        None => return Err(
+            not_found("inbox_message_id doesn't exist !")
+        )
+    };
+
+    let thread_message = match get_thread_message_by_inbox_message_id(
+        &inbox_message_id,
+        pool
+    ).await {
+        Ok(thread_message) => thread_message,
+        Err(..) => return Err(permission_denied())
+    };
+
+    if thread_message.user_id != user_id.get() as i64 {
+        return Err(permission_denied());
+    }
+
     Ok(())
 }
 

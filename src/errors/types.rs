@@ -81,7 +81,7 @@ pub enum ThreadError {
 
 #[derive(Debug, Clone)]
 pub enum MessageError {
-    MessageNotFound,
+    MessageNotFound(String),
     MessageTooLong,
     MessageEmpty,
     AttachmentTooLarge,
@@ -92,6 +92,7 @@ pub enum MessageError {
     InvalidMessageFormat,
     MessageNumberNotFound(i64),
     DuplicateMessageNumber,
+    DmAccessFailed(String)
 }
 
 #[derive(Debug, Clone)]
@@ -213,7 +214,7 @@ impl fmt::Display for ThreadError {
 impl fmt::Display for MessageError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MessageError::MessageNotFound => write!(f, "Message not found"),
+            MessageError::MessageNotFound(msg) => write!(f, "Message not found: {}", msg),
             MessageError::MessageTooLong => write!(f, "Message too long"),
             MessageError::MessageEmpty => write!(f, "Message is empty"),
             MessageError::AttachmentTooLarge => write!(f, "Attachment too large"),
@@ -226,6 +227,7 @@ impl fmt::Display for MessageError {
                 write!(f, "Message number {} not found", num)
             }
             MessageError::DuplicateMessageNumber => write!(f, "Duplicate message number"),
+            MessageError::DmAccessFailed(msg) => write!(f, "Dm access failed: {}", msg),
         }
     }
 }
@@ -361,7 +363,7 @@ macro_rules! message_error {
         ModmailError::Message(MessageError::$variant)
     };
     ($variant:ident, $msg:expr) => {
-        ModmailError::Message(MessageError::$variant($msg))
+        ModmailError::Message(MessageError::$variant($msg.to_string()))
     };
 }
 
