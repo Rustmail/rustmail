@@ -5,16 +5,13 @@ use serenity::all::{Context, Message};
 
 use crate::commands::edit::message_ops::{cleanup_command_message, edit_messages, format_new_message, get_message_ids};
 use crate::commands::edit::validation::{parse_edit_command, validate_edit_permissions, EditCommandInput};
-use crate::errors::common::message_not_found;
+use crate::errors::common::{invalid_command, message_not_found};
+use crate::utils::hex_string_to_int::hex_string_to_int;
+use crate::utils::message_builder::MessageBuilder;
 
 pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
         .db_pool
-        .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
-
-    let error_handler = config
-        .error_handler
         .as_ref()
         .ok_or_else(|| common::database_connection_failed())?;
 
@@ -28,12 +25,23 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         Err(e) => return Err(e)
     };
 
-    match validate_edit_permissions(command_input.message_number, msg.channel_id, msg.author.id, pool).await {
+    match validate_edit_permissions(
+        command_input.message_number,
+        msg.channel_id,
+        msg.author.id,
+        pool
+    ).await {
         Ok(()) => (),
         Err(e) => return Err(e)
     };
 
-    let ids = match get_message_ids(command_input.message_number, msg.author.id, pool, ctx, msg).await {
+    let ids = match get_message_ids(
+        command_input.message_number,
+        msg.author.id,
+        pool,
+        ctx,
+        msg
+    ).await {
         Ok(ids) => ids,
         Err(e) => return Err(e)
     };
@@ -48,31 +56,52 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         None => return Err(message_not_found("")),
     };
 
-    let edited_messages_builder = match format_new_message(ctx, &msg, &command_input.new_content, &inbox_message_id, command_input.message_number as u64, config, pool).await {
+    let edited_messages_builder = match format_new_message(
+        ctx,
+        &msg,
+        &command_input.new_content,
+        &inbox_message_id,
+        command_input.message_number as u64,
+        config,
+        pool
+    ).await {
         Ok(edited_messages) => edited_messages,
         Err(e) => return Err(e)
     };
 
-    let edit_result = edit_messages(ctx, msg.channel_id, dm_msg_id.clone(), inbox_message_id.clone(), edited_messages_builder, pool, config).await;
+    let edit_result = edit_messages(
+        ctx,
+        msg.channel_id,
+        dm_msg_id.clone(),
+        inbox_message_id.clone(),
+        edited_messages_builder,
+        pool,
+        config
+    ).await;
 
     match edit_result {
         Ok(()) => {
             if config.notifications.show_success_on_edit {
-                let _ = error_handler
-                    .send_success_message(
-                        ctx,
-                        msg.channel_id,
+                let _ = MessageBuilder::system_message(ctx, config)
+                    .translated_content(
                         "success.message_edited",
                         None,
                         Some(msg.author.id),
-                        msg.guild_id.map(|g| g.get()),
-                    )
+                        msg.guild_id.map(|g| g.get())
+                    ).await
+                    .color(hex_string_to_int(&config.thread.system_message_color) as u32)
+                    .to_channel(msg.channel_id)
+                    .send()
                     .await;
             };
 
             cleanup_command_message(ctx, msg).await;
 
-            match update_message_content(&dm_msg_id, &command_input.new_content, pool).await {
+            match update_message_content(
+                &dm_msg_id,
+                &command_input.new_content,
+                pool
+            ).await {
                 Ok(()) => (),
                 Err(e) => return Err(e)
             }
@@ -85,7 +114,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
 fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<String> {
     extract_reply_content(&msg.content, &config.command.prefix, &["edit", "e"])
-        .ok_or_else(|| common::invalid_command())
+        .ok_or_else(|| invalid_command())
 }
 
 #[cfg(test)]
