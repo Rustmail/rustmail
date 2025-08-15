@@ -1,11 +1,11 @@
 use crate::config::Config;
-use crate::db::operations::{get_thread_id_by_user_id, insert_user_message_with_ids, is_user_left, get_staff_alerts_for_user, mark_alert_as_used};
+use crate::db::operations::{get_thread_id_by_user_id, is_user_left, get_staff_alerts_for_user, mark_alert_as_used};
 use crate::utils::format_ticket_message::Sender::User;
 use crate::utils::format_ticket_message::{TicketMessage, format_ticket_message_with_destination, MessageDestination};
-use crate::utils::build_message_from_ticket::build_message_from_ticket;
 use serenity::all::{ChannelId, Context, CreateMessage, Message, GuildId, CreateAttachment};
 use crate::i18n::get_translated_message;
 use std::collections::HashMap;
+use crate::utils::message_builder::{MessageBuilder};
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
     let content = msg.content.clone();
@@ -157,151 +157,32 @@ pub async fn send_to_thread(
 
     let (content, attachment_urls) = extract_message_content_with_media(msg);
 
-    if content.trim().is_empty() && !attachment_urls.is_empty() {
-        let mut message_builder = CreateMessage::new();
-        
-        for url in attachment_urls {
-            if let Some(attachment) = download_attachment(&url).await {
-                message_builder = message_builder.add_file(attachment);
-            }
-        }
-
-        let sent_msg = channel_id.send_message(&ctx.http, message_builder).await;
-
-        let sent_msg = match sent_msg {
-            Ok(msg) => msg,
-            Err(err) => {
-                eprintln!("Failed to send message: {}", err);
-                return Err(err);
-            }
-        };
-
-        let thread_id = match get_thread_id_by_user_id(msg.author.id, pool).await {
-            Some(thread_id) => thread_id,
-            None => {
-                eprintln!("Failed to get thread ID");
-                return Ok(sent_msg);
-            }
-        };
-
-        if let Err(e) = insert_user_message_with_ids(
-            msg,
-            &sent_msg,
-            &thread_id,
-            is_anonymous,
-            pool,
-            config,
-        ).await {
-            eprintln!("Error inserting user message: {}", e);
-        }
-
-        let user_id = msg.author.id.get() as i64;
-        if let Ok(alerts) = get_staff_alerts_for_user(user_id, pool).await {
-            if !alerts.is_empty() {
-                let mut ping_mentions = String::new();
-                for staff_id in &alerts {
-                    ping_mentions.push_str(&format!("<@{}> ", staff_id));
-                }
-
-                let mut params = HashMap::new();
-                params.insert("user".to_string(), msg.author.name.clone());
-                let alert_content = get_translated_message(
-                    config,
-                    "alert.ping_message",
-                    Some(&params),
-                    None,
-                    None,
-                    None,
-                ).await;
-
-                if config.thread.embedded_message {
-                    use crate::utils::format_ticket_message::{Sender, MessageDestination, format_ticket_message_with_destination};
-                    let bot_user_id = ctx.cache.current_user().id;
-                    let bot_username = ctx.cache.current_user().name.clone();
-                    let ticket_msg = format_ticket_message_with_destination(
-                        ctx,
-                        Sender::System {
-                            user_id: bot_user_id,
-                            username: bot_username,
-                        },
-                        &alert_content,
-                        config,
-                        MessageDestination::Thread,
-                    ).await;
-                    match ticket_msg {
-                        TicketMessage::Plain(content) => {
-                            let full_content = format!("{}{}", ping_mentions, content);
-                            let _ = channel_id.send_message(&ctx.http, CreateMessage::new().content(full_content)).await;
-                        }
-                        TicketMessage::Embed(embed) => {
-                            let _ = channel_id.send_message(&ctx.http, CreateMessage::new()
-                                .content(ping_mentions)
-                                .embed(embed)).await;
-                        }
-                    }
-                } else {
-                    let full_content = format!("{}{}", ping_mentions, alert_content);
-                    let _ = channel_id.send_message(&ctx.http, CreateMessage::new().content(&full_content)).await;
-                }
-
-                for staff_id in &alerts {
-                    let _ = mark_alert_as_used(*staff_id, user_id, pool).await;
-                }
-            }
-        }
-
-        return Ok(sent_msg);
+    let mut attachments: Vec<CreateAttachment> = Vec::new();
+    for url in &attachment_urls {
+        if let Some(a) = download_attachment(url).await { attachments.push(a); }
     }
-
-    let ticket_msg = format_ticket_message_with_destination(
-        ctx,
-        User {
-            username: msg.author.name.clone(),
-            user_id: msg.author.id,
-        },
-        &content,
-        config,
-        MessageDestination::DirectMessage,
-    )
-    .await;
-
-    let mut message_builder = CreateMessage::new();
-    message_builder = build_message_from_ticket(ticket_msg, message_builder);
-    
-    for url in attachment_urls {
-        if let Some(attachment) = download_attachment(&url).await {
-            message_builder = message_builder.add_file(attachment);
-        }
-    }
-
-    let sent_msg = channel_id.send_message(&ctx.http, message_builder).await;
-
-    let sent_msg = match sent_msg {
-        Ok(msg) => msg,
-        Err(err) => {
-            eprintln!("Failed to send message: {}", err);
-            return Err(err);
-        }
-    };
 
     let thread_id = match get_thread_id_by_user_id(msg.author.id, pool).await {
         Some(thread_id) => thread_id,
         None => {
             eprintln!("Failed to get thread ID");
-            return Ok(sent_msg);
+            return Err(serenity::Error::Other("Failed to get thread ID"));
         }
     };
 
-    if let Err(e) = insert_user_message_with_ids(
-        msg,
-        &sent_msg,
-        &thread_id,
-        is_anonymous,
-        pool,
-        config,
-    ).await {
-        eprintln!("Error inserting user message: {}", e);
-    }
+    let builder = MessageBuilder::begin_user_incoming(ctx, config, thread_id.clone(), msg)
+        .to_thread(channel_id)
+        .content(content)
+        .add_attachments(attachments)
+        .anonymous(is_anonymous);
+
+    let sent_msg = match builder.send_and_record(pool).await {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("Failed to send message: {}", e);
+            return Err(e);
+        }
+    };
 
     let user_id = msg.author.id.get() as i64;
     if let Ok(alerts) = get_staff_alerts_for_user(user_id, pool).await {
