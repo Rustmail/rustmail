@@ -44,7 +44,7 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     if let Ok(channel) = staff_guild_id.create_channel(&ctx.http, channel_builder).await {
-        let mut is_new_thread = false;
+        let is_new_thread: bool;
         match create_thread(&channel, msg, pool).await {
             Ok(_) => {
                 let canonical_channel_id_str = get_thread_channel_by_user_id(msg.author.id, pool).await;

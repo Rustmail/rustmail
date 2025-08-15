@@ -306,3 +306,25 @@ pub async fn mark_alert_as_used(
 
     Ok(())
 }
+
+pub async fn allocate_next_message_number(thread_id: &str, pool: &SqlitePool) -> Result<u64, Error> {
+    let mut tx = pool.begin().await?;
+
+    let current: Option<i64> = sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
+        .bind(thread_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+    let num = current.unwrap_or(1);
+
+    sqlx::query!(
+        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ?",
+        thread_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(num as u64)
+}
