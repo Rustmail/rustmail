@@ -603,7 +603,9 @@ impl<'a> StaffReply<'a> {
             MessageBuilder::staff_message(self.ctx, self.config, self.staff_user_id, self.staff_username.clone())
         };
         if !self.is_anonymous {
-            if let Some(role_name) = &top_role_name { thread_builder = thread_builder.with_role(role_name.clone()); }
+            if let Some(role_name) = &top_role_name {
+                thread_builder = thread_builder.with_role(role_name.clone());
+            }
         }
 
         thread_builder = thread_builder
@@ -622,7 +624,9 @@ impl<'a> StaffReply<'a> {
                 MessageBuilder::staff_message(self.ctx, self.config, self.staff_user_id, self.staff_username.clone())
             };
             if !self.is_anonymous {
-                if let Some(role_name) = &top_role_name { dm_builder = dm_builder.with_role(role_name.clone()); }
+                if let Some(role_name) = &top_role_name {
+                    dm_builder = dm_builder.with_role(role_name.clone());
+                }
             }
 
             dm_builder = dm_builder

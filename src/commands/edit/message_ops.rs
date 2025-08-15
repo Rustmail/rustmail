@@ -78,7 +78,9 @@ pub async fn format_new_message<'a>(
         let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
             .content(content.to_string())
             .with_message_number(message_number);
-        if let Some(role_name) = &top_role_name { inbox_builder = inbox_builder.with_role(role_name.clone()); }
+        if let Some(role_name) = &top_role_name {
+            inbox_builder = inbox_builder.with_role(role_name.clone());
+        }
 
         let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
             .content(content.to_string());
@@ -89,11 +91,15 @@ pub async fn format_new_message<'a>(
         let mut inbox_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
             .content(content.to_string())
             .with_message_number(message_number);
-        if let Some(role_name) = &top_role_name { inbox_builder = inbox_builder.with_role(role_name.clone()); }
+        if let Some(role_name) = &top_role_name {
+            inbox_builder = inbox_builder.with_role(role_name.clone());
+        }
 
         let mut dm_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
             .content(content.to_string());
-        if let Some(role_name) = &top_role_name { dm_builder = dm_builder.with_role(role_name.clone()); }
+        if let Some(role_name) = &top_role_name {
+            dm_builder = dm_builder.with_role(role_name.clone());
+        }
 
         Ok((inbox_builder, dm_builder))
     }
