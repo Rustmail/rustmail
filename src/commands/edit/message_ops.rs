@@ -58,24 +58,44 @@ pub async fn format_new_message<'a>(
         )
     };
 
+    let mut top_role_name: Option<String> = None;
+    if let Some(guild_id) = msg.guild_id {
+        if let (Ok(member), Ok(roles_map)) = (
+            guild_id.member(&ctx.http, msg.author.id).await,
+            guild_id.roles(&ctx.http).await,
+        ) {
+            top_role_name = member
+                .roles
+                .iter()
+                .filter_map(|rid| roles_map.get(rid))
+                .filter(|r| r.name != "@everyone")
+                .max_by_key(|r| r.position)
+                .map(|r| r.name.clone());
+        }
+    }
+
     if thread_message.is_anonymous {
-        Ok(
-            (MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
-                .content(content.to_string())
-                .with_message_number(message_number),
-            MessageBuilder::user_message(ctx, config, bot_user.id, bot_user.name.clone())
-                .content(content.to_string())
-            )
-        )
+        let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
+            .content(content.to_string())
+            .with_message_number(message_number);
+        if let Some(role_name) = &top_role_name { inbox_builder = inbox_builder.with_role(role_name.clone()); }
+
+        let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
+            .content(content.to_string());
+        if let Some(role_name) = &top_role_name { dm_builder = dm_builder.with_role(role_name.clone()); }
+
+        Ok((inbox_builder, dm_builder))
     } else {
-        Ok(
-            (MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
-                .content(content.to_string())
-                .with_message_number(message_number),
-            MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
-                .content(content.to_string())
-            )
-        )
+        let mut inbox_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+            .content(content.to_string())
+            .with_message_number(message_number);
+        if let Some(role_name) = &top_role_name { inbox_builder = inbox_builder.with_role(role_name.clone()); }
+
+        let mut dm_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+            .content(content.to_string());
+        if let Some(role_name) = &top_role_name { dm_builder = dm_builder.with_role(role_name.clone()); }
+
+        Ok((inbox_builder, dm_builder))
     }
 }
 
