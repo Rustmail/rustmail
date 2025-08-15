@@ -6,6 +6,8 @@ welcome_message = "Votre message à bien été reçu par l'équipe Staff ! Nous 
 close_message = "Merci d'avoir contacté le support ! Ton ticket est désormais clos."
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
+logs_channel_id = 1404359730566135899
+enable_logs = true
 
 [bot.mode]
 type = "dual"
@@ -20,13 +22,15 @@ inbox_category_id = 1376462463847505960
 embedded_message = true
 user_message_color = "3d54ff"
 staff_message_color = "ff3126"
+system_message_color = "00fb3f"
 block_quote = true
 
 [notifications]
-show_success_on_edit = true
+show_success_on_edit = false
 show_partial_success_on_edit = true
 show_failure_on_edit = true
-show_success_on_reply = true
+show_success_on_reply = false
+show_success_on_delete = false
 
 [language]
 default_language = "en"

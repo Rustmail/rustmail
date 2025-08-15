@@ -530,35 +530,144 @@ impl<'a> MessageBuilder<'a> {
     }
 }
 
-pub trait MessageResult<T> {
-    async fn send_error_if_failed(
-        self,
-        ctx: &Context,
-        config: &Config,
-        target: MessageTarget,
-    ) -> Option<T>;
+use sqlx::SqlitePool;
+use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
+
+pub struct StaffReply<'a> {
+    ctx: &'a Context,
+    config: &'a Config,
+    thread_id: String,
+    thread_channel: Option<ChannelId>,
+    dm_user_id: Option<UserId>,
+    staff_user_id: UserId,
+    staff_username: String,
+    is_anonymous: bool,
+    message_number: u64,
+    content: String,
+    attachments: Vec<CreateAttachment>,
 }
 
-impl<T> MessageResult<T> for Result<T, crate::errors::ModmailError> {
-    async fn send_error_if_failed(
-        self,
-        ctx: &Context,
-        config: &Config,
-        _target: MessageTarget,
-    ) -> Option<T> {
-        match self {
-            Ok(value) => Some(value),
-            Err(error) => {
-                if let Some(error_handler) = &config.error_handler {
-                    let error_msg = error_handler.handle_error(&error, None, None).await;
-                    let _ = MessageBuilder::system_message(ctx, config)
-                        .content(error_msg.message)
-                        .color(0xFF0000)
-                        .send()
-                        .await;
+impl<'a> StaffReply<'a> {
+    pub fn new(ctx: &'a Context, config: &'a Config, thread_id: String, staff_user_id: UserId, staff_username: String, message_number: u64) -> Self {
+        Self {
+            ctx,
+            config,
+            thread_id,
+            thread_channel: None,
+            dm_user_id: None,
+            staff_user_id,
+            staff_username,
+            is_anonymous: false,
+            message_number,
+            content: String::new(),
+            attachments: Vec::new(),
+        }
+    }
+
+    pub fn anonymous(mut self, anonymous: bool) -> Self { self.is_anonymous = anonymous; self }
+    pub fn to_thread(mut self, channel_id: ChannelId) -> Self { self.thread_channel = Some(channel_id); self }
+    pub fn to_user(mut self, user_id: UserId) -> Self { self.dm_user_id = Some(user_id); self }
+    pub fn content<S: Into<String>>(mut self, content: S) -> Self { self.content = content.into(); self }
+    pub fn add_attachments(mut self, files: Vec<CreateAttachment>) -> Self { self.attachments.extend(files); self }
+
+    pub async fn send_and_record(self, pool: &SqlitePool) -> Result<(Message, Option<Message>), serenity::Error> {
+        let thread_channel = self.thread_channel.ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
+
+        let mut thread_builder = if self.is_anonymous {
+            MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
+        } else {
+            MessageBuilder::staff_message(self.ctx, self.config, self.staff_user_id, self.staff_username.clone())
+        };
+        thread_builder = thread_builder
+            .content(self.content.clone())
+            .with_message_number(self.message_number)
+            .add_attachments(self.attachments.clone())
+            .to_channel(thread_channel);
+
+        let thread_msg = thread_builder.send().await?;
+
+        let mut dm_msg_opt: Option<Message> = None;
+        if let Some(dm_user) = self.dm_user_id {
+            let (dm_sender_id, dm_sender_name) = if self.is_anonymous {
+                let bot_id = self.ctx.cache.current_user().id;
+                let bot_name = self.ctx.cache.current_user().name.clone();
+                (bot_id, bot_name)
+            } else {
+                (self.staff_user_id, self.staff_username.clone())
+            };
+
+            let dm_builder = MessageBuilder::user_message(self.ctx, self.config, dm_sender_id, dm_sender_name)
+                .content(self.content.clone())
+                .with_message_number(self.message_number)
+                .add_attachments(self.attachments.clone())
+                .color(hex_string_to_int(&self.config.thread.staff_message_color) as u32)
+                .to_user(dm_user);
+            match dm_builder.send().await {
+                Ok(m) => dm_msg_opt = Some(m),
+                Err(e) => {
+                    eprintln!("Failed to send DM to user: {}", e);
                 }
-                None
             }
         }
+
+        let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
+        if let Err(e) = insert_staff_message(
+            &thread_msg,
+            dm_id_opt,
+            &self.thread_id,
+            self.staff_user_id,
+            self.is_anonymous,
+            pool,
+            self.config,
+            self.message_number,
+        ).await {
+            eprintln!("Error inserting staff message: {}", e);
+        }
+
+        Ok((thread_msg, dm_msg_opt))
+    }
+}
+
+pub struct UserIncoming<'a> {
+    ctx: &'a Context,
+    config: &'a Config,
+    thread_id: String,
+    dm_msg: &'a Message,
+    thread_channel: Option<ChannelId>,
+    content: String,
+    attachments: Vec<CreateAttachment>,
+    is_anonymous: bool,
+}
+
+impl<'a> UserIncoming<'a> {
+    pub fn new(ctx: &'a Context, config: &'a Config, thread_id: String, dm_msg: &'a Message) -> Self {
+        Self { ctx, config, thread_id, dm_msg, thread_channel: None, content: String::new(), attachments: Vec::new(), is_anonymous: false }
+    }
+    pub fn to_thread(mut self, channel_id: ChannelId) -> Self { self.thread_channel = Some(channel_id); self }
+    pub fn content<S: Into<String>>(mut self, content: S) -> Self { self.content = content.into(); self }
+    pub fn add_attachments(mut self, files: Vec<CreateAttachment>) -> Self { self.attachments.extend(files); self }
+    pub fn anonymous(mut self, anonymous: bool) -> Self { self.is_anonymous = anonymous; self }
+
+    pub async fn send_and_record(self, pool: &SqlitePool) -> Result<Message, serenity::Error> {
+        let thread_channel = self.thread_channel.ok_or_else(|| serenity::Error::Other("No thread channel for UserIncoming"))?;
+        let builder = MessageBuilder::user_message(self.ctx, self.config, self.dm_msg.author.id, self.dm_msg.author.name.clone())
+            .content(self.content)
+            .add_attachments(self.attachments)
+            .to_channel(thread_channel);
+        let sent = builder.send().await?;
+        if let Err(e) = insert_user_message_with_ids(self.dm_msg, &sent, &self.thread_id, self.is_anonymous, pool, self.config).await {
+            eprintln!("Error inserting user message: {}", e);
+        }
+        Ok(sent)
+    }
+}
+
+impl<'a> MessageBuilder<'a> {
+    pub fn begin_staff_reply(ctx: &'a Context, config: &'a Config, thread_id: String, staff_user_id: UserId, staff_username: String, message_number: u64) -> StaffReply<'a> {
+        StaffReply::new(ctx, config, thread_id, staff_user_id, staff_username, message_number)
+    }
+
+    pub fn begin_user_incoming(ctx: &'a Context, config: &'a Config, thread_id: String, dm_msg: &'a Message) -> UserIncoming<'a> {
+        UserIncoming::new(ctx, config, thread_id, dm_msg)
     }
 }
