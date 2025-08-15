@@ -100,6 +100,15 @@ async fn manage_incoming_message(
         }
     }
 
+    let user_key = msg.author.id.get();
+    let user_mutex = {
+        let mut map = config.thread_locks.lock().unwrap();
+        map.entry(user_key)
+            .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+            .clone()
+    };
+    let _guard = user_mutex.lock().await;
+
     if thread_exists(msg.author.id, pool).await {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str

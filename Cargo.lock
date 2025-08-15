@@ -1291,7 +1291,6 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
- "lazy_static",
  "reqwest 0.12.22",
  "serde",
  "serenity",

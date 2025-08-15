@@ -118,6 +118,7 @@ fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<Stri
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
     use super::*;
     use crate::config::{BotConfig, CommandConfig, Config, ThreadConfig};
 
@@ -153,6 +154,7 @@ mod tests {
             error_handling: crate::config::ErrorHandlingConfig::default(),
             db_pool: None,
             error_handler: None,
+            thread_locks: Arc::new(Mutex::new(Default::default())),
         }
     }
 
