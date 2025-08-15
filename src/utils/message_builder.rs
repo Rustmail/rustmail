@@ -252,7 +252,7 @@ impl<'a> MessageBuilder<'a> {
                     let display_name = if *anonymous {
                         self.ctx.cache.current_user().name.clone()
                     } else if let Some(role) = role {
-                        format!("{} [{}]", username, role)
+                        format!("{}  ({})", username, role)
                     } else {
                         username.clone()
                     };
@@ -333,7 +333,7 @@ impl<'a> MessageBuilder<'a> {
                 let display_name = if *anonymous {
                     self.ctx.cache.current_user().name.clone()
                 } else if let Some(role) = role {
-                    format!("{} [{}]", username, role)
+                    format!("{}  ({})", username, role)
                 } else {
                     username.clone()
                 };
@@ -573,11 +573,41 @@ impl<'a> StaffReply<'a> {
     pub async fn send_and_record(self, pool: &SqlitePool) -> Result<(Message, Option<Message>), serenity::Error> {
         let thread_channel = self.thread_channel.ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
 
+        let mut top_role_name: Option<String> = None;
+        if let Ok(channel) = thread_channel.to_channel(&self.ctx.http).await {
+            use serenity::all::Channel;
+            let guild_id_opt = match &channel {
+                Channel::Guild(guild_channel) => Some(guild_channel.guild_id),
+                _ => None,
+            };
+
+            if let Some(guild_id) = guild_id_opt {
+                if let (Ok(member), Ok(roles_map)) = (
+                    guild_id.member(&self.ctx.http, self.staff_user_id).await,
+                    guild_id.roles(&self.ctx.http).await,
+                ) {
+                    top_role_name = member
+                        .roles
+                        .iter()
+                        .filter_map(|rid| roles_map.get(rid))
+                        .filter(|r| r.name != "@everyone")
+                        .max_by_key(|r| r.position)
+                        .map(|r| r.name.clone());
+                }
+            }
+        }
+
         let mut thread_builder = if self.is_anonymous {
             MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
         } else {
             MessageBuilder::staff_message(self.ctx, self.config, self.staff_user_id, self.staff_username.clone())
         };
+        if !self.is_anonymous {
+            if let Some(role_name) = &top_role_name {
+                thread_builder = thread_builder.with_role(role_name.clone());
+            }
+        }
+
         thread_builder = thread_builder
             .content(self.content.clone())
             .with_message_number(self.message_number)
@@ -588,20 +618,23 @@ impl<'a> StaffReply<'a> {
 
         let mut dm_msg_opt: Option<Message> = None;
         if let Some(dm_user) = self.dm_user_id {
-            let (dm_sender_id, dm_sender_name) = if self.is_anonymous {
-                let bot_id = self.ctx.cache.current_user().id;
-                let bot_name = self.ctx.cache.current_user().name.clone();
-                (bot_id, bot_name)
+            let mut dm_builder = if self.is_anonymous {
+                MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
             } else {
-                (self.staff_user_id, self.staff_username.clone())
+                MessageBuilder::staff_message(self.ctx, self.config, self.staff_user_id, self.staff_username.clone())
             };
+            if !self.is_anonymous {
+                if let Some(role_name) = &top_role_name {
+                    dm_builder = dm_builder.with_role(role_name.clone());
+                }
+            }
 
-            let dm_builder = MessageBuilder::user_message(self.ctx, self.config, dm_sender_id, dm_sender_name)
+            dm_builder = dm_builder
                 .content(self.content.clone())
-                .with_message_number(self.message_number)
                 .add_attachments(self.attachments.clone())
                 .color(hex_string_to_int(&self.config.thread.staff_message_color) as u32)
                 .to_user(dm_user);
+
             match dm_builder.send().await {
                 Ok(m) => dm_msg_opt = Some(m),
                 Err(e) => {
