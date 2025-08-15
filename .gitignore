@@ -6,6 +6,5 @@ node_modules
 db/db.sqlite
 .idea
 .sqlx
-migrations
 .vscode/
 package-lock.json

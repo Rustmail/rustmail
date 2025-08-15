@@ -7,6 +7,7 @@ use crate::{
 };
 use serenity::all::{ChannelId, Context, CreateChannel, GuildId, Message};
 use crate::utils::message_builder::MessageBuilder;
+use crate::db::operations::get_thread_channel_by_user_id;
 
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let pool = match &config.db_pool {
@@ -43,36 +44,64 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     if let Ok(channel) = staff_guild_id.create_channel(&ctx.http, channel_builder).await {
-        let open_thread_message = format!(
-            "ACCOUNT AGE **{}**, ID **{}**\nNICKNAME **{}**, JOINED **{}**",
-            format_duration_since(msg.author.id.created_at()),
-            msg.author.id,
-            msg.author.name,
-            member_join_date
-        );
-
-        let _ = MessageBuilder::system_message(ctx, config)
-            .to_channel(channel.id)
-            .content(open_thread_message)
-            .send()
-            .await;
-
+        let mut is_new_thread = false;
         match create_thread(&channel, msg, pool).await {
             Ok(_) => {
-                let _ = MessageBuilder::system_message(ctx, config)
-                    .content(&config.bot.welcome_message)
-                    .to_user(msg.author.id)
-                    .send()
-                    .await;
-                println!("Thread created successfully");
+                let canonical_channel_id_str = get_thread_channel_by_user_id(msg.author.id, pool).await;
+                let canonical_channel_id_matches = canonical_channel_id_str
+                    .as_deref()
+                    .map(|id| id == channel.id.to_string())
+                    .unwrap_or(false);
+                is_new_thread = canonical_channel_id_matches;
             }
             Err(e) => {
                 eprintln!("Error creating thread: {}", e);
+                let canonical_channel_id_str = get_thread_channel_by_user_id(msg.author.id, pool).await;
+                if let Some(canonical_id) = canonical_channel_id_str {
+                    if canonical_id != channel.id.to_string() {
+                        let _ = channel.delete(&ctx.http).await;
+                    }
+                }
                 return;
             }
         }
+
+        let target_channel_id = if let Some(canonical_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
+            if canonical_id_str != channel.id.to_string() {
+                let _ = channel.delete(&ctx.http).await;
+                ChannelId::new(canonical_id_str.parse::<u64>().unwrap_or(channel.id.get()))
+            } else {
+                channel.id
+            }
+        } else {
+            channel.id
+        };
+
+        if is_new_thread {
+            let open_thread_message = format!(
+                "ACCOUNT AGE **{}**, ID **{}**\nNICKNAME **{}**, JOINED **{}**",
+                format_duration_since(msg.author.id.created_at()),
+                msg.author.id,
+                msg.author.name,
+                member_join_date
+            );
+
+            let _ = MessageBuilder::system_message(ctx, config)
+                .to_channel(target_channel_id)
+                .content(open_thread_message)
+                .send()
+                .await;
+
+            let _ = MessageBuilder::system_message(ctx, config)
+                .content(&config.bot.welcome_message)
+                .to_user(msg.author.id)
+                .send()
+                .await;
+
+            println!("Thread created successfully");
+        }
         
-        if let Err(e) = send_to_thread(ctx, channel.id, msg, config, false).await {
+        if let Err(e) = send_to_thread(ctx, target_channel_id, msg, config, false).await {
             eprintln!("Failed to forward message to thread: {:?}", e);
         }
     }

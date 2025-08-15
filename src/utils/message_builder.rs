@@ -383,17 +383,35 @@ impl<'a> MessageBuilder<'a> {
 
         match target {
             MessageTarget::Channel(channel_id) => {
-                channel_id.send_message(&self.ctx.http, message).await
+
+                let message = match channel_id.send_message(&self.ctx.http, message).await {
+                    Ok(message) => message,
+                    Err(err) => return Err(err)
+                };
+
+                Ok(message)
             }
             MessageTarget::User(user_id) => {
                 let dm_channel = user_id.create_dm_channel(&self.ctx.http).await?;
-                dm_channel.send_message(&self.ctx.http, message).await
+
+                let message = match dm_channel.send_message(&self.ctx.http, message).await {
+                    Ok(message) => message,
+                    Err(err) => return Err(err)
+                };
+
+                Ok(message)
             }
             MessageTarget::Reply(original_message) => {
-                original_message
+                let message = match original_message
                     .channel_id
                     .send_message(&self.ctx.http, message)
                     .await
+                {
+                    Ok(message) => message,
+                    Err(err) => return Err(err)
+                };
+
+                Ok(message)
             }
         }
     }

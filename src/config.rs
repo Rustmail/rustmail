@@ -17,6 +17,8 @@ pub struct Config {
     pub db_pool: Option<SqlitePool>,
     #[serde(skip)]
     pub error_handler: Option<Arc<ErrorHandler>>,
+    #[serde(skip)]
+    pub thread_locks: Arc<std::sync::Mutex<std::collections::HashMap<u64, Arc<tokio::sync::Mutex<()>>>>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -117,6 +119,8 @@ pub fn load_config(path: &str) -> Config {
     let fallback_lang = config.language.get_fallback_language();
     let error_handler = Arc::new(ErrorHandler::with_languages(default_lang, fallback_lang));
     config.error_handler = Some(error_handler);
+
+    config.thread_locks = Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
 
     config
 }
