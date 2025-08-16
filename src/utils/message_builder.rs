@@ -3,6 +3,8 @@ use crate::i18n::get_translated_message;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
+use sqlx::SqlitePool;
+use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
 
 #[derive(Debug, Clone)]
 pub enum MessageSender {
@@ -529,9 +531,6 @@ impl<'a> MessageBuilder<'a> {
             .await
     }
 }
-
-use sqlx::SqlitePool;
-use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
 
 pub struct StaffReply<'a> {
     ctx: &'a Context,

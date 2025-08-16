@@ -47,17 +47,6 @@ pub async fn format_new_message<'a>(
         Err(..) => return Err(permission_denied())
     };
 
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(e) => return Err(
-            ModmailError::Discord(
-                ApiError(
-                    format!("Unable to get bot user for edit command ! : {}", e)
-                )
-            )
-        )
-    };
-
     let mut top_role_name: Option<String> = None;
     if let Some(guild_id) = msg.guild_id {
         if let (Ok(member), Ok(roles_map)) = (

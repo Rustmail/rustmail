@@ -91,31 +91,6 @@ pub async fn get_user_name_from_thread_id(thread_id: &str, pool: &SqlitePool) ->
         .flatten()
 }
 
-pub async fn get_next_message_number(thread_id: &str, pool: &SqlitePool) -> u64 {
-    sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
-        .bind(thread_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error getting message number: {:?}", e);
-            e
-        })
-        .ok()
-        .flatten()
-        .unwrap_or(1)
-}
-
-pub async fn increment_message_number(thread_id: &str, pool: &SqlitePool) -> Result<(), Error> {
-    sqlx::query!(
-        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ?",
-        thread_id
-    )
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
-
 pub async fn create_thread_for_user(
     channel: &GuildChannel,
     user_id: i64,
