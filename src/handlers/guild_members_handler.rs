@@ -10,11 +10,11 @@ use crate::db::close_thread;
 use crate::db::threads::get_thread_by_user_id;
 use crate::utils::message_builder::MessageBuilder;
 
-pub struct MemberHandler {
+pub struct GuildMembersHandler {
     pub config: Config,
 }
 
-impl MemberHandler {
+impl GuildMembersHandler {
     pub fn new(config: &Config) -> Self {
         Self {
             config: config.clone(),
@@ -23,7 +23,7 @@ impl MemberHandler {
 }
 
 #[async_trait]
-impl EventHandler for MemberHandler {
+impl EventHandler for GuildMembersHandler {
     async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member: Option<Member>) {
         if let Some(pool) = &self.config.db_pool {
             if let Some(thread) = get_thread_by_user_id(user.id, pool).await {

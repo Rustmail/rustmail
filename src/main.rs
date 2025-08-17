@@ -1,11 +1,12 @@
 use crate::handlers::typing_proxy_handler::TypingProxyHandler;
 use config::load_config;
 use handlers::{
-    member_handler::MemberHandler, message_handler::MessageHandler,
-    reaction_handler::ReactionHandler, ready_handler::ReadyHandler,
+    guild_members_handler::GuildMembersHandler, guild_messages_handler::GuildMessagesHandler,
+    ready_handler::ReadyHandler,
 };
 use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
+use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
 
 mod commands;
@@ -40,10 +41,10 @@ async fn main() {
         | GatewayIntents::GUILD_MODERATION;
     let mut client: serenity::Client = ClientBuilder::new(config.bot.token.clone(), intents)
         .event_handler(ReadyHandler::new(&config))
-        .event_handler(MessageHandler::new(&config))
+        .event_handler(GuildMessagesHandler::new(&config))
         .event_handler(TypingProxyHandler::new(&config))
-        .event_handler(MemberHandler::new(&config))
-        .event_handler(ReactionHandler::new(&config))
+        .event_handler(GuildMembersHandler::new(&config))
+        .event_handler(GuildMessageReactionsHandler::new(&config))
         .event_handler(GuildModerationHandler::new(&config))
         .await
         .expect("Failed to create client.");

@@ -29,12 +29,12 @@ type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<
     + Sync
     + 'static;
 
-pub struct MessageHandler {
+pub struct GuildMessagesHandler {
     pub config: Config,
     pub commands: HashMap<String, CommandFunc>,
 }
 
-impl MessageHandler {
+impl GuildMessagesHandler {
     pub fn new(config: &Config) -> Self {
         let mut h = Self {
             config: config.clone(),
@@ -131,7 +131,7 @@ async fn manage_incoming_message(
 }
 
 #[async_trait]
-impl EventHandler for MessageHandler {
+impl EventHandler for GuildMessagesHandler {
     async fn message(&self, ctx: Context, msg: Message) {
         if msg.guild_id.is_none() {
             if let Err(error) = manage_incoming_message(&ctx, &msg, &self.config).await {

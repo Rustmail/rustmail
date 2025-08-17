@@ -4,11 +4,11 @@ use serenity::all::{Context, EventHandler, Reaction, UserId, ChannelId};
 use serenity::async_trait;
 
 #[derive(Clone)]
-pub struct ReactionHandler {
+pub struct GuildMessageReactionsHandler {
     pub config: Config,
 }
 
-impl ReactionHandler {
+impl GuildMessageReactionsHandler {
     pub fn new(config: &Config) -> Self {
         Self {
             config: config.clone(),
@@ -17,7 +17,7 @@ impl ReactionHandler {
 }
 
 #[async_trait]
-impl EventHandler for ReactionHandler {
+impl EventHandler for GuildMessageReactionsHandler {
     async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
         if let Err(e) = handle_reaction_add(&ctx, &reaction, &self.config).await {
             eprintln!("Error handling reaction add: {}", e);
