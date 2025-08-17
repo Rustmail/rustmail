@@ -8,3 +8,4 @@ pub mod new_thread;
 pub mod recover;
 pub mod reply;
 pub mod test_errors;
+pub mod force_close;
