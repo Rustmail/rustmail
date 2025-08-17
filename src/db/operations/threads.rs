@@ -318,5 +318,5 @@ pub async fn is_orphaned_thread_channel(channel_id: ChannelId, pool: &SqlitePool
         .fetch_one(pool)
         .await?;
 
-    Ok(!exists)
+    Ok(exists)
 }
