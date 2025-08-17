@@ -21,6 +21,7 @@ use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
 use crate::utils::send_to_thread::send_to_thread;
 use crate::{modules::threads::create_channel, utils::wrap_command};
+use crate::commands::force_close::force_close;
 use crate::i18n::get_translated_message;
 
 type CommandFunc = Arc<StaticCommandFunc>;
@@ -52,6 +53,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "test_errors", test_errors);
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);
+        wrap_command!(h.commands, ["force_close", "fc"], force_close);
         h
     }
 }
@@ -165,7 +167,6 @@ impl EventHandler for GuildMessagesHandler {
             }
             return;
         }
-
         return;
     }
 }

@@ -1,4 +1,4 @@
-use serenity::all::{GuildChannel, Message, UserId};
+use serenity::all::{ChannelId, GuildChannel, Message, UserId};
 use sqlx::{Error, SqlitePool};
 use uuid::Uuid;
 use crate::db::repr::Thread;
@@ -169,6 +169,14 @@ pub async fn thread_exists(user_id: UserId, pool: &SqlitePool) -> bool {
     get_thread_channel_by_user_id(user_id, pool).await.is_some()
 }
 
+pub async fn is_a_ticket_channel(channel_id: ChannelId, pool: &SqlitePool) -> bool {
+    sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM threads WHERE channel_id = ?)")
+        .bind(channel_id.to_string())
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false)
+}
+
 pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
     let rows = sqlx::query!(
         "SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1"
@@ -302,4 +310,13 @@ pub async fn allocate_next_message_number(thread_id: &str, pool: &SqlitePool) ->
     tx.commit().await?;
 
     Ok(num as u64)
+}
+
+pub async fn is_orphaned_thread_channel(channel_id: ChannelId, pool: &SqlitePool) -> Result<bool, Error> {
+    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM threads WHERE channel_id = ? AND status = 0 AND user_left = 1)")
+        .bind(channel_id.to_string())
+        .fetch_one(pool)
+        .await?;
+
+    Ok(exists)
 }
