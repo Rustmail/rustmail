@@ -223,6 +223,8 @@ impl DictionaryManager {
                 ThreadError::ThreadNotFound => ("thread.not_found".to_string(), None),
                 ThreadError::ThreadAlreadyExists => ("thread.already_exists".to_string(), None),
                 ThreadError::ThreadCreationFailed => ("thread.creation_failed".to_string(), None),
+                ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
+                ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
                 _ => ("thread.not_found".to_string(), None),
             },
             ModmailError::Message(msg_err) => match msg_err {

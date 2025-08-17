@@ -86,6 +86,15 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         ),
     );
     dict.messages.insert(
+        "thread.user_still_in_server".to_string(),
+        ErrorMessage::new("L'utilisateur est toujours sur le serveur.")
+            .with_description("Utilisez la commande « close » pour fermer ce ticket."),
+    );
+    dict.messages.insert(
+        "thread.not_a_thread_channel".to_string(),
+        ErrorMessage::new("Ce channel n'est pas issu d'un ticket de support.")
+    );
+    dict.messages.insert(
         "message.not_found".to_string(),
         ErrorMessage::new("Message non trouvé")
             .with_description("Le message spécifié n'a pas pu être trouvé"),

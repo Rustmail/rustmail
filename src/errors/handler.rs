@@ -4,6 +4,7 @@ use crate::i18n::languages::{Language, LanguageDetector, LanguagePreferences};
 use serenity::all::{ChannelId, Colour, Context, CreateEmbed, CreateMessage, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::futures::future::err;
 use tokio::sync::RwLock;
 
 #[derive(Debug)]

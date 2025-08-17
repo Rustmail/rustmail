@@ -85,6 +85,15 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("An error occurred while creating the support thread"),
     );
     dict.messages.insert(
+        "thread.user_still_in_server".to_string(),
+        ErrorMessage::new("User still in the server.")
+            .with_description("Use the 'close' command to close this ticket."),
+    );
+    dict.messages.insert(
+        "thread.not_a_thread_channel".to_string(),
+        ErrorMessage::new("This channel is not a ticket channel.")
+    );
+    dict.messages.insert(
         "message.not_found".to_string(),
         ErrorMessage::new("Message not found")
             .with_description("The specified message could not be found"),

@@ -78,6 +78,8 @@ pub enum ThreadError {
     ChannelNotThread,
     ThreadExpired,
     UserNotInTheServer,
+    UserStillInServer,
+    NotAThreadChannel,
 }
 
 #[derive(Debug, Clone)]
@@ -209,6 +211,8 @@ impl fmt::Display for ThreadError {
             ThreadError::ChannelNotThread => write!(f, "Channel is not a thread"),
             ThreadError::ThreadExpired => write!(f, "Thread has expired"),
             ThreadError::UserNotInTheServer => write!(f, "User has left the server"),
+            ThreadError::UserStillInServer => write!(f, "User still in the server. Use the 'close' command to close this ticket."),
+            ThreadError::NotAThreadChannel => write!(f, "This channel is not a ticket channel"),
         }
     }
 }
