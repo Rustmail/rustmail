@@ -1,6 +1,6 @@
 use serenity::all::{Context, Message};
 use crate::config::Config;
-use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
+use crate::db::operations::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::{common, ModmailError, ModmailResult};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::DiscordError::ApiError;
