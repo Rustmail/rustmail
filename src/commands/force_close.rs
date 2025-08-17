@@ -18,7 +18,7 @@ pub async fn force_close(ctx: &Context, msg: &Message, config: &Config) -> Modma
 
     match is_orphaned_thread_channel(msg.channel_id, db_pool).await {
         Ok(res) => {
-            if res {
+            if !res {
                 return Err(ModmailError::Thread(UserStillInServer));
             }
             match msg.channel_id.delete(ctx).await {
