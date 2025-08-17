@@ -210,6 +210,15 @@ impl BotConfig {
             (false, None) => Ok(())
         }
     }
+
+    pub fn is_community_guild(&self, p0: u64) -> bool {
+        match &self.mode {
+            ServerMode::Single { guild_id } => *guild_id == p0,
+            ServerMode::Dual {
+                community_guild_id, ..
+            } => *community_guild_id == p0,
+        }
+    }
 }
 
 impl Config {
