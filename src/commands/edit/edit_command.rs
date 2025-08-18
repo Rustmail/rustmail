@@ -136,6 +136,8 @@ mod tests {
                 typing_proxy_from_user: false,
                 typing_proxy_from_staff: false,
                 enable_logs: true,
+                enable_features: true,
+                features_channel_id: Some(12345),
                 logs_channel_id: Some(15456),
             },
             command: CommandConfig {

@@ -8,6 +8,8 @@ typing_proxy_from_user = true
 typing_proxy_from_staff = true
 logs_channel_id = 1404359730566135899
 enable_logs = true
+enable_features = true
+features_channel_id = 1404359730566135899
 
 [bot.mode]
 type = "dual"

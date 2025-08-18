@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
 use serenity::all::ActivityData;
 use serenity::{
@@ -26,9 +27,13 @@ impl EventHandler for ReadyHandler {
         ctx.set_activity(Option::from(ActivityData::playing(&self.config.bot.status)));
 
         let config = self.config.clone();
-        tokio::spawn(async move {
-            let recovery_results = recover_missing_messages(&ctx, &config).await;
-            send_recovery_summary(&ctx, &config, &recovery_results).await;
+        tokio::spawn({
+            let ctx = ctx.clone();
+            async move {
+                let recovery_results = recover_missing_messages(&ctx, &config).await;
+                send_recovery_summary(&ctx, &config, &recovery_results).await;
+                sync_features(&ctx, &config).await;
+            }
         });
     }
 }
