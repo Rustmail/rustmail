@@ -7,12 +7,13 @@ use crate::config::Config;
 use crate::db::operations::{get_feature_message, upsert_feature_message};
 
 mod poll;
+
 pub use poll::PollFeature;
 
 #[async_trait]
-pub trait Feature: Send + Sync {
+pub trait Feature<'a>: Send + Sync {
     fn key(&self) -> &'static str;
-    fn build_message(&self, config: &Config) -> CreateMessage;
+    async fn build_message(&self, ctx: &'a Context, config: &'a Config) -> CreateMessage;
     async fn handle_interaction(
         &self,
         ctx: &Context,
@@ -22,12 +23,14 @@ pub trait Feature: Send + Sync {
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 }
 
-pub fn registry() -> Vec<Arc<dyn Feature>> {
-    vec![Arc::new(PollFeature::default())]
+pub fn registry<'a>() -> Vec<Arc<dyn Feature<'a>>> {
+    vec![
+        Arc::new(PollFeature::default()),
+    ]
 }
 
 pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle)]) -> Vec<CreateActionRow> {
-    let mut row = serenity::builder::CreateActionRow::Buttons(vec![]);
+    let mut row = CreateActionRow::Buttons(vec![]);
     let mut buttons: Vec<CreateButton> = Vec::new();
     for (label, custom_id, style) in pairs {
         let b = CreateButton::new(custom_id.to_string())
@@ -36,7 +39,7 @@ pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle)]) -> Vec<CreateActionRow>
         buttons.push(b);
     }
 
-    if let serenity::builder::CreateActionRow::Buttons(ref mut v) = row {
+    if let CreateActionRow::Buttons(ref mut v) = row {
         v.extend(buttons);
     }
 
@@ -79,7 +82,7 @@ pub async fn sync_features(ctx: &Context, config: &Config) {
         }
 
         if send_new {
-            let msg_create = feature.build_message(config);
+            let msg_create = feature.build_message(ctx, config).await;
             match channel_id.send_message(&ctx.http, msg_create).await {
                 Ok(sent) => {
                     let _ = upsert_feature_message(
