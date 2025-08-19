@@ -1,6 +1,7 @@
 pub mod init;
 pub mod messages;
 pub mod threads;
+pub mod features;
 
 pub use init::{
     init_database, get_last_recovery_timestamp, update_last_recovery_timestamp,
@@ -16,4 +17,7 @@ pub use threads::{
     get_thread_channel_by_user_id, get_thread_id_by_user_id, get_user_id_from_channel_id,
     thread_exists, update_thread_user_left, is_user_left, set_alert_for_staff, cancel_alert_for_staff,
     get_staff_alerts_for_user, mark_alert_as_used, allocate_next_message_number,
+};
+pub use features::{
+    get_feature_message, upsert_feature_message, delete_feature_message,
 };

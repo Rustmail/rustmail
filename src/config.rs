@@ -31,9 +31,12 @@ pub struct BotConfig {
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
     pub enable_logs: bool,
+    pub enable_features: bool,
 
     #[serde(default)]
     pub logs_channel_id: Option<u64>,
+    #[serde(default)]
+    pub features_channel_id: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -114,6 +117,7 @@ pub fn load_config(path: &str) -> Config {
     }
 
     config.bot.validate_logs_config().expect("Invalid logs configuration !");
+    config.bot.validate_features_config().expect("Invalid features configuration !");
 
     let default_lang = config.language.get_default_language();
     let fallback_lang = config.language.get_fallback_language();
@@ -206,6 +210,15 @@ impl BotConfig {
         match (self.enable_logs, self.logs_channel_id) {
             (true, None) => Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string()),
             (false, Some(_)) => Err("'logs_channel_id' must not be filled in if 'enable_logs' is false".to_string()),
+            (true, Some(_)) => Ok(()),
+            (false, None) => Ok(())
+        }
+    }
+
+    pub fn validate_features_config(&self) -> Result<(), String> {
+        match (self.enable_features, self.features_channel_id) {
+            (true, None) => Err("'features_channel_id' field is required if 'enable_features' is true".to_string()),
+            (false, Some(_)) => Err("'features_channel_id' must not be filled in if 'enable_features' is false".to_string()),
             (true, Some(_)) => Ok(()),
             (false, None) => Ok(())
         }

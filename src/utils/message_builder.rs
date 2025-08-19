@@ -3,6 +3,7 @@ use crate::i18n::get_translated_message;
 use crate::utils::hex_string_to_int::hex_string_to_int;
 use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
+use serenity::builder::CreateActionRow;
 use sqlx::SqlitePool;
 use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
 
@@ -45,6 +46,7 @@ pub struct MessageBuilder<'a> {
     footer_text: Option<String>,
     ephemeral: bool,
     bot_user_id: UserId,
+    components: Option<Vec<CreateActionRow>>
 }
 
 impl<'a> MessageBuilder<'a> {
@@ -62,6 +64,7 @@ impl<'a> MessageBuilder<'a> {
             footer_text: None,
             ephemeral: false,
             bot_user_id,
+            components: None,
         }
     }
 
@@ -75,6 +78,11 @@ impl<'a> MessageBuilder<'a> {
             self.content.push('\n');
         }
         self.content.push_str(content.as_ref());
+        self
+    }
+
+    pub fn components(mut self, components: Vec<CreateActionRow>) -> Self {
+        self.components = Some(components);
         self
     }
 
@@ -432,6 +440,10 @@ impl<'a> MessageBuilder<'a> {
 
         for attachment in &self.attachments {
             message = message.add_file(attachment.clone());
+        }
+
+        if let Some(components) = &self.components {
+            message = message.components(components.clone());
         }
 
         message

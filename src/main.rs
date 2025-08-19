@@ -8,6 +8,7 @@ use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
+use crate::handlers::interaction_handler::InteractionHandler;
 
 mod commands;
 mod config;
@@ -17,6 +18,7 @@ mod handlers;
 mod i18n;
 mod modules;
 mod utils;
+mod features;
 
 pub struct Database;
 
@@ -46,6 +48,7 @@ async fn main() {
         .event_handler(GuildMembersHandler::new(&config))
         .event_handler(GuildMessageReactionsHandler::new(&config))
         .event_handler(GuildModerationHandler::new(&config))
+        .event_handler(InteractionHandler::new(&config))
         .await
         .expect("Failed to create client.");
 
