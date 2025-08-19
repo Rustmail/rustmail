@@ -1,24 +1,28 @@
 use async_trait::async_trait;
 use serenity::all::{ComponentInteraction, Context, CreateInteractionResponse, CreateMessage, InputTextStyle, ButtonStyle};
-use serenity::builder::{CreateActionRow, CreateButton, CreateInputText, CreateModal};
+use serenity::builder::{CreateActionRow, CreateInputText, CreateModal};
 use crate::config::Config;
-use super::Feature;
+use crate::utils::message_builder::MessageBuilder;
+use super::{make_buttons, Feature};
 
 #[derive(Default)]
 pub struct PollFeature;
 
 #[async_trait]
-impl Feature for PollFeature {
+impl<'a> Feature<'a> for PollFeature {
     fn key(&self) -> &'static str { "poll" }
 
-    fn build_message(&self, _config: &Config) -> CreateMessage {
-        let content = "Sondage (poll):\n\n- Commande: !poll Question ? | Option 1 | Option 2 | ...\n- Bouton ci-dessous: ouvre un formulaire pour créer un sondage dans ce salon.";
-        let row = CreateActionRow::Buttons(vec![
-            CreateButton::new("feature:poll:create").label("Créer un sondage").style(ButtonStyle::Primary),
+    async fn build_message(&self, ctx: &'a Context, config: &'a Config) -> CreateMessage {
+        let row = make_buttons(&vec![
+            ("Créer un sondage", "feature:poll:create", ButtonStyle::Success),
+            ("Test", "feature:poll:delete", ButtonStyle::Danger),
         ]);
-        CreateMessage::new()
-            .content(content)
-            .components(vec![row])
+
+        MessageBuilder::system_message(ctx, config)
+            .content("Sondage (poll):\n\n- Commande: !poll Question ? | Option 1 | Option 2 | ...\n- Bouton ci-dessous: ouvre un formulaire pour créer un sondage dans ce salon.")
+            .components(row)
+            .build()
+            .await
     }
 
     async fn handle_interaction(
