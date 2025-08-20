@@ -5,9 +5,11 @@ use serenity::{
 use crate::config::Config;
 use crate::db::operations::update_thread_user_left;
 use std::collections::HashMap;
-use serenity::all::Member;
+use serenity::all::{ButtonStyle, Member};
 use crate::db::close_thread;
 use crate::db::threads::get_thread_by_user_id;
+use crate::features::make_buttons;
+use crate::i18n::get_translated_message;
 use crate::utils::message_builder::MessageBuilder;
 
 pub struct GuildMembersHandler {
@@ -55,6 +57,19 @@ impl EventHandler for GuildMembersHandler {
         params.insert("username".to_string(), user.name.clone());
         params.insert("user_id".to_string(), user.id.to_string());
 
+        let close_buttons = make_buttons(&[
+            (
+                get_translated_message(&self.config, "thread.ask_to_keep_open", None, None, None, None).await.as_ref(),
+                "ticket:keep",
+                ButtonStyle::Success
+            ),
+            (
+                get_translated_message(&self.config, "thread.ask_to_close", None, None, None, None).await.as_ref(),
+                "ticket:delete",
+                ButtonStyle::Danger
+            ),
+        ]);
+
         let _ = MessageBuilder::system_message(&ctx, &self.config)
             .translated_content(
                 "user.left_server_notification",
@@ -63,6 +78,7 @@ impl EventHandler for GuildMembersHandler {
                 Some(guild_id.get())
             ).await
             .to_channel(channel_id)
+            .components(close_buttons)
             .send()
             .await;
 
