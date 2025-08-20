@@ -5,7 +5,8 @@ use crate::{
     config::Config,
     utils::get_member_join_date::get_member_join_date,
 };
-use serenity::all::{ChannelId, Context, CreateChannel, GuildId, Message};
+use serenity::all::{ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message};
+use serenity::builder::EditMessage;
 use crate::utils::message_builder::MessageBuilder;
 use crate::db::operations::get_thread_channel_by_user_id;
 
@@ -105,4 +106,37 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
             eprintln!("Failed to forward message to thread: {:?}", e);
         }
     }
+}
+
+fn parse_thread_interaction(custom_id: &str) -> Option<String> {
+    let parts: Vec<&str> = custom_id.split(':').collect();
+    if parts.len() >= 2 && parts[0] == "ticket" {
+        Some(parts[1].to_string())
+    } else {
+        None
+    }
+}
+
+pub async fn handle_thread_interaction(
+    ctx: &Context,
+    interaction: &mut ComponentInteraction,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let parts = match parse_thread_interaction(&interaction.data.custom_id) {
+        Some(parts) => parts,
+        None => {
+            eprintln!("Invalid custom ID format: {}", interaction.data.custom_id);
+            return Ok(());
+        }
+    };
+
+    if parts == "delete" {
+        interaction.channel_id.delete(&ctx.http).await?;
+    }
+    if parts == "keep" {
+        let builder = EditMessage::default()
+            .components(vec![]);
+
+        interaction.message.edit(&ctx.http, builder).await?;
+    }
+    Ok(())
 }
