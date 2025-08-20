@@ -64,6 +64,7 @@ pub struct ThreadConfig {
     pub staff_message_color: String,
     pub system_message_color: String,
     pub block_quote: bool,
+    pub time_to_close_thread: u64,
 }
 
 #[derive(Debug, Deserialize, Clone)]

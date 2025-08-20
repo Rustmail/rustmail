@@ -25,7 +25,7 @@ impl EventHandler for InteractionHandler {
                     eprintln!("Error handling feature component: {}", e);
                     return;
                 }
-                if let Err(e) = handle_thread_interaction(&ctx, &mut comp).await {
+                if let Err(e) = handle_thread_interaction(&ctx, &self.config, &mut comp).await {
                     eprintln!("Error handling thread component: {}", e);
                     return;
                 }
