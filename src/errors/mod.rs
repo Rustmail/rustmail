@@ -117,33 +117,3 @@ pub mod conversions {
         }
     }
 }
-
-#[cfg(test)]
-pub mod test_utils {
-    use crate::errors::handler::ErrorHandler;
-    use super::*;
-    use crate::i18n::languages::Language;
-
-    pub fn create_test_error_handler() -> ErrorHandler {
-        ErrorHandler::new()
-    }
-
-    pub fn create_test_dictionary(language: Language) -> ErrorDictionary {
-        ErrorDictionary::new(language)
-    }
-
-    pub fn assert_error_type(error: &ModmailError, expected_type: &str) {
-        let actual_type = match error {
-            ModmailError::Database(_) => "Database",
-            ModmailError::Discord(_) => "Discord",
-            ModmailError::Command(_) => "Command",
-            ModmailError::Thread(_) => "Thread",
-            ModmailError::Message(_) => "Message",
-            ModmailError::Config(_) => "Config",
-            ModmailError::Validation(_) => "Validation",
-            ModmailError::Permission(_) => "Permission",
-            ModmailError::Generic(_) => "Generic",
-        };
-        assert_eq!(actual_type, expected_type);
-    }
-}
