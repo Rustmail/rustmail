@@ -10,7 +10,7 @@ use serenity::all::{AutoModAction, ChannelAction, ChannelOverwriteAction, Creato
                     RoleAction, ScheduledEventAction, StageInstanceAction, StickerAction,
                     ThreadAction, VoiceChannelStatusAction, WebhookAction};
 pub use crate::config::Config;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub struct GuildModerationHandler {
     pub config: Config,

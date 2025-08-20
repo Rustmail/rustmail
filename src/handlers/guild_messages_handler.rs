@@ -19,10 +19,11 @@ use crate::commands::{
 use crate::config::Config;
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{ModmailResult, common};
-use crate::utils::send_to_thread::send_to_thread;
+use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::{modules::threads::create_channel, utils::wrap_command};
 use crate::commands::force_close::force_close;
 use crate::i18n::get_translated_message;
+use crate::utils::thread::get_thread_lock::get_thread_lock;
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -103,12 +104,7 @@ async fn manage_incoming_message(
     }
 
     let user_key = msg.author.id.get();
-    let user_mutex = {
-        let mut map = config.thread_locks.lock().unwrap();
-        map.entry(user_key)
-            .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
-            .clone()
-    };
+    let user_mutex = get_thread_lock(&config, user_key);
     let guard = user_mutex.lock().await;
 
     if thread_exists(msg.author.id, pool).await {

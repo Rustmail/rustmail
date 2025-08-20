@@ -1,25 +1,16 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::Duration;
 use crate::db::operations::create_thread;
-use crate::utils::format_duration_since::format_duration_since;
-use crate::utils::send_to_thread::send_to_thread;
-use crate::{
-    config::Config,
-    utils::get_member_join_date::get_member_join_date,
-};
+use crate::utils::time::format_duration_since::format_duration_since;
+use crate::utils::thread::send_to_thread::send_to_thread;
+use crate::config::Config;
 use serenity::all::{ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message};
-use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage, EditMessage};
+use serenity::builder::{CreateInteractionResponse, EditMessage};
 use tokio::time::sleep;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 use crate::db::operations::get_thread_channel_by_user_id;
-
-fn get_thread_lock(config: &Config, key: u64) -> Arc<tokio::sync::Mutex<()>> {
-    let mut map = config.thread_locks.lock().expect("lock poisoned");
-    map.entry(key)
-        .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
-        .clone()
-}
+use crate::utils::thread::get_thread_lock::get_thread_lock;
+use crate::utils::time::get_member_join_date::get_member_join_date;
 
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let pool = match &config.db_pool {

@@ -7,7 +7,7 @@ use crate::i18n::get_translated_message;
 use serenity::all::{Context, UserId, ChannelId, MessageId, GetMessages, Message};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub struct MessageRecoveryResult {
     pub thread_id: String,

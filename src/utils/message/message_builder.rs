@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::i18n::get_translated_message;
-use crate::utils::hex_string_to_int::hex_string_to_int;
+use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
 use serenity::builder::{CreateActionRow, CreateInteractionResponseMessage};

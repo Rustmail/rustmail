@@ -3,7 +3,7 @@ use crate::db::operations::{get_thread_id_by_user_id, is_user_left, get_staff_al
 use serenity::all::{ChannelId, Context, Message, GuildId, CreateAttachment};
 use crate::i18n::get_translated_message;
 use std::collections::HashMap;
-use crate::utils::message_builder::{MessageBuilder};
+use crate::utils::message::message_builder::{MessageBuilder};
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
     let content = msg.content.clone();

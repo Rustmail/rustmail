@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serenity::all::{ComponentInteraction, Context, CreateInteractionResponse, CreateMessage, InputTextStyle, ButtonStyle};
 use serenity::builder::{CreateActionRow, CreateInputText, CreateModal};
 use crate::config::Config;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 use super::{make_buttons, Feature};
 
 #[derive(Default)]

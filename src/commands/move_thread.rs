@@ -4,7 +4,7 @@ use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use serenity::all::{ChannelId, Context, EditChannel, GuildId, Message};
 use std::collections::HashMap;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

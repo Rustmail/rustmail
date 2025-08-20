@@ -3,7 +3,7 @@ use crate::errors::{ModmailResult, common};
 use crate::db::operations::{thread_exists, create_thread_for_user, get_thread_channel_by_user_id};
 use serenity::all::{ChannelId, Context, GuildChannel, GuildId, Message, User, UserId};
 use std::collections::HashMap;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

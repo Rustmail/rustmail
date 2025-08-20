@@ -8,8 +8,8 @@ use crate::db::messages::{get_thread_message_by_inbox_message_id, MessageIds};
 use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
 use crate::errors::MessageError::{DmAccessFailed, EditFailed};
 use crate::errors::{ModmailError, ModmailResult};
-use crate::utils::hex_string_to_int::hex_string_to_int;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn get_message_ids(
     message_number: i64,

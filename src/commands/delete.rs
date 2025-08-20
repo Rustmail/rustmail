@@ -6,7 +6,7 @@ use crate::db::operations::{
 use crate::errors::{ModmailResult, common};
 use serenity::all::{Context, Message, MessageId, UserId};
 use std::collections::HashMap;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

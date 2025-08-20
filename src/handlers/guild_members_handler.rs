@@ -10,7 +10,7 @@ use crate::db::close_thread;
 use crate::db::threads::get_thread_by_user_id;
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub struct GuildMembersHandler {
     pub config: Config,

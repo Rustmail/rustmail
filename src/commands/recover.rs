@@ -4,7 +4,7 @@ use crate::modules::message_recovery::recover_missing_messages;
 use crate::i18n::get_translated_message;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let _ = config

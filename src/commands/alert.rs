@@ -4,7 +4,7 @@ use crate::db::operations::{get_user_id_from_channel_id, set_alert_for_staff, ca
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use serenity::all::colours::roles::GREEN;
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

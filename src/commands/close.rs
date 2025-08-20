@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use crate::{
     config::Config,
     db::close_thread,
-    errors::{ModmailResult, common},
-    utils::fetch_thread::fetch_thread,
+    errors::{common, ModmailResult},
 };
-use crate::utils::message_builder::MessageBuilder;
+use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::thread::fetch_thread::fetch_thread;
 
 pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
