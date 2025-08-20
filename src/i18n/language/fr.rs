@@ -181,6 +181,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le thread restera ouvert.")
     );
     dict.messages.insert(
+        "thread.ask_create_ticket".to_string(),
+        DictionaryMessage::new("Ce channel à été crée dans la catégorie des tickets de support. Voulez vous en créer un ?")
+    );
+    dict.messages.insert(
+        "thread.modal_to_create_ticket".to_string(),
+        DictionaryMessage::new("Créer un ticket")
+    );
+    dict.messages.insert(
         "reply.missing_content".to_string(),
         DictionaryMessage::new("Veuillez fournir un message à envoyer à l'utilisateur.")
             .with_description("Vous devez fournir un message pour répondre à l'utilisateur."),
@@ -322,7 +330,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Erreur inconnue : {message}")
             .with_description("Une erreur inattendue s'est produite"),
     );
-    
+    dict.messages.insert(
+        "general.yes".to_string(),
+        DictionaryMessage::new("Oui")
+    );
+    dict.messages.insert(
+        "general.no".to_string(),
+        DictionaryMessage::new("Non")
+    );
     dict.messages.insert(
         "recovery.messages_recovered".to_string(),
         DictionaryMessage::new("📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot")

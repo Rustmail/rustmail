@@ -152,6 +152,7 @@ mod tests {
                 system_message_color: "ffffff".to_string(),
                 block_quote: false,
                 time_to_close_thread: 5,
+                create_ticket_by_create_channel: false,
             },
             notifications: crate::config::NotificationsConfig::default(),
             language: crate::config::LanguageConfig::default(),

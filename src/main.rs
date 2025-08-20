@@ -6,6 +6,7 @@ use handlers::{
 };
 use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
+use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
 use crate::handlers::interaction_handler::InteractionHandler;
@@ -31,7 +32,8 @@ async fn main() {
 
     let mut config = load_config("config.toml");
     config.db_pool = Some(pool.clone());
-    let intents = GatewayIntents::GUILD_MESSAGES
+    let intents = GatewayIntents::GUILDS
+        | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::GUILD_MESSAGE_TYPING
@@ -49,6 +51,7 @@ async fn main() {
         .event_handler(GuildMessageReactionsHandler::new(&config))
         .event_handler(GuildModerationHandler::new(&config))
         .event_handler(InteractionHandler::new(&config))
+        .event_handler(GuildHandler::new(&config))
         .await
         .expect("Failed to create client.");
 

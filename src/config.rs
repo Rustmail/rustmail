@@ -65,6 +65,7 @@ pub struct ThreadConfig {
     pub system_message_color: String,
     pub block_quote: bool,
     pub time_to_close_thread: u64,
+    pub create_ticket_by_create_channel: bool
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -5,10 +5,12 @@ use crate::utils::time::format_duration_since::format_duration_since;
 use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::config::Config;
 use serenity::all::{ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message};
-use serenity::builder::{CreateInteractionResponse, EditMessage};
+use serenity::all::InputTextStyle::Short;
+use serenity::builder::{CreateActionRow, CreateInputText, CreateInteractionResponse, CreateModal, EditMessage};
 use tokio::time::sleep;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::db::operations::get_thread_channel_by_user_id;
+use crate::i18n::get_translated_message;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
 use crate::utils::time::get_member_join_date::get_member_join_date;
 
@@ -171,9 +173,6 @@ pub async fn handle_thread_interaction(
             interaction.channel_id.delete(&ctx.http).await?;
         }
         "keep" => {
-            let builder = EditMessage::default()
-                .components(vec![]);
-
             let _ = interaction.create_response(
                 &ctx.http, CreateInteractionResponse::Message(
                     MessageBuilder::system_message(&ctx, &config)
@@ -183,7 +182,24 @@ pub async fn handle_thread_interaction(
                 )
             ).await;
 
+            let builder = EditMessage::default()
+                .components(vec![]);
+
             interaction.message.edit(&ctx.http, builder).await?;
+        }
+        "dont_create" => {
+            interaction.message.delete(&ctx.http).await?;
+        }
+        "wants_to_create" => {
+            let _ = interaction.create_response(&ctx.http, CreateInteractionResponse::Modal(
+                CreateModal::new("thread:create", get_translated_message(&config, "thread.modal_to_create_ticket", None, None, None, None).await)
+                    .components(vec![
+                        CreateActionRow::InputText(CreateInputText::new(Short, "user_id", "thread:create:user_id"))
+                    ])
+            )).await;
+        }
+        "create" => {
+            todo!()
         }
         _ => {
             eprintln!("Unknown thread interaction action: {}", parts);
