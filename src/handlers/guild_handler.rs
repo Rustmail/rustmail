@@ -5,6 +5,7 @@ use crate::config::Config;
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
+use crate::db::operations::get_thread_by_channel_id;
 
 pub struct GuildHandler {
     pub config: Config,
@@ -26,6 +27,27 @@ impl EventHandler for GuildHandler {
         }
         if !self.config.thread.create_ticket_by_create_channel {
             return;
+        }
+
+        let expected_category = self.config.thread.inbox_category_id;
+        if let Some(parent_id) = thread.parent_id {
+            if parent_id.get() != expected_category {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        if let Some(topic) = &thread.topic {
+            if topic == "modmail:managed" {
+                return;
+            }
+        }
+
+        if let Some(pool) = &self.config.db_pool {
+            if let Some(_) = get_thread_by_channel_id(&thread.id.to_string(), pool).await {
+                return;
+            }
         }
 
         let res_button = make_buttons(&[

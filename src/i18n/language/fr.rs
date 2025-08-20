@@ -95,6 +95,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Ce channel n'est pas issu d'un ticket de support.")
     );
     dict.messages.insert(
+        "thread.modal_invalid_user_id".to_string(),
+        DictionaryMessage::new("User Id invalide")
+    );
+    dict.messages.insert(
         "message.not_found".to_string(),
         DictionaryMessage::new("Message non trouvé")
             .with_description("Le message spécifié n'a pas pu être trouvé"),
@@ -187,6 +191,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "thread.modal_to_create_ticket".to_string(),
         DictionaryMessage::new("Créer un ticket")
+    );
+    dict.messages.insert(
+        "thread.created".to_string(),
+        DictionaryMessage::new("Ticket créé: {channel}")
+            .with_description("Un nouveau ticket de support a été ouvert ou récupéré")
+    );
+    dict.messages.insert(
+        "thread.unknown_action".to_string(),
+        DictionaryMessage::new("Action inconnue")
+            .with_description("L'action demandée pour le ticket est inconnue")
     );
     dict.messages.insert(
         "reply.missing_content".to_string(),
@@ -503,4 +517,4 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("✅ Message #{number} a été supprimé avec succès")
             .with_description("Confirmation que le message a été supprimé"),
     );
-} 
+}
