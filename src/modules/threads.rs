@@ -175,7 +175,7 @@ pub async fn handle_thread_interaction(
                 )
             ).await;
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(config.thread.time_to_close_thread)).await;
 
             interaction.channel_id.delete(&ctx.http).await?;
         }
