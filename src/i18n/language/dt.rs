@@ -1,18 +1,18 @@
-use crate::errors::{ErrorDictionary, ErrorMessage};
+use crate::errors::{ErrorDictionary, DictionaryMessage};
 
 pub fn load_dutch_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "database.connection_failed".to_string(),
-        ErrorMessage::new("Databaseverbinding mislukt"),
+        DictionaryMessage::new("Databaseverbinding mislukt"),
     );
 
     dict.messages.insert(
         "command.invalid_format".to_string(),
-        ErrorMessage::new("Ongeldig commandoformaat"),
+        DictionaryMessage::new("Ongeldig commandoformaat"),
     );
 
     dict.messages.insert(
         "message.not_found".to_string(),
-        ErrorMessage::new("Bericht niet gevonden"),
+        DictionaryMessage::new("Bericht niet gevonden"),
     );
 }

@@ -150,6 +150,7 @@ mod tests {
                 staff_message_color: "ffffff".to_string(),
                 system_message_color: "ffffff".to_string(),
                 block_quote: false,
+                time_to_close_thread: 5,
             },
             notifications: crate::config::NotificationsConfig::default(),
             language: crate::config::LanguageConfig::default(),

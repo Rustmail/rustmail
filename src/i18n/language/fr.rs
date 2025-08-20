@@ -1,471 +1,491 @@
 use crate::errors::dictionary::ErrorDictionary;
-use crate::errors::dictionary::ErrorMessage;
+use crate::errors::dictionary::DictionaryMessage;
 
 pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert("database.connection_failed".to_string(),
-        ErrorMessage::new("Échec de connexion à la base de données")
+                         DictionaryMessage::new("Échec de connexion à la base de données")
             .with_description("Le bot n'a pas pu établir une connexion à la base de données")
             .with_help("Vérifiez la configuration de la base de données et assurez-vous que le serveur est en marche"));
     dict.messages.insert(
         "database.query_failed".to_string(),
-        ErrorMessage::new("Échec de la requête de base de données : {error}")
+        DictionaryMessage::new("Échec de la requête de base de données : {error}")
             .with_description("Une opération de base de données a échoué"),
     );
     dict.messages.insert(
         "database.not_found".to_string(),
-        ErrorMessage::new("Enregistrement non trouvé dans la base de données")
+        DictionaryMessage::new("Enregistrement non trouvé dans la base de données")
             .with_description("Les données demandées n'ont pas pu être trouvées"),
     );
     dict.messages.insert(
         "discord.channel_not_found".to_string(),
-        ErrorMessage::new("Canal non trouvé")
+        DictionaryMessage::new("Canal non trouvé")
             .with_description("Le canal spécifié n'existe pas ou le bot n'y a pas accès"),
     );
     dict.messages.insert(
         "discord.user_not_found".to_string(),
-        ErrorMessage::new("Utilisateur non trouvé")
+        DictionaryMessage::new("Utilisateur non trouvé")
             .with_description("L'utilisateur spécifié n'existe pas ou n'est pas accessible"),
     );
     dict.messages.insert(
         "discord.permission_denied".to_string(),
-        ErrorMessage::new("Permission refusée")
+        DictionaryMessage::new("Permission refusée")
             .with_description("Le bot n'a pas les permissions requises pour effectuer cette action"),
     );
     dict.messages.insert(
         "discord.dm_creation_failed".to_string(),
-        ErrorMessage::new("Échec de création du canal DM")
+        DictionaryMessage::new("Échec de création du canal DM")
             .with_description("Impossible de créer un canal de message privé avec l'utilisateur"),
     );
     dict.messages.insert(
         "discord.api_error".to_string(),
-        ErrorMessage::new("Erreur de l'API Discord")
+        DictionaryMessage::new("Erreur de l'API Discord")
             .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
         "command.invalid_format".to_string(),
-        ErrorMessage::new("Format de commande invalide")
+        DictionaryMessage::new("Format de commande invalide")
             .with_description("La syntaxe de la commande est incorrecte")
             .with_help("Utilisez `{prefix}help` pour voir le format correct de la commande"),
     );
     dict.messages.insert(
         "command.missing_arguments".to_string(),
-        ErrorMessage::new("Arguments requis manquants")
+        DictionaryMessage::new("Arguments requis manquants")
             .with_description("Cette commande nécessite des paramètres supplémentaires"),
     );
     dict.messages.insert(
         "command.invalid_arguments".to_string(),
-        ErrorMessage::new("Arguments invalides : {arguments}")
+        DictionaryMessage::new("Arguments invalides : {arguments}")
             .with_description("Un ou plusieurs arguments sont invalides"),
     );
     dict.messages.insert(
         "command.unknown_command".to_string(),
-        ErrorMessage::new("Commande inconnue : {command}")
+        DictionaryMessage::new("Commande inconnue : {command}")
             .with_description("La commande spécifiée n'existe pas")
             .with_help("Utilisez `{prefix}help` pour voir les commandes disponibles"),
     );
     dict.messages.insert(
         "command.insufficient_permissions".to_string(),
-        ErrorMessage::new("Permissions insuffisantes").with_description(
+        DictionaryMessage::new("Permissions insuffisantes").with_description(
             "Vous n'avez pas les permissions requises pour utiliser cette commande",
         ),
     );
     dict.messages.insert(
         "thread.not_found".to_string(),
-        ErrorMessage::new("Thread non trouvé")
+        DictionaryMessage::new("Thread non trouvé")
             .with_description("Aucun thread actif trouvé pour cet utilisateur ou ce canal"),
     );
     dict.messages.insert(
         "thread.already_exists".to_string(),
-        ErrorMessage::new("Thread existe déjà")
+        DictionaryMessage::new("Thread existe déjà")
             .with_description("Vous avez déjà un thread de support actif"),
     );
     dict.messages.insert(
         "thread.creation_failed".to_string(),
-        ErrorMessage::new("Échec de création du thread").with_description(
+        DictionaryMessage::new("Échec de création du thread").with_description(
             "Une erreur s'est produite lors de la création du thread de support",
         ),
     );
     dict.messages.insert(
         "thread.user_still_in_server".to_string(),
-        ErrorMessage::new("L'utilisateur est toujours sur le serveur.")
+        DictionaryMessage::new("L'utilisateur est toujours sur le serveur.")
             .with_description("Utilisez la commande « close » pour fermer ce ticket."),
     );
     dict.messages.insert(
         "thread.not_a_thread_channel".to_string(),
-        ErrorMessage::new("Ce channel n'est pas issu d'un ticket de support.")
+        DictionaryMessage::new("Ce channel n'est pas issu d'un ticket de support.")
     );
     dict.messages.insert(
         "message.not_found".to_string(),
-        ErrorMessage::new("Message non trouvé")
+        DictionaryMessage::new("Message non trouvé")
             .with_description("Le message spécifié n'a pas pu être trouvé"),
     );
     dict.messages.insert(
         "message.number_not_found".to_string(),
-        ErrorMessage::new("Message #{number} non trouvé")
+        DictionaryMessage::new("Message #{number} non trouvé")
             .with_description("Aucun message avec ce numéro n'existe"),
     );
     dict.messages.insert(
         "message.edit_failed".to_string(),
-        ErrorMessage::new("Échec de modification du message")
+        DictionaryMessage::new("Échec de modification du message")
             .with_description("Une erreur s'est produite lors de la modification du message"),
     );
     dict.messages.insert(
         "message.send_failed".to_string(),
-        ErrorMessage::new("Échec d'envoi du message")
+        DictionaryMessage::new("Échec d'envoi du message")
             .with_description("Une erreur s'est produite lors de l'envoi du message"),
     );
     dict.messages.insert(
         "message.too_long".to_string(),
-        ErrorMessage::new("Message trop long")
+        DictionaryMessage::new("Message trop long")
             .with_description("Les messages Discord ne peuvent pas dépasser 2000 caractères"),
     );
     dict.messages.insert(
         "message.empty".to_string(),
-        ErrorMessage::new("Le message ne peut pas être vide")
+        DictionaryMessage::new("Le message ne peut pas être vide")
             .with_description("Veuillez fournir un message à envoyer"),
     );
     dict.messages.insert(
         "validation.invalid_input".to_string(),
-        ErrorMessage::new("Entrée invalide : {input}")
+        DictionaryMessage::new("Entrée invalide : {input}")
             .with_description("L'entrée fournie n'est pas valide"),
     );
     dict.messages.insert(
         "validation.out_of_range".to_string(),
-        ErrorMessage::new("Valeur hors limites : {range}")
+        DictionaryMessage::new("Valeur hors limites : {range}")
             .with_description("La valeur doit être dans la plage spécifiée"),
     );
     dict.messages.insert(
         "validation.required_field_missing".to_string(),
-        ErrorMessage::new("Champ requis manquant : {field}")
+        DictionaryMessage::new("Champ requis manquant : {field}")
             .with_description("Ce champ est requis et ne peut pas être vide"),
     );
     dict.messages.insert(
         "success.message_sent".to_string(),
-        ErrorMessage::new("Message envoyé avec succès ! (Message #{number})")
+        DictionaryMessage::new("Message envoyé avec succès ! (Message #{number})")
             .with_description("Votre message a été livré")
             .with_help("Utilisez `{prefix}edit {number}` pour modifier ce message"),
     );
     dict.messages.insert(
         "success.message_edited".to_string(),
-        ErrorMessage::new("Message modifié avec succès")
+        DictionaryMessage::new("Message modifié avec succès")
             .with_description("Le message a été mis à jour dans le thread et en DM"),
     );
     dict.messages.insert(
         "success.thread_created".to_string(),
-        ErrorMessage::new("Thread de support créé")
+        DictionaryMessage::new("Thread de support créé")
             .with_description("Un nouveau thread de support a été créé pour vous"),
     );
     dict.messages.insert(
         "thread.closed".to_string(),
-        ErrorMessage::new("Merci d'avoir contacté le support ! Ton ticket est désormais clos.")
+        DictionaryMessage::new("Merci d'avoir contacté le support ! Ton ticket est désormais clos.")
             .with_description("Le ticket de support a été fermé et la conversation terminée."),
     );
     dict.messages.insert(
+        "thread.ask_to_close".to_string(),
+        DictionaryMessage::new("Fermer")
+    );
+    dict.messages.insert(
+        "thread.ask_to_keep_open".to_string(),
+        DictionaryMessage::new("Laisser ouvert")
+    );
+    dict.messages.insert(
+        "thread.thread_closing".to_string(),
+        DictionaryMessage::new("Le ticket se fermera dans {seconds} secondes à la demande de {user}.")
+    );
+    dict.messages.insert(
+        "thread.action_in_progress".to_string(),
+        DictionaryMessage::new("Une action est déjà en cours, merci de patienter.")
+    );
+    dict.messages.insert(
+        "thread.will_remain_open".to_string(),
+        DictionaryMessage::new("Le thread restera ouvert.")
+    );
+    dict.messages.insert(
         "reply.missing_content".to_string(),
-        ErrorMessage::new("Veuillez fournir un message à envoyer à l'utilisateur.")
+        DictionaryMessage::new("Veuillez fournir un message à envoyer à l'utilisateur.")
             .with_description("Vous devez fournir un message pour répondre à l'utilisateur."),
     );
     dict.messages.insert(
         "reply.send_failed_thread".to_string(),
-        ErrorMessage::new("Échec de l'envoi du message dans le salon.")
+        DictionaryMessage::new("Échec de l'envoi du message dans le salon.")
             .with_description("Le bot n'a pas pu envoyer le message dans le salon du thread."),
     );
     dict.messages.insert(
         "reply.send_failed_dm".to_string(),
-        ErrorMessage::new("Échec de l'envoi du message en DM à l'utilisateur.")
+        DictionaryMessage::new("Échec de l'envoi du message en DM à l'utilisateur.")
             .with_description("Le bot n'a pas pu envoyer le message en message privé à l'utilisateur."),
     );
     dict.messages.insert(
         "edit.validation.invalid_format".to_string(),
-        ErrorMessage::new("❌ Format de commande invalide. Utilisation : `edit <numéro> <nouveau message>`")
+        DictionaryMessage::new("❌ Format de commande invalide. Utilisation : `edit <numéro> <nouveau message>`")
             .with_description("Le format de la commande edit est invalide."),
     );
     dict.messages.insert(
         "edit.validation.missing_number".to_string(),
-        ErrorMessage::new("❌ Format invalide. Il manque le numéro du message. Exemple : `edit 3 Nouveau message`")
+        DictionaryMessage::new("❌ Format invalide. Il manque le numéro du message. Exemple : `edit 3 Nouveau message`")
             .with_description("Le numéro du message est manquant dans la commande edit."),
     );
     dict.messages.insert(
         "edit.validation.missing_content".to_string(),
-        ErrorMessage::new("❌ Format invalide. Il manque le contenu. Exemple : `edit 3 Nouveau message`")
+        DictionaryMessage::new("❌ Format invalide. Il manque le contenu. Exemple : `edit 3 Nouveau message`")
             .with_description("Le contenu du nouveau message est manquant dans la commande edit."),
     );
     dict.messages.insert(
         "edit.validation.invalid_number".to_string(),
-        ErrorMessage::new("❌ Le numéro du message est invalide. Il doit être un nombre positif.")
+        DictionaryMessage::new("❌ Le numéro du message est invalide. Il doit être un nombre positif.")
             .with_description("Le numéro du message doit être positif."),
     );
     dict.messages.insert(
         "edit.validation.empty_content".to_string(),
-        ErrorMessage::new("❌ Le nouveau message ne peut pas être vide.")
+        DictionaryMessage::new("❌ Le nouveau message ne peut pas être vide.")
             .with_description("Le contenu du nouveau message ne peut pas être vide."),
     );
     dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
-        ErrorMessage::new("✅ Message envoyé ! (Message #{number}) - Utilisez `{prefix}edit {number}` pour modifier ce message.")
+        DictionaryMessage::new("✅ Message envoyé ! (Message #{number}) - Utilisez `{prefix}edit {number}` pour modifier ce message.")
             .with_description("Confirmation après l'envoi d'un message avec son numéro."),
     );
     dict.messages.insert(
         "reply_numbering.preview".to_string(),
-        ErrorMessage::new("(Message #{number} - Utilisez `{prefix}edit {number}` pour modifier)")
+        DictionaryMessage::new("(Message #{number} - Utilisez `{prefix}edit {number}` pour modifier)")
             .with_description("Aperçu du numéro de message pour modification."),
     );
     dict.messages.insert(
         "reply_numbering.footer".to_string(),
-        ErrorMessage::new("Message #{number} • {prefix}edit {number} pour modifier")
+        DictionaryMessage::new("Message #{number} • {prefix}edit {number} pour modifier")
             .with_description("Footer pour les embeds avec numéro de message et commande edit."),
     );
     dict.messages.insert(
         "reply_numbering.text_footer".to_string(),
-        ErrorMessage::new("*Message #{number} - `{prefix}edit {number}` pour modifier*")
+        DictionaryMessage::new("*Message #{number} - `{prefix}edit {number}` pour modifier*")
             .with_description("Footer pour les messages texte avec numéro de message et commande edit."),
     );
     dict.messages.insert(
         "edit.not_found".to_string(),
-        ErrorMessage::new("❌ Message à modifier non trouvé.")
+        DictionaryMessage::new("❌ Message à modifier non trouvé.")
             .with_description("Impossible de trouver le message original à modifier. Assurez-vous que le numéro est correct et que vous êtes l'auteur du message."),
     );
     dict.messages.insert(
         "edit.invalid_id_thread".to_string(),
-        ErrorMessage::new("❌ ID de message invalide pour le thread.")
+        DictionaryMessage::new("❌ ID de message invalide pour le thread.")
             .with_description("L'ID du message dans le salon est invalide ou corrompu."),
     );
     dict.messages.insert(
         "edit.edit_failed_thread".to_string(),
-        ErrorMessage::new("❌ Échec de la modification du message dans le thread.")
+        DictionaryMessage::new("❌ Échec de la modification du message dans le thread.")
             .with_description("Le bot n'a pas pu modifier le message dans le salon du thread."),
     );
     dict.messages.insert(
         "edit.invalid_id_dm".to_string(),
-        ErrorMessage::new("❌ ID de message invalide pour le DM.")
+        DictionaryMessage::new("❌ ID de message invalide pour le DM.")
             .with_description("L'ID du message en message privé est invalide ou corrompu."),
     );
     dict.messages.insert(
         "edit.dm_access_failed".to_string(),
-        ErrorMessage::new("❌ Impossible d'accéder aux DMs de l'utilisateur.")
+        DictionaryMessage::new("❌ Impossible d'accéder aux DMs de l'utilisateur.")
             .with_description("Le bot n'a pas pu envoyer de message privé à l'utilisateur. Il a peut-être bloqué le bot ou désactivé ses DMs."),
     );
     dict.messages.insert(
         "edit.edit_failed_dm".to_string(),
-        ErrorMessage::new("❌ Échec de la modification du message en DM.")
+        DictionaryMessage::new("❌ Échec de la modification du message en DM.")
             .with_description("Le bot n'a pas pu modifier le message en message privé."),
     );
     dict.messages.insert(
         "permission.insufficient_permissions".to_string(),
-        ErrorMessage::new("Permissions insuffisantes")
+        DictionaryMessage::new("Permissions insuffisantes")
             .with_description("Vous n'avez pas les permissions nécessaires pour cette action"),
     );
     dict.messages.insert(
         "server.wrong_guild_single".to_string(),
-        ErrorMessage::new("Serveur incorrect")
+        DictionaryMessage::new("Serveur incorrect")
             .with_description("Vous devez être dans le serveur principal pour ouvrir un ticket")
             .with_help("Rejoignez le serveur principal pour pouvoir contacter le support"),
     );
     dict.messages.insert(
         "server.wrong_guild_dual".to_string(),
-        ErrorMessage::new("Serveur incorrect")
+        DictionaryMessage::new("Serveur incorrect")
             .with_description("Vous devez être dans le serveur communautaire pour ouvrir un ticket")
             .with_help("Rejoignez le serveur communautaire pour pouvoir contacter le support"),
     );
     dict.messages.insert(
         "server.not_in_community".to_string(),
-        ErrorMessage::new("Utilisateur non trouvé dans le serveur communautaire")
+        DictionaryMessage::new("Utilisateur non trouvé dans le serveur communautaire")
             .with_description("L'utilisateur doit être membre du serveur communautaire"),
     );
     dict.messages.insert(
         "user.left_server".to_string(),
-        ErrorMessage::new("❌ **ERREUR** : Impossible d'envoyer le message car l'utilisateur **{username}** n'est plus membre du serveur communautaire.")
+        DictionaryMessage::new("❌ **ERREUR** : Impossible d'envoyer le message car l'utilisateur **{username}** n'est plus membre du serveur communautaire.")
             .with_description("L'utilisateur a quitté le serveur communautaire"),
     );
     dict.messages.insert(
         "user.left_server_close".to_string(),
-        ErrorMessage::new("ℹ️ **INFORMATION** : Le ticket a été fermé. L'utilisateur **{username}** n'est plus membre du serveur communautaire, donc aucun message de fermeture ne lui a été envoyé.")
+        DictionaryMessage::new("ℹ️ **INFORMATION** : Le ticket a été fermé. L'utilisateur **{username}** n'est plus membre du serveur communautaire, donc aucun message de fermeture ne lui a été envoyé.")
             .with_description("Information lors de la fermeture d'un ticket d'un utilisateur qui a quitté"),
     );
     dict.messages.insert(
         "user.left_server_notification".to_string(),
-        ErrorMessage::new("⚠️ **ALERTE** : L'utilisateur **{username}** (ID: {user_id}) a quitté le serveur.\n\nLe thread reste ouvert mais vous ne pouvez plus envoyer de messages à cet utilisateur.")
+        DictionaryMessage::new("⚠️ **ALERTE** : L'utilisateur **{username}** (ID: {user_id}) a quitté le serveur.\n\nLe thread reste ouvert mais vous ne pouvez plus envoyer de messages à cet utilisateur.")
             .with_description("Notification quand un utilisateur quitte le serveur"),
     );
     dict.messages.insert(
         "reply.user_not_found".to_string(),
-        ErrorMessage::new("Utilisateur non trouvé")
+        DictionaryMessage::new("Utilisateur non trouvé")
             .with_description("L'utilisateur n'existe pas ou n'est pas accessible"),
     );
     dict.messages.insert(
         "config.invalid_configuration".to_string(),
-        ErrorMessage::new("Configuration invalide")
+        DictionaryMessage::new("Configuration invalide")
             .with_description("La configuration du bot est incorrecte"),
     );
     dict.messages.insert(
         "general.unknown_error".to_string(),
-        ErrorMessage::new("Erreur inconnue : {message}")
+        DictionaryMessage::new("Erreur inconnue : {message}")
             .with_description("Une erreur inattendue s'est produite"),
     );
     
     dict.messages.insert(
         "recovery.messages_recovered".to_string(),
-        ErrorMessage::new("📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot")
+        DictionaryMessage::new("📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot")
             .with_description("Notification de récupération de messages manqués"),
     );
     dict.messages.insert(
         "recovery.summary".to_string(),
-        ErrorMessage::new("Récupération terminée : {total} messages récupérés dans {threads} threads ({failed} échecs)")
+        DictionaryMessage::new("Récupération terminée : {total} messages récupérés dans {threads} threads ({failed} échecs)")
             .with_description("Résumé de la récupération des messages"),
     );
     dict.messages.insert(
         "recovery.started".to_string(),
-        ErrorMessage::new("🔄 Début de la récupération des messages manqués...")
+        DictionaryMessage::new("🔄 Début de la récupération des messages manqués...")
             .with_description("Notification de début de récupération"),
     );
     dict.messages.insert(
         "recovery.completed".to_string(),
-        ErrorMessage::new("✅ Récupération des messages terminée")
+        DictionaryMessage::new("✅ Récupération des messages terminée")
             .with_description("Notification de fin de récupération"),
     );
     dict.messages.insert(
         "alert.not_in_thread".to_string(),
-        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
             .with_description("La commande alert doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "alert.set_failed".to_string(),
-        ErrorMessage::new("❌ Échec de la définition de l'alerte")
+        DictionaryMessage::new("❌ Échec de la définition de l'alerte")
             .with_description("Une erreur s'est produite lors de la définition de l'alerte"),
     );
     dict.messages.insert(
         "alert.confirmation".to_string(),
-        ErrorMessage::new("🔔 Alerte définie ! Vous serez notifié quand {user} enverra son prochain message")
+        DictionaryMessage::new("🔔 Alerte définie ! Vous serez notifié quand {user} enverra son prochain message")
             .with_description("Confirmation que l'alerte a été définie"),
     );
     dict.messages.insert(
         "alert.ping_message".to_string(),
-        ErrorMessage::new("**Nouveau message reçu de {user} !**")
+        DictionaryMessage::new("**Nouveau message reçu de {user} !**")
             .with_description("Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert"),
     );
     dict.messages.insert(
         "alert.cancel_failed".to_string(),
-        ErrorMessage::new("❌ Échec de l'annulation de l'alerte")
+        DictionaryMessage::new("❌ Échec de l'annulation de l'alerte")
             .with_description("Une erreur s'est produite lors de l'annulation de l'alerte"),
     );
     dict.messages.insert(
         "alert.cancel_confirmation".to_string(),
-        ErrorMessage::new("🔕 Alerte annulée ! Vous ne serez plus notifié quand {user} enverra un nouveau message")
+        DictionaryMessage::new("🔕 Alerte annulée ! Vous ne serez plus notifié quand {user} enverra un nouveau message")
             .with_description("Confirmation que l'alerte a été annulée"),
     );
     dict.messages.insert(
         "move.not_in_thread".to_string(),
-        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
             .with_description("La commande move doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "move.missing_category".to_string(),
-        ErrorMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move <nom_catégorie>`")
+        DictionaryMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move <nom_catégorie>`")
             .with_description("Le nom de la catégorie est manquant dans la commande move"),
     );
     dict.messages.insert(
         "move.failed_to_fetch_categories".to_string(),
-        ErrorMessage::new("❌ Échec de récupération des catégories du serveur")
+        DictionaryMessage::new("❌ Échec de récupération des catégories du serveur")
             .with_description("Le bot n'a pas pu récupérer la liste des catégories du serveur"),
     );
     dict.messages.insert(
         "move.category_not_found".to_string(),
-        ErrorMessage::new("❌ Catégorie '{category}' non trouvée")
+        DictionaryMessage::new("❌ Catégorie '{category}' non trouvée")
             .with_description("Aucune catégorie avec ce nom n'existe sur le serveur"),
     );
     dict.messages.insert(
         "move.failed_to_move".to_string(),
-        ErrorMessage::new("❌ Échec du déplacement du thread vers la catégorie spécifiée")
+        DictionaryMessage::new("❌ Échec du déplacement du thread vers la catégorie spécifiée")
             .with_description("Une erreur s'est produite lors du déplacement du thread"),
     );
     dict.messages.insert(
         "move.success".to_string(),
-        ErrorMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
+        DictionaryMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
             .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
     );
     dict.messages.insert(
         "new_thread.missing_user".to_string(),
-        ErrorMessage::new("❌ Veuillez spécifier un utilisateur. Utilisation : `{prefix}new <id_utilisateur_ou_mention>`")
+        DictionaryMessage::new("❌ Veuillez spécifier un utilisateur. Utilisation : `{prefix}new <id_utilisateur_ou_mention>`")
             .with_description("L'ID utilisateur ou la mention est manquant dans la commande new_thread"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread".to_string(),
-        ErrorMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
+        DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
             .with_description("L'utilisateur a déjà un thread ouvert"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread_with_link".to_string(),
-        ErrorMessage::new("❌ {user} a déjà un thread de support actif\n\n📎 **Lien du thread :** <#{channel_id}>")
+        DictionaryMessage::new("❌ {user} a déjà un thread de support actif\n\n📎 **Lien du thread :** <#{channel_id}>")
             .with_description("L'utilisateur a déjà un thread ouvert avec un lien vers celui-ci"),
     );
     dict.messages.insert(
         "new_thread.user_not_found".to_string(),
-        ErrorMessage::new("❌ Utilisateur non trouvé")
+        DictionaryMessage::new("❌ Utilisateur non trouvé")
             .with_description("L'utilisateur spécifié n'existe pas ou n'est pas accessible"),
     );
     dict.messages.insert(
         "new_thread.user_not_in_community".to_string(),
-        ErrorMessage::new("❌ L'utilisateur n'est pas membre du serveur communautaire")
+        DictionaryMessage::new("❌ L'utilisateur n'est pas membre du serveur communautaire")
             .with_description("L'utilisateur doit être dans le serveur communautaire pour créer un thread"),
     );
     dict.messages.insert(
         "new_thread.channel_creation_failed".to_string(),
-        ErrorMessage::new("❌ Échec de création du canal de thread de support")
+        DictionaryMessage::new("❌ Échec de création du canal de thread de support")
             .with_description("Une erreur s'est produite lors de la création du canal de thread"),
     );
     dict.messages.insert(
         "new_thread.database_error".to_string(),
-        ErrorMessage::new("❌ Échec de création du thread dans la base de données")
+        DictionaryMessage::new("❌ Échec de création du thread dans la base de données")
             .with_description("Une erreur s'est produite lors de la sauvegarde du thread dans la base de données"),
     );
     dict.messages.insert(
         "new_thread.welcome_message".to_string(),
-        ErrorMessage::new("🎫 **Thread de support créé pour {user}**\n\nCe thread a été créé par le staff. Vous pouvez maintenant communiquer avec l'équipe de support.")
+        DictionaryMessage::new("🎫 **Thread de support créé pour {user}**\n\nCe thread a été créé par le staff. Vous pouvez maintenant communiquer avec l'équipe de support.")
             .with_description("Message de bienvenue dans le thread nouvellement créé"),
     );
     dict.messages.insert(
         "new_thread.dm_notification".to_string(),
-        ErrorMessage::new("🎫 **Thread de support ouvert**\n\nUn membre du staff a initié une conversation de support avec vous. Vous pouvez maintenant communiquer avec l'équipe de support.")
+        DictionaryMessage::new("🎫 **Thread de support ouvert**\n\nUn membre du staff a initié une conversation de support avec vous. Vous pouvez maintenant communiquer avec l'équipe de support.")
             .with_description("Notification DM envoyée à l'utilisateur quand un thread est créé"),
     );
     dict.messages.insert(
         "new_thread.success_with_dm".to_string(),
-        ErrorMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\nNotification DM envoyée avec succès.")
+        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\nNotification DM envoyée avec succès.")
             .with_description("Message de succès quand le thread est créé et le DM envoyé"),
     );
     dict.messages.insert(
         "new_thread.success_without_dm".to_string(),
-        ErrorMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n⚠️ Impossible d'envoyer la notification DM (l'utilisateur peut avoir désactivé les DMs).")
+        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n⚠️ Impossible d'envoyer la notification DM (l'utilisateur peut avoir désactivé les DMs).")
             .with_description("Message de succès quand le thread est créé mais le DM échoue"),
     );
     dict.messages.insert(
         "delete.not_in_thread".to_string(),
-        ErrorMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
+        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
             .with_description("La commande delete doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "delete.missing_number".to_string(),
-        ErrorMessage::new("❌ Veuillez spécifier un numéro de message. Utilisation : `{prefix}delete <numéro>`")
+        DictionaryMessage::new("❌ Veuillez spécifier un numéro de message. Utilisation : `{prefix}delete <numéro>`")
             .with_description("Le numéro de message est manquant dans la commande delete"),
     );
     dict.messages.insert(
         "delete.message_not_found".to_string(),
-        ErrorMessage::new("❌ Message #{number} non trouvé")
+        DictionaryMessage::new("❌ Message #{number} non trouvé")
             .with_description("Aucun message avec ce numéro n'existe dans ce thread"),
     );
     dict.messages.insert(
         "delete.discord_delete_failed".to_string(),
-        ErrorMessage::new("❌ Échec de suppression du message depuis Discord")
+        DictionaryMessage::new("❌ Échec de suppression du message depuis Discord")
             .with_description("Une erreur s'est produite lors de la suppression du message depuis Discord"),
     );
     dict.messages.insert(
         "delete.database_delete_failed".to_string(),
-        ErrorMessage::new("❌ Échec de suppression du message depuis la base de données")
+        DictionaryMessage::new("❌ Échec de suppression du message depuis la base de données")
             .with_description("Une erreur s'est produite lors de la suppression du message depuis la base de données"),
     );
     dict.messages.insert(
         "delete.success".to_string(),
-        ErrorMessage::new("✅ Message #{number} a été supprimé avec succès")
+        DictionaryMessage::new("✅ Message #{number} a été supprimé avec succès")
             .with_description("Confirmation que le message a été supprimé"),
     );
 } 

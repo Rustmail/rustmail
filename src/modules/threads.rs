@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Duration;
 use crate::db::operations::create_thread;
 use crate::utils::format_duration_since::format_duration_since;
 use crate::utils::send_to_thread::send_to_thread;
@@ -5,9 +8,18 @@ use crate::{
     config::Config,
     utils::get_member_join_date::get_member_join_date,
 };
-use serenity::all::{ChannelId, Context, CreateChannel, GuildId, Message};
+use serenity::all::{ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message};
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage, EditMessage};
+use tokio::time::sleep;
 use crate::utils::message_builder::MessageBuilder;
 use crate::db::operations::get_thread_channel_by_user_id;
+
+fn get_thread_lock(config: &Config, key: u64) -> Arc<tokio::sync::Mutex<()>> {
+    let mut map = config.thread_locks.lock().expect("lock poisoned");
+    map.entry(key)
+        .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+        .clone()
+}
 
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let pool = match &config.db_pool {
@@ -105,4 +117,96 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
             eprintln!("Failed to forward message to thread: {:?}", e);
         }
     }
+}
+
+fn parse_thread_interaction(custom_id: &str) -> Option<String> {
+    let parts: Vec<&str> = custom_id.split(':').collect();
+    if parts.len() >= 2 && parts[0] == "ticket" {
+        Some(parts[1].to_string())
+    } else {
+        None
+    }
+}
+
+pub async fn handle_thread_interaction(
+    ctx: &Context,
+    config: &Config,
+    interaction: &mut ComponentInteraction,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let parts = match parse_thread_interaction(&interaction.data.custom_id) {
+        Some(parts) => parts,
+        None => {
+            eprintln!("Invalid custom ID format: {}", interaction.data.custom_id);
+            return Ok(());
+        }
+    };
+
+    let key = interaction.channel_id.get();
+    let lock = get_thread_lock(config, key);
+
+    let guard = match lock.try_lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            let _ = interaction.create_response(
+                &ctx.http, CreateInteractionResponse::Message(
+                    MessageBuilder::system_message(&ctx, &config)
+                        .translated_content("thread.action_in_progress", None, None, None).await
+                        .to_channel(interaction.channel_id)
+                        .build_interaction_message().await
+                        .ephemeral(true)
+                )
+            ).await;
+            return Ok(());
+        }
+    };
+
+    match parts.as_str() {
+        "delete" => {
+            let mut params = HashMap::new();
+            params.insert("seconds".to_string(), format!("{}", config.thread.time_to_close_thread));
+            params.insert("user".to_string(), format!("<@{}>", interaction.user.id));
+
+            let _ = interaction.create_response(
+                &ctx.http, CreateInteractionResponse::Message(
+                    MessageBuilder::system_message(&ctx, &config)
+                        .translated_content("thread.thread_closing", Some(&params), None, None).await
+                        .to_channel(interaction.channel_id)
+                        .build_interaction_message().await
+                )
+            ).await;
+
+            sleep(Duration::from_secs(config.thread.time_to_close_thread)).await;
+
+            interaction.channel_id.delete(&ctx.http).await?;
+        }
+        "keep" => {
+            let builder = EditMessage::default()
+                .components(vec![]);
+
+            let _ = interaction.create_response(
+                &ctx.http, CreateInteractionResponse::Message(
+                    MessageBuilder::system_message(&ctx, &config)
+                        .translated_content("thread.will_remain_open", None, None, None).await
+                        .to_channel(interaction.channel_id)
+                        .build_interaction_message().await
+                )
+            ).await;
+
+            interaction.message.edit(&ctx.http, builder).await?;
+        }
+        _ => {
+            eprintln!("Unknown thread interaction action: {}", parts);
+            let _ = interaction.create_response(
+                &ctx.http, CreateInteractionResponse::Message(
+                    MessageBuilder::system_message(&ctx, &config)
+                        .translated_content("thread.unknown_action", None, None, None).await
+                        .to_channel(interaction.channel_id)
+                        .build_interaction_message().await
+                )
+            ).await;
+        }
+    }
+
+    drop(guard);
+    Ok(())
 }

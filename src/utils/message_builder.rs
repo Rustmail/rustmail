@@ -1,9 +1,9 @@
 use crate::config::Config;
 use crate::i18n::get_translated_message;
 use crate::utils::hex_string_to_int::hex_string_to_int;
-use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EditMessage, Message, Timestamp, UserId};
+use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
-use serenity::builder::CreateActionRow;
+use serenity::builder::{CreateActionRow, CreateInteractionResponseMessage};
 use sqlx::SqlitePool;
 use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
 
@@ -451,6 +451,21 @@ impl<'a> MessageBuilder<'a> {
 
     pub async fn build_edit_message(&self) -> EditMessage {
         let mut message = EditMessage::new();
+
+        if self.should_use_embed().await {
+            message = message.embed(self.build_embed().await);
+        } else {
+            let content = self.build_plain_message();
+            if !content.is_empty() {
+                message = message.content(content);
+            }
+        }
+
+        message
+    }
+
+    pub async fn build_interaction_message(&self) -> CreateInteractionResponseMessage {
+        let mut message = CreateInteractionResponseMessage::new();
 
         if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
