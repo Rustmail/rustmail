@@ -7,7 +7,7 @@ pub use types::{
     ModmailResult, PermissionError, ThreadError, ValidationError,
 };
 
-pub use dictionary::{ErrorDictionary, ErrorMessage};
+pub use dictionary::{ErrorDictionary, DictionaryMessage};
 
 pub use crate::{
     command_error, database_error, discord_error, message_error, permission_error,

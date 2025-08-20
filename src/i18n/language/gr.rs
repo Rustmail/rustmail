@@ -1,18 +1,18 @@
-use crate::errors::{ErrorDictionary, ErrorMessage};
+use crate::errors::{ErrorDictionary, DictionaryMessage};
 
 pub fn load_german_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "database.connection_failed".to_string(),
-        ErrorMessage::new("Datenbankverbindung fehlgeschlagen"),
+        DictionaryMessage::new("Datenbankverbindung fehlgeschlagen"),
     );
 
     dict.messages.insert(
         "command.invalid_format".to_string(),
-        ErrorMessage::new("Ungültiges Befehlsformat"),
+        DictionaryMessage::new("Ungültiges Befehlsformat"),
     );
 
     dict.messages.insert(
         "message.not_found".to_string(),
-        ErrorMessage::new("Nachricht nicht gefunden"),
+        DictionaryMessage::new("Nachricht nicht gefunden"),
     );
 }

@@ -17,18 +17,18 @@ use crate::i18n::language::sp::load_spanish_messages;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDictionary {
     pub language: Language,
-    pub messages: HashMap<String, ErrorMessage>,
+    pub messages: HashMap<String, DictionaryMessage>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorMessage {
+pub struct DictionaryMessage {
     pub default: String,
     pub plurals: Option<HashMap<String, String>>,
     pub description: Option<String>,
     pub help: Option<String>,
 }
 
-impl ErrorMessage {
+impl DictionaryMessage {
     pub fn new(message: &str) -> Self {
         Self {
             default: message.to_string(),
@@ -69,7 +69,7 @@ impl ErrorDictionary {
         dictionary
     }
 
-    pub fn get_message(&self, key: &str) -> Option<&ErrorMessage> {
+    pub fn get_message(&self, key: &str) -> Option<&DictionaryMessage> {
         self.messages.get(key)
     }
 
