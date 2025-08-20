@@ -188,6 +188,18 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Keep open")
     );
     dict.messages.insert(
+        "thread.thread_closing".to_string(),
+        DictionaryMessage::new("The ticket will close in {seconds} seconds at the request of {user}.")
+    );
+    dict.messages.insert(
+        "thread.action_in_progress".to_string(),
+        DictionaryMessage::new("An action is already in progress, please wait.")
+    );
+    dict.messages.insert(
+        "thread.will_remain_open".to_string(),
+        DictionaryMessage::new("The thread will remain open.")
+    );
+    dict.messages.insert(
         "reply.missing_content".to_string(),
         DictionaryMessage::new("Please provide a message to send to the user.")
             .with_description("You must provide a message to reply to the user."),
