@@ -5,7 +5,7 @@ use crate::db::operations::{create_thread_for_user, get_thread_channel_by_user_i
 use crate::utils::time::format_duration_since::format_duration_since;
 use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::config::Config;
-use serenity::all::{ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message, ModalInteraction, UserId};
+use serenity::all::{ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message, ModalInteraction, User, UserId};
 use serenity::builder::{CreateInteractionResponse, EditMessage, EditChannel};
 use tokio::time::sleep;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -270,7 +270,12 @@ pub async fn handle_thread_modal_interaction(
             edit = edit.topic("modmail:managed");
             let _ = guild_channel.edit(&ctx.http, edit).await;
 
-            let username = user_id.to_user(&ctx.http).await.map(|u| u.name).unwrap_or_else(|_| user_id.get().to_string());
+            let username = user_id.to_user(&ctx.http).await
+                .map(|u: User| u.name)
+                .unwrap_or_else(
+                    |_| user_id.get().to_string()
+                );
+
             if let Err(e) = create_thread_for_user(&guild_channel, user_id.get() as i64, &username, pool).await {
                 eprintln!("Failed to create thread record: {}", e);
                 let _ = interaction.create_response(
