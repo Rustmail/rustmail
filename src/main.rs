@@ -6,6 +6,7 @@ use handlers::{
 };
 use serenity::all::{ClientBuilder, GatewayIntents};
 use std::process;
+use std::string::ToString;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;

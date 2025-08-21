@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{Config, MODMAIL_MANAGED_TOPIC};
 use crate::errors::{ModmailResult, common};
 use crate::db::operations::{thread_exists, create_thread_for_user, get_thread_channel_by_user_id};
 use serenity::all::{ChannelId, Context, GuildChannel, GuildId, Message, User, UserId};
@@ -45,8 +45,8 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
     let mut channel_builder = serenity::all::CreateChannel::new(&channel_name);
     channel_builder = channel_builder
         .kind(serenity::model::channel::ChannelType::Text)
-        .category(inbox_category_id)
-        .topic(format!("Support thread for {}", user.name));
+        .topic(MODMAIL_MANAGED_TOPIC.to_string())
+        .category(inbox_category_id);
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     let guild_channel = match staff_guild_id.create_channel(&ctx.http, channel_builder).await {

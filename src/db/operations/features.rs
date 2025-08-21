@@ -37,15 +37,3 @@ pub async fn upsert_feature_message(
     .await?;
     Ok(())
 }
-
-pub async fn delete_feature_message(
-    feature_key: &str,
-    pool: &SqlitePool,
-) -> Result<(), sqlx::Error> {
-    sqlx::query("DELETE FROM features_messages WHERE feature_key = ?")
-        .bind(feature_key)
-        .execute(pool)
-        .await?;
-    Ok(())
-}
-

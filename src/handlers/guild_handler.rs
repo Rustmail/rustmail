@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serenity::all::{ButtonStyle, Context, GuildChannel};
 use serenity::client::EventHandler;
-use crate::config::Config;
+use crate::config::{Config, MODMAIL_MANAGED_TOPIC};
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -39,7 +39,7 @@ impl EventHandler for GuildHandler {
         }
 
         if let Some(topic) = &thread.topic {
-            if topic == "modmail:managed" {
+            if *topic == MODMAIL_MANAGED_TOPIC.to_string() {
                 return;
             }
         }

@@ -124,39 +124,6 @@ pub async fn create_thread_for_user(
     }
 }
 
-pub async fn create_thread(
-    channel: &GuildChannel,
-    msg: &Message,
-    pool: &SqlitePool,
-) -> Result<String, Error> {
-    let user_id = msg.author.id.get() as i64;
-    let channel_id = channel.id.to_string();
-    let thread_id = Uuid::new_v4().to_string();
-
-    match sqlx::query!(
-        "INSERT INTO threads (id, user_id, user_name, channel_id) VALUES (?, ?, ?, ?)",
-        thread_id,
-        user_id,
-        msg.author.name,
-        channel_id
-    )
-    .execute(pool)
-    .await {
-        Ok(_) => Ok(thread_id),
-        Err(Error::Database(db_err)) if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) => {
-            if let Some(existing_thread_id) = sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                .bind(user_id)
-                .fetch_optional(pool)
-                .await? {
-                Ok(existing_thread_id)
-            } else {
-                Err(Error::Database(db_err))
-            }
-        }
-        Err(e) => Err(e),
-    }
-}
-
 pub async fn close_thread(thread_id: &str, pool: &SqlitePool) -> ModmailResult<()> {
     sqlx::query!("UPDATE threads SET status = 0 WHERE id = ?", thread_id)
         .execute(pool)
