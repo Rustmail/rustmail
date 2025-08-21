@@ -207,6 +207,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("L'action demandée pour le ticket est inconnue")
     );
     dict.messages.insert(
+        "thread.modal_user_not_found".to_string(),
+        DictionaryMessage::new("L'utilisateur spécifié est introuvable, veuillez en choisir un autre.")
+    );
+    dict.messages.insert(
         "reply.missing_content".to_string(),
         DictionaryMessage::new("Veuillez fournir un message à envoyer à l'utilisateur.")
             .with_description("Vous devez fournir un message pour répondre à l'utilisateur."),
