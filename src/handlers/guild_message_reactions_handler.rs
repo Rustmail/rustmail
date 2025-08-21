@@ -1,8 +1,7 @@
-use std::sync::Arc;
 use crate::config::Config;
 use crate::db::operations::{get_user_id_from_channel_id, get_message_ids_by_message_id, get_thread_channel_by_user_id};
-use serenity::all::{Context, EventHandler, Reaction, UserId, ChannelId, MessageId, Message, Permissions};
-use serenity::{async_trait, utils};
+use serenity::all::{Context, EventHandler, Reaction, UserId, ChannelId, MessageId, Message};
+use serenity::async_trait;
 use crate::errors::MessageError::{DmAccessFailed, MessageEmpty, MessageNotFound};
 use crate::errors::{ModmailError, ModmailResult};
 use crate::errors::types::ConfigError::ParseError;
@@ -93,7 +92,7 @@ async fn handle_all_reaction_remove(
 
     let user_id = match get_user_id_from_channel_id(&channel_id.to_string(), &pool).await {
         Some(id) if id > 0 => id as u64,
-        _ => return Ok(()), // no linked user/thread; nothing to do
+        _ => return Ok(()),
     };
 
     let dm_channel = UserId::new(user_id)
