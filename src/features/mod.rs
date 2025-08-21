@@ -110,7 +110,7 @@ fn parse_custom_id(custom_id: &str) -> Option<(String, String)> {
     }
 }
 
-pub async fn handle_feature_interaction(
+pub async fn handle_feature_component_interaction(
     ctx: &Context,
     config: &Config,
     interaction: &ComponentInteraction,

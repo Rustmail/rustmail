@@ -94,6 +94,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("This channel is not a ticket channel.")
     );
     dict.messages.insert(
+        "thread.modal_invalid_user_id".to_string(),
+        DictionaryMessage::new("Invalid user ID")
+    );
+    dict.messages.insert(
         "message.not_found".to_string(),
         DictionaryMessage::new("Message not found")
             .with_description("The specified message could not be found"),
@@ -165,6 +169,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("A new support thread has been created for you"),
     );
     dict.messages.insert(
+        "general.yes".to_string(),
+        DictionaryMessage::new("Yes")
+    );
+    dict.messages.insert(
+        "general.no".to_string(),
+        DictionaryMessage::new("No")
+    );
+    dict.messages.insert(
         "general.loading".to_string(),
         DictionaryMessage::new("Loading...")
             .with_description("Please wait while the operation completes"),
@@ -198,6 +210,24 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "thread.will_remain_open".to_string(),
         DictionaryMessage::new("The thread will remain open.")
+    );
+    dict.messages.insert(
+        "thread.ask_create_ticket".to_string(),
+        DictionaryMessage::new("This channel was created in the support ticket category. Would you like to create one?")
+    );
+    dict.messages.insert(
+        "thread.modal_to_create_ticket".to_string(),
+        DictionaryMessage::new("Create a ticket")
+    );
+    dict.messages.insert(
+        "thread.created".to_string(),
+        DictionaryMessage::new("Ticket created: {channel}")
+            .with_description("A new support ticket was opened or retrieved")
+    );
+    dict.messages.insert(
+        "thread.unknown_action".to_string(),
+        DictionaryMessage::new("Unknown action")
+            .with_description("The requested ticket action is unknown")
     );
     dict.messages.insert(
         "reply.missing_content".to_string(),
@@ -477,4 +507,4 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("✅ Message #{number} has been deleted successfully")
             .with_description("Confirmation that the message has been deleted"),
     );
-} 
+}

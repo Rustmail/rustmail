@@ -5,6 +5,7 @@ use crate::errors::{
 };
 use serenity::all::{Colour, Context, CreateEmbed, CreateMessage, Message};
 use std::collections::HashMap;
+use crate::i18n::languages::Language;
 
 pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let error_handler = config
@@ -145,7 +146,7 @@ pub async fn test_language(ctx: &Context, msg: &Message, config: &Config) -> Mod
 
     let language_code = parts[1].to_lowercase();
 
-    let language = crate::i18n::languages::Language::from_str(&language_code).ok_or_else(|| {
+    let language = Language::from_str(&language_code).ok_or_else(|| {
         ModmailError::Validation(ValidationError::InvalidInput(
             "Unsupported language code".to_string(),
         ))

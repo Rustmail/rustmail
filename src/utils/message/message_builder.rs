@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::i18n::get_translated_message;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
-use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateMessage, EditMessage, Message, Timestamp, UserId};
+use serenity::all::{ChannelId, Colour, Context, CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EditMessage, Message, Timestamp, UserId};
 use std::collections::HashMap;
 use serenity::builder::{CreateActionRow, CreateInteractionResponseMessage};
 use sqlx::SqlitePool;
@@ -44,7 +44,6 @@ pub struct MessageBuilder<'a> {
     force_embed: Option<bool>,
     custom_color: Option<u32>,
     footer_text: Option<String>,
-    ephemeral: bool,
     bot_user_id: UserId,
     components: Option<Vec<CreateActionRow>>
 }
@@ -62,7 +61,6 @@ impl<'a> MessageBuilder<'a> {
             force_embed: None,
             custom_color: None,
             footer_text: None,
-            ephemeral: false,
             bot_user_id,
             components: None,
         }
@@ -178,11 +176,6 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn footer<S: Into<String>>(mut self, text: S) -> Self {
         self.footer_text = Some(text.into());
-        self
-    }
-
-    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
-        self.ephemeral = ephemeral;
         self
     }
 
