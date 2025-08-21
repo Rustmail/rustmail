@@ -9,7 +9,7 @@ use std::process;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
-use crate::handlers::interaction_handler::InteractionHandler;
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 
 mod commands;
 mod config;

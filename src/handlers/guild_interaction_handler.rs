@@ -1,4 +1,4 @@
-use serenity::all::{ComponentInteraction, Context, EventHandler, Interaction};
+use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
 use crate::config::Config;
 use crate::features::handle_feature_component_interaction;
