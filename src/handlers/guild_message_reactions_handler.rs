@@ -1,7 +1,11 @@
+use std::sync::Arc;
 use crate::config::Config;
 use crate::db::operations::{get_user_id_from_channel_id, get_message_ids_by_message_id, get_thread_channel_by_user_id};
-use serenity::all::{Context, EventHandler, Reaction, UserId, ChannelId};
-use serenity::async_trait;
+use serenity::all::{Context, EventHandler, Reaction, UserId, ChannelId, MessageId, Message, Permissions};
+use serenity::{async_trait, utils};
+use crate::errors::MessageError::{DmAccessFailed, MessageEmpty, MessageNotFound};
+use crate::errors::{ModmailError, ModmailResult};
+use crate::errors::types::ConfigError::ParseError;
 
 #[derive(Clone)]
 pub struct GuildMessageReactionsHandler {
@@ -29,6 +33,12 @@ impl EventHandler for GuildMessageReactionsHandler {
             eprintln!("Error handling reaction remove: {}", e);
         }
     }
+
+    async fn reaction_remove_all(&self, ctx: Context, channel_id: ChannelId, removed_from_message_id: MessageId) {
+        if let Err(e) = handle_all_reaction_remove(&ctx, &removed_from_message_id, channel_id, &self.config).await {
+            eprintln!("Error handling all reaction remove: {}", e);
+        }
+    }
 }
 
 async fn handle_reaction_add(
@@ -53,6 +63,54 @@ async fn handle_reaction_add(
         if reaction.guild_id.is_none() {
             handle_dm_reaction_to_thread(ctx, reaction, config).await?;
         }
+    }
+
+    Ok(())
+}
+
+async fn handle_all_reaction_remove(
+    ctx: &Context,
+    removed_from_message_id: &MessageId,
+    channel_id: ChannelId,
+    config: &Config,
+) -> ModmailResult<()> {
+    let pool = config
+        .db_pool
+        .clone()
+        .ok_or_else(|| ModmailError::Config(ParseError("Database pool not available".into())))?;
+
+    let dm_message_id_str = match get_message_ids_by_message_id(&removed_from_message_id.to_string(), &pool).await {
+        Some(ids) => match ids.dm_message_id {
+            Some(id) => id,
+            None => return Err(ModmailError::Message(MessageEmpty)),
+        },
+        None => return Err(ModmailError::Message(MessageNotFound(removed_from_message_id.to_string()))),
+    };
+
+    let dm_message_id_parsed = dm_message_id_str
+        .parse::<u64>()
+        .map_err(|e| ModmailError::Message(MessageNotFound(e.to_string())))?;
+
+    let user_id = match get_user_id_from_channel_id(&channel_id.to_string(), &pool).await {
+        Some(id) if id > 0 => id as u64,
+        _ => return Ok(()), // no linked user/thread; nothing to do
+    };
+
+    let dm_channel = UserId::new(user_id)
+        .create_dm_channel(&ctx.http)
+        .await
+        .map_err(|e| ModmailError::Message(DmAccessFailed(e.to_string())))?;
+
+    let dm_message = dm_channel
+        .message(&ctx.http, dm_message_id_parsed)
+        .await
+        .map_err(|e| ModmailError::Message(DmAccessFailed(e.to_string())))?;
+
+    let bot_user_id = Some(ctx.cache.current_user().id);
+    for reaction in &dm_message.reactions {
+        let _ = dm_message
+            .delete_reaction(&ctx.http, bot_user_id, reaction.reaction_type.clone())
+            .await;
     }
 
     Ok(())
