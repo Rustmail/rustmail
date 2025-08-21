@@ -200,12 +200,20 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Keep open")
     );
     dict.messages.insert(
+        "thread.modal_bot_user".to_string(),
+        DictionaryMessage::new("The specified user is a bot, please choose another one.")
+    );
+    dict.messages.insert(
         "thread.thread_closing".to_string(),
         DictionaryMessage::new("The ticket will close in {seconds} seconds at the request of {user}.")
     );
     dict.messages.insert(
         "thread.action_in_progress".to_string(),
         DictionaryMessage::new("An action is already in progress, please wait.")
+    );
+    dict.messages.insert(
+        "thread.modal_user_not_found".to_string(),
+        DictionaryMessage::new("The specified user could not be found, please choose another one.")
     );
     dict.messages.insert(
         "thread.will_remain_open".to_string(),

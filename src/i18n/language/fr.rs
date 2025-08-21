@@ -193,6 +193,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Créer un ticket")
     );
     dict.messages.insert(
+        "thread.modal_bot_user".to_string(),
+        DictionaryMessage::new("L'utilisateur spécifié est un bot, veuillez en choisir un autre.")
+    );
+    dict.messages.insert(
         "thread.created".to_string(),
         DictionaryMessage::new("Ticket créé: {channel}")
             .with_description("Un nouveau ticket de support a été ouvert ou récupéré")
@@ -201,6 +205,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "thread.unknown_action".to_string(),
         DictionaryMessage::new("Action inconnue")
             .with_description("L'action demandée pour le ticket est inconnue")
+    );
+    dict.messages.insert(
+        "thread.modal_user_not_found".to_string(),
+        DictionaryMessage::new("L'utilisateur spécifié est introuvable, veuillez en choisir un autre.")
     );
     dict.messages.insert(
         "reply.missing_content".to_string(),

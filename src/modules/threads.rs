@@ -4,7 +4,7 @@ use std::time::Duration;
 use crate::db::operations::{create_thread_for_user, get_thread_channel_by_user_id};
 use crate::utils::time::format_duration_since::format_duration_since;
 use crate::utils::thread::send_to_thread::send_to_thread;
-use crate::config::Config;
+use crate::config::{Config, MODMAIL_MANAGED_TOPIC};
 use serenity::all::{ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId, Message, ModalInteraction, User, UserId};
 use serenity::builder::{CreateInteractionResponse, EditMessage, EditChannel};
 use tokio::time::sleep;
@@ -35,7 +35,7 @@ async fn create_or_get_thread_for_user(
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     let channel_builder = CreateChannel::new(&username)
         .category(ChannelId::new(config.thread.inbox_category_id))
-        .topic("modmail:managed");
+        .topic(MODMAIL_MANAGED_TOPIC.to_string());
 
     let channel = staff_guild_id.create_channel(&ctx.http, channel_builder).await?;
 
@@ -203,6 +203,37 @@ pub async fn handle_thread_modal_interaction(
                 }
             };
 
+            let user = match user_id.to_user(&ctx.http).await {
+                Ok(user) => user,
+                Err(_) => {
+                    eprintln!("Failed to fetch user by ID: {}", user_id);
+                    let _ = interaction.create_response(
+                        &ctx.http, CreateInteractionResponse::Message(
+                            MessageBuilder::system_message(&ctx, &config)
+                                .translated_content("thread.modal_user_not_found", None, None, None).await
+                                .to_channel(interaction.channel_id)
+                                .build_interaction_message().await
+                                .ephemeral(true)
+                        )
+                    ).await;
+                    return Ok(());
+                }
+            };
+
+            if user.bot {
+                eprintln!("Attempted to create thread for a bot user: {}", user_id);
+                let _ = interaction.create_response(
+                    &ctx.http, CreateInteractionResponse::Message(
+                        MessageBuilder::system_message(&ctx, &config)
+                            .translated_content("thread.modal_bot_user", None, None, None).await
+                            .to_channel(interaction.channel_id)
+                            .build_interaction_message().await
+                            .ephemeral(true)
+                    )
+                ).await;
+                return Ok(());
+            }
+
             let pool = match &config.db_pool { Some(p) => p, None => { drop(guard); return Ok(()); } };
 
             if let Some(existing_channel_str) = get_thread_channel_by_user_id(user_id, pool).await {
@@ -267,16 +298,10 @@ pub async fn handle_thread_modal_interaction(
             }
 
             let mut edit = EditChannel::new();
-            edit = edit.topic("modmail:managed");
+            edit = edit.topic(MODMAIL_MANAGED_TOPIC.to_string());
             let _ = guild_channel.edit(&ctx.http, edit).await;
 
-            let username = user_id.to_user(&ctx.http).await
-                .map(|u: User| u.name)
-                .unwrap_or_else(
-                    |_| user_id.get().to_string()
-                );
-
-            if let Err(e) = create_thread_for_user(&guild_channel, user_id.get() as i64, &username, pool).await {
+            if let Err(e) = create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool).await {
                 eprintln!("Failed to create thread record: {}", e);
                 let _ = interaction.create_response(
                     &ctx.http, CreateInteractionResponse::Message(
@@ -292,7 +317,7 @@ pub async fn handle_thread_modal_interaction(
             }
 
             let mut params = HashMap::new();
-            params.insert("user".to_string(), username.clone());
+            params.insert("user".to_string(), user.name.clone());
 
             let _ = MessageBuilder::system_message(ctx, config)
                 .translated_content("new_thread.welcome_message", Some(&params), None, Some(guild_channel.guild_id.get())).await

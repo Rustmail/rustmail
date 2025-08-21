@@ -13,11 +13,11 @@ pub use messages::{
     delete_message, update_message_numbers_after_deletion,
 };
 pub use threads::{
-    close_thread, create_thread, create_thread_for_user, get_all_opened_threads, get_thread_by_channel_id,
+    close_thread, create_thread_for_user, get_all_opened_threads, get_thread_by_channel_id,
     get_thread_channel_by_user_id, get_thread_id_by_user_id, get_user_id_from_channel_id,
     thread_exists, update_thread_user_left, is_user_left, set_alert_for_staff, cancel_alert_for_staff,
     get_staff_alerts_for_user, mark_alert_as_used, allocate_next_message_number,
 };
 pub use features::{
-    get_feature_message, upsert_feature_message, delete_feature_message,
+    get_feature_message, upsert_feature_message,
 };

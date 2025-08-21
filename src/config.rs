@@ -5,6 +5,8 @@ use sqlx::SqlitePool;
 use std::fs;
 use std::sync::Arc;
 
+pub const MODMAIL_MANAGED_TOPIC: &str = "modmail:managed";
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub bot: BotConfig,
