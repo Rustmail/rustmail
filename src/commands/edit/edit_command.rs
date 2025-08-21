@@ -8,6 +8,7 @@ use crate::errors::common::{invalid_command, message_not_found};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
+use crate::db::get_thread_message_by_inbox_message_id;
 
 pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -69,6 +70,11 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         Err(e) => return Err(e)
     };
 
+    let before_content: String = match get_thread_message_by_inbox_message_id(&inbox_message_id, pool).await {
+        Ok(tm) => tm.content,
+        Err(_) => String::new(),
+    };
+
     let edit_result = edit_messages(
         ctx,
         msg.channel_id,
@@ -94,6 +100,17 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                     .send()
                     .await;
             };
+
+            let log_content = format!(
+                "Un message du staff a été modifié.\nAvant:\n{}\n\nAprès:\n{}",
+                if before_content.is_empty() { "(inconnu)".to_string() } else { before_content.clone() },
+                command_input.new_content.clone()
+            );
+            let _ = MessageBuilder::system_message(ctx, config)
+                .content(log_content)
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
 
             cleanup_command_message(ctx, msg).await;
 
