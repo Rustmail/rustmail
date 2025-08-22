@@ -278,6 +278,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("The new message content cannot be empty."),
     );
     dict.messages.insert(
+        "edit.modification_from_user".to_string(),
+        DictionaryMessage::new("The user edited his message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+    );
+    dict.messages.insert(
+        "edit.modification_from_staff".to_string(),
+        DictionaryMessage::new("A staff edited his message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+    );
+    dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
         DictionaryMessage::new("✅ Message sent! (Message #{number}) - Use `{prefix}edit {number}` to edit this message.")
             .with_description("Confirmation after sending a message with its number."),
@@ -454,6 +462,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "new_thread.user_not_in_community".to_string(),
         DictionaryMessage::new("❌ User is not a member of the community server")
             .with_description("The user must be in the community server to create a thread"),
+    );
+    dict.messages.insert(
+        "new_thread.user_is_a_bot".to_string(),
+        DictionaryMessage::new("❌ You cannot create a thread for a bot user.")
     );
     dict.messages.insert(
         "new_thread.channel_creation_failed".to_string(),

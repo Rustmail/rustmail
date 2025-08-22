@@ -7,6 +7,7 @@ use crate::i18n::get_translated_message;
 use serenity::all::{Context, UserId, ChannelId, MessageId, GetMessages, Message};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+use crate::db::repr::Thread;
 use crate::utils::message::message_builder::MessageBuilder;
 
 pub struct MessageRecoveryResult {
@@ -60,7 +61,7 @@ pub async fn recover_missing_messages(
 
 async fn recover_messages_for_thread(
     ctx: &Context,
-    thread: &crate::db::repr::Thread,
+    thread: &Thread,
     pool: &sqlx::SqlitePool,
     config: &Config,
     last_recovery: DateTime<Utc>,

@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use crate::db::update_message_content;
 use crate::errors::{common, ModmailResult};
 use crate::config::Config;
-use serenity::all::{Context, Message};
+use serenity::all::{Context, Message, UserId};
 use crate::commands::edit::message_ops::{cleanup_command_message, edit_messages, format_new_message, get_message_ids};
 use crate::commands::edit::validation::{parse_edit_command, validate_edit_permissions, EditCommandInput};
 use crate::errors::common::{invalid_command, message_not_found};
@@ -101,13 +102,20 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                     .await;
             };
 
-            let log_content = format!(
-                "Un message du staff a été modifié.\nAvant:\n{}\n\nAprès:\n{}",
-                if before_content.is_empty() { "(inconnu)".to_string() } else { before_content.clone() },
-                command_input.new_content.clone()
+            let message_link = format!(
+                "https://discord.com/channels/{}/{}/{}",
+                config.bot.get_staff_guild_id(),
+                msg.channel_id.get(),
+                inbox_message_id
             );
-            let _ = MessageBuilder::system_message(ctx, config)
-                .content(log_content)
+
+            let mut params = HashMap::new();
+            params.insert("before".to_string(), if before_content.is_empty() { "(inconnu)".to_string() } else { before_content.clone() });
+            params.insert("after".to_string(), command_input.new_content.clone());
+            params.insert("link".to_string(), message_link);
+
+            let _ = MessageBuilder::system_message(&ctx, &config)
+                .translated_content("edit.modification_from_staff", Some(&params), Some(msg.author.id), Some(config.bot.get_staff_guild_id())).await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;

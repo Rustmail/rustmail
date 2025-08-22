@@ -176,7 +176,7 @@ impl EventHandler for GuildMessagesHandler {
         &self,
         ctx: Context,
         old_if_available: Option<Message>,
-        new: Option<Message>,
+        _new: Option<Message>,
         event: MessageUpdateEvent,
     ) {
 
@@ -192,7 +192,7 @@ impl EventHandler for GuildMessagesHandler {
             }
         };
 
-        if let Some(channel_id) = event.channel_id.to_channel(&ctx.http).await.ok().and_then(|channel| channel.private()) {
+        if let Some(_channel_id) = event.channel_id.to_channel(&ctx.http).await.ok().and_then(|channel| channel.private()) {
             let pool = match &self.config.db_pool {
                 Some(p) => p,
                 None => return,
@@ -205,11 +205,6 @@ impl EventHandler for GuildMessagesHandler {
                     return;
                 }
             };
-
-            if message.user_id as u64 == ctx.cache.current_user().id.get() {
-                println!("OUII");
-                return;
-            }
 
             if let Some(thread) = get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await {
                 if let Some(content) = event.content {
@@ -231,21 +226,28 @@ impl EventHandler for GuildMessagesHandler {
                             return;
                         }
 
-                        // let old_content: String = if let Some(old) = old_if_available { old.content } else { String::new() };
-                        // let before = if old_content.is_empty() { "(inconnu)".to_string() } else { old_content };
-                        // let after = new_msg.content.clone();
-                        //
-                        // // Log système dans le thread staff
-                        // let log_content = format!(
-                        //     "L'utilisateur a modifié son message.\nAvant:\n{}\n\nAprès:\n{}",
-                        //     before,
-                        //     after
-                        // );
-                        // let _ = MessageBuilder::system_message(&ctx, &self.config)
-                        //     .content(log_content)
-                        //     .to_channel(channel_id)
-                        //     .send()
-                        //     .await;
+                        let old_content: String = if let Some(old) = old_if_available { old.content } else { String::new() };
+                        let before = if old_content.is_empty() { "(inconnu)".to_string() } else { old_content };
+                        let after = content.clone();
+
+                        let guild_id = self.config.bot.get_community_guild_id();
+                        let message_link = format!(
+                            "https://discord.com/channels/{}/{}/{}",
+                            guild_id,
+                            channel_id_parse.get(),
+                            inbox_message_id
+                        );
+
+                        let mut params = HashMap::new();
+                        params.insert("before".to_string(), before);
+                        params.insert("after".to_string(), after);
+                        params.insert("link".to_string(), message_link);
+
+                        let _ = MessageBuilder::system_message(&ctx, &self.config)
+                            .translated_content("edit.modification_from_user", Some(&params), Some(UserId::new(message.user_id as u64)), Some(guild_id)).await
+                            .to_channel(channel_id_parse)
+                            .send()
+                            .await;
 
                         let _ = update_message_content(&inbox_message_id, &content, pool).await;
                     }

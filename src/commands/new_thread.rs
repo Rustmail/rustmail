@@ -27,6 +27,11 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
         }
     };
 
+    if user.bot {
+        send_error_message(ctx, msg, config, "new_thread.user_is_a_bot", None).await;
+        return Ok(());
+    }
+
     if thread_exists(user_id, pool).await {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(user_id, pool).await {
             let mut params = HashMap::new();
