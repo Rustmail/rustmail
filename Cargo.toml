@@ -2,6 +2,7 @@
 name = "rustmail"
 version = "0.1.0-alpha.1"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 serde = { version = "*", features = ["derive"] }

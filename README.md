@@ -225,8 +225,8 @@ Future best practices: structured logging centralization; standardized codes.
 
 ### Steps
 ```bash
-git clone <repo>
-cd modmail_rs
+git clone https://github.com/Akinator31/rustmail.git
+cd rustmail
 cp config.example.toml config.toml   # Edit values
 cargo run --release
 ```
