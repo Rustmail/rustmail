@@ -5,7 +5,9 @@ use handlers::{
     ready_handler::ReadyHandler,
 };
 use serenity::all::{ClientBuilder, GatewayIntents};
+use serenity::cache::Settings as CacheSettings;
 use std::process;
+use std::time::Duration;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
@@ -32,6 +34,7 @@ async fn main() {
 
     let mut config = load_config("config.toml");
     config.db_pool = Some(pool.clone());
+    
     let intents = GatewayIntents::GUILDS
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT
@@ -43,7 +46,13 @@ async fn main() {
         | GatewayIntents::GUILD_MESSAGE_REACTIONS
         | GatewayIntents::DIRECT_MESSAGE_REACTIONS
         | GatewayIntents::GUILD_MODERATION;
+
+    let mut cache_settings = CacheSettings::default();
+    cache_settings.max_messages = 10_000;
+    cache_settings.time_to_live = Duration::from_secs(6 * 60 * 60);
+
     let mut client: serenity::Client = ClientBuilder::new(config.bot.token.clone(), intents)
+        .cache_settings(cache_settings)
         .event_handler(ReadyHandler::new(&config))
         .event_handler(GuildMessagesHandler::new(&config))
         .event_handler(TypingProxyHandler::new(&config))

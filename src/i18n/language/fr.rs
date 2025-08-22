@@ -251,6 +251,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Le contenu du nouveau message ne peut pas être vide."),
     );
     dict.messages.insert(
+        "edit.modification_from_user".to_string(),
+        DictionaryMessage::new("L'utilisateur a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}")
+    );
+    dict.messages.insert(
+        "edit.modification_from_staff".to_string(),
+        DictionaryMessage::new("Un staff a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}")
+    );
+    dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
         DictionaryMessage::new("✅ Message envoyé ! (Message #{number}) - Utilisez `{prefix}edit {number}` pour modifier ce message.")
             .with_description("Confirmation après l'envoi d'un message avec son numéro."),
@@ -464,6 +472,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "new_thread.user_not_in_community".to_string(),
         DictionaryMessage::new("❌ L'utilisateur n'est pas membre du serveur communautaire")
             .with_description("L'utilisateur doit être dans le serveur communautaire pour créer un thread"),
+    );
+    dict.messages.insert(
+        "new_thread.user_is_a_bot".to_string(),
+        DictionaryMessage::new("❌ Vous ne pouvez pas créer un ticket pour un bot.")
     );
     dict.messages.insert(
         "new_thread.channel_creation_failed".to_string(),

@@ -1,4 +1,4 @@
-use serenity::all::{Message, UserId};
+use serenity::all::{Message, MessageId, UserId};
 use sqlx::{Error, SqlitePool};
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
@@ -320,6 +320,83 @@ pub async fn get_thread_message_by_inbox_message_id(inbox_message_id: &str, pool
     };
 
     Ok(latest)
+}
+
+pub async fn get_thread_message_by_message_id(
+    message_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<ThreadMessage> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, thread_id, user_id, user_name, is_anonymous,
+               dm_message_id, inbox_message_id, message_number,
+               created_at as "created_at: String", content
+        FROM thread_messages
+        WHERE dm_message_id = ? OR inbox_message_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        "#,
+        message_id,
+        message_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    let message: ThreadMessage = match row.map(|row| ThreadMessage {
+        id: row.id as i64,
+        thread_id: row.thread_id,
+        user_id: row.user_id,
+        user_name: row.user_name,
+        is_anonymous: row.is_anonymous,
+        dm_message_id: row.dm_message_id,
+        inbox_message_id: row.inbox_message_id,
+        message_number: row.message_number,
+        created_at: row.created_at,
+        content: row.content,
+    }) {
+        Some(row) => row,
+        None => return Err(message_not_found("Unable to retrieve thread_message from message_id")),
+    };
+
+    Ok(message)
+}
+
+pub async fn get_thread_message_by_dm_message_id(dm_message_id: MessageId, pool: &SqlitePool) -> ModmailResult<ThreadMessage> {
+    let dm_message_id_str = dm_message_id.to_string();
+    
+    let row = sqlx::query!(
+        r#"
+        SELECT id, thread_id, user_id, user_name, is_anonymous,
+               dm_message_id, inbox_message_id, message_number,
+               created_at as "created_at: String", content
+        FROM thread_messages
+        WHERE dm_message_id = ?
+        AND thread_status = 1
+        ORDER BY created_at DESC
+        LIMIT 1
+        "#,
+        dm_message_id_str
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    let message: ThreadMessage = match row.map(|row| ThreadMessage {
+        id: row.id,
+        thread_id: row.thread_id,
+        user_id: row.user_id,
+        user_name: row.user_name,
+        is_anonymous: row.is_anonymous,
+        dm_message_id: row.dm_message_id,
+        inbox_message_id: row.inbox_message_id,
+        message_number: row.message_number,
+        created_at: row.created_at,
+        content: row.content,
+    }) {
+        Some(row) => row,
+        None => return Err(message_not_found("Unable to retrieve thread_message from dm_message_id")),
+    };
+
+    Ok(message)
 }
 
 #[derive(Debug, Clone)]

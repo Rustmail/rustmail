@@ -1,9 +1,9 @@
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 use serenity::{
-    all::{ChannelId, Context, EventHandler, Message},
+    all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
     async_trait,
 };
-
+use serenity::all::{MessageId, UserId};
 use crate::commands::{
     alert::alert,
     anonreply::anonreply,
@@ -17,13 +17,18 @@ use crate::commands::{
     test_errors::{test_all_errors, test_errors, test_language},
 };
 use crate::config::Config;
-use crate::db::operations::{get_thread_channel_by_user_id, thread_exists};
+use crate::db::operations::{get_message_ids_by_message_id, get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::errors::{ModmailResult, common};
 use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::{modules::threads::create_channel, utils::wrap_command};
 use crate::commands::force_close::force_close;
 use crate::i18n::get_translated_message;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
+use crate::commands::edit::message_ops::edit_inbox_message;
+use crate::db::get_thread_by_channel_id;
+use crate::db::messages::get_thread_message_by_dm_message_id;
+use crate::db::threads::get_thread_by_user_id;
+use crate::utils::message::message_builder::MessageBuilder;
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -165,5 +170,89 @@ impl EventHandler for GuildMessagesHandler {
             return;
         }
         return;
+    }
+
+    async fn message_update(
+        &self,
+        ctx: Context,
+        old_if_available: Option<Message>,
+        _new: Option<Message>,
+        event: MessageUpdateEvent,
+    ) {
+
+        match event.author {
+            Some(user) => {
+                if user.bot {
+                    return;
+                }
+            },
+            None => {
+                eprintln!("Message update event without author");
+                return;
+            }
+        };
+
+        if let Some(_channel_id) = event.channel_id.to_channel(&ctx.http).await.ok().and_then(|channel| channel.private()) {
+            let pool = match &self.config.db_pool {
+                Some(p) => p,
+                None => return,
+            };
+
+            let message = match get_thread_message_by_dm_message_id(event.id, &pool).await {
+                Ok(message) => message,
+                Err(e) => {
+                    eprintln!("Failed to get thread message by DM message ID: {}", e);
+                    return;
+                }
+            };
+
+            if let Some(thread) = get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await {
+                if let Some(content) = event.content {
+                    let inbox_builder = MessageBuilder::user_message(&ctx, &self.config, UserId::new(message.user_id as u64), message.user_name)
+                        .content(content.clone());
+                    let edit_msg = inbox_builder.build_edit_message().await;
+
+                    let channel_id_parse = match thread.channel_id.parse::<u64>() {
+                        Ok(id) => ChannelId::new(id),
+                        Err(e) => {
+                            eprintln!("Failed to parse channel ID: {}", e);
+                            return;
+                        }
+                    };
+
+                    if let Some(inbox_message_id) = message.inbox_message_id {
+                        if let Err(e) = edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg).await {
+                            eprintln!("Failed to edit mirrored staff message: {}", e);
+                            return;
+                        }
+
+                        let old_content: String = if let Some(old) = old_if_available { old.content } else { String::new() };
+                        let before = if old_content.is_empty() { "(inconnu)".to_string() } else { old_content };
+                        let after = content.clone();
+
+                        let guild_id = self.config.bot.get_community_guild_id();
+                        let message_link = format!(
+                            "https://discord.com/channels/{}/{}/{}",
+                            guild_id,
+                            channel_id_parse.get(),
+                            inbox_message_id
+                        );
+
+                        let mut params = HashMap::new();
+                        params.insert("before".to_string(), before);
+                        params.insert("after".to_string(), after);
+                        params.insert("link".to_string(), message_link);
+
+                        let _ = MessageBuilder::system_message(&ctx, &self.config)
+                            .translated_content("edit.modification_from_user", Some(&params), Some(UserId::new(message.user_id as u64)), Some(guild_id)).await
+                            .to_channel(channel_id_parse)
+                            .send()
+                            .await;
+
+                        let _ = update_message_content(&inbox_message_id, &content, pool).await;
+                    }
+                }
+            }
+        }
     }
 }
