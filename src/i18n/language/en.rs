@@ -279,11 +279,11 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.modification_from_user".to_string(),
-        DictionaryMessage::new("The user edited his message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+        DictionaryMessage::new("The user edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
     );
     dict.messages.insert(
         "edit.modification_from_staff".to_string(),
-        DictionaryMessage::new("A staff edited his message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+        DictionaryMessage::new("A staff edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
     );
     dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
