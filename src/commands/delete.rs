@@ -6,6 +6,8 @@ use crate::db::operations::{
 use crate::errors::{ModmailResult, common};
 use serenity::all::{Context, Message, MessageId, UserId};
 use std::collections::HashMap;
+use crate::db::messages::MessageIds;
+use crate::db::repr::Thread;
 use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
@@ -45,7 +47,7 @@ async fn get_thread_info(
     msg: &Message,
     config: &Config,
     pool: &sqlx::SqlitePool,
-) -> ModmailResult<(i64, crate::db::repr::Thread)> {
+) -> ModmailResult<(i64, Thread)> {
     let channel_id = msg.channel_id.to_string();
     let user_id = match get_user_id_from_channel_id(&channel_id, pool).await {
         Some(uid) => uid,
@@ -71,10 +73,10 @@ async fn get_message_ids(
     msg: &Message,
     config: &Config,
     user_id: i64,
-    thread: &crate::db::repr::Thread,
+    thread: &Thread,
     message_number: i64,
     pool: &sqlx::SqlitePool,
-) -> ModmailResult<crate::db::operations::messages::MessageIds> {
+) -> ModmailResult<MessageIds> {
     match get_message_ids_by_number(
         message_number,
         UserId::new(user_id as u64),
