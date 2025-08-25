@@ -79,23 +79,18 @@ pub async fn send_to_thread(
     };
 
     if let Ok(user_left) = is_user_left(&channel_id.to_string(), pool).await
-        && user_left {
-            let mut params = HashMap::new();
-            params.insert("username".to_string(), msg.author.name.clone());
+        && user_left
+    {
+        let mut params = HashMap::new();
+        params.insert("username".to_string(), msg.author.name.clone());
 
-            let _ =
-                MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
-                    .translated_content(
-                        "user.left_server",
-                        Some(&params),
-                        Some(msg.author.id),
-                        None,
-                    )
-                    .await
-                    .to_channel(channel_id)
-                    .send()
-                    .await;
-        }
+        let _ = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
+            .translated_content("user.left_server", Some(&params), Some(msg.author.id), None)
+            .await
+            .to_channel(channel_id)
+            .send()
+            .await;
+    }
 
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     if let Err(_) = community_guild_id.member(&ctx.http, msg.author.id).await {
@@ -148,36 +143,37 @@ pub async fn send_to_thread(
 
     let user_id = msg.author.id.get() as i64;
     if let Ok(alerts) = get_staff_alerts_for_user(user_id, pool).await
-        && !alerts.is_empty() {
-            let mut ping_mentions = String::new();
-            for staff_id in &alerts {
-                ping_mentions.push_str(&format!("<@{}> ", staff_id));
-            }
+        && !alerts.is_empty()
+    {
+        let mut ping_mentions = String::new();
+        for staff_id in &alerts {
+            ping_mentions.push_str(&format!("<@{}> ", staff_id));
+        }
 
-            let mut params = HashMap::new();
-            params.insert("user".to_string(), msg.author.name.clone());
-            let alert_content = get_translated_message(
-                config,
-                "alert.ping_message",
-                Some(&params),
-                None,
-                None,
-                None,
-            )
+        let mut params = HashMap::new();
+        params.insert("user".to_string(), msg.author.name.clone());
+        let alert_content = get_translated_message(
+            config,
+            "alert.ping_message",
+            Some(&params),
+            None,
+            None,
+            None,
+        )
+        .await;
+
+        let full_content = format!("{}{}", ping_mentions, alert_content);
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .content(full_content)
+            .to_channel(channel_id)
+            .send()
             .await;
 
-            let full_content = format!("{}{}", ping_mentions, alert_content);
-
-            let _ = MessageBuilder::system_message(ctx, config)
-                .content(full_content)
-                .to_channel(channel_id)
-                .send()
-                .await;
-
-            for staff_id in &alerts {
-                let _ = mark_alert_as_used(*staff_id, user_id, pool).await;
-            }
+        for staff_id in &alerts {
+            let _ = mark_alert_as_used(*staff_id, user_id, pool).await;
         }
+    }
 
     Ok(sent_msg)
 }

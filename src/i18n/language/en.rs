@@ -549,4 +549,12 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("✅ Message #{number} has been deleted successfully")
             .with_description("Confirmation that the message has been deleted"),
     );
+    dict.messages.insert(
+        "add_staff.add_success".to_string(),
+        DictionaryMessage::new("The user {user} has been added to the ticket successfully."),
+    );
+    dict.messages.insert(
+        "add_staff.remove_success".to_string(),
+        DictionaryMessage::new("The user {user} has been removed from the ticket successfully."),
+    );
 }

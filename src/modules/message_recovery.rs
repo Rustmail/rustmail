@@ -263,7 +263,8 @@ pub async fn send_recovery_summary(
 
 fn extract_message_content(msg: &Message, config: &Config) -> String {
     let mut content = if config.thread.embedded_message {
-        msg.embeds.first()
+        msg.embeds
+            .first()
             .and_then(|e| e.description.clone())
             .unwrap_or_else(|| msg.content.clone())
     } else {

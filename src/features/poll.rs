@@ -18,12 +18,14 @@ impl<'a> Feature<'a> for PollFeature {
     }
 
     async fn build_message(&self, ctx: &'a Context, config: &'a Config) -> CreateMessage {
-        let row = make_buttons(&[(
+        let row = make_buttons(&[
+            (
                 "Créer un sondage",
                 "feature:poll:create",
                 ButtonStyle::Success,
             ),
-            ("Test", "feature:poll:delete", ButtonStyle::Danger)]);
+            ("Test", "feature:poll:delete", ButtonStyle::Danger),
+        ]);
 
         MessageBuilder::system_message(ctx, config)
             .content("Sondage (poll):\n\n- Commande: !poll Question ? | Option 1 | Option 2 | ...\n- Bouton ci-dessous: ouvre un formulaire pour créer un sondage dans ce salon.")

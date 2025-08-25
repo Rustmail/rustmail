@@ -41,14 +41,16 @@ impl EventHandler for GuildHandler {
         }
 
         if let Some(topic) = &thread.topic
-            && *topic == MODMAIL_MANAGED_TOPIC.to_string() {
-                return;
-            }
+            && *topic == MODMAIL_MANAGED_TOPIC.to_string()
+        {
+            return;
+        }
 
         if let Some(pool) = &self.config.db_pool
-            && let Some(_) = get_thread_by_channel_id(&thread.id.to_string(), pool).await {
-                return;
-            }
+            && let Some(_) = get_thread_by_channel_id(&thread.id.to_string(), pool).await
+        {
+            return;
+        }
 
         let res_button = make_buttons(&[
             (

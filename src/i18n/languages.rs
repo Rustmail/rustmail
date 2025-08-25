@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum Language {
     #[default]
     English,
@@ -234,7 +233,6 @@ impl Language {
     }
 }
 
-
 impl fmt::Display for Language {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.native_name())
@@ -363,9 +361,10 @@ impl LanguageDetector {
         }
 
         if let Some(locale) = discord_locale
-            && let Some(lang) = Self::from_discord_locale(locale) {
-                return lang;
-            }
+            && let Some(lang) = Self::from_discord_locale(locale)
+        {
+            return lang;
+        }
 
         if let Some(lang) = guild_default {
             return lang;

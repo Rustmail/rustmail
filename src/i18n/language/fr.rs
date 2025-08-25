@@ -572,4 +572,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("✅ Message #{number} a été supprimé avec succès")
             .with_description("Confirmation que le message a été supprimé"),
     );
+    dict.messages.insert(
+        "add_staff.add_success".to_string(),
+        DictionaryMessage::new("L'utilisateur {user} a été ajouté au ticket avec succès."),
+    );
+    dict.messages.insert(
+        "add_staff.remove_success".to_string(),
+        DictionaryMessage::new("L'utilisateur {user} a été retiré du ticket avec succès."),
+    );
 }

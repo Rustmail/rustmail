@@ -50,10 +50,10 @@ impl EventHandler for GuildMembersHandler {
                 Ok(channel_id_num) => (thread, serenity::all::ChannelId::new(channel_id_num)),
                 Err(err) => {
                     eprintln!("Invalid channel ID format for user {} : {}", user.id, err);
-                    return ;
+                    return;
                 }
             },
-            None => return ,
+            None => return,
         };
 
         let mut params = HashMap::new();
