@@ -49,15 +49,16 @@ pub async fn format_new_message<'a>(
         && let (Ok(member), Ok(roles_map)) = (
             guild_id.member(&ctx.http, msg.author.id).await,
             guild_id.roles(&ctx.http).await,
-        ) {
-            top_role_name = member
-                .roles
-                .iter()
-                .filter_map(|rid| roles_map.get(rid))
-                .filter(|r| r.name != "@everyone")
-                .max_by_key(|r| r.position)
-                .map(|r| r.name.clone());
-        }
+        )
+    {
+        top_role_name = member
+            .roles
+            .iter()
+            .filter_map(|rid| roles_map.get(rid))
+            .filter(|r| r.name != "@everyone")
+            .max_by_key(|r| r.position)
+            .map(|r| r.name.clone());
+    }
 
     if thread_message.is_anonymous {
         let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)

@@ -1,3 +1,4 @@
+pub mod add_staff;
 pub mod alert;
 pub mod anonreply;
 pub mod close;
@@ -7,5 +8,6 @@ pub mod force_close;
 pub mod move_thread;
 pub mod new_thread;
 pub mod recover;
+pub mod remove_staff;
 pub mod reply;
 pub mod test_errors;

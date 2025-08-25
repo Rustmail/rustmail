@@ -31,6 +31,8 @@ use serenity::{
     async_trait,
 };
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use crate::commands::add_staff::add_staff;
+use crate::commands::remove_staff::remove_staff;
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -62,6 +64,8 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "test_language", test_language);
         wrap_command!(h.commands, "test_all_errors", test_all_errors);
         wrap_command!(h.commands, ["force_close", "fc"], force_close);
+        wrap_command!(h.commands, ["add_staff", "as"], add_staff);
+        wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
         h
     }
 }

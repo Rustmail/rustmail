@@ -114,14 +114,14 @@ async fn delete_inbox_message(
 ) {
     if let Some(inbox_msg_id) = &message_ids.inbox_message_id
         && let Ok(msg_id) = inbox_msg_id.parse::<u64>()
-            && let Err(e) = msg
-                .channel_id
-                .delete_message(&ctx.http, MessageId::new(msg_id))
-                .await
-            {
-                eprintln!("Failed to delete inbox message: {}", e);
-                send_delete_message(ctx, msg, config, "delete.discord_delete_failed", None).await;
-            }
+        && let Err(e) = msg
+            .channel_id
+            .delete_message(&ctx.http, MessageId::new(msg_id))
+            .await
+    {
+        eprintln!("Failed to delete inbox message: {}", e);
+        send_delete_message(ctx, msg, config, "delete.discord_delete_failed", None).await;
+    }
 }
 
 async fn delete_dm_message(
@@ -130,26 +130,27 @@ async fn delete_dm_message(
     message_ids: &crate::db::operations::messages::MessageIds,
 ) {
     if let Some(dm_msg_id) = &message_ids.dm_message_id
-        && let Ok(msg_id) = dm_msg_id.parse::<u64>() {
-            if let Ok(user) = ctx.http.get_user(UserId::new(user_id as u64)).await {
-                if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
-                    match dm_channel.message(&ctx.http, msg_id).await {
-                        Ok(dm_message) => {
-                            if let Err(e) = dm_message.delete(&ctx.http).await {
-                                eprintln!("Failed to delete DM message: {}", e);
-                            }
-                        }
-                        Err(e) => {
-                            eprintln!("Failed to fetch DM message for deletion: {}", e);
+        && let Ok(msg_id) = dm_msg_id.parse::<u64>()
+    {
+        if let Ok(user) = ctx.http.get_user(UserId::new(user_id as u64)).await {
+            if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
+                match dm_channel.message(&ctx.http, msg_id).await {
+                    Ok(dm_message) => {
+                        if let Err(e) = dm_message.delete(&ctx.http).await {
+                            eprintln!("Failed to delete DM message: {}", e);
                         }
                     }
-                } else {
-                    eprintln!("Failed to create DM channel for deletion");
+                    Err(e) => {
+                        eprintln!("Failed to fetch DM message for deletion: {}", e);
+                    }
                 }
             } else {
-                eprintln!("Failed to get user for DM deletion");
+                eprintln!("Failed to create DM channel for deletion");
             }
+        } else {
+            eprintln!("Failed to get user for DM deletion");
         }
+    }
 }
 
 async fn delete_database_message(
@@ -160,11 +161,12 @@ async fn delete_database_message(
     config: &Config,
 ) -> ModmailResult<()> {
     if let Some(dm_msg_id) = &message_ids.dm_message_id
-        && let Err(e) = delete_message(dm_msg_id, pool).await {
-            eprintln!("Failed to delete message from database: {}", e);
-            send_delete_message(ctx, msg, config, "delete.database_delete_failed", None).await;
-            return Err(common::database_connection_failed());
-        }
+        && let Err(e) = delete_message(dm_msg_id, pool).await
+    {
+        eprintln!("Failed to delete message from database: {}", e);
+        send_delete_message(ctx, msg, config, "delete.database_delete_failed", None).await;
+        return Err(common::database_connection_failed());
+    }
     Ok(())
 }
 

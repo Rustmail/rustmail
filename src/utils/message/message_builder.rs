@@ -631,15 +631,16 @@ impl<'a> StaffReply<'a> {
                 && let (Ok(member), Ok(roles_map)) = (
                     guild_id.member(&self.ctx.http, self.staff_user_id).await,
                     guild_id.roles(&self.ctx.http).await,
-                ) {
-                    top_role_name = member
-                        .roles
-                        .iter()
-                        .filter_map(|rid| roles_map.get(rid))
-                        .filter(|r| r.name != "@everyone")
-                        .max_by_key(|r| r.position)
-                        .map(|r| r.name.clone());
-                }
+                )
+            {
+                top_role_name = member
+                    .roles
+                    .iter()
+                    .filter_map(|rid| roles_map.get(rid))
+                    .filter(|r| r.name != "@everyone")
+                    .max_by_key(|r| r.position)
+                    .map(|r| r.name.clone());
+            }
         }
 
         let mut thread_builder = if self.is_anonymous {
@@ -653,9 +654,10 @@ impl<'a> StaffReply<'a> {
             )
         };
         if !self.is_anonymous
-            && let Some(role_name) = &top_role_name {
-                thread_builder = thread_builder.with_role(role_name.clone());
-            }
+            && let Some(role_name) = &top_role_name
+        {
+            thread_builder = thread_builder.with_role(role_name.clone());
+        }
 
         thread_builder = thread_builder
             .content(self.content.clone())
@@ -678,9 +680,10 @@ impl<'a> StaffReply<'a> {
                 )
             };
             if !self.is_anonymous
-                && let Some(role_name) = &top_role_name {
-                    dm_builder = dm_builder.with_role(role_name.clone());
-                }
+                && let Some(role_name) = &top_role_name
+            {
+                dm_builder = dm_builder.with_role(role_name.clone());
+            }
 
             dm_builder = dm_builder
                 .content(self.content.clone())
