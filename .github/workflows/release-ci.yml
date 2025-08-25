@@ -1,0 +1,78 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_and_test:
+    name: Rustmail - latest
+    runs-on: ubuntu-latest
+    env:
+      SQLX_OFFLINE: true
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - run: cargo build --verbose
+      - run: cargo test --verbose
+
+  create-release:
+    name: Create Release
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GT_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          if [[ "$tag" == *alpha* || "$tag" == *beta* ]]; then
+              prerelease="--prerelease"
+          else
+              prerelease=""
+          fi
+  
+          gh release create "$tag" \
+          --repo="$GITHUB_REPOSITORY" \
+          --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+          --generate-notes $prerelease
+
+  upload-assets:
+      needs: create-release
+      strategy:
+        matrix:
+          include:
+            - target: x86_64-unknown-linux-gnu
+              os: ubuntu-latest
+            - target: x86_64-apple-darwin
+              os: macos-latest
+            - target: x86_64-pc-windows-msvc
+              os: windows-latest
+      runs-on: ${{ matrix.os }}
+      steps:
+        - uses: actions/checkout@v4
+        - uses: taiki-e/upload-rust-binary-action@v1
+          with:
+
+            bin: rustmail
+
+            target: ${{ matrix.target }}
+
+            tar: unix
+
+            zip: windows
+
+            token: ${{ secrets.GT_TOKEN }}
