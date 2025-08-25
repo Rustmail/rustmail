@@ -148,6 +148,14 @@ pub async fn is_a_ticket_channel(channel_id: ChannelId, pool: &SqlitePool) -> bo
         .unwrap_or(false)
 }
 
+pub async fn is_an_opened_ticket_channel(channel_id: ChannelId, pool: &SqlitePool) -> bool {
+    sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM threads WHERE channel_id = ? AND status = 1)")
+        .bind(channel_id.to_string())
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false)
+}
+
 pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
     let rows =
         sqlx::query!("SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1")
