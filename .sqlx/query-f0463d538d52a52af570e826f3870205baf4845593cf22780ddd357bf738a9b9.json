@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT dm_message_id, inbox_message_id FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "dm_message_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "inbox_message_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "f0463d538d52a52af570e826f3870205baf4845593cf22780ddd357bf738a9b9"
+}

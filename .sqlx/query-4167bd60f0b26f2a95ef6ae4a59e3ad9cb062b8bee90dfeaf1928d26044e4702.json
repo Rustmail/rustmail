@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO thread_messages (\n            thread_id, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, message_number, content, thread_status\n        ) VALUES (\n            ?, ?, ?, ?, ?, ?, ?, ?, ?\n        )\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 9
+    },
+    "nullable": []
+  },
+  "hash": "4167bd60f0b26f2a95ef6ae4a59e3ad9cb062b8bee90dfeaf1928d26044e4702"
+}

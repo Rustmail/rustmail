@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM thread_messages WHERE dm_message_id = ? OR inbox_message_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "774d777aca90200fc2a004c498e94bd1633a3bec6589ddbae1a272c78e14fac2"
+}

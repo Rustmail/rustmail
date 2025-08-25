@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "beee65185604c36ac7083062190e93c4ad1e1b4c0c017c20e09c7f45a8dcd305"
+}

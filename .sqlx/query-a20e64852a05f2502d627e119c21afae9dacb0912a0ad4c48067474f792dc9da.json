@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "a20e64852a05f2502d627e119c21afae9dacb0912a0ad4c48067474f792dc9da"
+}

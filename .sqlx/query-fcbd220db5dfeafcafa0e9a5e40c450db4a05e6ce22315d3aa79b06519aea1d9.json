@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE thread_messages SET content = ? WHERE dm_message_id = ? OR inbox_message_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "fcbd220db5dfeafcafa0e9a5e40c450db4a05e6ce22315d3aa79b06519aea1d9"
+}

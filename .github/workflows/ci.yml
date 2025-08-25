@@ -11,6 +11,8 @@ jobs:
   build_and_test:
     name: Rust project - latest
     runs-on: ubuntu-latest
+    env:
+      SQLX_OFFLINE: true
     strategy:
       matrix:
         toolchain:

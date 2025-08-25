@@ -1,0 +1,74 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id, thread_id, user_id, user_name, is_anonymous,\n               dm_message_id, inbox_message_id, message_number,\n               created_at as \"created_at: String\", content\n        FROM thread_messages\n        WHERE dm_message_id = ? OR inbox_message_id = ?\n        ORDER BY created_at DESC\n        LIMIT 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "thread_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "user_name",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_anonymous",
+        "ordinal": 4,
+        "type_info": "Bool"
+      },
+      {
+        "name": "dm_message_id",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "inbox_message_id",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "message_number",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at: String",
+        "ordinal": 8,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "content",
+        "ordinal": 9,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "9e31ac92a673943c1173fbe2ffe072b7bddd509e1bceb1b7614010ffa97a4a4c"
+}

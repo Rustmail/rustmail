@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_left FROM threads WHERE channel_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_left",
+        "ordinal": 0,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "789028a216da5c1334609ec0c6e53f3353609bb1c10730bdbc93096062a90571"
+}

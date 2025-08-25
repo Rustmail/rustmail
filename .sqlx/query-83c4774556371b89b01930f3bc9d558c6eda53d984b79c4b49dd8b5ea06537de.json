@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO staff_alerts (staff_user_id, thread_user_id) VALUES (?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "83c4774556371b89b01930f3bc9d558c6eda53d984b79c4b49dd8b5ea06537de"
+}
