@@ -1,6 +1,6 @@
 use crate::db::repr::Thread;
 use crate::errors::ModmailResult;
-use serenity::all::{ChannelId, GuildChannel, Message, UserId};
+use serenity::all::{ChannelId, GuildChannel, UserId};
 use sqlx::{Error, SqlitePool};
 use uuid::Uuid;
 
@@ -184,7 +184,7 @@ pub async fn is_user_left(channel_id: &str, pool: &SqlitePool) -> Result<bool, E
     .fetch_all(pool)
     .await?;
 
-    if let Some(row) = thread.get(0) {
+    if let Some(row) = thread.first() {
         Ok(row.user_left)
     } else {
         Ok(false)

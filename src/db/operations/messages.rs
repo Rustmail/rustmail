@@ -141,8 +141,7 @@ pub async fn update_message_numbers_after_deletion(
 
 fn extract_message_content(msg: &Message, config: &Config) -> String {
     let mut content = if config.thread.embedded_message {
-        msg.embeds
-            .get(0)
+        msg.embeds.first()
             .and_then(|e| e.description.clone())
             .unwrap_or_else(|| msg.content.clone())
     } else {
@@ -176,7 +175,7 @@ pub async fn get_latest_thread_message(
     .await?;
 
     let latest = row.map(|row| ThreadMessage {
-        id: row.id as i64,
+        id: row.id,
         thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
@@ -307,7 +306,7 @@ pub async fn get_thread_message_by_inbox_message_id(
     .await?;
 
     let latest: ThreadMessage = match row.map(|row| ThreadMessage {
-        id: row.id as i64,
+        id: row.id,
         thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
@@ -350,7 +349,7 @@ pub async fn get_thread_message_by_message_id(
     .await?;
 
     let message: ThreadMessage = match row.map(|row| ThreadMessage {
-        id: row.id as i64,
+        id: row.id,
         thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,

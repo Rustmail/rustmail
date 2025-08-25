@@ -33,7 +33,7 @@ pub enum MessageSender {
 pub enum MessageTarget {
     Channel(ChannelId),
     User(UserId),
-    Reply(Message),
+    Reply(Box<Message>),
 }
 
 #[derive(Debug, Clone)]
@@ -149,7 +149,7 @@ impl<'a> MessageBuilder<'a> {
     }
 
     pub fn reply_to(mut self, message: Message) -> Self {
-        self.target = Some(MessageTarget::Reply(message));
+        self.target = Some(MessageTarget::Reply(Box::from(message)));
         self
     }
 
@@ -627,8 +627,8 @@ impl<'a> StaffReply<'a> {
                 _ => None,
             };
 
-            if let Some(guild_id) = guild_id_opt {
-                if let (Ok(member), Ok(roles_map)) = (
+            if let Some(guild_id) = guild_id_opt
+                && let (Ok(member), Ok(roles_map)) = (
                     guild_id.member(&self.ctx.http, self.staff_user_id).await,
                     guild_id.roles(&self.ctx.http).await,
                 ) {
@@ -640,7 +640,6 @@ impl<'a> StaffReply<'a> {
                         .max_by_key(|r| r.position)
                         .map(|r| r.name.clone());
                 }
-            }
         }
 
         let mut thread_builder = if self.is_anonymous {
@@ -653,11 +652,10 @@ impl<'a> StaffReply<'a> {
                 self.staff_username.clone(),
             )
         };
-        if !self.is_anonymous {
-            if let Some(role_name) = &top_role_name {
+        if !self.is_anonymous
+            && let Some(role_name) = &top_role_name {
                 thread_builder = thread_builder.with_role(role_name.clone());
             }
-        }
 
         thread_builder = thread_builder
             .content(self.content.clone())
@@ -679,11 +677,10 @@ impl<'a> StaffReply<'a> {
                     self.staff_username.clone(),
                 )
             };
-            if !self.is_anonymous {
-                if let Some(role_name) = &top_role_name {
+            if !self.is_anonymous
+                && let Some(role_name) = &top_role_name {
                     dm_builder = dm_builder.with_role(role_name.clone());
                 }
-            }
 
             dm_builder = dm_builder
                 .content(self.content.clone())

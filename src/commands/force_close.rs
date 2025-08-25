@@ -20,7 +20,7 @@ pub async fn force_close(ctx: &Context, msg: &Message, config: &Config) -> Modma
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     if !is_a_ticket_channel(msg.channel_id, db_pool).await {
         return match msg.category_id(&ctx.http).await {

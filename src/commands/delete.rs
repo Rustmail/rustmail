@@ -14,7 +14,7 @@ pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailRes
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let (user_id, thread) = get_thread_info(ctx, msg, config, pool).await?;
     let message_number = extract_message_number(msg, config).await;
@@ -112,9 +112,9 @@ async fn delete_inbox_message(
     config: &Config,
     message_ids: &crate::db::operations::messages::MessageIds,
 ) {
-    if let Some(inbox_msg_id) = &message_ids.inbox_message_id {
-        if let Ok(msg_id) = inbox_msg_id.parse::<u64>() {
-            if let Err(e) = msg
+    if let Some(inbox_msg_id) = &message_ids.inbox_message_id
+        && let Ok(msg_id) = inbox_msg_id.parse::<u64>()
+            && let Err(e) = msg
                 .channel_id
                 .delete_message(&ctx.http, MessageId::new(msg_id))
                 .await
@@ -122,8 +122,6 @@ async fn delete_inbox_message(
                 eprintln!("Failed to delete inbox message: {}", e);
                 send_delete_message(ctx, msg, config, "delete.discord_delete_failed", None).await;
             }
-        }
-    }
 }
 
 async fn delete_dm_message(
@@ -131,8 +129,8 @@ async fn delete_dm_message(
     user_id: i64,
     message_ids: &crate::db::operations::messages::MessageIds,
 ) {
-    if let Some(dm_msg_id) = &message_ids.dm_message_id {
-        if let Ok(msg_id) = dm_msg_id.parse::<u64>() {
+    if let Some(dm_msg_id) = &message_ids.dm_message_id
+        && let Ok(msg_id) = dm_msg_id.parse::<u64>() {
             if let Ok(user) = ctx.http.get_user(UserId::new(user_id as u64)).await {
                 if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
                     match dm_channel.message(&ctx.http, msg_id).await {
@@ -152,7 +150,6 @@ async fn delete_dm_message(
                 eprintln!("Failed to get user for DM deletion");
             }
         }
-    }
 }
 
 async fn delete_database_message(
@@ -162,13 +159,12 @@ async fn delete_database_message(
     msg: &Message,
     config: &Config,
 ) -> ModmailResult<()> {
-    if let Some(dm_msg_id) = &message_ids.dm_message_id {
-        if let Err(e) = delete_message(dm_msg_id, pool).await {
+    if let Some(dm_msg_id) = &message_ids.dm_message_id
+        && let Err(e) = delete_message(dm_msg_id, pool).await {
             eprintln!("Failed to delete message from database: {}", e);
             send_delete_message(ctx, msg, config, "delete.database_delete_failed", None).await;
             return Err(common::database_connection_failed());
         }
-    }
     Ok(())
 }
 

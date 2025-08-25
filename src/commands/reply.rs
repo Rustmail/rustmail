@@ -54,7 +54,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let content = extract_reply_content(&msg.content, &config.command.prefix, &["reply", "r"]);
     let intent = extract_intent(content, &msg.attachments).await;

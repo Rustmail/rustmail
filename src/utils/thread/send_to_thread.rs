@@ -78,8 +78,8 @@ pub async fn send_to_thread(
         }
     };
 
-    if let Ok(user_left) = is_user_left(&channel_id.to_string(), pool).await {
-        if user_left {
+    if let Ok(user_left) = is_user_left(&channel_id.to_string(), pool).await
+        && user_left {
             let mut params = HashMap::new();
             params.insert("username".to_string(), msg.author.name.clone());
 
@@ -96,7 +96,6 @@ pub async fn send_to_thread(
                     .send()
                     .await;
         }
-    }
 
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     if let Err(_) = community_guild_id.member(&ctx.http, msg.author.id).await {
@@ -148,8 +147,8 @@ pub async fn send_to_thread(
     };
 
     let user_id = msg.author.id.get() as i64;
-    if let Ok(alerts) = get_staff_alerts_for_user(user_id, pool).await {
-        if !alerts.is_empty() {
+    if let Ok(alerts) = get_staff_alerts_for_user(user_id, pool).await
+        && !alerts.is_empty() {
             let mut ping_mentions = String::new();
             for staff_id in &alerts {
                 ping_mentions.push_str(&format!("<@{}> ", staff_id));
@@ -179,7 +178,6 @@ pub async fn send_to_thread(
                 let _ = mark_alert_as_used(*staff_id, user_id, pool).await;
             }
         }
-    }
 
     Ok(sent_msg)
 }

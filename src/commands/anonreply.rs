@@ -12,7 +12,7 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let content = extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
     let intent = extract_intent(content, &msg.attachments).await;
@@ -120,8 +120,8 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
             .await;
     }
 
-    if config.notifications.show_success_on_reply {
-        if let Some(error_handler) = &config.error_handler {
+    if config.notifications.show_success_on_reply
+        && let Some(error_handler) = &config.error_handler {
             let mut params = HashMap::new();
             params.insert("number".to_string(), next_message_number.to_string());
             let _ = error_handler
@@ -135,7 +135,6 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 )
                 .await;
         }
-    }
 
     Ok(())
 }

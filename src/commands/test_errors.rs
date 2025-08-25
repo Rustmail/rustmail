@@ -11,7 +11,7 @@ pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> Modma
     let error_handler = config
         .error_handler
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let content = msg.content.trim();
     let parts: Vec<&str> = content.split_whitespace().collect();
@@ -104,7 +104,7 @@ pub async fn test_language(ctx: &Context, msg: &Message, config: &Config) -> Mod
     let error_handler = config
         .error_handler
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let content = msg.content.trim();
     let parts: Vec<&str> = content.split_whitespace().collect();
@@ -185,7 +185,7 @@ pub async fn test_all_errors(ctx: &Context, msg: &Message, config: &Config) -> M
     let error_handler = config
         .error_handler
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let embed = CreateEmbed::new()
         .title("🧪 Testing All Error Types")

@@ -157,19 +157,16 @@ impl DictionaryManager {
         params: Option<&HashMap<String, String>>,
         count: Option<i64>,
     ) -> String {
-        if let Some(dict) = self.get_dictionary(language) {
-            if dict.get_message(key).is_some() {
+        if let Some(dict) = self.get_dictionary(language)
+            && dict.get_message(key).is_some() {
                 return dict.get_formatted_message(key, params, count);
             }
-        }
 
-        if language != self.fallback_language {
-            if let Some(dict) = self.get_dictionary(self.fallback_language) {
-                if dict.get_message(key).is_some() {
+        if language != self.fallback_language
+            && let Some(dict) = self.get_dictionary(self.fallback_language)
+                && dict.get_message(key).is_some() {
                     return dict.get_formatted_message(key, params, count);
                 }
-            }
-        }
 
         format!("Missing translation: {}", key)
     }

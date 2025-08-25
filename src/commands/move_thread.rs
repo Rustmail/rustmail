@@ -10,7 +10,7 @@ pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> Modma
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     if !is_in_thread(msg, pool).await {
         send_error_message(ctx, msg, config, "move.not_in_thread", None).await;
@@ -140,7 +140,7 @@ async fn send_success_message(ctx: &Context, msg: &Message, config: &Config, cat
     )
     .await;
 
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .content(confirmation_msg)
         .to_channel(msg.channel_id)
         .send()

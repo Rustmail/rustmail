@@ -9,7 +9,7 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let user_id = extract_user_id(msg, config).await;
     if user_id.is_none() {
@@ -53,7 +53,7 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
     }
 
     let inbox_category_id = ChannelId::new(config.thread.inbox_category_id);
-    let channel_name = format!("{}", user.name.to_lowercase().replace(" ", "-"));
+    let channel_name = user.name.to_lowercase().replace(" ", "-").to_string();
     let mut channel_builder = serenity::all::CreateChannel::new(&channel_name);
     channel_builder = channel_builder
         .kind(serenity::model::channel::ChannelType::Text)
@@ -142,7 +142,7 @@ async fn send_welcome_message(ctx: &Context, channel: &GuildChannel, config: &Co
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
 
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             "new_thread.welcome_message",
             Some(&params),
@@ -156,7 +156,7 @@ async fn send_welcome_message(ctx: &Context, channel: &GuildChannel, config: &Co
 }
 
 async fn send_dm_to_user(ctx: &Context, user: &User, config: &Config) -> ModmailResult<()> {
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content("new_thread.dm_notification", None, Some(user.id), None)
         .await
         .to_user(user.id)
@@ -173,7 +173,7 @@ async fn send_error_message(
     error_key: &str,
     params: Option<&HashMap<String, String>>,
 ) {
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             error_key,
             params,
@@ -205,7 +205,7 @@ async fn send_success_message(
         "new_thread.success_without_dm"
     };
 
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             success_key,
             Some(&params),

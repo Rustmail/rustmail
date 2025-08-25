@@ -12,7 +12,7 @@ pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let user_id = get_thread_user_id(ctx, msg, config, pool).await?;
     let is_cancel = extract_alert_action(msg, config).await;

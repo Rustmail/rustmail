@@ -10,7 +10,7 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
     let _ = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), msg.author.name.clone());
@@ -25,7 +25,7 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
     )
     .await;
 
-    let _ = MessageBuilder::system_message(&ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .content(confirmation_message)
         .to_channel(msg.channel_id)
         .send()

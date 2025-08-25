@@ -40,11 +40,10 @@ impl ErrorHandler {
             return prefs.primary;
         }
 
-        if let Some(guild_id) = guild_id {
-            if let Some(lang) = self.guild_languages.read().await.get(&guild_id) {
+        if let Some(guild_id) = guild_id
+            && let Some(lang) = self.guild_languages.read().await.get(&guild_id) {
                 return *lang;
             }
-        }
 
         self.default_language
     }
@@ -71,13 +70,12 @@ impl ErrorHandler {
         user_id: UserId,
         locale: Option<&str>,
     ) -> Language {
-        if let Some(locale) = locale {
-            if let Some(detected) = LanguageDetector::from_discord_locale(locale) {
+        if let Some(locale) = locale
+            && let Some(detected) = LanguageDetector::from_discord_locale(locale) {
                 let prefs = LanguagePreferences::new(detected);
                 self.set_user_language(user_id, prefs).await;
                 return detected;
             }
-        }
 
         self.default_language
     }

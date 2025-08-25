@@ -160,7 +160,7 @@ async fn recover_messages_for_thread(
         }
 
         let message_timestamp = DateTime::from_timestamp(message.timestamp.unix_timestamp(), 0)
-            .unwrap_or_else(|| Utc::now());
+            .unwrap_or_else(Utc::now);
         if message_timestamp < last_recovery {
             continue;
         }
@@ -263,8 +263,7 @@ pub async fn send_recovery_summary(
 
 fn extract_message_content(msg: &Message, config: &Config) -> String {
     let mut content = if config.thread.embedded_message {
-        msg.embeds
-            .get(0)
+        msg.embeds.first()
             .and_then(|e| e.description.clone())
             .unwrap_or_else(|| msg.content.clone())
     } else {

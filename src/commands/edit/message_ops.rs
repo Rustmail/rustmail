@@ -38,15 +38,15 @@ pub async fn format_new_message<'a>(
     config: &'a Config,
     pool: &SqlitePool,
 ) -> ModmailResult<(MessageBuilder<'a>, MessageBuilder<'a>)> {
-    let thread_message = match get_thread_message_by_inbox_message_id(&inbox_message_id, pool).await
+    let thread_message = match get_thread_message_by_inbox_message_id(inbox_message_id, pool).await
     {
         Ok(thread_message) => thread_message,
         Err(..) => return Err(permission_denied()),
     };
 
     let mut top_role_name: Option<String> = None;
-    if let Some(guild_id) = msg.guild_id {
-        if let (Ok(member), Ok(roles_map)) = (
+    if let Some(guild_id) = msg.guild_id
+        && let (Ok(member), Ok(roles_map)) = (
             guild_id.member(&ctx.http, msg.author.id).await,
             guild_id.roles(&ctx.http).await,
         ) {
@@ -58,7 +58,6 @@ pub async fn format_new_message<'a>(
                 .max_by_key(|r| r.position)
                 .map(|r| r.name.clone());
         }
-    }
 
     if thread_message.is_anonymous {
         let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)

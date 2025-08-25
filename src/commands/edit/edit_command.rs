@@ -12,14 +12,14 @@ use crate::errors::{ModmailResult, common};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{Context, Message, UserId};
+use serenity::all::{Context, Message};
 use std::collections::HashMap;
 
 pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let raw_content: String = match extract_command_content(msg, config) {
         Ok(content) => content,
@@ -61,7 +61,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     let edited_messages_builder = match format_new_message(
         ctx,
-        &msg,
+        msg,
         &command_input.new_content,
         &inbox_message_id,
         command_input.message_number as u64,
@@ -127,7 +127,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
             params.insert("after".to_string(), command_input.new_content.clone());
             params.insert("link".to_string(), message_link);
 
-            let _ = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(ctx, config)
                 .translated_content(
                     "edit.modification_from_staff",
                     Some(&params),
@@ -154,7 +154,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
 fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<String> {
     extract_reply_content(&msg.content, &config.command.prefix, &["edit", "e"])
-        .ok_or_else(|| invalid_command())
+        .ok_or_else(invalid_command)
 }
 
 #[cfg(test)]

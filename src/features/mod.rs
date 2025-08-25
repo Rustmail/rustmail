@@ -24,7 +24,7 @@ pub trait Feature<'a>: Send + Sync {
 }
 
 pub fn registry<'a>() -> Vec<Arc<dyn Feature<'a>>> {
-    vec![Arc::new(PollFeature::default())]
+    vec![Arc::new(PollFeature)]
 }
 
 pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle)]) -> Vec<CreateActionRow> {

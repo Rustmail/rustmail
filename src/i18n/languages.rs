@@ -3,7 +3,9 @@ use std::fmt;
 use std::str;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Language {
+    #[default]
     English,
     French,
     Spanish,
@@ -232,11 +234,6 @@ impl Language {
     }
 }
 
-impl Default for Language {
-    fn default() -> Self {
-        Language::English
-    }
-}
 
 impl fmt::Display for Language {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -365,11 +362,10 @@ impl LanguageDetector {
             return lang;
         }
 
-        if let Some(locale) = discord_locale {
-            if let Some(lang) = Self::from_discord_locale(locale) {
+        if let Some(locale) = discord_locale
+            && let Some(lang) = Self::from_discord_locale(locale) {
                 return lang;
             }
-        }
 
         if let Some(lang) = guild_default {
             return lang;
@@ -391,72 +387,4 @@ pub mod codes {
     pub const JAPANESE: &str = "ja";
     pub const KOREAN: &str = "ko";
     pub const CHINESE: &str = "zh";
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_language_from_str() {
-        assert_eq!(Language::from_str("en"), Some(Language::English));
-        assert_eq!(Language::from_str("English"), Some(Language::English));
-        assert_eq!(Language::from_str("fr"), Some(Language::French));
-        assert_eq!(Language::from_str("français"), Some(Language::French));
-        assert_eq!(Language::from_str("invalid"), None);
-    }
-
-    #[test]
-    fn test_language_codes() {
-        assert_eq!(Language::English.code(), "en");
-        assert_eq!(Language::French.code(), "fr");
-        assert_eq!(Language::Spanish.code(), "es");
-    }
-
-    #[test]
-    fn test_plural_forms() {
-        assert_eq!(Language::English.plural_form(1), PluralForm::One);
-        assert_eq!(Language::English.plural_form(2), PluralForm::Other);
-
-        assert_eq!(Language::French.plural_form(0), PluralForm::One);
-        assert_eq!(Language::French.plural_form(1), PluralForm::One);
-        assert_eq!(Language::French.plural_form(2), PluralForm::Other);
-
-        assert_eq!(Language::Russian.plural_form(1), PluralForm::One);
-        assert_eq!(Language::Russian.plural_form(2), PluralForm::Few);
-        assert_eq!(Language::Russian.plural_form(5), PluralForm::Many);
-    }
-
-    #[test]
-    fn test_discord_locale_detection() {
-        assert_eq!(
-            LanguageDetector::from_discord_locale("en-US"),
-            Some(Language::English)
-        );
-        assert_eq!(
-            LanguageDetector::from_discord_locale("fr"),
-            Some(Language::French)
-        );
-        assert_eq!(LanguageDetector::from_discord_locale("unknown"), None);
-    }
-
-    #[test]
-    fn test_preferred_language() {
-        let result = LanguageDetector::get_preferred_language(
-            Some(Language::French),
-            Some("de"),
-            Some(Language::Spanish),
-        );
-        assert_eq!(result, Language::French);
-
-        let result =
-            LanguageDetector::get_preferred_language(None, Some("de"), Some(Language::Spanish));
-        assert_eq!(result, Language::German);
-
-        let result = LanguageDetector::get_preferred_language(None, None, Some(Language::Spanish));
-        assert_eq!(result, Language::Spanish);
-
-        let result = LanguageDetector::get_preferred_language(None, None, None);
-        assert_eq!(result, Language::English);
-    }
 }

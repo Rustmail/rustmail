@@ -12,7 +12,7 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
     let user_id = UserId::new(thread.user_id as u64);

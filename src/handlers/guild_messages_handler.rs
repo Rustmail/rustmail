@@ -13,10 +13,9 @@ use crate::commands::{
     test_errors::{test_all_errors, test_errors, test_language},
 };
 use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
 use crate::db::messages::get_thread_message_by_dm_message_id;
 use crate::db::operations::{
-    get_message_ids_by_message_id, get_thread_channel_by_user_id, thread_exists,
+    get_thread_channel_by_user_id, thread_exists,
     update_message_content,
 };
 use crate::db::threads::get_thread_by_user_id;
@@ -26,7 +25,7 @@ use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
 use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::{modules::threads::create_channel, utils::wrap_command};
-use serenity::all::{MessageId, UserId};
+use serenity::all::UserId;
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
     async_trait,
@@ -79,12 +78,12 @@ async fn manage_incoming_message(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     let error_handler = config
         .error_handler
         .as_ref()
-        .ok_or_else(|| common::database_connection_failed())?;
+        .ok_or_else(common::database_connection_failed)?;
 
     if let Some(guild_id) = msg.guild_id {
         let community_guild_id = config.bot.get_community_guild_id();
@@ -112,7 +111,7 @@ async fn manage_incoming_message(
     }
 
     let user_key = msg.author.id.get();
-    let user_mutex = get_thread_lock(&config, user_key);
+    let user_mutex = get_thread_lock(config, user_key);
     let guard = user_mutex.lock().await;
 
     if thread_exists(msg.author.id, pool).await {
@@ -159,8 +158,8 @@ impl EventHandler for GuildMessagesHandler {
                 command_name = &message_content[self.config.command.prefix.len()..i];
             }
 
-            if let Some(command_func) = self.commands.get(command_name) {
-                if let Err(error) =
+            if let Some(command_func) = self.commands.get(command_name)
+                && let Err(error) =
                     command_func(ctx.clone(), msg.clone(), self.config.clone()).await
                 {
                     if let Some(error_handler) = &self.config.error_handler {
@@ -169,7 +168,6 @@ impl EventHandler for GuildMessagesHandler {
                         eprintln!("Command error: {}", error);
                     }
                 }
-            }
             return;
         }
         return;
@@ -206,7 +204,7 @@ impl EventHandler for GuildMessagesHandler {
                 None => return,
             };
 
-            let message = match get_thread_message_by_dm_message_id(event.id, &pool).await {
+            let message = match get_thread_message_by_dm_message_id(event.id, pool).await {
                 Ok(message) => message,
                 Err(e) => {
                     eprintln!("Failed to get thread message by DM message ID: {}", e);
@@ -216,8 +214,7 @@ impl EventHandler for GuildMessagesHandler {
 
             if let Some(thread) =
                 get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await
-            {
-                if let Some(content) = event.content {
+                && let Some(content) = event.content {
                     let inbox_builder = MessageBuilder::user_message(
                         &ctx,
                         &self.config,
@@ -284,7 +281,6 @@ impl EventHandler for GuildMessagesHandler {
                         let _ = update_message_content(&inbox_message_id, &content, pool).await;
                     }
                 }
-            }
         }
     }
 }

@@ -21,8 +21,8 @@ impl TypingProxyHandler {
 }
 
 async fn handle_user_typing(ctx: &Context, event: &TypingStartEvent, pool: &SqlitePool) {
-    if let Some(channel_id_str) = get_thread_channel_by_user_id(event.user_id, pool).await {
-        if let Ok(channel_id_num) = channel_id_str.parse::<u64>() {
+    if let Some(channel_id_str) = get_thread_channel_by_user_id(event.user_id, pool).await
+        && let Ok(channel_id_num) = channel_id_str.parse::<u64>() {
             let channel_id = ChannelId::new(channel_id_num);
             let typing = channel_id.start_typing(&ctx.http);
             spawn(async move {
@@ -30,7 +30,6 @@ async fn handle_user_typing(ctx: &Context, event: &TypingStartEvent, pool: &Sqli
                 typing.stop();
             });
         }
-    }
 }
 
 async fn handle_staff_typing(ctx: &Context, event: &TypingStartEvent, pool: &SqlitePool) {

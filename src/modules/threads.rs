@@ -9,7 +9,7 @@ use crate::utils::time::format_duration_since::format_duration_since;
 use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
 use serenity::all::{
     ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId,
-    Message, ModalInteraction, User, UserId,
+    Message, ModalInteraction, UserId,
 };
 use serenity::builder::{CreateInteractionResponse, EditChannel, EditMessage};
 use std::collections::HashMap;
@@ -166,7 +166,7 @@ pub async fn handle_thread_modal_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.action_in_progress", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -205,7 +205,7 @@ pub async fn handle_thread_modal_interaction(
                             .create_response(
                                 &ctx.http,
                                 CreateInteractionResponse::Message(
-                                    MessageBuilder::system_message(&ctx, &config)
+                                    MessageBuilder::system_message(ctx, config)
                                         .translated_content(
                                             "thread.modal_invalid_user_id",
                                             None,
@@ -236,7 +236,7 @@ pub async fn handle_thread_modal_interaction(
                         .create_response(
                             &ctx.http,
                             CreateInteractionResponse::Message(
-                                MessageBuilder::system_message(&ctx, &config)
+                                MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.modal_user_not_found",
                                         None,
@@ -261,7 +261,7 @@ pub async fn handle_thread_modal_interaction(
                     .create_response(
                         &ctx.http,
                         CreateInteractionResponse::Message(
-                            MessageBuilder::system_message(&ctx, &config)
+                            MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.modal_bot_user", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
@@ -292,7 +292,7 @@ pub async fn handle_thread_modal_interaction(
                     .create_response(
                         &ctx.http,
                         CreateInteractionResponse::Message(
-                            MessageBuilder::system_message(&ctx, &config)
+                            MessageBuilder::system_message(ctx, config)
                                 .translated_content(
                                     "thread.already_exists",
                                     Some(&params),
@@ -318,7 +318,7 @@ pub async fn handle_thread_modal_interaction(
                         .create_response(
                             &ctx.http,
                             CreateInteractionResponse::Message(
-                                MessageBuilder::system_message(&ctx, &config)
+                                MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.not_a_thread_channel",
                                         None,
@@ -344,7 +344,7 @@ pub async fn handle_thread_modal_interaction(
                         .create_response(
                             &ctx.http,
                             CreateInteractionResponse::Message(
-                                MessageBuilder::system_message(&ctx, &config)
+                                MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.not_a_thread_channel",
                                         None,
@@ -367,7 +367,7 @@ pub async fn handle_thread_modal_interaction(
                     .create_response(
                         &ctx.http,
                         CreateInteractionResponse::Message(
-                            MessageBuilder::system_message(&ctx, &config)
+                            MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.not_a_thread_channel", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
@@ -393,7 +393,7 @@ pub async fn handle_thread_modal_interaction(
                     .create_response(
                         &ctx.http,
                         CreateInteractionResponse::Message(
-                            MessageBuilder::system_message(&ctx, &config)
+                            MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.creation_failed", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
@@ -438,7 +438,7 @@ pub async fn handle_thread_modal_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.created", Some(&params), None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -464,7 +464,7 @@ pub async fn handle_thread_modal_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.unknown_action", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -503,7 +503,7 @@ pub async fn handle_thread_component_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.action_in_progress", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -530,7 +530,7 @@ pub async fn handle_thread_component_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.thread_closing", Some(&params), None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -549,7 +549,7 @@ pub async fn handle_thread_component_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.will_remain_open", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
@@ -570,7 +570,7 @@ pub async fn handle_thread_component_interaction(
             let modal = ui::modal(
                 "thread:create",
                 get_translated_message(
-                    &config,
+                    config,
                     "thread.modal_to_create_ticket",
                     None,
                     None,
@@ -597,7 +597,7 @@ pub async fn handle_thread_component_interaction(
                 .create_response(
                     &ctx.http,
                     CreateInteractionResponse::Message(
-                        MessageBuilder::system_message(&ctx, &config)
+                        MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.unknown_action", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)

@@ -5,7 +5,7 @@ use crate::db::operations::{
 use crate::errors::MessageError::{DmAccessFailed, MessageEmpty, MessageNotFound};
 use crate::errors::types::ConfigError::ParseError;
 use crate::errors::{ModmailError, ModmailResult};
-use serenity::all::{ChannelId, Context, EventHandler, Message, MessageId, Reaction, UserId};
+use serenity::all::{ChannelId, Context, EventHandler, MessageId, Reaction, UserId};
 use serenity::async_trait;
 
 #[derive(Clone)]
@@ -68,10 +68,8 @@ async fn handle_reaction_add(
 
     if let Some(user_id) = get_user_id_from_channel_id(&channel_id, pool).await {
         handle_thread_reaction_to_dm(ctx, reaction, user_id, config).await?;
-    } else {
-        if reaction.guild_id.is_none() {
-            handle_dm_reaction_to_thread(ctx, reaction, config).await?;
-        }
+    } else if reaction.guild_id.is_none() {
+        handle_dm_reaction_to_thread(ctx, reaction, config).await?;
     }
 
     Ok(())
@@ -148,10 +146,8 @@ async fn handle_reaction_remove(
 
     if let Some(user_id) = get_user_id_from_channel_id(&channel_id, pool).await {
         handle_thread_reaction_remove_from_dm(ctx, reaction, user_id, config).await?;
-    } else {
-        if reaction.guild_id.is_none() {
-            handle_dm_reaction_remove_from_thread(ctx, reaction, config).await?;
-        }
+    } else if reaction.guild_id.is_none() {
+        handle_dm_reaction_remove_from_thread(ctx, reaction, config).await?;
     }
 
     Ok(())
