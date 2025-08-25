@@ -1,9 +1,12 @@
-use serenity::all::{ChannelId, Context, Message, UserId};
-use crate::db::{get_message_ids_by_number, get_thread_by_channel_id};
 use crate::db::messages::get_thread_message_by_inbox_message_id;
-use crate::errors::{ModmailError, ModmailResult, CommandError, ValidationError as ErrorValidationError, command_error};
+use crate::db::{get_message_ids_by_number, get_thread_by_channel_id};
 use crate::errors::common::{not_found, permission_denied, thread_not_found};
+use crate::errors::{
+    CommandError, ModmailError, ModmailResult, ValidationError as ErrorValidationError,
+    command_error,
+};
 use crate::i18n::get_translated_message;
+use serenity::all::{ChannelId, Context, Message, UserId};
 
 #[derive(Debug)]
 pub struct EditCommandInput {
@@ -26,8 +29,12 @@ impl From<ValidationError> for ModmailError {
             ValidationError::InvalidFormat => command_error!(InvalidFormat),
             ValidationError::MissingMessageNumber => command_error!(MissingArguments),
             ValidationError::MissingContent => command_error!(MissingArguments),
-            ValidationError::InvalidMessageNumber => ModmailError::Validation(ErrorValidationError::InvalidInput("message number must be positive".to_string())),
-            ValidationError::EmptyContent => ModmailError::Validation(ErrorValidationError::RequiredFieldMissing("message content".to_string())),
+            ValidationError::InvalidMessageNumber => ModmailError::Validation(
+                ErrorValidationError::InvalidInput("message number must be positive".to_string()),
+            ),
+            ValidationError::EmptyContent => ModmailError::Validation(
+                ErrorValidationError::RequiredFieldMissing("message content".to_string()),
+            ),
         }
     }
 }
@@ -47,8 +54,9 @@ impl ValidationError {
             None,
             Some(msg.author.id),
             msg.guild_id.map(|g| g.get()),
-            None
-        ).await
+            None,
+        )
+        .await
     }
 
     pub async fn _send_error(&self, ctx: &Context, msg: &Message, config: &crate::config::Config) {
@@ -96,34 +104,27 @@ pub async fn validate_edit_permissions(
 ) -> ModmailResult<()> {
     let thread_id = match get_thread_by_channel_id(&channel_id.to_string(), pool).await {
         Some(thread) => thread.id,
-        None => return Err(thread_not_found())
+        None => return Err(thread_not_found()),
     };
 
-    let ids = match get_message_ids_by_number(
-        message_number,
-        user_id,
-        &thread_id,
-        pool
-    ).await {
+    let ids = match get_message_ids_by_number(message_number, user_id, &thread_id, pool).await {
         Some(ids) => ids,
-        None => return Err(
-            not_found("An error occurred during the retrieval of message_ids in the edit command.")
-        ),
+        None => {
+            return Err(not_found(
+                "An error occurred during the retrieval of message_ids in the edit command.",
+            ));
+        }
     };
 
     let inbox_message_id = match ids.inbox_message_id {
         Some(inbox_message_id) => inbox_message_id,
-        None => return Err(
-            not_found("inbox_message_id doesn't exist !")
-        )
+        None => return Err(not_found("inbox_message_id doesn't exist !")),
     };
 
-    let thread_message = match get_thread_message_by_inbox_message_id(
-        &inbox_message_id,
-        pool
-    ).await {
+    let thread_message = match get_thread_message_by_inbox_message_id(&inbox_message_id, pool).await
+    {
         Ok(thread_message) => thread_message,
-        Err(..) => return Err(permission_denied())
+        Err(..) => return Err(permission_denied()),
     };
 
     if thread_message.user_id != user_id.get() as i64 {

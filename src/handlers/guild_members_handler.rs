@@ -1,16 +1,16 @@
-use serenity::{
-    all::{Context, EventHandler, GuildId, User},
-    async_trait,
-};
 use crate::config::Config;
-use crate::db::operations::update_thread_user_left;
-use std::collections::HashMap;
-use serenity::all::{ButtonStyle, Member};
 use crate::db::close_thread;
+use crate::db::operations::update_thread_user_left;
 use crate::db::threads::get_thread_by_user_id;
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{ButtonStyle, Member};
+use serenity::{
+    all::{Context, EventHandler, GuildId, User},
+    async_trait,
+};
+use std::collections::HashMap;
 
 pub struct GuildMembersHandler {
     pub config: Config,
@@ -26,8 +26,13 @@ impl GuildMembersHandler {
 
 #[async_trait]
 impl EventHandler for GuildMembersHandler {
-    async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member: Option<Member>) {
-        
+    async fn guild_member_removal(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        user: User,
+        _member: Option<Member>,
+    ) {
         if !self.config.bot.is_community_guild(guild_id.get()) {
             return;
         }
@@ -42,9 +47,7 @@ impl EventHandler for GuildMembersHandler {
 
         let (thread, channel_id) = match get_thread_by_user_id(user.id, pool).await {
             Some(thread) => match thread.channel_id.parse::<u64>() {
-                Ok(channel_id_num) => {
-                    (thread, serenity::all::ChannelId::new(channel_id_num))
-                },
+                Ok(channel_id_num) => (thread, serenity::all::ChannelId::new(channel_id_num)),
                 Err(err) => {
                     eprintln!("Invalid channel ID format for user {} : {}", user.id, err);
                     return ();
@@ -59,14 +62,25 @@ impl EventHandler for GuildMembersHandler {
 
         let close_buttons = make_buttons(&[
             (
-                get_translated_message(&self.config, "thread.ask_to_keep_open", None, None, None, None).await.as_ref(),
+                get_translated_message(
+                    &self.config,
+                    "thread.ask_to_keep_open",
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+                .await
+                .as_ref(),
                 "ticket:keep",
-                ButtonStyle::Success
+                ButtonStyle::Success,
             ),
             (
-                get_translated_message(&self.config, "thread.ask_to_close", None, None, None, None).await.as_ref(),
+                get_translated_message(&self.config, "thread.ask_to_close", None, None, None, None)
+                    .await
+                    .as_ref(),
                 "ticket:delete",
-                ButtonStyle::Danger
+                ButtonStyle::Danger,
             ),
         ]);
 
@@ -75,8 +89,9 @@ impl EventHandler for GuildMembersHandler {
                 "user.left_server_notification",
                 Some(&params),
                 Some(user.id),
-                Some(guild_id.get())
-            ).await
+                Some(guild_id.get()),
+            )
+            .await
             .to_channel(channel_id)
             .components(close_buttons)
             .send()
@@ -88,4 +103,4 @@ impl EventHandler for GuildMembersHandler {
 
         let _ = close_thread(&thread.id, pool).await;
     }
-} 
+}

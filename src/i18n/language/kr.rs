@@ -1,4 +1,4 @@
-use crate::errors::{ErrorDictionary, DictionaryMessage};
+use crate::errors::{DictionaryMessage, ErrorDictionary};
 
 pub fn load_korean_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(

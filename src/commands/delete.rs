@@ -1,14 +1,14 @@
 use crate::config::Config;
+use crate::db::messages::MessageIds;
 use crate::db::operations::{
     delete_message, get_message_ids_by_number, get_thread_by_channel_id,
     get_user_id_from_channel_id, update_message_numbers_after_deletion,
 };
+use crate::db::repr::Thread;
 use crate::errors::{ModmailResult, common};
+use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message, MessageId, UserId};
 use std::collections::HashMap;
-use crate::db::messages::MessageIds;
-use crate::db::repr::Thread;
-use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn delete(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -209,8 +209,9 @@ async fn send_delete_message(
             message_key,
             params,
             Some(msg.author.id),
-            msg.guild_id.map(|g| g.get())
-        ).await
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
         .to_channel(msg.channel_id)
         .send()
         .await;

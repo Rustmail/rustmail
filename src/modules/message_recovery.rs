@@ -1,14 +1,14 @@
 use crate::config::Config;
 use crate::db::operations::{
-    get_all_opened_threads, get_latest_thread_message, insert_recovered_message,
-    get_last_recovery_timestamp, update_last_recovery_timestamp,
+    get_all_opened_threads, get_last_recovery_timestamp, get_latest_thread_message,
+    insert_recovered_message, update_last_recovery_timestamp,
 };
-use crate::i18n::get_translated_message;
-use serenity::all::{Context, UserId, ChannelId, MessageId, GetMessages, Message};
-use std::collections::HashMap;
-use chrono::{DateTime, Utc};
 use crate::db::repr::Thread;
+use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
+use chrono::{DateTime, Utc};
+use serenity::all::{ChannelId, Context, GetMessages, Message, MessageId, UserId};
+use std::collections::HashMap;
 
 pub struct MessageRecoveryResult {
     pub thread_id: String,
@@ -30,12 +30,10 @@ pub async fn recover_missing_messages(
     };
 
     let last_recovery = match get_last_recovery_timestamp(pool).await {
-        Ok(Some(timestamp)) => {
-            match DateTime::parse_from_rfc3339(&timestamp) {
-                Ok(dt) => dt.with_timezone(&Utc),
-                Err(_) => Utc::now() - chrono::Duration::hours(1),
-            }
-        }
+        Ok(Some(timestamp)) => match DateTime::parse_from_rfc3339(&timestamp) {
+            Ok(dt) => dt.with_timezone(&Utc),
+            Err(_) => Utc::now() - chrono::Duration::hours(1),
+        },
         Ok(None) => Utc::now() - chrono::Duration::hours(1),
         Err(e) => {
             eprintln!("Failed to get last recovery timestamp: {}", e);
@@ -67,7 +65,7 @@ async fn recover_messages_for_thread(
     last_recovery: DateTime<Utc>,
 ) -> MessageRecoveryResult {
     let user_id = UserId::new(thread.user_id as u64);
-    
+
     let latest_message = match get_latest_thread_message(&thread.id, pool).await {
         Ok(Some(msg)) => msg,
         Ok(None) => {
@@ -187,11 +185,16 @@ async fn recover_messages_for_thread(
             continue;
         }
 
-        let _ = MessageBuilder::user_message(ctx, config, message.author.id, message.author.name.clone())
-            .content(content)
-            .to_channel(channel_id)
-            .send()
-            .await;
+        let _ = MessageBuilder::user_message(
+            ctx,
+            config,
+            message.author.id,
+            message.author.name.clone(),
+        )
+        .content(content)
+        .to_channel(channel_id)
+        .send()
+        .await;
 
         recovered_count += 1;
     }
@@ -201,7 +204,13 @@ async fn recover_messages_for_thread(
         params.insert("count".to_string(), recovered_count.to_string());
 
         let _ = MessageBuilder::system_message(ctx, config)
-            .translated_content("recovery.messages_recovered", Some(&params), Some(user_id), None).await
+            .translated_content(
+                "recovery.messages_recovered",
+                Some(&params),
+                Some(user_id),
+                None,
+            )
+            .await
             .to_channel(channel_id)
             .send()
             .await;
@@ -233,22 +242,18 @@ pub async fn send_recovery_summary(
     params.insert("threads".to_string(), successful_threads.to_string());
     params.insert("failed".to_string(), failed_threads.to_string());
 
-    let summary_message = get_translated_message(
-        config,
-        "recovery.summary",
-        Some(&params),
-        None,
-        None,
-        None,
-    )
-    .await;
+    let summary_message =
+        get_translated_message(config, "recovery.summary", Some(&params), None, None, None).await;
 
     println!("=== Récupération des messages terminée ===");
     println!("{}", summary_message);
-    
+
     for result in results {
         if result.recovered_count > 0 {
-            println!("Thread {}: {} messages récupérés", result.thread_id, result.recovered_count);
+            println!(
+                "Thread {}: {} messages récupérés",
+                result.thread_id, result.recovered_count
+            );
         }
         if let Some(error) = &result.error_message {
             println!("Thread {}: Erreur - {}", result.thread_id, error);
@@ -271,4 +276,4 @@ fn extract_message_content(msg: &Message, config: &Config) -> String {
     }
 
     content
-} 
+}

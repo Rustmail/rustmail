@@ -1,8 +1,8 @@
+use crate::db::repr::Thread;
+use crate::errors::ModmailResult;
 use serenity::all::{ChannelId, GuildChannel, Message, UserId};
 use sqlx::{Error, SqlitePool};
 use uuid::Uuid;
-use crate::db::repr::Thread;
-use crate::errors::ModmailResult;
 
 pub async fn get_thread_channel_by_user_id(user_id: UserId, pool: &SqlitePool) -> Option<String> {
     sqlx::query_scalar("SELECT channel_id FROM threads WHERE user_id = ? AND status = 1")
@@ -18,7 +18,6 @@ pub async fn get_thread_channel_by_user_id(user_id: UserId, pool: &SqlitePool) -
 }
 
 pub async fn get_thread_by_user_id(user_id: UserId, pool: &SqlitePool) -> Option<Thread> {
-
     let user_id_i64 = user_id.get() as i64;
 
     sqlx::query_as!(
@@ -26,14 +25,14 @@ pub async fn get_thread_by_user_id(user_id: UserId, pool: &SqlitePool) -> Option
         "SELECT id, user_id, user_name, channel_id FROM threads WHERE user_id = ? AND status = 1",
         user_id_i64
     )
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error getting thread by channel ID: {:?}", e);
-            e
-        })
-        .ok()
-        .flatten()
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Database error getting thread by channel ID: {:?}", e);
+        e
+    })
+    .ok()
+    .flatten()
 }
 
 pub async fn get_thread_id_by_user_id(user_id: UserId, pool: &SqlitePool) -> Option<String> {
@@ -108,13 +107,18 @@ pub async fn create_thread_for_user(
         channel_id
     )
     .execute(pool)
-    .await {
+    .await
+    {
         Ok(_) => Ok(thread_id),
-        Err(Error::Database(db_err)) if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) => {
-            if let Some(existing_thread_id) = sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                .bind(user_id)
-                .fetch_optional(pool)
-                .await? {
+        Err(Error::Database(db_err))
+            if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
+        {
+            if let Some(existing_thread_id) =
+                sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                    .bind(user_id)
+                    .fetch_optional(pool)
+                    .await?
+            {
                 Ok(existing_thread_id)
             } else {
                 Err(Error::Database(db_err))
@@ -145,12 +149,11 @@ pub async fn is_a_ticket_channel(channel_id: ChannelId, pool: &SqlitePool) -> bo
 }
 
 pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
-    let rows = sqlx::query!(
-        "SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1"
-    )
-    .fetch_all(pool)
-    .await
-    .unwrap_or_default();
+    let rows =
+        sqlx::query!("SELECT id, user_id, user_name, channel_id FROM threads WHERE status = 1")
+            .fetch_all(pool)
+            .await
+            .unwrap_or_default();
 
     rows.into_iter()
         .map(|row| Thread {
@@ -163,9 +166,12 @@ pub async fn get_all_opened_threads(pool: &SqlitePool) -> Vec<Thread> {
 }
 
 pub async fn update_thread_user_left(channel_id: &str, pool: &SqlitePool) -> ModmailResult<()> {
-    sqlx::query!("UPDATE threads SET user_left = 1 WHERE channel_id = ?", channel_id)
-        .execute(pool)
-        .await?;
+    sqlx::query!(
+        "UPDATE threads SET user_left = 1 WHERE channel_id = ?",
+        channel_id
+    )
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
@@ -175,8 +181,8 @@ pub async fn is_user_left(channel_id: &str, pool: &SqlitePool) -> Result<bool, E
         "SELECT user_left FROM threads WHERE channel_id = ?",
         channel_id
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     if let Some(row) = thread.get(0) {
         Ok(row.user_left)
@@ -207,7 +213,7 @@ pub async fn set_alert_for_staff(
     thread_user_id: i64,
     pool: &SqlitePool,
 ) -> Result<(), Error> {
-    let staff_user_id_i64= staff_user_id.get() as i64;
+    let staff_user_id_i64 = staff_user_id.get() as i64;
     sqlx::query!(
         "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE",
         staff_user_id_i64,
@@ -257,13 +263,17 @@ pub async fn mark_alert_as_used(
     Ok(())
 }
 
-pub async fn allocate_next_message_number(thread_id: &str, pool: &SqlitePool) -> Result<u64, Error> {
+pub async fn allocate_next_message_number(
+    thread_id: &str,
+    pool: &SqlitePool,
+) -> Result<u64, Error> {
     let mut tx = pool.begin().await?;
 
-    let current: Option<i64> = sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
-        .bind(thread_id)
-        .fetch_optional(&mut *tx)
-        .await?;
+    let current: Option<i64> =
+        sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
+            .bind(thread_id)
+            .fetch_optional(&mut *tx)
+            .await?;
 
     let num = current.unwrap_or(1);
 
@@ -279,7 +289,10 @@ pub async fn allocate_next_message_number(thread_id: &str, pool: &SqlitePool) ->
     Ok(num as u64)
 }
 
-pub async fn is_orphaned_thread_channel(channel_id: ChannelId, pool: &SqlitePool) -> Result<bool, Error> {
+pub async fn is_orphaned_thread_channel(
+    channel_id: ChannelId,
+    pool: &SqlitePool,
+) -> Result<bool, Error> {
     let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM threads WHERE channel_id = ? AND status = 0 AND user_left = 1)")
         .bind(channel_id.to_string())
         .fetch_one(pool)

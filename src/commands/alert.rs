@@ -1,10 +1,12 @@
 use crate::config::Config;
+use crate::db::operations::{
+    cancel_alert_for_staff, get_user_id_from_channel_id, set_alert_for_staff,
+};
 use crate::errors::{ModmailResult, common};
-use crate::db::operations::{get_user_id_from_channel_id, set_alert_for_staff, cancel_alert_for_staff};
+use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::colours::roles::GREEN;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
-use serenity::all::colours::roles::GREEN;
-use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
@@ -14,7 +16,7 @@ pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
     let user_id = get_thread_user_id(ctx, msg, config, pool).await?;
     let is_cancel = extract_alert_action(msg, config).await;
-    
+
     if is_cancel {
         handle_cancel_alert(ctx, msg, config, user_id, pool).await
     } else {
@@ -29,7 +31,7 @@ async fn get_thread_user_id(
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<i64> {
     let channel_id = msg.channel_id.to_string();
-    
+
     match get_user_id_from_channel_id(&channel_id, pool).await {
         Some(uid) => Ok(uid),
         None => {
@@ -54,7 +56,7 @@ async fn handle_cancel_alert(
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), format!("<@{}>", user_id));
-    
+
     send_alert_message(ctx, msg, config, "alert.cancel_confirmation", Some(&params)).await;
     Ok(())
 }
@@ -74,7 +76,7 @@ async fn handle_set_alert(
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), format!("<@{}>", user_id));
-    
+
     send_alert_message(ctx, msg, config, "alert.confirmation", Some(&params)).await;
     Ok(())
 }
@@ -94,7 +96,13 @@ async fn send_alert_message(
     let bot_user_id = ctx.cache.current_user().id;
 
     let _ = MessageBuilder::staff_message(ctx, config, bot_user_id, bot_user.name.clone())
-        .translated_content(message_key, params, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+        .translated_content(
+            message_key,
+            params,
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
         .to_channel(msg.channel_id)
         .color(GREEN.0)
         .send()
@@ -105,13 +113,13 @@ async fn extract_alert_action(msg: &Message, config: &Config) -> bool {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
     let command_name = "alert";
-    
+
     if content.starts_with(&format!("{}{}", prefix, command_name)) {
         let start = prefix.len() + command_name.len();
         let args = content[start..].trim();
-        
+
         args.to_lowercase() == "cancel"
     } else {
         false
     }
-} 
+}

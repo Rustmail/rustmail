@@ -2,9 +2,9 @@ use crate::config::Config;
 use crate::db::operations::get_user_id_from_channel_id;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ChannelId, Context, EditChannel, GuildId, Message};
 use std::collections::HashMap;
-use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

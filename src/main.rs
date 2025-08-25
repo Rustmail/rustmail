@@ -1,3 +1,7 @@
+use crate::handlers::guild_handler::GuildHandler;
+use crate::handlers::guild_interaction_handler::InteractionHandler;
+use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
+use crate::handlers::guild_moderation_handler::GuildModerationHandler;
 use crate::handlers::typing_proxy_handler::TypingProxyHandler;
 use config::load_config;
 use handlers::{
@@ -8,20 +12,16 @@ use serenity::all::{ClientBuilder, GatewayIntents};
 use serenity::cache::Settings as CacheSettings;
 use std::process;
 use std::time::Duration;
-use crate::handlers::guild_handler::GuildHandler;
-use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
-use crate::handlers::guild_moderation_handler::GuildModerationHandler;
-use crate::handlers::guild_interaction_handler::InteractionHandler;
 
 mod commands;
 mod config;
 mod db;
 mod errors;
+mod features;
 mod handlers;
 mod i18n;
 mod modules;
 mod utils;
-mod features;
 
 pub struct Database;
 
@@ -34,7 +34,7 @@ async fn main() {
 
     let mut config = load_config("config.toml");
     config.db_pool = Some(pool.clone());
-    
+
     let intents = GatewayIntents::GUILDS
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT

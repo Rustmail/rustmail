@@ -8,3 +8,4 @@ db/db.sqlite
 .sqlx
 .vscode/
 package-lock.json
+bin

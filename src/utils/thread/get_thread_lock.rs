@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::config::Config;
+use std::sync::Arc;
 
 pub fn get_thread_lock(config: &Config, key: u64) -> Arc<tokio::sync::Mutex<()>> {
     let mut map = config.thread_locks.lock().expect("lock poisoned");

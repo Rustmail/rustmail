@@ -1,20 +1,29 @@
-use async_trait::async_trait;
-use serenity::all::{ComponentInteraction, Context, CreateInteractionResponse, CreateMessage, InputTextStyle, ButtonStyle};
-use serenity::builder::{CreateActionRow, CreateInputText, CreateModal};
+use super::{Feature, make_buttons};
 use crate::config::Config;
 use crate::utils::message::message_builder::MessageBuilder;
-use super::{make_buttons, Feature};
+use async_trait::async_trait;
+use serenity::all::{
+    ButtonStyle, ComponentInteraction, Context, CreateInteractionResponse, CreateMessage,
+    InputTextStyle,
+};
+use serenity::builder::{CreateActionRow, CreateInputText, CreateModal};
 
 #[derive(Default)]
 pub struct PollFeature;
 
 #[async_trait]
 impl<'a> Feature<'a> for PollFeature {
-    fn key(&self) -> &'static str { "poll" }
+    fn key(&self) -> &'static str {
+        "poll"
+    }
 
     async fn build_message(&self, ctx: &'a Context, config: &'a Config) -> CreateMessage {
         let row = make_buttons(&vec![
-            ("Créer un sondage", "feature:poll:create", ButtonStyle::Success),
+            (
+                "Créer un sondage",
+                "feature:poll:create",
+                ButtonStyle::Success,
+            ),
             ("Test", "feature:poll:delete", ButtonStyle::Danger),
         ]);
 
@@ -32,13 +41,26 @@ impl<'a> Feature<'a> for PollFeature {
         interaction: &ComponentInteraction,
         action: &str,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        if action != "create" { return Ok(()); }
+        if action != "create" {
+            return Ok(());
+        }
 
-        let modal = CreateModal::new("feature:poll:create", "Créer un sondage")
-            .components(vec![
-                CreateActionRow::InputText(CreateInputText::new(InputTextStyle::Short, "Question", "question").min_length(3).max_length(200)),
-                CreateActionRow::InputText(CreateInputText::new(InputTextStyle::Paragraph, "Options (séparées par | ou retour à la ligne)", "options").min_length(3).max_length(1000)),
-            ]);
+        let modal = CreateModal::new("feature:poll:create", "Créer un sondage").components(vec![
+            CreateActionRow::InputText(
+                CreateInputText::new(InputTextStyle::Short, "Question", "question")
+                    .min_length(3)
+                    .max_length(200),
+            ),
+            CreateActionRow::InputText(
+                CreateInputText::new(
+                    InputTextStyle::Paragraph,
+                    "Options (séparées par | ou retour à la ligne)",
+                    "options",
+                )
+                .min_length(3)
+                .max_length(1000),
+            ),
+        ]);
         interaction
             .create_response(&ctx.http, CreateInteractionResponse::Modal(modal))
             .await?;

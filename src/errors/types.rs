@@ -1,8 +1,8 @@
 use serenity::Error as SerenityError;
 use sqlx::Error as SqlxError;
+use std::error;
 use std::fmt;
 use std::io;
-use std::error;
 
 #[derive(Debug, Clone)]
 pub enum ModmailError {
@@ -95,7 +95,7 @@ pub enum MessageError {
     InvalidMessageFormat,
     MessageNumberNotFound(i64),
     DuplicateMessageNumber,
-    DmAccessFailed(String)
+    DmAccessFailed(String),
 }
 
 #[derive(Debug, Clone)]
@@ -211,7 +211,10 @@ impl fmt::Display for ThreadError {
             ThreadError::ChannelNotThread => write!(f, "Channel is not a thread"),
             ThreadError::ThreadExpired => write!(f, "Thread has expired"),
             ThreadError::UserNotInTheServer => write!(f, "User has left the server"),
-            ThreadError::UserStillInServer => write!(f, "User still in the server. Use the 'close' command to close this ticket."),
+            ThreadError::UserStillInServer => write!(
+                f,
+                "User still in the server. Use the 'close' command to close this ticket."
+            ),
             ThreadError::NotAThreadChannel => write!(f, "This channel is not a ticket channel"),
         }
     }

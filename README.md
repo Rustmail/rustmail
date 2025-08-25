@@ -7,6 +7,8 @@
 
 # Rustmail - Discord Modmail Bot (Rust)
 
+[ ![discord-shield][] ][discord-invite]
+
 ---
 ## ⚠️ Warning ⚠️
 This is my first major project in Rust; while I have solid experience in C and other languages, I'm learning Rust as I go — feedback and PRs are welcome.
@@ -16,10 +18,8 @@ This is my first major project in Rust; while I have solid experience in C and o
 >
 > Goal: Provide a performant, extensible Rust modmail foundation with thread management, message editing, i18n, rich error system and future advanced features.
 
-[![Discord][discord-shield]][discord-invite]
-
 ---
-## ✨ Feature Summary (Currently Implemented)
+## Feature Summary (Currently Implemented)
 - Open support ticket / staff⇄user thread (`!new_thread` or optional manual creation if enabled)
 - **Single-server** or **dual-server (community + staff)** mode
 - SQLite storage (threads, messages, staff alerts, blocked users)
@@ -43,28 +43,8 @@ This is my first major project in Rust; while I have solid experience in C and o
 - Attachment download & relay
 - Dynamic configuration validation (logs, features, Discord guild access)
 
-## ⚠️ Limitations / Not Implemented / Known Issues
-| Area                 | Limitation / Risk                                                                            |
-|----------------------|----------------------------------------------------------------------------------------------|
-| Production readiness | Not ready: no full security audit; no centralized fine-grained Discord role enforcement yet. |
-| Permissions          | Basic staff membership inference; granular role logic incomplete.                            |
-| Attachments          | No explicit size/type limits; no local cache; sequential downloads (slower).                 |
-| Concurrency          | Potential races on message number allocation under high load (simple locks only).            |
-| Network robustness   | No advanced retry/backoff for Discord or HTTP fetches.                                       |
-| Logging              | Minimal println! usage; no structured logging levels.                                        |
-| Security             | No content filtering / abuse detection.                                                      |
-| DB migrations        | Partially idempotent; future changes may break backward compatibility.                       |
-| Indexing             | Limited indexes (no composite on user_id/thread_id for heavier queries).                     |
-| Discord sharding     | Not supported (single process / shard).                                                      |
-| Horizontal scaling   | Not supported (SQLite local file, local locks).                                              |
-| Monitoring           | No health checks or metrics.                                                                 |
-| Tests                | Very few automated tests (only some parsing).                                                |
-| Auto close           | `time_to_close_thread` unused (no scheduled job).                                            |
-| User blocking        | `blocked_users` table present; no exposed commands yet.                                      |
-| Features channel     | Features (e.g. poll) experimental / incomplete.                                              |
-
 ---
-## 🧠 High-Level Architecture
+## Architecture
 - `main.rs`: Initialization (DB, config, Serenity client, handlers, guild validation)
 - `config.rs`: Load + structural validation + dependency injection (pool, error handler)
 - `handlers/`: Discord event listeners (messages, reactions, members, interactions, moderation, ready, typing proxy)
@@ -93,17 +73,7 @@ This is my first major project in Rust; while I have solid experience in C and o
 - System message (audit) indicates change with deep link to edited message
 
 ---
-## 🗃️ Database Schema (SQLite)
-Primary tables:
-- `threads(id TEXT PK, user_id INTEGER, user_name TEXT, channel_id TEXT, created_at, next_message_number, status, user_left)`
-- `thread_messages(id INTEGER PK AUTOINC, thread_id FK, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, message_number, content, thread_status)`
-- `staff_alerts(id, staff_user_id, thread_user_id, used BOOL)` – future activity alerts
-- `blocked_users(user_id PK, user_name, blocked_by, blocked_at, expires_at)` (not yet exposed by commands)
-
-Unique indexes on `threads.id`, `thread_messages.id`.
-
----
-## ⚙️ Configuration (config.toml)
+## Configuration (config.toml)
 Minimal example (adjust real IDs):
 ```toml
 [bot]
@@ -168,7 +138,7 @@ error_message_ttl = 30
 - Parses hex colors (panic if invalid)
 
 ---
-## 🧩 Commands (Prefix configurable – default `!`)
+## Commands (Prefix configurable – default `!`)
 General format: `!command [arguments]`
 
 | Command              | Alias     | Description                                                                                                     | Example                    |
@@ -194,7 +164,7 @@ Notes:
 - `alert` writes `staff_alerts` entry (future trigger logic to be wired to user events).
 
 ---
-## 🌍 Internationalization (i18n)
+## Internationalization (i18n)
 - Default + fallback language from config.
 - Per-user preference via `!test_language <code>` (test command; a dedicated command could replace it later).
 - Key namespaces: (reply.*, delete.*, new_thread.*, move.*, permission.*, success.*, etc.).
@@ -206,18 +176,7 @@ Notes:
 3. Add code to `supported_languages` + enum mapping
 
 ---
-## ❗ Error Handling
-Categories: Database, Discord, Command, Validation, Message, Thread, Permission, User, Channel.
-Mechanisms:
-- Colored embeds (success / failure) + TTL (auto delete if configured)
-- Dynamic translation via `ErrorHandler`
-- Test commands for QA
-- Differentiates silent vs informative errors
-
-Future best practices: structured logging centralization; standardized codes.
-
----
-## 🛠️ Install & Run
+## Install & Run
 ### Prerequisites
 - Rust (2024 edition toolchain) – see `rust-toolchain.toml`
 - SQLite library (SQLx manages access)
@@ -236,19 +195,7 @@ cargo run --release
 - Enable required privileged intents (MESSAGE CONTENT, GUILD MEMBERS, PRESENCES) in the developer portal.
 
 ---
-## 🧪 Testing / Quality
-Current: limited unit tests (`edit_command.rs`).
-Extension ideas:
-- Integration tests (thread creation, reply, edit, delete)
-- In-memory DB fixture / temporary SQLite file
-
-Quick run:
-```bash
-cargo test
-```
-
----
-## 🔐 Security / Permissions (Current Partial State)
+## Security / Permissions (Current Partial State)
 - Staff detection mostly implicit (e.g. staff guild presence; granular role enforcement to improve).
 - Recommendation: restrict inbox category access via Discord roles.
 - No exhaustive sanitization audit (user content stored verbatim).
@@ -259,52 +206,28 @@ Security roadmap:
 - Dangerous attachment filtering
 
 ---
-## 🚀 Roadmap
+## Roadmap
 Not yet determined. See GitHub Project.
 
 ---
-## 🧾 Message Conventions
+## Message Conventions
 - Staff → `staff_message_color`
 - User → `user_message_color`
 - System / success / errors → `system_message_color` (or derivative)
 - `block_quote = true` applies quoted styling depending on builder implementation
 
 ---
-## 🔄 Thread Lifecycle
-Implicit states (`status` int): open, closed (exact mapping TBD).
-Fields:
-- `next_message_number` starting at 1
-- `user_left` updated when user leaves (used by force_close / close logic)
-
----
-## 🧪 Debug Commands
-- `!test_errors`: error catalog
-- `!test_language`: force language + test
-- `!test_all_errors`: timed sequential demonstration
-
----
-## ❓ Preliminary FAQ
-Q: Why SQLite?
-A: Fast prototyping. Upgrade to Postgres later for concurrency / scaling.
-
-Q: Why do some commands seem silent?
-A: Notification toggles may suppress confirmation messages.
-
-Q: What if a DM fails to send?
-A: The bot posts a system message "send_failed_dm" in the thread.
-
----
-## 🧹 Maintenance & Housekeeping
+## Maintenance
 - Backups: copy `db/db.sqlite`
 - New migration → restart binary (sqlx applies at startup via `init_database()`)
 - Logs: currently stdout/stderr (improve later)
 
 ---
-## ⚖️ License
+## License
 MIT. See LICENSE file.
 
 ---
-## 🤝 Contributions
+## Contributions
 Alpha phase: open descriptive issues (bugs, UX). PRs accepted after discussion.
 
 ---

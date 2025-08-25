@@ -1,12 +1,10 @@
 use crate::config::Config;
-use crate::db::operations::{
-    allocate_next_message_number,
-};
+use crate::db::operations::allocate_next_message_number;
 use crate::errors::{ModmailResult, common};
 use crate::utils::command::extract_reply_content::extract_reply_content;
-use crate::utils::thread::fetch_thread::fetch_thread;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 
@@ -26,12 +24,13 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-            ).await
+            )
+            .await
             .color(0xFF0000)
             .reply_to(msg.clone())
             .send_and_forget()
             .await;
-        
+
         return Err(common::validation_failed("Missing content"));
     };
 
@@ -50,15 +49,17 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 Some(&params),
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-            ).await
+            )
+            .await
             .to_channel(msg.channel_id)
             .send_and_forget()
             .await;
-        
+
         return Ok(());
     }
 
-    let next_message_number = allocate_next_message_number(&thread.id, db_pool).await
+    let next_message_number = allocate_next_message_number(&thread.id, db_pool)
+        .await
         .map_err(|_| common::validation_failed("Failed to allocate message number"))?;
 
     let _ = msg.delete(&ctx.http).await;
@@ -96,7 +97,8 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                     None,
                     Some(msg.author.id),
                     msg.guild_id.map(|g| g.get()),
-                ).await
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send_and_forget()
                 .await;
@@ -111,7 +113,8 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-            ).await
+            )
+            .await
             .to_channel(thread_msg.channel_id)
             .send_and_forget()
             .await;

@@ -1,5 +1,5 @@
-use crate::errors::dictionary::ErrorDictionary;
 use crate::errors::dictionary::DictionaryMessage;
+use crate::errors::dictionary::ErrorDictionary;
 
 pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
@@ -19,8 +19,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.channel_not_found".to_string(),
-        DictionaryMessage::new("Channel not found")
-            .with_description("The specified channel doesn't exist or the bot doesn't have access to it"),
+        DictionaryMessage::new("Channel not found").with_description(
+            "The specified channel doesn't exist or the bot doesn't have access to it",
+        ),
     );
     dict.messages.insert(
         "discord.user_not_found".to_string(),
@@ -29,8 +30,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.permission_denied".to_string(),
-        DictionaryMessage::new("Permission denied")
-            .with_description("The bot doesn't have the required permissions to perform this action"),
+        DictionaryMessage::new("Permission denied").with_description(
+            "The bot doesn't have the required permissions to perform this action",
+        ),
     );
     dict.messages.insert(
         "discord.dm_creation_failed".to_string(),
@@ -91,11 +93,11 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.not_a_thread_channel".to_string(),
-        DictionaryMessage::new("This channel is not a ticket channel.")
+        DictionaryMessage::new("This channel is not a ticket channel."),
     );
     dict.messages.insert(
         "thread.modal_invalid_user_id".to_string(),
-        DictionaryMessage::new("Invalid user ID")
+        DictionaryMessage::new("Invalid user ID"),
     );
     dict.messages.insert(
         "message.not_found".to_string(),
@@ -168,14 +170,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Support thread created")
             .with_description("A new support thread has been created for you"),
     );
-    dict.messages.insert(
-        "general.yes".to_string(),
-        DictionaryMessage::new("Yes")
-    );
-    dict.messages.insert(
-        "general.no".to_string(),
-        DictionaryMessage::new("No")
-    );
+    dict.messages
+        .insert("general.yes".to_string(), DictionaryMessage::new("Yes"));
+    dict.messages
+        .insert("general.no".to_string(), DictionaryMessage::new("No"));
     dict.messages.insert(
         "general.loading".to_string(),
         DictionaryMessage::new("Loading...")
@@ -193,31 +191,33 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.ask_to_close".to_string(),
-        DictionaryMessage::new("Close")
+        DictionaryMessage::new("Close"),
     );
     dict.messages.insert(
         "thread.ask_to_keep_open".to_string(),
-        DictionaryMessage::new("Keep open")
+        DictionaryMessage::new("Keep open"),
     );
     dict.messages.insert(
         "thread.modal_bot_user".to_string(),
-        DictionaryMessage::new("The specified user is a bot, please choose another one.")
+        DictionaryMessage::new("The specified user is a bot, please choose another one."),
     );
     dict.messages.insert(
         "thread.thread_closing".to_string(),
-        DictionaryMessage::new("The ticket will close in {seconds} seconds at the request of {user}.")
+        DictionaryMessage::new(
+            "The ticket will close in {seconds} seconds at the request of {user}.",
+        ),
     );
     dict.messages.insert(
         "thread.action_in_progress".to_string(),
-        DictionaryMessage::new("An action is already in progress, please wait.")
+        DictionaryMessage::new("An action is already in progress, please wait."),
     );
     dict.messages.insert(
         "thread.modal_user_not_found".to_string(),
-        DictionaryMessage::new("The specified user could not be found, please choose another one.")
+        DictionaryMessage::new("The specified user could not be found, please choose another one."),
     );
     dict.messages.insert(
         "thread.will_remain_open".to_string(),
-        DictionaryMessage::new("The thread will remain open.")
+        DictionaryMessage::new("The thread will remain open."),
     );
     dict.messages.insert(
         "thread.ask_create_ticket".to_string(),
@@ -225,17 +225,17 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.modal_to_create_ticket".to_string(),
-        DictionaryMessage::new("Create a ticket")
+        DictionaryMessage::new("Create a ticket"),
     );
     dict.messages.insert(
         "thread.created".to_string(),
         DictionaryMessage::new("Ticket created: {channel}")
-            .with_description("A new support ticket was opened or retrieved")
+            .with_description("A new support ticket was opened or retrieved"),
     );
     dict.messages.insert(
         "thread.unknown_action".to_string(),
         DictionaryMessage::new("Unknown action")
-            .with_description("The requested ticket action is unknown")
+            .with_description("The requested ticket action is unknown"),
     );
     dict.messages.insert(
         "reply.missing_content".to_string(),
@@ -259,13 +259,17 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.validation.missing_number".to_string(),
-        DictionaryMessage::new("❌ Invalid format. Message number is missing. Example: `edit 3 New message`")
-            .with_description("The message number is missing in the edit command."),
+        DictionaryMessage::new(
+            "❌ Invalid format. Message number is missing. Example: `edit 3 New message`",
+        )
+        .with_description("The message number is missing in the edit command."),
     );
     dict.messages.insert(
         "edit.validation.missing_content".to_string(),
-        DictionaryMessage::new("❌ Invalid format. Content is missing. Example: `edit 3 New message`")
-            .with_description("The new content is missing in the edit command."),
+        DictionaryMessage::new(
+            "❌ Invalid format. Content is missing. Example: `edit 3 New message`",
+        )
+        .with_description("The new content is missing in the edit command."),
     );
     dict.messages.insert(
         "edit.validation.invalid_number".to_string(),
@@ -279,11 +283,15 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.modification_from_user".to_string(),
-        DictionaryMessage::new("The user edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+        DictionaryMessage::new(
+            "The user edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}",
+        ),
     );
     dict.messages.insert(
         "edit.modification_from_staff".to_string(),
-        DictionaryMessage::new("A staff edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}")
+        DictionaryMessage::new(
+            "A staff edited their message.\nBefore:\n{before}\n\nAfter:\n{after}\n\nLink: {link}",
+        ),
     );
     dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
@@ -303,7 +311,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "reply_numbering.text_footer".to_string(),
         DictionaryMessage::new("*Message #{number} - `{prefix}edit {number}` to edit*")
-            .with_description("Footer for plain text messages with message number and edit command."),
+            .with_description(
+                "Footer for plain text messages with message number and edit command.",
+            ),
     );
     dict.messages.insert(
         "permission.insufficient_permissions".to_string(),
@@ -390,8 +400,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "alert.confirmation".to_string(),
-        DictionaryMessage::new("🔔 Alert set! You will be notified when {user} sends their next message")
-            .with_description("Confirmation that the alert has been set"),
+        DictionaryMessage::new(
+            "🔔 Alert set! You will be notified when {user} sends their next message",
+        )
+        .with_description("Confirmation that the alert has been set"),
     );
     dict.messages.insert(
         "alert.ping_message".to_string(),
@@ -405,8 +417,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "alert.cancel_confirmation".to_string(),
-        DictionaryMessage::new("🔕 Alert canceled! You will no longer be notified when {user} sends message")
-            .with_description("Confirmation that the alert has been canceled"),
+        DictionaryMessage::new(
+            "🔕 Alert canceled! You will no longer be notified when {user} sends message",
+        )
+        .with_description("Confirmation that the alert has been canceled"),
     );
     dict.messages.insert(
         "move.not_in_thread".to_string(),
@@ -415,8 +429,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "move.missing_category".to_string(),
-        DictionaryMessage::new("❌ Please specify a category name. Usage: `{prefix}move <category_name>`")
-            .with_description("The category name is missing in the move command"),
+        DictionaryMessage::new(
+            "❌ Please specify a category name. Usage: `{prefix}move <category_name>`",
+        )
+        .with_description("The category name is missing in the move command"),
     );
     dict.messages.insert(
         "move.failed_to_fetch_categories".to_string(),
@@ -440,8 +456,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.missing_user".to_string(),
-        DictionaryMessage::new("❌ Please specify a user. Usage: `{prefix}new <user_id_or_mention>`")
-            .with_description("The user ID or mention is missing in the new_thread command"),
+        DictionaryMessage::new(
+            "❌ Please specify a user. Usage: `{prefix}new <user_id_or_mention>`",
+        )
+        .with_description("The user ID or mention is missing in the new_thread command"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread".to_string(),
@@ -450,8 +468,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.user_has_thread_with_link".to_string(),
-        DictionaryMessage::new("❌ {user} already has an active support thread\n\n📎 **Thread link:** <#{channel_id}>")
-            .with_description("The user already has an open thread with a link to it"),
+        DictionaryMessage::new(
+            "❌ {user} already has an active support thread\n\n📎 **Thread link:** <#{channel_id}>",
+        )
+        .with_description("The user already has an open thread with a link to it"),
     );
     dict.messages.insert(
         "new_thread.user_not_found".to_string(),
@@ -465,7 +485,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.user_is_a_bot".to_string(),
-        DictionaryMessage::new("❌ You cannot create a thread for a bot user.")
+        DictionaryMessage::new("❌ You cannot create a thread for a bot user."),
     );
     dict.messages.insert(
         "new_thread.channel_creation_failed".to_string(),
@@ -504,8 +524,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "delete.missing_number".to_string(),
-        DictionaryMessage::new("❌ Please specify a message number. Usage: `{prefix}delete <number>`")
-            .with_description("The message number is missing in the delete command"),
+        DictionaryMessage::new(
+            "❌ Please specify a message number. Usage: `{prefix}delete <number>`",
+        )
+        .with_description("The message number is missing in the delete command"),
     );
     dict.messages.insert(
         "delete.message_not_found".to_string(),

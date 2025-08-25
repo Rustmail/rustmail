@@ -1,10 +1,10 @@
 use crate::config::Config;
 use crate::errors::{ModmailResult, common};
-use crate::modules::message_recovery::recover_missing_messages;
 use crate::i18n::get_translated_message;
+use crate::modules::message_recovery::recover_missing_messages;
+use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
-use crate::utils::message::message_builder::MessageBuilder;
 
 pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let _ = config
@@ -14,7 +14,7 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), msg.author.name.clone());
-    
+
     let confirmation_message = get_translated_message(
         config,
         "recovery.started",
@@ -37,7 +37,7 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
 
     tokio::spawn(async move {
         let recovery_results = recover_missing_messages(&ctx_clone, &config_clone).await;
-        
+
         let total_recovered: u32 = recovery_results.iter().map(|r| r.recovered_count).sum();
         let successful_threads = recovery_results.iter().filter(|r| r.success).count();
         let failed_threads = recovery_results.len() - successful_threads;
@@ -65,4 +65,4 @@ pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailRe
     });
 
     Ok(())
-} 
+}

@@ -1,12 +1,12 @@
-use serenity::all::{Context, GuildId, Message, UserId};
-use std::collections::HashMap;
+use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::thread::fetch_thread::fetch_thread;
 use crate::{
     config::Config,
     db::close_thread,
-    errors::{common, ModmailResult},
+    errors::{ModmailResult, common},
 };
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::thread::fetch_thread::fetch_thread;
+use serenity::all::{Context, GuildId, Message, UserId};
+use std::collections::HashMap;
 
 pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
@@ -34,8 +34,9 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 "user.left_server_close",
                 Some(&params),
                 Some(msg.author.id),
-                msg.guild_id.map(|g| g.get())
-            ).await
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
             .to_channel(msg.channel_id)
             .send()
             .await;

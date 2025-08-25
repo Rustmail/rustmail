@@ -1,10 +1,10 @@
-use serenity::all::{ChannelId, Context, Message};
 use crate::config::Config;
 use crate::db::operations::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
-use crate::errors::{common, ModmailError, ModmailResult};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::DiscordError::ApiError;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
+use crate::errors::{ModmailError, ModmailResult, common};
+use serenity::all::{ChannelId, Context, Message};
 
 async fn delete_channel(ctx: &Context, channel_id: ChannelId) -> ModmailResult<()> {
     match channel_id.delete(ctx).await {
@@ -27,10 +27,8 @@ pub async fn force_close(ctx: &Context, msg: &Message, config: &Config) -> Modma
             Some(category_id) if category_id == config.thread.inbox_category_id => {
                 delete_channel(ctx, msg.channel_id).await
             }
-            _ => {
-                Err(ModmailError::Thread(NotAThreadChannel))
-            }
-        }
+            _ => Err(ModmailError::Thread(NotAThreadChannel)),
+        };
     }
 
     match is_orphaned_thread_channel(msg.channel_id, db_pool).await {
@@ -40,8 +38,8 @@ pub async fn force_close(ctx: &Context, msg: &Message, config: &Config) -> Modma
             }
             delete_channel(ctx, msg.channel_id).await
         }
-        Err(..) => {
-            Err(ModmailError::Database(QueryFailed("Failed to check if thread channel is orphaned".to_string())))
-        }
+        Err(..) => Err(ModmailError::Database(QueryFailed(
+            "Failed to check if thread channel is orphaned".to_string(),
+        ))),
     }
 }

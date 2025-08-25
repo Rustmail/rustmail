@@ -1,9 +1,9 @@
-use serenity::all::{Message, MessageId, UserId};
-use sqlx::{Error, SqlitePool};
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
 use crate::errors::ModmailResult;
 use crate::errors::common::message_not_found;
+use serenity::all::{Message, MessageId, UserId};
+use sqlx::{Error, SqlitePool};
 
 #[derive(Debug, Clone)]
 pub struct MessageIds {
@@ -287,7 +287,10 @@ pub async fn insert_user_message_with_ids(
     Ok(())
 }
 
-pub async fn get_thread_message_by_inbox_message_id(inbox_message_id: &str, pool: &SqlitePool) -> ModmailResult<ThreadMessage> {
+pub async fn get_thread_message_by_inbox_message_id(
+    inbox_message_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<ThreadMessage> {
     let row = sqlx::query!(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
@@ -300,8 +303,8 @@ pub async fn get_thread_message_by_inbox_message_id(inbox_message_id: &str, pool
         "#,
         inbox_message_id
     )
-        .fetch_optional(pool)
-        .await?;
+    .fetch_optional(pool)
+    .await?;
 
     let latest: ThreadMessage = match row.map(|row| ThreadMessage {
         id: row.id as i64,
@@ -316,7 +319,11 @@ pub async fn get_thread_message_by_inbox_message_id(inbox_message_id: &str, pool
         content: row.content,
     }) {
         Some(row) => row,
-        None => return Err(message_not_found("Unable to retrieve thread_message from inbox_message_id")),
+        None => {
+            return Err(message_not_found(
+                "Unable to retrieve thread_message from inbox_message_id",
+            ));
+        }
     };
 
     Ok(latest)
@@ -355,15 +362,22 @@ pub async fn get_thread_message_by_message_id(
         content: row.content,
     }) {
         Some(row) => row,
-        None => return Err(message_not_found("Unable to retrieve thread_message from message_id")),
+        None => {
+            return Err(message_not_found(
+                "Unable to retrieve thread_message from message_id",
+            ));
+        }
     };
 
     Ok(message)
 }
 
-pub async fn get_thread_message_by_dm_message_id(dm_message_id: MessageId, pool: &SqlitePool) -> ModmailResult<ThreadMessage> {
+pub async fn get_thread_message_by_dm_message_id(
+    dm_message_id: MessageId,
+    pool: &SqlitePool,
+) -> ModmailResult<ThreadMessage> {
     let dm_message_id_str = dm_message_id.to_string();
-    
+
     let row = sqlx::query!(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
@@ -393,7 +407,11 @@ pub async fn get_thread_message_by_dm_message_id(dm_message_id: MessageId, pool:
         content: row.content,
     }) {
         Some(row) => row,
-        None => return Err(message_not_found("Unable to retrieve thread_message from dm_message_id")),
+        None => {
+            return Err(message_not_found(
+                "Unable to retrieve thread_message from dm_message_id",
+            ));
+        }
     };
 
     Ok(message)

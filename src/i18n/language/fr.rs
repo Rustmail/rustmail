@@ -1,5 +1,5 @@
-use crate::errors::dictionary::ErrorDictionary;
 use crate::errors::dictionary::DictionaryMessage;
+use crate::errors::dictionary::ErrorDictionary;
 
 pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert("database.connection_failed".to_string(),
@@ -28,8 +28,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.permission_denied".to_string(),
-        DictionaryMessage::new("Permission refusée")
-            .with_description("Le bot n'a pas les permissions requises pour effectuer cette action"),
+        DictionaryMessage::new("Permission refusée").with_description(
+            "Le bot n'a pas les permissions requises pour effectuer cette action",
+        ),
     );
     dict.messages.insert(
         "discord.dm_creation_failed".to_string(),
@@ -81,9 +82,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.creation_failed".to_string(),
-        DictionaryMessage::new("Échec de création du thread").with_description(
-            "Une erreur s'est produite lors de la création du thread de support",
-        ),
+        DictionaryMessage::new("Échec de création du thread")
+            .with_description("Une erreur s'est produite lors de la création du thread de support"),
     );
     dict.messages.insert(
         "thread.user_still_in_server".to_string(),
@@ -92,11 +92,11 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.not_a_thread_channel".to_string(),
-        DictionaryMessage::new("Ce channel n'est pas issu d'un ticket de support.")
+        DictionaryMessage::new("Ce channel n'est pas issu d'un ticket de support."),
     );
     dict.messages.insert(
         "thread.modal_invalid_user_id".to_string(),
-        DictionaryMessage::new("User Id invalide")
+        DictionaryMessage::new("User Id invalide"),
     );
     dict.messages.insert(
         "message.not_found".to_string(),
@@ -161,28 +161,32 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.closed".to_string(),
-        DictionaryMessage::new("Merci d'avoir contacté le support ! Ton ticket est désormais clos.")
-            .with_description("Le ticket de support a été fermé et la conversation terminée."),
+        DictionaryMessage::new(
+            "Merci d'avoir contacté le support ! Ton ticket est désormais clos.",
+        )
+        .with_description("Le ticket de support a été fermé et la conversation terminée."),
     );
     dict.messages.insert(
         "thread.ask_to_close".to_string(),
-        DictionaryMessage::new("Fermer")
+        DictionaryMessage::new("Fermer"),
     );
     dict.messages.insert(
         "thread.ask_to_keep_open".to_string(),
-        DictionaryMessage::new("Laisser ouvert")
+        DictionaryMessage::new("Laisser ouvert"),
     );
     dict.messages.insert(
         "thread.thread_closing".to_string(),
-        DictionaryMessage::new("Le ticket se fermera dans {seconds} secondes à la demande de {user}.")
+        DictionaryMessage::new(
+            "Le ticket se fermera dans {seconds} secondes à la demande de {user}.",
+        ),
     );
     dict.messages.insert(
         "thread.action_in_progress".to_string(),
-        DictionaryMessage::new("Une action est déjà en cours, merci de patienter.")
+        DictionaryMessage::new("Une action est déjà en cours, merci de patienter."),
     );
     dict.messages.insert(
         "thread.will_remain_open".to_string(),
-        DictionaryMessage::new("Le thread restera ouvert.")
+        DictionaryMessage::new("Le thread restera ouvert."),
     );
     dict.messages.insert(
         "thread.ask_create_ticket".to_string(),
@@ -190,25 +194,27 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "thread.modal_to_create_ticket".to_string(),
-        DictionaryMessage::new("Créer un ticket")
+        DictionaryMessage::new("Créer un ticket"),
     );
     dict.messages.insert(
         "thread.modal_bot_user".to_string(),
-        DictionaryMessage::new("L'utilisateur spécifié est un bot, veuillez en choisir un autre.")
+        DictionaryMessage::new("L'utilisateur spécifié est un bot, veuillez en choisir un autre."),
     );
     dict.messages.insert(
         "thread.created".to_string(),
         DictionaryMessage::new("Ticket créé: {channel}")
-            .with_description("Un nouveau ticket de support a été ouvert ou récupéré")
+            .with_description("Un nouveau ticket de support a été ouvert ou récupéré"),
     );
     dict.messages.insert(
         "thread.unknown_action".to_string(),
         DictionaryMessage::new("Action inconnue")
-            .with_description("L'action demandée pour le ticket est inconnue")
+            .with_description("L'action demandée pour le ticket est inconnue"),
     );
     dict.messages.insert(
         "thread.modal_user_not_found".to_string(),
-        DictionaryMessage::new("L'utilisateur spécifié est introuvable, veuillez en choisir un autre.")
+        DictionaryMessage::new(
+            "L'utilisateur spécifié est introuvable, veuillez en choisir un autre.",
+        ),
     );
     dict.messages.insert(
         "reply.missing_content".to_string(),
@@ -223,12 +229,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "reply.send_failed_dm".to_string(),
         DictionaryMessage::new("Échec de l'envoi du message en DM à l'utilisateur.")
-            .with_description("Le bot n'a pas pu envoyer le message en message privé à l'utilisateur."),
+            .with_description(
+                "Le bot n'a pas pu envoyer le message en message privé à l'utilisateur.",
+            ),
     );
     dict.messages.insert(
         "edit.validation.invalid_format".to_string(),
-        DictionaryMessage::new("❌ Format de commande invalide. Utilisation : `edit <numéro> <nouveau message>`")
-            .with_description("Le format de la commande edit est invalide."),
+        DictionaryMessage::new(
+            "❌ Format de commande invalide. Utilisation : `edit <numéro> <nouveau message>`",
+        )
+        .with_description("Le format de la commande edit est invalide."),
     );
     dict.messages.insert(
         "edit.validation.missing_number".to_string(),
@@ -237,13 +247,17 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.validation.missing_content".to_string(),
-        DictionaryMessage::new("❌ Format invalide. Il manque le contenu. Exemple : `edit 3 Nouveau message`")
-            .with_description("Le contenu du nouveau message est manquant dans la commande edit."),
+        DictionaryMessage::new(
+            "❌ Format invalide. Il manque le contenu. Exemple : `edit 3 Nouveau message`",
+        )
+        .with_description("Le contenu du nouveau message est manquant dans la commande edit."),
     );
     dict.messages.insert(
         "edit.validation.invalid_number".to_string(),
-        DictionaryMessage::new("❌ Le numéro du message est invalide. Il doit être un nombre positif.")
-            .with_description("Le numéro du message doit être positif."),
+        DictionaryMessage::new(
+            "❌ Le numéro du message est invalide. Il doit être un nombre positif.",
+        )
+        .with_description("Le numéro du message doit être positif."),
     );
     dict.messages.insert(
         "edit.validation.empty_content".to_string(),
@@ -256,7 +270,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.modification_from_staff".to_string(),
-        DictionaryMessage::new("Un staff a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}")
+        DictionaryMessage::new(
+            "Un staff a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}",
+        ),
     );
     dict.messages.insert(
         "reply_numbering.confirmation".to_string(),
@@ -265,8 +281,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reply_numbering.preview".to_string(),
-        DictionaryMessage::new("(Message #{number} - Utilisez `{prefix}edit {number}` pour modifier)")
-            .with_description("Aperçu du numéro de message pour modification."),
+        DictionaryMessage::new(
+            "(Message #{number} - Utilisez `{prefix}edit {number}` pour modifier)",
+        )
+        .with_description("Aperçu du numéro de message pour modification."),
     );
     dict.messages.insert(
         "reply_numbering.footer".to_string(),
@@ -276,7 +294,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "reply_numbering.text_footer".to_string(),
         DictionaryMessage::new("*Message #{number} - `{prefix}edit {number}` pour modifier*")
-            .with_description("Footer pour les messages texte avec numéro de message et commande edit."),
+            .with_description(
+                "Footer pour les messages texte avec numéro de message et commande edit.",
+            ),
     );
     dict.messages.insert(
         "edit.not_found".to_string(),
@@ -360,18 +380,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Erreur inconnue : {message}")
             .with_description("Une erreur inattendue s'est produite"),
     );
-    dict.messages.insert(
-        "general.yes".to_string(),
-        DictionaryMessage::new("Oui")
-    );
-    dict.messages.insert(
-        "general.no".to_string(),
-        DictionaryMessage::new("Non")
-    );
+    dict.messages
+        .insert("general.yes".to_string(), DictionaryMessage::new("Oui"));
+    dict.messages
+        .insert("general.no".to_string(), DictionaryMessage::new("Non"));
     dict.messages.insert(
         "recovery.messages_recovered".to_string(),
-        DictionaryMessage::new("📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot")
-            .with_description("Notification de récupération de messages manqués"),
+        DictionaryMessage::new(
+            "📥 **{count} message(s) récupéré(s)** pendant la période d'indisponibilité du bot",
+        )
+        .with_description("Notification de récupération de messages manqués"),
     );
     dict.messages.insert(
         "recovery.summary".to_string(),
@@ -390,8 +408,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "alert.not_in_thread".to_string(),
-        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
-            .with_description("La commande alert doit être utilisée dans un canal de thread"),
+        DictionaryMessage::new(
+            "❌ Cette commande ne peut être utilisée que dans un thread de support",
+        )
+        .with_description("La commande alert doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "alert.set_failed".to_string(),
@@ -400,13 +420,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "alert.confirmation".to_string(),
-        DictionaryMessage::new("🔔 Alerte définie ! Vous serez notifié quand {user} enverra son prochain message")
-            .with_description("Confirmation que l'alerte a été définie"),
+        DictionaryMessage::new(
+            "🔔 Alerte définie ! Vous serez notifié quand {user} enverra son prochain message",
+        )
+        .with_description("Confirmation que l'alerte a été définie"),
     );
     dict.messages.insert(
         "alert.ping_message".to_string(),
-        DictionaryMessage::new("**Nouveau message reçu de {user} !**")
-            .with_description("Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert"),
+        DictionaryMessage::new("**Nouveau message reçu de {user} !**").with_description(
+            "Ping du staff quand l'utilisateur envoie un nouveau message après la commande alert",
+        ),
     );
     dict.messages.insert(
         "alert.cancel_failed".to_string(),
@@ -420,8 +443,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "move.not_in_thread".to_string(),
-        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
-            .with_description("La commande move doit être utilisée dans un canal de thread"),
+        DictionaryMessage::new(
+            "❌ Cette commande ne peut être utilisée que dans un thread de support",
+        )
+        .with_description("La commande move doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "move.missing_category".to_string(),
@@ -471,11 +496,13 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "new_thread.user_not_in_community".to_string(),
         DictionaryMessage::new("❌ L'utilisateur n'est pas membre du serveur communautaire")
-            .with_description("L'utilisateur doit être dans le serveur communautaire pour créer un thread"),
+            .with_description(
+                "L'utilisateur doit être dans le serveur communautaire pour créer un thread",
+            ),
     );
     dict.messages.insert(
         "new_thread.user_is_a_bot".to_string(),
-        DictionaryMessage::new("❌ Vous ne pouvez pas créer un ticket pour un bot.")
+        DictionaryMessage::new("❌ Vous ne pouvez pas créer un ticket pour un bot."),
     );
     dict.messages.insert(
         "new_thread.channel_creation_failed".to_string(),
@@ -485,7 +512,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "new_thread.database_error".to_string(),
         DictionaryMessage::new("❌ Échec de création du thread dans la base de données")
-            .with_description("Une erreur s'est produite lors de la sauvegarde du thread dans la base de données"),
+            .with_description(
+                "Une erreur s'est produite lors de la sauvegarde du thread dans la base de données",
+            ),
     );
     dict.messages.insert(
         "new_thread.welcome_message".to_string(),
@@ -509,13 +538,17 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "delete.not_in_thread".to_string(),
-        DictionaryMessage::new("❌ Cette commande ne peut être utilisée que dans un thread de support")
-            .with_description("La commande delete doit être utilisée dans un canal de thread"),
+        DictionaryMessage::new(
+            "❌ Cette commande ne peut être utilisée que dans un thread de support",
+        )
+        .with_description("La commande delete doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
         "delete.missing_number".to_string(),
-        DictionaryMessage::new("❌ Veuillez spécifier un numéro de message. Utilisation : `{prefix}delete <numéro>`")
-            .with_description("Le numéro de message est manquant dans la commande delete"),
+        DictionaryMessage::new(
+            "❌ Veuillez spécifier un numéro de message. Utilisation : `{prefix}delete <numéro>`",
+        )
+        .with_description("Le numéro de message est manquant dans la commande delete"),
     );
     dict.messages.insert(
         "delete.message_not_found".to_string(),
@@ -525,7 +558,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "delete.discord_delete_failed".to_string(),
         DictionaryMessage::new("❌ Échec de suppression du message depuis Discord")
-            .with_description("Une erreur s'est produite lors de la suppression du message depuis Discord"),
+            .with_description(
+                "Une erreur s'est produite lors de la suppression du message depuis Discord",
+            ),
     );
     dict.messages.insert(
         "delete.database_delete_failed".to_string(),

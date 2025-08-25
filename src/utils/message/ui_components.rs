@@ -9,7 +9,11 @@ pub struct ModalBuilder {
 
 impl ModalBuilder {
     pub fn new(id: impl Into<String>, title: impl Into<String>) -> Self {
-        Self { id: id.into(), title: title.into(), inputs: Vec::new() }
+        Self {
+            id: id.into(),
+            title: title.into(),
+            inputs: Vec::new(),
+        }
     }
 
     pub fn short_input(
@@ -56,26 +60,45 @@ pub struct ButtonsBuilder {
 
 impl ButtonsBuilder {
     pub fn new() -> Self {
-        Self { rows: Vec::new(), current: Vec::new() }
+        Self {
+            rows: Vec::new(),
+            current: Vec::new(),
+        }
     }
 
     pub fn primary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
-        self.current.push(CreateButton::new(custom_id).label(label).style(SButtonStyle::Primary));
+        self.current.push(
+            CreateButton::new(custom_id)
+                .label(label)
+                .style(SButtonStyle::Primary),
+        );
         self
     }
 
     pub fn secondary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
-        self.current.push(CreateButton::new(custom_id).label(label).style(SButtonStyle::Secondary));
+        self.current.push(
+            CreateButton::new(custom_id)
+                .label(label)
+                .style(SButtonStyle::Secondary),
+        );
         self
     }
 
     pub fn success(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
-        self.current.push(CreateButton::new(custom_id).label(label).style(SButtonStyle::Success));
+        self.current.push(
+            CreateButton::new(custom_id)
+                .label(label)
+                .style(SButtonStyle::Success),
+        );
         self
     }
 
     pub fn danger(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
-        self.current.push(CreateButton::new(custom_id).label(label).style(SButtonStyle::Danger));
+        self.current.push(
+            CreateButton::new(custom_id)
+                .label(label)
+                .style(SButtonStyle::Danger),
+        );
         self
     }
 
@@ -83,7 +106,7 @@ impl ButtonsBuilder {
         self.current.push(CreateButton::new_link(url).label(label));
         self
     }
-    
+
     pub fn row(mut self) -> Self {
         if !self.current.is_empty() {
             let buttons = std::mem::take(&mut self.current);

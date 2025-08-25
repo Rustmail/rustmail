@@ -1,10 +1,10 @@
-use std::sync::Arc;
-use serenity::all::{ChannelId, ComponentInteraction, Context, CreateMessage};
-use serenity::builder::{CreateActionRow, CreateButton};
-use serenity::all::ButtonStyle;
-use async_trait::async_trait;
 use crate::config::Config;
 use crate::db::operations::{get_feature_message, upsert_feature_message};
+use async_trait::async_trait;
+use serenity::all::ButtonStyle;
+use serenity::all::{ChannelId, ComponentInteraction, Context, CreateMessage};
+use serenity::builder::{CreateActionRow, CreateButton};
+use std::sync::Arc;
 
 mod poll;
 
@@ -24,9 +24,7 @@ pub trait Feature<'a>: Send + Sync {
 }
 
 pub fn registry<'a>() -> Vec<Arc<dyn Feature<'a>>> {
-    vec![
-        Arc::new(PollFeature::default()),
-    ]
+    vec![Arc::new(PollFeature::default())]
 }
 
 pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle)]) -> Vec<CreateActionRow> {
@@ -66,10 +64,9 @@ pub async fn sync_features(ctx: &Context, config: &Config) {
         let mut send_new = false;
 
         if let Ok(Some((stored_channel, stored_message))) = get_feature_message(key, pool).await {
-            if let (Ok(stored_channel_id), Ok(stored_message_id)) = (
-                stored_channel.parse::<u64>(),
-                stored_message.parse::<u64>(),
-            ) {
+            if let (Ok(stored_channel_id), Ok(stored_message_id)) =
+                (stored_channel.parse::<u64>(), stored_message.parse::<u64>())
+            {
                 let ch = ChannelId::new(stored_channel_id);
                 if ch.message(&ctx.http, stored_message_id).await.is_err() {
                     send_new = true;
@@ -118,7 +115,8 @@ pub async fn handle_feature_component_interaction(
     if let Some((key, action)) = parse_custom_id(&interaction.data.custom_id) {
         for f in registry() {
             if f.key() == key {
-                f.handle_interaction(ctx, config, interaction, &action).await?;
+                f.handle_interaction(ctx, config, interaction, &action)
+                    .await?;
                 return Ok(true);
             }
         }

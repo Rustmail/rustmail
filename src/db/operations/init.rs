@@ -1,6 +1,6 @@
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
     let db_path = "./db/db.sqlite";
@@ -17,23 +17,30 @@ pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
         .max_connections(10)
         .connect(&db_url)
         .await?;
-    
+
     sqlx::migrate!("./migrations").run(&pool).await?;
 
     println!("Database connection pool established");
     Ok(pool)
 }
 
-pub async fn get_system_metadata(key: &str, pool: &SqlitePool) -> Result<Option<String>, sqlx::Error> {
+pub async fn get_system_metadata(
+    key: &str,
+    pool: &SqlitePool,
+) -> Result<Option<String>, sqlx::Error> {
     let result = sqlx::query_scalar("SELECT value FROM system_metadata WHERE key = ?")
         .bind(key)
         .fetch_optional(pool)
         .await?;
-    
+
     Ok(result)
 }
 
-pub async fn set_system_metadata(key: &str, value: &str, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn set_system_metadata(
+    key: &str,
+    value: &str,
+    pool: &SqlitePool,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT OR REPLACE INTO system_metadata (key, value, updated_at) 
@@ -44,7 +51,7 @@ pub async fn set_system_metadata(key: &str, value: &str, pool: &SqlitePool) -> R
     .bind(value)
     .execute(pool)
     .await?;
-    
+
     Ok(())
 }
 
@@ -53,5 +60,10 @@ pub async fn get_last_recovery_timestamp(pool: &SqlitePool) -> Result<Option<Str
 }
 
 pub async fn update_last_recovery_timestamp(pool: &SqlitePool) -> Result<(), sqlx::Error> {
-    set_system_metadata("last_recovery_timestamp", &chrono::Utc::now().to_rfc3339(), pool).await
+    set_system_metadata(
+        "last_recovery_timestamp",
+        &chrono::Utc::now().to_rfc3339(),
+        pool,
+    )
+    .await
 }

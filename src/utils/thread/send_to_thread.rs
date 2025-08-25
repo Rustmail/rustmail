@@ -1,9 +1,11 @@
 use crate::config::Config;
-use crate::db::operations::{get_thread_id_by_user_id, is_user_left, get_staff_alerts_for_user, mark_alert_as_used};
-use serenity::all::{ChannelId, Context, Message, GuildId, CreateAttachment};
+use crate::db::operations::{
+    get_staff_alerts_for_user, get_thread_id_by_user_id, is_user_left, mark_alert_as_used,
+};
 use crate::i18n::get_translated_message;
+use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message};
 use std::collections::HashMap;
-use crate::utils::message::message_builder::{MessageBuilder};
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
     let content = msg.content.clone();
@@ -20,7 +22,7 @@ fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
                 attachment_urls.push(url.clone());
             }
         }
-        
+
         if let Some(thumbnail) = &embed.thumbnail {
             let url = &thumbnail.url;
             if url.contains(".gif") || url.contains("tenor.com") || url.contains("giphy.com") {
@@ -34,31 +36,29 @@ fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
 
 async fn download_attachment(url: &str) -> Option<CreateAttachment> {
     match reqwest::get(url).await {
-        Ok(response) => {
-            match response.bytes().await {
-                Ok(bytes) => {
-                    let filename = if let Some(last_slash) = url.rfind('/') {
-                        let name_part = &url[last_slash + 1..];
-                        if let Some(question_mark) = name_part.find('?') {
-                            &name_part[..question_mark]
-                        } else {
-                            name_part
-                        }
+        Ok(response) => match response.bytes().await {
+            Ok(bytes) => {
+                let filename = if let Some(last_slash) = url.rfind('/') {
+                    let name_part = &url[last_slash + 1..];
+                    if let Some(question_mark) = name_part.find('?') {
+                        &name_part[..question_mark]
                     } else {
-                        "attachment"
-                    };
-                    
-                    let clean_filename = if filename.is_empty() || filename == "attachment" {
-                        "attachment"
-                    } else {
-                        filename
-                    };
-                    
-                    Some(CreateAttachment::bytes(bytes, clean_filename))
-                }
-                Err(_) => None,
+                        name_part
+                    }
+                } else {
+                    "attachment"
+                };
+
+                let clean_filename = if filename.is_empty() || filename == "attachment" {
+                    "attachment"
+                } else {
+                    filename
+                };
+
+                Some(CreateAttachment::bytes(bytes, clean_filename))
             }
-        }
+            Err(_) => None,
+        },
         Err(_) => None,
     }
 }
@@ -83,11 +83,18 @@ pub async fn send_to_thread(
             let mut params = HashMap::new();
             params.insert("username".to_string(), msg.author.name.clone());
 
-            let _ = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
-                .translated_content("user.left_server", Some(&params), Some(msg.author.id), None).await
-                .to_channel(channel_id)
-                .send()
-                .await;
+            let _ =
+                MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
+                    .translated_content(
+                        "user.left_server",
+                        Some(&params),
+                        Some(msg.author.id),
+                        None,
+                    )
+                    .await
+                    .to_channel(channel_id)
+                    .send()
+                    .await;
         }
     }
 
@@ -97,7 +104,13 @@ pub async fn send_to_thread(
         params.insert("username".to_string(), msg.author.name.clone());
 
         let _ = MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
-            .translated_content("server.not_in_community", Some(&params), Some(msg.author.id), Some(community_guild_id.get())).await
+            .translated_content(
+                "server.not_in_community",
+                Some(&params),
+                Some(msg.author.id),
+                Some(community_guild_id.get()),
+            )
+            .await
             .to_channel(channel_id)
             .send()
             .await;
@@ -107,7 +120,9 @@ pub async fn send_to_thread(
 
     let mut attachments: Vec<CreateAttachment> = Vec::new();
     for url in &attachment_urls {
-        if let Some(a) = download_attachment(url).await { attachments.push(a); }
+        if let Some(a) = download_attachment(url).await {
+            attachments.push(a);
+        }
     }
 
     let thread_id = match get_thread_id_by_user_id(msg.author.id, pool).await {
@@ -149,7 +164,8 @@ pub async fn send_to_thread(
                 None,
                 None,
                 None,
-            ).await;
+            )
+            .await;
 
             let full_content = format!("{}{}", ping_mentions, alert_content);
 

@@ -20,7 +20,8 @@ pub struct Config {
     #[serde(skip)]
     pub error_handler: Option<Arc<ErrorHandler>>,
     #[serde(skip)]
-    pub thread_locks: Arc<std::sync::Mutex<std::collections::HashMap<u64, Arc<tokio::sync::Mutex<()>>>>>,
+    pub thread_locks:
+        Arc<std::sync::Mutex<std::collections::HashMap<u64, Arc<tokio::sync::Mutex<()>>>>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -67,7 +68,7 @@ pub struct ThreadConfig {
     pub system_message_color: String,
     pub block_quote: bool,
     pub time_to_close_thread: u64,
-    pub create_ticket_by_create_channel: bool
+    pub create_ticket_by_create_channel: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -120,8 +121,14 @@ pub fn load_config(path: &str) -> Config {
         );
     }
 
-    config.bot.validate_logs_config().expect("Invalid logs configuration !");
-    config.bot.validate_features_config().expect("Invalid features configuration !");
+    config
+        .bot
+        .validate_logs_config()
+        .expect("Invalid logs configuration !");
+    config
+        .bot
+        .validate_features_config()
+        .expect("Invalid features configuration !");
 
     let default_lang = config.language.get_default_language();
     let fallback_lang = config.language.get_fallback_language();
@@ -212,19 +219,28 @@ impl BotConfig {
 
     pub fn validate_logs_config(&self) -> Result<(), String> {
         match (self.enable_logs, self.logs_channel_id) {
-            (true, None) => Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string()),
-            (false, Some(_)) => Err("'logs_channel_id' must not be filled in if 'enable_logs' is false".to_string()),
+            (true, None) => {
+                Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string())
+            }
+            (false, Some(_)) => {
+                Err("'logs_channel_id' must not be filled in if 'enable_logs' is false".to_string())
+            }
             (true, Some(_)) => Ok(()),
-            (false, None) => Ok(())
+            (false, None) => Ok(()),
         }
     }
 
     pub fn validate_features_config(&self) -> Result<(), String> {
         match (self.enable_features, self.features_channel_id) {
-            (true, None) => Err("'features_channel_id' field is required if 'enable_features' is true".to_string()),
-            (false, Some(_)) => Err("'features_channel_id' must not be filled in if 'enable_features' is false".to_string()),
+            (true, None) => Err(
+                "'features_channel_id' field is required if 'enable_features' is true".to_string(),
+            ),
+            (false, Some(_)) => Err(
+                "'features_channel_id' must not be filled in if 'enable_features' is false"
+                    .to_string(),
+            ),
             (true, Some(_)) => Ok(()),
-            (false, None) => Ok(())
+            (false, None) => Ok(()),
         }
     }
 

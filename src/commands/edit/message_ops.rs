@@ -1,15 +1,15 @@
 use crate::config::Config;
+use crate::db::messages::{MessageIds, get_thread_message_by_inbox_message_id};
 use crate::db::operations::{
     get_message_ids_by_number, get_thread_by_channel_id, get_user_id_from_channel_id,
 };
-use serenity::all::{ChannelId, Context, EditMessage, Message, MessageId, UserId};
-use sqlx::SqlitePool;
-use crate::db::messages::{get_thread_message_by_inbox_message_id, MessageIds};
-use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
 use crate::errors::MessageError::{DmAccessFailed, EditFailed};
+use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
 use crate::errors::{ModmailError, ModmailResult};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{ChannelId, Context, EditMessage, Message, MessageId, UserId};
+use sqlx::SqlitePool;
 
 pub async fn get_message_ids(
     message_number: i64,
@@ -20,12 +20,12 @@ pub async fn get_message_ids(
 ) -> ModmailResult<MessageIds> {
     let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await {
         Some(thread) => thread,
-        None => return Err(thread_not_found())
+        None => return Err(thread_not_found()),
     };
 
     match get_message_ids_by_number(message_number, user_id, &thread.id, pool).await {
         Some(message_ids) => Ok(message_ids),
-        None => Err(not_found("message not found"))
+        None => Err(not_found("message not found")),
     }
 }
 
@@ -38,12 +38,10 @@ pub async fn format_new_message<'a>(
     config: &'a Config,
     pool: &SqlitePool,
 ) -> ModmailResult<(MessageBuilder<'a>, MessageBuilder<'a>)> {
-    let thread_message = match get_thread_message_by_inbox_message_id(
-        &inbox_message_id,
-        pool
-    ).await {
+    let thread_message = match get_thread_message_by_inbox_message_id(&inbox_message_id, pool).await
+    {
         Ok(thread_message) => thread_message,
-        Err(..) => return Err(permission_denied())
+        Err(..) => return Err(permission_denied()),
     };
 
     let mut top_role_name: Option<String> = None;
@@ -72,19 +70,23 @@ pub async fn format_new_message<'a>(
 
         let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
             .content(content.to_string());
-        if let Some(role_name) = &top_role_name { dm_builder = dm_builder.with_role(role_name.clone()); }
+        if let Some(role_name) = &top_role_name {
+            dm_builder = dm_builder.with_role(role_name.clone());
+        }
 
         Ok((inbox_builder, dm_builder))
     } else {
-        let mut inbox_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
-            .content(content.to_string())
-            .with_message_number(message_number);
+        let mut inbox_builder =
+            MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+                .content(content.to_string())
+                .with_message_number(message_number);
         if let Some(role_name) = &top_role_name {
             inbox_builder = inbox_builder.with_role(role_name.clone());
         }
 
-        let mut dm_builder = MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
-            .content(content.to_string());
+        let mut dm_builder =
+            MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+                .content(content.to_string());
         if let Some(role_name) = &top_role_name {
             dm_builder = dm_builder.with_role(role_name.clone());
         }
@@ -101,22 +103,20 @@ pub async fn edit_inbox_message(
 ) -> ModmailResult<()> {
     let message_id = match inbox_msg_id.parse::<u64>() {
         Ok(id) => MessageId::new(id),
-        Err(e) => return Err(
-            incorrect_message_id(
-                &format!("Unable to parse inbox_msg_id (String) into message id (MessageId) : {}", e)
-            )
-        )
+        Err(e) => {
+            return Err(incorrect_message_id(&format!(
+                "Unable to parse inbox_msg_id (String) into message id (MessageId) : {}",
+                e
+            )));
+        }
     };
 
-    match channel_id.edit_message(&ctx.http, message_id, edit_message).await {
+    match channel_id
+        .edit_message(&ctx.http, message_id, edit_message)
+        .await
+    {
         Ok(_) => Ok(()),
-        Err(e) => Err(
-            ModmailError::Message(
-                EditFailed(
-                    e.to_string()
-                )
-            )
-        )
+        Err(e) => Err(ModmailError::Message(EditFailed(e.to_string()))),
     }
 }
 
@@ -126,22 +126,21 @@ pub async fn edit_dm_message<'a>(
     dm_msg_id: &str,
     edit_dm_builder: MessageBuilder<'a>,
     pool: &SqlitePool,
-    config: &Config
+    config: &Config,
 ) -> ModmailResult<()> {
     let message_id = match dm_msg_id.parse::<u64>() {
         Ok(id) => MessageId::new(id),
-        Err(e) => return Err(
-            incorrect_message_id(
-                &format!("Unable to parse inbox_msg_id (String) into message id (MessageId) : {}", e)
-            )
-        )
+        Err(e) => {
+            return Err(incorrect_message_id(&format!(
+                "Unable to parse inbox_msg_id (String) into message id (MessageId) : {}",
+                e
+            )));
+        }
     };
 
     let user_id = match get_user_id_from_channel_id(&channel_id.get().to_string(), pool).await {
         Some(user_id) => UserId::new(user_id as u64),
-        None => return Err(
-            not_found("user not found")
-        )
+        None => return Err(not_found("user not found")),
     };
 
     let edit_dm_msg = edit_dm_builder
@@ -152,13 +151,12 @@ pub async fn edit_dm_message<'a>(
 
     let dm_channel = match user_id.create_dm_channel(&ctx.http).await {
         Ok(channel) => channel,
-        Err(e) => return Err(
-            ModmailError::Message(
-                DmAccessFailed(
-                    format!("Unable to access user DM (Maybe the user doesn't allow private messages from bots) : {}", e)
-                )
-            )
-        )
+        Err(e) => {
+            return Err(ModmailError::Message(DmAccessFailed(format!(
+                "Unable to access user DM (Maybe the user doesn't allow private messages from bots) : {}",
+                e
+            ))));
+        }
     };
 
     let edit_result: ModmailResult<()> = match dm_channel
@@ -166,13 +164,7 @@ pub async fn edit_dm_message<'a>(
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => return Err(
-            ModmailError::Message(
-                EditFailed(
-                    e.to_string()
-                )
-            )
-        )
+        Err(e) => return Err(ModmailError::Message(EditFailed(e.to_string()))),
     };
 
     edit_result
@@ -185,9 +177,8 @@ pub async fn edit_messages<'a>(
     inbox_msg_id: String,
     edited_message_builder: (MessageBuilder<'a>, MessageBuilder<'a>),
     pool: &SqlitePool,
-    config: &Config
+    config: &Config,
 ) -> ModmailResult<()> {
-
     let (inbox_msg_builder, dm_msg_builder) = edited_message_builder;
 
     let edit_inbox_msg = inbox_msg_builder.build_edit_message().await;

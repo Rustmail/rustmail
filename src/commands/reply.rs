@@ -1,14 +1,12 @@
 use crate::config::Config;
-use crate::db::operations::{
-    allocate_next_message_number,
-};
-use crate::errors::{ModmailResult, common, ModmailError, ThreadError};
-use crate::utils::command::extract_reply_content::extract_reply_content;
-use crate::utils::thread::fetch_thread::fetch_thread;
-use std::collections::HashMap;
-use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
+use crate::db::operations::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
+use crate::errors::{ModmailError, ModmailResult, ThreadError, common};
+use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::thread::fetch_thread::fetch_thread;
+use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
+use std::collections::HashMap;
 
 enum ReplyIntent {
     Text(String),
@@ -74,7 +72,8 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         return Err(ModmailError::Thread(ThreadError::UserNotInTheServer));
     }
 
-    let next_message_number = allocate_next_message_number(&thread.id, db_pool).await
+    let next_message_number = allocate_next_message_number(&thread.id, db_pool)
+        .await
         .map_err(|_| common::validation_failed("Failed to allocate message number"))?;
 
     let _ = msg.delete(&ctx.http).await;
@@ -111,7 +110,8 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                     None,
                     Some(msg.author.id),
                     msg.guild_id.map(|g| g.get()),
-                ).await
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send_and_forget()
                 .await;
@@ -126,7 +126,8 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
                 None,
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
-            ).await
+            )
+            .await
             .to_channel(thread_msg.channel_id)
             .send_and_forget()
             .await;
@@ -137,10 +138,13 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         params.insert("number".to_string(), next_message_number.to_string());
 
         let _ = MessageBuilder::system_message(ctx, config)
-            .translated_content("success.message_sent",
-                                Some(&params),
-                                Some(msg.author.id),
-                                msg.guild_id.map(|g| g.get())).await
+            .translated_content(
+                "success.message_sent",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
             .to_channel(msg.channel_id)
             .send()
             .await;

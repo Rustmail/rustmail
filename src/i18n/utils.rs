@@ -16,8 +16,10 @@ pub async fn get_translated_message(
         } else {
             config.language.get_default_language()
         };
-        error_handler.get_dictionary_message(language, key, params, count).await
+        error_handler
+            .get_dictionary_message(language, key, params, count)
+            .await
     } else {
         format!("[{}]", key)
     }
-} 
+}

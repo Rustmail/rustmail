@@ -3,9 +3,9 @@ use crate::errors::{
     CommandError, DatabaseError, DiscordError, MessageError, ModmailError, ModmailResult,
     ValidationError, common,
 };
+use crate::i18n::languages::Language;
 use serenity::all::{Colour, Context, CreateEmbed, CreateMessage, Message};
 use std::collections::HashMap;
-use crate::i18n::languages::Language;
 
 pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let error_handler = config
@@ -29,7 +29,9 @@ pub async fn test_errors(ctx: &Context, msg: &Message, config: &Config) -> Modma
         "validation" | "val" => ModmailError::Validation(ValidationError::InvalidInput(
             "Test validation error".to_string(),
         )),
-        "message" | "msg" => ModmailError::Message(MessageError::MessageNotFound("reason".to_string())),
+        "message" | "msg" => {
+            ModmailError::Message(MessageError::MessageNotFound("reason".to_string()))
+        }
         "thread" => common::thread_not_found(),
         "permission" | "perm" => common::permission_denied(),
         "user" => common::user_not_found(),

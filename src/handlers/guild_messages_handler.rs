@@ -1,9 +1,5 @@
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use serenity::{
-    all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
-    async_trait,
-};
-use serenity::all::{MessageId, UserId};
+use crate::commands::edit::message_ops::edit_inbox_message;
+use crate::commands::force_close::force_close;
 use crate::commands::{
     alert::alert,
     anonreply::anonreply,
@@ -17,18 +13,25 @@ use crate::commands::{
     test_errors::{test_all_errors, test_errors, test_language},
 };
 use crate::config::Config;
-use crate::db::operations::{get_message_ids_by_message_id, get_thread_channel_by_user_id, thread_exists, update_message_content};
-use crate::errors::{ModmailResult, common};
-use crate::utils::thread::send_to_thread::send_to_thread;
-use crate::{modules::threads::create_channel, utils::wrap_command};
-use crate::commands::force_close::force_close;
-use crate::i18n::get_translated_message;
-use crate::utils::thread::get_thread_lock::get_thread_lock;
-use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::db::get_thread_by_channel_id;
 use crate::db::messages::get_thread_message_by_dm_message_id;
+use crate::db::operations::{
+    get_message_ids_by_message_id, get_thread_channel_by_user_id, thread_exists,
+    update_message_content,
+};
 use crate::db::threads::get_thread_by_user_id;
+use crate::errors::{ModmailResult, common};
+use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::thread::get_thread_lock::get_thread_lock;
+use crate::utils::thread::send_to_thread::send_to_thread;
+use crate::{modules::threads::create_channel, utils::wrap_command};
+use serenity::all::{MessageId, UserId};
+use serenity::{
+    all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
+    async_trait,
+};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -179,20 +182,25 @@ impl EventHandler for GuildMessagesHandler {
         _new: Option<Message>,
         event: MessageUpdateEvent,
     ) {
-
         match event.author {
             Some(user) => {
                 if user.bot {
                     return;
                 }
-            },
+            }
             None => {
                 eprintln!("Message update event without author");
                 return;
             }
         };
 
-        if let Some(_channel_id) = event.channel_id.to_channel(&ctx.http).await.ok().and_then(|channel| channel.private()) {
+        if let Some(_channel_id) = event
+            .channel_id
+            .to_channel(&ctx.http)
+            .await
+            .ok()
+            .and_then(|channel| channel.private())
+        {
             let pool = match &self.config.db_pool {
                 Some(p) => p,
                 None => return,
@@ -206,10 +214,17 @@ impl EventHandler for GuildMessagesHandler {
                 }
             };
 
-            if let Some(thread) = get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await {
+            if let Some(thread) =
+                get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await
+            {
                 if let Some(content) = event.content {
-                    let inbox_builder = MessageBuilder::user_message(&ctx, &self.config, UserId::new(message.user_id as u64), message.user_name)
-                        .content(content.clone());
+                    let inbox_builder = MessageBuilder::user_message(
+                        &ctx,
+                        &self.config,
+                        UserId::new(message.user_id as u64),
+                        message.user_name,
+                    )
+                    .content(content.clone());
                     let edit_msg = inbox_builder.build_edit_message().await;
 
                     let channel_id_parse = match thread.channel_id.parse::<u64>() {
@@ -221,13 +236,24 @@ impl EventHandler for GuildMessagesHandler {
                     };
 
                     if let Some(inbox_message_id) = message.inbox_message_id {
-                        if let Err(e) = edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg).await {
+                        if let Err(e) =
+                            edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
+                                .await
+                        {
                             eprintln!("Failed to edit mirrored staff message: {}", e);
                             return;
                         }
 
-                        let old_content: String = if let Some(old) = old_if_available { old.content } else { String::new() };
-                        let before = if old_content.is_empty() { "(inconnu)".to_string() } else { old_content };
+                        let old_content: String = if let Some(old) = old_if_available {
+                            old.content
+                        } else {
+                            String::new()
+                        };
+                        let before = if old_content.is_empty() {
+                            "(inconnu)".to_string()
+                        } else {
+                            old_content
+                        };
                         let after = content.clone();
 
                         let guild_id = self.config.bot.get_community_guild_id();
@@ -244,7 +270,13 @@ impl EventHandler for GuildMessagesHandler {
                         params.insert("link".to_string(), message_link);
 
                         let _ = MessageBuilder::system_message(&ctx, &self.config)
-                            .translated_content("edit.modification_from_user", Some(&params), Some(UserId::new(message.user_id as u64)), Some(guild_id)).await
+                            .translated_content(
+                                "edit.modification_from_user",
+                                Some(&params),
+                                Some(UserId::new(message.user_id as u64)),
+                                Some(guild_id),
+                            )
+                            .await
                             .to_channel(channel_id_parse)
                             .send()
                             .await;

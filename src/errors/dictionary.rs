@@ -1,11 +1,8 @@
 use crate::errors::types::*;
-use crate::i18n::languages::Language;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use crate::i18n::language::en::load_english_messages;
-use crate::i18n::language::fr::load_french_messages;
 use crate::i18n::language::cn::load_chinese_messages;
 use crate::i18n::language::dt::load_dutch_messages;
+use crate::i18n::language::en::load_english_messages;
+use crate::i18n::language::fr::load_french_messages;
 use crate::i18n::language::gr::load_german_messages;
 use crate::i18n::language::it::load_italian_messages;
 use crate::i18n::language::jp::load_japanese_messages;
@@ -13,6 +10,9 @@ use crate::i18n::language::kr::load_korean_messages;
 use crate::i18n::language::pr::load_portuguese_messages;
 use crate::i18n::language::ru::load_russian_messages;
 use crate::i18n::language::sp::load_spanish_messages;
+use crate::i18n::languages::Language;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDictionary {
@@ -232,7 +232,7 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("message".to_string(), msg.to_string());
                     ("message.not_found".to_string(), Some(params))
-                },
+                }
                 MessageError::MessageNumberNotFound(num) => {
                     let mut params = HashMap::new();
                     params.insert("number".to_string(), num.to_string());
@@ -258,7 +258,10 @@ impl DictionaryManager {
                 ValidationError::RequiredFieldMissing(field) => {
                     let mut params = HashMap::new();
                     params.insert("field".to_string(), field.clone());
-                    ("validation.required_field_missing".to_string(), Some(params))
+                    (
+                        "validation.required_field_missing".to_string(),
+                        Some(params),
+                    )
                 }
                 _ => ("validation.invalid_input".to_string(), None),
             },

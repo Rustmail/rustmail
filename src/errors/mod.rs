@@ -3,15 +3,15 @@ pub mod handler;
 pub mod types;
 
 pub use types::{
-    CommandError, DatabaseError, DiscordError, MessageError, ModmailError,
-    ModmailResult, PermissionError, ThreadError, ValidationError,
+    CommandError, DatabaseError, DiscordError, MessageError, ModmailError, ModmailResult,
+    PermissionError, ThreadError, ValidationError,
 };
 
-pub use dictionary::{ErrorDictionary, DictionaryMessage};
+pub use dictionary::{DictionaryMessage, ErrorDictionary};
 
 pub use crate::{
-    command_error, database_error, discord_error, message_error, permission_error,
-    thread_error, validation_error,
+    command_error, database_error, discord_error, message_error, permission_error, thread_error,
+    validation_error,
 };
 
 pub mod common {
