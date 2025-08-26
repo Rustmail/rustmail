@@ -102,7 +102,7 @@ async fn create_or_get_thread_for_user(
 
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
-    if let Err(_) = community_guild_id.member(&ctx.http, msg.author.id).await {
+    if (community_guild_id.member(&ctx.http, msg.author.id).await).is_err() {
         let error_msg = crate::i18n::get_translated_message(
             config,
             "server.not_in_community",

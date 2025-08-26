@@ -4,8 +4,10 @@ use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use async_trait::async_trait;
-use serenity::all::{ButtonStyle, Context, GuildChannel};
+use serenity::all::{ButtonStyle, Context, GuildChannel, Message};
 use serenity::client::EventHandler;
+use crate::db::close_thread;
+use crate::db::threads::is_an_opened_ticket_channel;
 
 pub struct GuildHandler {
     pub config: Config,
@@ -41,7 +43,7 @@ impl EventHandler for GuildHandler {
         }
 
         if let Some(topic) = &thread.topic
-            && *topic == MODMAIL_MANAGED_TOPIC.to_string()
+            && *topic == MODMAIL_MANAGED_TOPIC
         {
             return;
         }
@@ -76,5 +78,33 @@ impl EventHandler for GuildHandler {
             .to_channel(thread.id)
             .send()
             .await;
+    }
+
+    async fn channel_delete(&self, _ctx: Context, channel: GuildChannel, _messages: Option<Vec<Message>>) {
+        let pool = match &self.config.db_pool {
+            Some(pool) => pool,
+            None => {
+                eprintln!("Database pool is not set in config.");
+                return;
+            }
+        };
+
+        if is_an_opened_ticket_channel(channel.id, pool).await {
+            let thread = match get_thread_by_channel_id(&channel.id.to_string(), pool).await {
+                Some(thread) => thread,
+                None => {
+                    return;
+                }
+            };
+
+            match close_thread(&thread.id, pool).await {
+                Ok(_) => {
+                    println!("Close thread successfully by deleted channel!");
+                },
+                Err(e) => {
+                    eprintln!("Failed to close thread for deleted channel {}: {}", channel.id, e);
+                }
+            }
+        }
     }
 }
