@@ -15,6 +15,7 @@ pub struct Config {
     pub language: LanguageConfig,
     pub error_handling: ErrorHandlingConfig,
     pub notifications: NotificationsConfig,
+    pub logs: LogsConfig,
     #[serde(skip)]
     pub db_pool: Option<SqlitePool>,
     #[serde(skip)]
@@ -78,6 +79,11 @@ pub struct NotificationsConfig {
     pub show_failure_on_edit: bool,
     pub show_success_on_reply: bool,
     pub show_success_on_delete: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct LogsConfig {
+    pub show_log_on_edit: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -147,6 +153,14 @@ impl Default for LanguageConfig {
             fallback_language: "en".to_string(),
             supported_languages: vec!["en".to_string(), "fr".to_string()],
             error_message_ttl: Some(30),
+        }
+    }
+}
+
+impl Default for LogsConfig {
+    fn default() -> Self {
+        Self {
+            show_log_on_edit: true,
         }
     }
 }
