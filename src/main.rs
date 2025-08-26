@@ -65,23 +65,23 @@ async fn main() {
         .expect("Failed to create client.");
 
     if let Err(e) = config.validate_servers(&client.http).await {
-        eprintln!("Erreur de validation de configuration: {}", e);
+        eprintln!("Configuration validation error: {}", e);
         eprintln!(
-            "Vérifiez que les IDs de serveur sont corrects et que le bot a accès aux serveurs."
+            "Check that the server IDs are correct and that the bot has access to the servers."
         );
         process::exit(1);
     }
 
-    println!("Configuration validée avec succès!");
+    println!("Configuration successfully validated!!");
     if config.bot.is_dual_mode() {
         println!(
-            "Mode: Double serveur (Communautaire: {}, Staff: {})",
+            "Mode: Dual server (Community: {}, Staff: {})",
             config.bot.get_community_guild_id(),
             config.bot.get_staff_guild_id()
         );
     } else {
         println!(
-            "Mode: Serveur unique (ID: {})",
+            "Mode: Mono server (ID: {})",
             config.bot.get_community_guild_id()
         );
     }

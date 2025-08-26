@@ -1,31 +1,32 @@
 [bot]
-token = "YOUR TOKEN HERE"
-staff_guild_id = 711880297272311856
+token = "TOKEN_HERE"
 status = "DM POUR SUPPORT"
 welcome_message = "Votre message à bien été reçu par l'équipe Staff ! Nous vous répondrons dès que possible."
 close_message = "Merci d'avoir contacté le support ! Ton ticket est désormais clos."
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
-logs_channel_id = 1404359730566135899
 enable_logs = true
 enable_features = true
-features_channel_id = 1404359730566135899
+logs_channel_id = 14043597305699
+features_channel_id = 14069404548593076
 
 [bot.mode]
 type = "dual"
-community_guild_id = 1209687980506562590
-staff_guild_id = 71188029857472311856
+community_guild_id = 12096679805062590
+staff_guild_id = 711880297271856
 
 [command]
 prefix = "!"
 
 [thread]
-inbox_category_id = 1376462463847505960
+inbox_category_id = 137646043847505960
 embedded_message = true
 user_message_color = "3d54ff"
 staff_message_color = "ff3126"
-system_message_color = "00fb3f"
+system_message_color = "00ff00"
 block_quote = true
+time_to_close_thread = 5
+create_ticket_by_create_channel = true
 
 [notifications]
 show_success_on_edit = false
@@ -33,6 +34,9 @@ show_partial_success_on_edit = true
 show_failure_on_edit = true
 show_success_on_reply = false
 show_success_on_delete = false
+
+[logs]
+show_log_on_edit = true
 
 [language]
 default_language = "en"
