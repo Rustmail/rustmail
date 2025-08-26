@@ -1,14 +1,19 @@
 use crate::config::Config;
+use crate::db::get_thread_by_channel_id;
+use crate::features::make_buttons;
+use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::audit_log::Action;
-use serenity::all::{AutoModAction, ButtonStyle, ChannelAction, ChannelOverwriteAction, CreatorMonetizationAction, EmojiAction, IntegrationAction, InviteAction, MemberAction, MessageAction, RoleAction, ScheduledEventAction, StageInstanceAction, StickerAction, ThreadAction, VoiceChannelStatusAction, WebhookAction};
+use serenity::all::{
+    AutoModAction, ButtonStyle, ChannelAction, ChannelOverwriteAction, CreatorMonetizationAction,
+    EmojiAction, IntegrationAction, InviteAction, MemberAction, MessageAction, RoleAction,
+    ScheduledEventAction, StageInstanceAction, StickerAction, ThreadAction,
+    VoiceChannelStatusAction, WebhookAction,
+};
 use serenity::{
     all::{AuditLogEntry, ChannelId, Context, EventHandler, GuildId},
     async_trait,
 };
-use crate::db::get_thread_by_channel_id;
-use crate::features::make_buttons;
-use crate::i18n::get_translated_message;
 
 pub struct GuildModerationHandler {
     pub config: Config,
@@ -187,27 +192,44 @@ pub fn format_audit_log(entry: &AuditLogEntry) -> String {
     }
 }
 
-async fn manage_creating_ticket_via_opening_thread(ctx: &Context, config: &Config, guild_id: GuildId, channel_id: ChannelId) {
+async fn manage_creating_ticket_via_opening_thread(
+    ctx: &Context,
+    config: &Config,
+    guild_id: GuildId,
+    channel_id: ChannelId,
+) {
     let channel_id_inner = {
-        let Some(guild) = ctx.cache.guild(guild_id) else { return };
-        let Some(channel) = guild.channels.get(&channel_id) else { return };
-
+        let Some(guild) = ctx.cache.guild(guild_id) else {
+            return;
+        };
+        let Some(channel) = guild.channels.get(&channel_id) else {
+            return;
+        };
 
         if config.bot.is_dual_mode() && config.bot.is_community_guild(channel.guild_id.get()) {
             return;
         }
-        if !config.thread.create_ticket_by_create_channel { return; }
+        if !config.thread.create_ticket_by_create_channel {
+            return;
+        }
 
         let expected_category = config.thread.inbox_category_id;
         if let Some(parent_id) = channel.parent_id {
-            if parent_id.get() != expected_category { return; }
-        } else { return; }
+            if parent_id.get() != expected_category {
+                return;
+            }
+        } else {
+            return;
+        }
 
         channel.id
     };
 
     if let Some(pool) = &config.db_pool {
-        if get_thread_by_channel_id(&channel_id_inner.to_string(), pool).await.is_some() {
+        if get_thread_by_channel_id(&channel_id_inner.to_string(), pool)
+            .await
+            .is_some()
+        {
             return;
         }
     }
@@ -242,7 +264,8 @@ impl EventHandler for GuildModerationHandler {
                     Some(id) => ChannelId::new(id.get()),
                     None => return,
                 };
-                manage_creating_ticket_via_opening_thread(&ctx, &self.config, guild_id, channel_id).await;
+                manage_creating_ticket_via_opening_thread(&ctx, &self.config, guild_id, channel_id)
+                    .await;
             }
         }
 

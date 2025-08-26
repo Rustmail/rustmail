@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::db::operations::{create_thread_for_user, get_thread_channel_by_user_id};
+use crate::errors::common::validation_failed;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::ui;
@@ -16,7 +17,6 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::time::Duration;
 use tokio::time::sleep;
-use crate::errors::common::validation_failed;
 
 async fn create_or_get_thread_for_user(
     ctx: &Context,
@@ -37,8 +37,8 @@ async fn create_or_get_thread_for_user(
     };
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
-    let channel_builder = CreateChannel::new(&username)
-        .category(ChannelId::new(config.thread.inbox_category_id));
+    let channel_builder =
+        CreateChannel::new(&username).category(ChannelId::new(config.thread.inbox_category_id));
 
     let channel = staff_guild_id
         .create_channel(&ctx.http, channel_builder)

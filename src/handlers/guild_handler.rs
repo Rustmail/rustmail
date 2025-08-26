@@ -1,10 +1,10 @@
 use crate::config::Config;
+use crate::db::close_thread;
 use crate::db::operations::get_thread_by_channel_id;
+use crate::db::threads::is_an_opened_ticket_channel;
 use async_trait::async_trait;
 use serenity::all::{Context, GuildChannel, Message};
 use serenity::client::EventHandler;
-use crate::db::close_thread;
-use crate::db::threads::is_an_opened_ticket_channel;
 
 pub struct GuildHandler {
     pub config: Config,
@@ -20,7 +20,12 @@ impl GuildHandler {
 
 #[async_trait]
 impl EventHandler for GuildHandler {
-    async fn channel_delete(&self, _ctx: Context, channel: GuildChannel, _messages: Option<Vec<Message>>) {
+    async fn channel_delete(
+        &self,
+        _ctx: Context,
+        channel: GuildChannel,
+        _messages: Option<Vec<Message>>,
+    ) {
         let pool = match &self.config.db_pool {
             Some(pool) => pool,
             None => {
@@ -40,9 +45,12 @@ impl EventHandler for GuildHandler {
             match close_thread(&thread.id, pool).await {
                 Ok(_) => {
                     println!("Close thread successfully by deleted channel!");
-                },
+                }
                 Err(e) => {
-                    eprintln!("Failed to close thread for deleted channel {}: {}", channel.id, e);
+                    eprintln!(
+                        "Failed to close thread for deleted channel {}: {}",
+                        channel.id, e
+                    );
                 }
             }
         }

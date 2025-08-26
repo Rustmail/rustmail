@@ -1,5 +1,7 @@
+use crate::commands::add_staff::add_staff;
 use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::commands::force_close::force_close;
+use crate::commands::remove_staff::remove_staff;
 use crate::commands::{
     alert::alert,
     anonreply::anonreply,
@@ -14,10 +16,7 @@ use crate::commands::{
 };
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
-use crate::db::operations::{
-    get_thread_channel_by_user_id, thread_exists,
-    update_message_content,
-};
+use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
@@ -31,8 +30,6 @@ use serenity::{
     async_trait,
 };
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use crate::commands::add_staff::add_staff;
-use crate::commands::remove_staff::remove_staff;
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -165,13 +162,13 @@ impl EventHandler for GuildMessagesHandler {
             if let Some(command_func) = self.commands.get(command_name)
                 && let Err(error) =
                     command_func(ctx.clone(), msg.clone(), self.config.clone()).await
-                {
-                    if let Some(error_handler) = &self.config.error_handler {
-                        let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
-                    } else {
-                        eprintln!("Command error: {}", error);
-                    }
+            {
+                if let Some(error_handler) = &self.config.error_handler {
+                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                } else {
+                    eprintln!("Command error: {}", error);
                 }
+            }
             return;
         }
         return;
@@ -218,76 +215,76 @@ impl EventHandler for GuildMessagesHandler {
 
             if let Some(thread) =
                 get_thread_by_user_id(UserId::new(message.user_id as u64), pool).await
-                && let Some(content) = event.content {
-                    let inbox_builder = MessageBuilder::user_message(
-                        &ctx,
-                        &self.config,
-                        UserId::new(message.user_id as u64),
-                        message.user_name,
-                    )
-                    .content(content.clone());
-                    let edit_msg = inbox_builder.build_edit_message().await;
+                && let Some(content) = event.content
+            {
+                let inbox_builder = MessageBuilder::user_message(
+                    &ctx,
+                    &self.config,
+                    UserId::new(message.user_id as u64),
+                    message.user_name,
+                )
+                .content(content.clone());
+                let edit_msg = inbox_builder.build_edit_message().await;
 
-                    let channel_id_parse = match thread.channel_id.parse::<u64>() {
-                        Ok(id) => ChannelId::new(id),
-                        Err(e) => {
-                            eprintln!("Failed to parse channel ID: {}", e);
-                            return;
-                        }
-                    };
-
-                    if let Some(inbox_message_id) = message.inbox_message_id {
-                        
-                        if let Err(e) =
-                            edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
-                                .await
-                        {
-                            eprintln!("Failed to edit mirrored staff message: {}", e);
-                            return;
-                        }
-                        
-                        if self.config.logs.show_log_on_edit {
-                            let old_content: String = if let Some(old) = old_if_available {
-                                old.content
-                            } else {
-                                String::new()
-                            };
-                            let before = if old_content.is_empty() {
-                                "`(inconnu)`".to_string()
-                            } else {
-                                format!("`{}`", old_content)
-                            };
-                            let after = format!("`{}`", content.clone());
-
-                            let guild_id = self.config.bot.get_community_guild_id();
-                            let message_link = format!(
-                                "https://discord.com/channels/{}/{}/{}",
-                                guild_id,
-                                channel_id_parse.get(),
-                                inbox_message_id
-                            );
-
-                            let mut params = HashMap::new();
-                            params.insert("before".to_string(), before);
-                            params.insert("after".to_string(), after);
-                            params.insert("link".to_string(), message_link);
-
-                            let _ = MessageBuilder::system_message(&ctx, &self.config)
-                                .translated_content(
-                                    "edit.modification_from_user",
-                                    Some(&params),
-                                    Some(UserId::new(message.user_id as u64)),
-                                    Some(guild_id),
-                                )
-                                .await
-                                .to_channel(channel_id_parse)
-                                .send()
-                                .await;
-                        }
-
-                        let _ = update_message_content(&inbox_message_id, &content, pool).await;
+                let channel_id_parse = match thread.channel_id.parse::<u64>() {
+                    Ok(id) => ChannelId::new(id),
+                    Err(e) => {
+                        eprintln!("Failed to parse channel ID: {}", e);
+                        return;
                     }
+                };
+
+                if let Some(inbox_message_id) = message.inbox_message_id {
+                    if let Err(e) =
+                        edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
+                            .await
+                    {
+                        eprintln!("Failed to edit mirrored staff message: {}", e);
+                        return;
+                    }
+
+                    if self.config.logs.show_log_on_edit {
+                        let old_content: String = if let Some(old) = old_if_available {
+                            old.content
+                        } else {
+                            String::new()
+                        };
+                        let before = if old_content.is_empty() {
+                            "`(inconnu)`".to_string()
+                        } else {
+                            format!("`{}`", old_content)
+                        };
+                        let after = format!("`{}`", content.clone());
+
+                        let guild_id = self.config.bot.get_community_guild_id();
+                        let message_link = format!(
+                            "https://discord.com/channels/{}/{}/{}",
+                            guild_id,
+                            channel_id_parse.get(),
+                            inbox_message_id
+                        );
+
+                        let mut params = HashMap::new();
+                        params.insert("before".to_string(), before);
+                        params.insert("after".to_string(), after);
+                        params.insert("link".to_string(), message_link);
+
+                        let _ = MessageBuilder::system_message(&ctx, &self.config)
+                            .translated_content(
+                                "edit.modification_from_user",
+                                Some(&params),
+                                Some(UserId::new(message.user_id as u64)),
+                                Some(guild_id),
+                            )
+                            .await
+                            .to_channel(channel_id_parse)
+                            .send()
+                            .await;
+                    }
+
+                    let _ = update_message_content(&inbox_message_id, &content, pool).await;
                 }
+            }
         }
     }
 }
