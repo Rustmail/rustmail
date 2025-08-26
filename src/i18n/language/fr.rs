@@ -573,6 +573,18 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Confirmation que le message a été supprimé"),
     );
     dict.messages.insert(
+        "delete.removed_by_user".to_string(),
+        DictionaryMessage::new("L'utilisateur {userid} a supprimé son message : \n\n{content}")
+            .with_description("Entrée de log lorsque l'utilisateur supprime son message DM (répercuté dans le thread)")
+            .with_help("Paramètres: content, number (optionnel si message staff)"),
+    );
+    dict.messages.insert(
+        "delete.removed_by_staff".to_string(),
+        DictionaryMessage::new("Le staff {userid} a supprimé un message : \n\n{content}")
+            .with_description("Entrée de log lorsqu'un membre du staff supprime un message dans le thread ou son miroir DM")
+            .with_help("Paramètres: content, number (optionnel), link (optionnel)"),
+    );
+    dict.messages.insert(
         "add_staff.add_success".to_string(),
         DictionaryMessage::new("L'utilisateur {user} a été ajouté au ticket avec succès."),
     );

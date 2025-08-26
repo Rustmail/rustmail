@@ -550,6 +550,18 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("Confirmation that the message has been deleted"),
     );
     dict.messages.insert(
+        "delete.removed_by_user".to_string(),
+        DictionaryMessage::new("User {userid} deleted their message: \n\n{content}")
+            .with_description("Log entry when the end user deletes their DM message (mirrored in thread)")
+            .with_help("Parameters: content, number (optional if staff message)"),
+    );
+    dict.messages.insert(
+        "delete.removed_by_staff".to_string(),
+        DictionaryMessage::new("Staff {userid} deleted a message: \n\n{content}")
+            .with_description("Log entry when a staff member deletes a message inside the thread or via DM mirror")
+            .with_help("Parameters: content, number (optional), link (optional)"),
+    );
+    dict.messages.insert(
         "add_staff.add_success".to_string(),
         DictionaryMessage::new("The user {user} has been added to the ticket successfully."),
     );

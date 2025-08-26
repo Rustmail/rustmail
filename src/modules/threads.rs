@@ -381,7 +381,6 @@ pub async fn handle_thread_modal_interaction(
                 return Ok(());
             }
 
-            // No visible topic marker added to avoid exposing implementation details
             let _ = guild_channel.edit(&ctx.http, EditChannel::new()).await;
 
             if let Err(e) =

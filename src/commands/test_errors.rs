@@ -3,7 +3,7 @@ use crate::errors::{
     CommandError, DatabaseError, DiscordError, MessageError, ModmailError, ModmailResult,
     ValidationError, common,
 };
-use crate::i18n::languages::Language;
+use crate::i18n::languages::{Language, LanguagePreferences};
 use serenity::all::{Colour, Context, CreateEmbed, CreateMessage, Message};
 use std::collections::HashMap;
 
@@ -154,7 +154,7 @@ pub async fn test_language(ctx: &Context, msg: &Message, config: &Config) -> Mod
         ))
     })?;
 
-    let preferences = crate::i18n::languages::LanguagePreferences::new(language);
+    let preferences = LanguagePreferences::new(language);
     error_handler
         .set_user_language(msg.author.id, preferences)
         .await;
