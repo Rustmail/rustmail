@@ -1,4 +1,4 @@
-use crate::config::{Config, MODMAIL_MANAGED_TOPIC};
+use crate::config::Config;
 use crate::db::operations::{create_thread_for_user, get_thread_channel_by_user_id};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::time::Duration;
 use tokio::time::sleep;
+use crate::errors::common::validation_failed;
 
 async fn create_or_get_thread_for_user(
     ctx: &Context,
@@ -37,8 +38,7 @@ async fn create_or_get_thread_for_user(
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     let channel_builder = CreateChannel::new(&username)
-        .category(ChannelId::new(config.thread.inbox_category_id))
-        .topic(MODMAIL_MANAGED_TOPIC.to_string());
+        .category(ChannelId::new(config.thread.inbox_category_id));
 
     let channel = staff_guild_id
         .create_channel(&ctx.http, channel_builder)
@@ -103,7 +103,7 @@ async fn create_or_get_thread_for_user(
 pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
     if (community_guild_id.member(&ctx.http, msg.author.id).await).is_err() {
-        let error_msg = crate::i18n::get_translated_message(
+        let error_msg = get_translated_message(
             config,
             "server.not_in_community",
             None,
@@ -113,7 +113,7 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
         )
         .await;
 
-        let error = crate::errors::common::validation_failed(&error_msg);
+        let error = validation_failed(&error_msg);
         if let Some(error_handler) = &config.error_handler {
             let _ = error_handler.reply_with_error(ctx, msg, &error).await;
         }
@@ -381,9 +381,8 @@ pub async fn handle_thread_modal_interaction(
                 return Ok(());
             }
 
-            let mut edit = EditChannel::new();
-            edit = edit.topic(MODMAIL_MANAGED_TOPIC.to_string());
-            let _ = guild_channel.edit(&ctx.http, edit).await;
+            // No visible topic marker added to avoid exposing implementation details
+            let _ = guild_channel.edit(&ctx.http, EditChannel::new()).await;
 
             if let Err(e) =
                 create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool).await
