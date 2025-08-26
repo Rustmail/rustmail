@@ -125,7 +125,10 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                         format!("`{}`", before_content.clone())
                     },
                 );
-                params.insert("after".to_string(), format!("`{}`", command_input.new_content.clone()));
+                params.insert(
+                    "after".to_string(),
+                    format!("`{}`", command_input.new_content.clone()),
+                );
                 params.insert("link".to_string(), message_link);
 
                 let _ = MessageBuilder::system_message(ctx, config)
@@ -162,7 +165,10 @@ fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig, NotificationsConfig, ThreadConfig};
+    use crate::config::{
+        BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig,
+        NotificationsConfig, ThreadConfig,
+    };
     use std::sync::{Arc, Mutex};
 
     fn create_test_config() -> Config {
