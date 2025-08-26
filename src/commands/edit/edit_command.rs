@@ -108,36 +108,38 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
                     .await;
             };
 
-            let message_link = format!(
-                "https://discord.com/channels/{}/{}/{}",
-                config.bot.get_staff_guild_id(),
-                msg.channel_id.get(),
-                inbox_message_id
-            );
+            if config.logs.show_log_on_edit {
+                let message_link = format!(
+                    "https://discord.com/channels/{}/{}/{}",
+                    config.bot.get_staff_guild_id(),
+                    msg.channel_id.get(),
+                    inbox_message_id
+                );
 
-            let mut params = HashMap::new();
-            params.insert(
-                "before".to_string(),
-                if before_content.is_empty() {
-                    "(inconnu)".to_string()
-                } else {
-                    before_content.clone()
-                },
-            );
-            params.insert("after".to_string(), command_input.new_content.clone());
-            params.insert("link".to_string(), message_link);
+                let mut params = HashMap::new();
+                params.insert(
+                    "before".to_string(),
+                    if before_content.is_empty() {
+                        "(inconnu)".to_string()
+                    } else {
+                        format!("`{}`", before_content.clone())
+                    },
+                );
+                params.insert("after".to_string(), format!("`{}`", command_input.new_content.clone()));
+                params.insert("link".to_string(), message_link);
 
-            let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "edit.modification_from_staff",
-                    Some(&params),
-                    Some(msg.author.id),
-                    Some(config.bot.get_staff_guild_id()),
-                )
-                .await
-                .to_channel(msg.channel_id)
-                .send()
-                .await;
+                let _ = MessageBuilder::system_message(ctx, config)
+                    .translated_content(
+                        "edit.modification_from_staff",
+                        Some(&params),
+                        Some(msg.author.id),
+                        Some(config.bot.get_staff_guild_id()),
+                    )
+                    .await
+                    .to_channel(msg.channel_id)
+                    .send()
+                    .await;
+            }
 
             cleanup_command_message(ctx, msg).await;
 
@@ -160,7 +162,7 @@ fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{BotConfig, CommandConfig, Config, ThreadConfig};
+    use crate::config::{BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig, NotificationsConfig, ThreadConfig};
     use std::sync::{Arc, Mutex};
 
     fn create_test_config() -> Config {
@@ -194,9 +196,10 @@ mod tests {
                 time_to_close_thread: 5,
                 create_ticket_by_create_channel: false,
             },
-            notifications: crate::config::NotificationsConfig::default(),
-            language: crate::config::LanguageConfig::default(),
-            error_handling: crate::config::ErrorHandlingConfig::default(),
+            notifications: NotificationsConfig::default(),
+            logs: LogsConfig::default(),
+            language: LanguageConfig::default(),
+            error_handling: ErrorHandlingConfig::default(),
             db_pool: None,
             error_handler: None,
             thread_locks: Arc::new(Mutex::new(Default::default())),

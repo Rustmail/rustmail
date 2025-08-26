@@ -266,12 +266,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "edit.modification_from_user".to_string(),
-        DictionaryMessage::new("L'utilisateur a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}")
+        DictionaryMessage::new("L'utilisateur a modifié son message.\n\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}")
     );
     dict.messages.insert(
         "edit.modification_from_staff".to_string(),
         DictionaryMessage::new(
-            "Un staff a modifié son message.\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}",
+            "Un staff a modifié son message.\n\nAvant:\n{before}\n\nAprès:\n{after}\n\nLien: {link}",
         ),
     );
     dict.messages.insert(

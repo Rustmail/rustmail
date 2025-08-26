@@ -237,6 +237,7 @@ impl EventHandler for GuildMessagesHandler {
                     };
 
                     if let Some(inbox_message_id) = message.inbox_message_id {
+                        
                         if let Err(e) =
                             edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
                                 .await
@@ -244,43 +245,45 @@ impl EventHandler for GuildMessagesHandler {
                             eprintln!("Failed to edit mirrored staff message: {}", e);
                             return;
                         }
+                        
+                        if self.config.logs.show_log_on_edit {
+                            let old_content: String = if let Some(old) = old_if_available {
+                                old.content
+                            } else {
+                                String::new()
+                            };
+                            let before = if old_content.is_empty() {
+                                "`(inconnu)`".to_string()
+                            } else {
+                                format!("`{}`", old_content)
+                            };
+                            let after = format!("`{}`", content.clone());
 
-                        let old_content: String = if let Some(old) = old_if_available {
-                            old.content
-                        } else {
-                            String::new()
-                        };
-                        let before = if old_content.is_empty() {
-                            "(inconnu)".to_string()
-                        } else {
-                            old_content
-                        };
-                        let after = content.clone();
+                            let guild_id = self.config.bot.get_community_guild_id();
+                            let message_link = format!(
+                                "https://discord.com/channels/{}/{}/{}",
+                                guild_id,
+                                channel_id_parse.get(),
+                                inbox_message_id
+                            );
 
-                        let guild_id = self.config.bot.get_community_guild_id();
-                        let message_link = format!(
-                            "https://discord.com/channels/{}/{}/{}",
-                            guild_id,
-                            channel_id_parse.get(),
-                            inbox_message_id
-                        );
+                            let mut params = HashMap::new();
+                            params.insert("before".to_string(), before);
+                            params.insert("after".to_string(), after);
+                            params.insert("link".to_string(), message_link);
 
-                        let mut params = HashMap::new();
-                        params.insert("before".to_string(), before);
-                        params.insert("after".to_string(), after);
-                        params.insert("link".to_string(), message_link);
-
-                        let _ = MessageBuilder::system_message(&ctx, &self.config)
-                            .translated_content(
-                                "edit.modification_from_user",
-                                Some(&params),
-                                Some(UserId::new(message.user_id as u64)),
-                                Some(guild_id),
-                            )
-                            .await
-                            .to_channel(channel_id_parse)
-                            .send()
-                            .await;
+                            let _ = MessageBuilder::system_message(&ctx, &self.config)
+                                .translated_content(
+                                    "edit.modification_from_user",
+                                    Some(&params),
+                                    Some(UserId::new(message.user_id as u64)),
+                                    Some(guild_id),
+                                )
+                                .await
+                                .to_channel(channel_id_parse)
+                                .send()
+                                .await;
+                        }
 
                         let _ = update_message_content(&inbox_message_id, &content, pool).await;
                     }
