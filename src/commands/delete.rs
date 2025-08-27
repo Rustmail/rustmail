@@ -100,7 +100,7 @@ async fn delete_discord_messages(
     msg: &Message,
     config: &Config,
     user_id: i64,
-    message_ids: &crate::db::operations::messages::MessageIds,
+    message_ids: &MessageIds,
 ) {
     delete_inbox_message(ctx, msg, config, message_ids).await;
     delete_dm_message(ctx, user_id, message_ids).await;
@@ -110,7 +110,7 @@ async fn delete_inbox_message(
     ctx: &Context,
     msg: &Message,
     config: &Config,
-    message_ids: &crate::db::operations::messages::MessageIds,
+    message_ids: &MessageIds,
 ) {
     if let Some(inbox_msg_id) = &message_ids.inbox_message_id
         && let Ok(msg_id) = inbox_msg_id.parse::<u64>()
@@ -127,7 +127,7 @@ async fn delete_inbox_message(
 async fn delete_dm_message(
     ctx: &Context,
     user_id: i64,
-    message_ids: &crate::db::operations::messages::MessageIds,
+    message_ids: &MessageIds,
 ) {
     if let Some(dm_msg_id) = &message_ids.dm_message_id
         && let Ok(msg_id) = dm_msg_id.parse::<u64>()
@@ -154,7 +154,7 @@ async fn delete_dm_message(
 }
 
 async fn delete_database_message(
-    message_ids: &crate::db::operations::messages::MessageIds,
+    message_ids: &MessageIds,
     pool: &sqlx::SqlitePool,
     ctx: &Context,
     msg: &Message,

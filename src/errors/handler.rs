@@ -5,6 +5,7 @@ use serenity::all::{ChannelId, Colour, Context, CreateEmbed, CreateMessage, Mess
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::errors::DiscordError;
 
 #[derive(Debug)]
 pub struct ErrorHandler {
@@ -243,7 +244,6 @@ impl ErrorHandler {
         match error {
             ModmailError::Database(_) => ErrorSeverity::High,
             ModmailError::Discord(discord_err) => {
-                use crate::errors::types::DiscordError;
                 match discord_err {
                     DiscordError::InvalidToken => ErrorSeverity::Critical,
                     DiscordError::PermissionDenied => ErrorSeverity::Medium,
