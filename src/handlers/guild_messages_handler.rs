@@ -263,7 +263,7 @@ impl EventHandler for GuildMessagesHandler {
             let mut params = HashMap::new();
 
             params.insert("content".to_string(), format!("`{}`", message_entry.content.clone()));
-            params.insert("userid".to_string(), format!("<@{}>", message_entry.user_id.to_string()));
+            params.insert("userid".to_string(), format!("<@{}>", message_entry.user_id));
 
             let is_staff_message = message_entry.message_number.is_some();
             let key = if is_staff_message { "delete.removed_by_staff" } else { "delete.removed_by_user" };
