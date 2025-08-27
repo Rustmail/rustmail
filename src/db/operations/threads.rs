@@ -64,6 +64,22 @@ pub async fn get_thread_by_channel_id(channel_id: &str, pool: &SqlitePool) -> Op
     .flatten()
 }
 
+pub async fn get_thread_by_id(thread_id: &str, pool: &SqlitePool) -> Option<Thread> {
+    sqlx::query_as!(
+        Thread,
+        "SELECT id, user_id, user_name, channel_id FROM threads WHERE id = ? AND status = 1",
+        thread_id
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Database error getting thread by id: {:?}", e);
+        e
+    })
+    .ok()
+    .flatten()
+}
+
 pub async fn get_user_id_from_channel_id(channel_id: &str, pool: &SqlitePool) -> Option<i64> {
     sqlx::query_scalar("SELECT user_id FROM threads WHERE channel_id = ? AND status = 1")
         .bind(channel_id)

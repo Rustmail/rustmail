@@ -552,7 +552,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "delete.removed_by_user".to_string(),
         DictionaryMessage::new("User {userid} deleted their message: \n\n{content}")
-            .with_description("Log entry when the end user deletes their DM message (mirrored in thread)")
+            .with_description(
+                "Log entry when the end user deletes their DM message (mirrored in thread)",
+            )
             .with_help("Parameters: content, number (optional if staff message)"),
     );
     dict.messages.insert(
