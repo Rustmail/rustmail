@@ -36,7 +36,6 @@ use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
-static LOGGED_DELETES: LazyLock<Mutex<HashSet<u64>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 type CommandFunc = Arc<StaticCommandFunc>;
 type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
@@ -195,36 +194,12 @@ impl EventHandler for GuildMessagesHandler {
             Err(_) => return,
         };
 
-        let mut skip_log = false;
-        {
-            let mut logged = LOGGED_DELETES.lock().unwrap();
-            let inbox_u64 = message_entry.inbox_message_id.as_ref().and_then(|s| s.parse::<u64>().ok());
-            let dm_u64 = message_entry.dm_message_id.as_ref().and_then(|s| s.parse::<u64>().ok());
-            let current_id = deleted_message_id.get();
-            if logged.contains(&current_id) {
-                return;
-            }
-            if let (Some(inbox_id), Some(dm_id)) = (inbox_u64, dm_u64) {
-                logged.insert(inbox_id);
-                logged.insert(dm_id);
-                if current_id != inbox_id {
-                    skip_log = true;
-                }
-            } else {
-                logged.insert(current_id);
-            }
-        }
-
         let is_dm = channel_id
             .to_channel(&ctx.http)
             .await
             .ok()
             .and_then(|c| c.private())
             .is_some();
-
-        if skip_log {
-            return;
-        }
 
         let thread_opt = get_thread_by_user_id(UserId::new(message_entry.user_id as u64), pool).await;
         let thread = match thread_opt { Some(t) => t, None => return };
@@ -258,7 +233,7 @@ impl EventHandler for GuildMessagesHandler {
             }
         }
 
-        if self.config.logs.show_log_on_edit && !is_dm {
+        if self.config.logs.show_log_on_edit {
             let guild_id = self.config.bot.get_community_guild_id();
             let mut params = HashMap::new();
 
