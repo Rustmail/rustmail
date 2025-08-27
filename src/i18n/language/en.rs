@@ -569,4 +569,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "add_staff.remove_success".to_string(),
         DictionaryMessage::new("The user {user} has been removed from the ticket successfully."),
     );
+    dict.messages.insert(
+        "id.show_id".to_string(),
+        DictionaryMessage::new("ID of {user} : {id}"),
+    );
 }
