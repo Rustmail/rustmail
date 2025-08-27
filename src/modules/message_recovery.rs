@@ -171,30 +171,11 @@ async fn recover_messages_for_thread(
             continue;
         }
 
-        if let Err(e) = insert_recovered_message(
-            &thread.id,
-            thread.user_id,
-            &thread.user_name,
-            &message.id.to_string(),
-            &content,
-            pool,
-        )
-        .await
-        {
-            eprintln!("Failed to insert recovered message: {}", e);
-            continue;
-        }
-
-        let _ = MessageBuilder::user_message(
-            ctx,
-            config,
-            message.author.id,
-            message.author.name.clone(),
-        )
-        .content(content)
-        .to_channel(channel_id)
-        .send()
-        .await;
+        let _ = MessageBuilder::begin_user_incoming(&ctx, config, thread.id.clone(), &message)
+            .to_thread(channel_id)
+            .content(content.clone())
+            .send_and_record(&pool)
+            .await;
 
         recovered_count += 1;
     }
