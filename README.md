@@ -13,6 +13,8 @@
 ## ⚠️ Warning ⚠️
 This is my first major project in Rust; while I have solid experience in C and other languages, I'm learning Rust as I go — feedback and PRs are welcome.
 
+Project documentation is currently being written.
+
 ---
 > Status: **Private Alpha** – **NON PRODUCTION-READY** (unstable, API & schema subject to change, data loss risk). Use at your own risk.
 >
