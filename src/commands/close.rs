@@ -108,13 +108,13 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             .unwrap_or(false);
         if existed {
             let _ = MessageBuilder::system_message(ctx, config)
-                .content("Fermeture programmée annulée.")
+                .translated_content("close.closure_canceled", None, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
         } else {
             let _ = MessageBuilder::system_message(ctx, config)
-                .content("Aucune fermeture programmée à annuler.")
+                .translated_content("close.no_scheduled_closures_to_cancel", None, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
@@ -125,9 +125,13 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
     if duration.is_none() {
         if let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await {
             let remaining = existing.close_at - Utc::now().timestamp();
+
+            let mut params = HashMap::new();
+            params.insert("seconds".to_string(), remaining.to_string());
+
             if remaining > 0 {
                 let _ = MessageBuilder::system_message(ctx, config)
-                    .content(format!("Une fermeture est déjà programmée dans {} secondes. Utilisez !close cancel pour l'annuler.", remaining))
+                    .translated_content("close.closure_already_scheduled", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
                     .to_channel(msg.channel_id)
                     .send().await;
                 return Ok(());
@@ -146,16 +150,22 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         } else {
             format!("{}d{}h", delay_secs / 86400, (delay_secs % 86400) / 3600)
         };
-        let confirmation = if silent {
-            format!("Ce ticket sera fermé silencieusement dans {human}.")
+        let mut params = HashMap::new();
+        params.insert("time".to_string(), human);
+        
+        let _ = if silent {
+            let _ = MessageBuilder::system_message(ctx, config)
+                .translated_content("close.silent_closing", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
         } else {
-            format!("Ce ticket sera fermé dans {human}.")
+            let _ = MessageBuilder::system_message(ctx, config)
+                .translated_content("close.closing", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .to_channel(msg.channel_id)
+                .send()
+                .await;
         };
-        let _ = MessageBuilder::system_message(ctx, config)
-            .content(confirmation)
-            .to_channel(msg.channel_id)
-            .send()
-            .await;
 
         let thread_id = thread.id.clone();
         let close_at = Utc::now().timestamp() + delay.as_secs() as i64;

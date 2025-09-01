@@ -575,4 +575,28 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "id.show_id".to_string(),
         DictionaryMessage::new("ID of {user} : {id}"),
     );
+    dict.messages.insert(
+        "close.closure_canceled".to_string(),
+        DictionaryMessage::new("Closure canceled."),
+    );
+    dict.messages.insert(
+        "close.no_scheduled_closures_to_cancel".to_string(),
+        DictionaryMessage::new("No scheduled closures to cancel."),
+    );
+    dict.messages.insert(
+        "close.closure_already_scheduled".to_string(),
+        DictionaryMessage::new("A closing is already scheduled in {seconds} seconds. Use !close cancel to cancel it."),
+    );
+    dict.messages.insert(
+        "close.closing".to_string(),
+        DictionaryMessage::new("This ticket will be closed in {time}."),
+    );
+    dict.messages.insert(
+        "close.silent_closing".to_string(),
+        DictionaryMessage::new("This ticket will be closed silently in {time}."),
+    );
+    dict.messages.insert(
+        "feature.not_implemented".to_string(),
+        DictionaryMessage::new("This feature is not yet implemented."),
+    );
 }
