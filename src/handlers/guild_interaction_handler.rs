@@ -3,10 +3,10 @@ use crate::features::handle_feature_component_interaction;
 use crate::modules::threads::{
     handle_thread_component_interaction, handle_thread_modal_interaction,
 };
+use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
 use serenity::builder::CreateInteractionResponse;
-use crate::utils::message::message_builder::MessageBuilder;
 
 #[derive(Clone)]
 pub struct InteractionHandler {

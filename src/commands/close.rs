@@ -108,13 +108,25 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
             .unwrap_or(false);
         if existed {
             let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content("close.closure_canceled", None, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .translated_content(
+                    "close.closure_canceled",
+                    None,
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
         } else {
             let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content("close.no_scheduled_closures_to_cancel", None, Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .translated_content(
+                    "close.no_scheduled_closures_to_cancel",
+                    None,
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
@@ -131,9 +143,16 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
 
             if remaining > 0 {
                 let _ = MessageBuilder::system_message(ctx, config)
-                    .translated_content("close.closure_already_scheduled", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                    .translated_content(
+                        "close.closure_already_scheduled",
+                        Some(&params),
+                        Some(msg.author.id),
+                        msg.guild_id.map(|g| g.get()),
+                    )
+                    .await
                     .to_channel(msg.channel_id)
-                    .send().await;
+                    .send()
+                    .await;
                 return Ok(());
             }
         }
@@ -152,16 +171,28 @@ pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         };
         let mut params = HashMap::new();
         params.insert("time".to_string(), human);
-        
+
         let _ = if silent {
             let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content("close.silent_closing", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .translated_content(
+                    "close.silent_closing",
+                    Some(&params),
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;
         } else {
             let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content("close.closing", Some(&params), Some(msg.author.id), msg.guild_id.map(|g| g.get())).await
+                .translated_content(
+                    "close.closing",
+                    Some(&params),
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
                 .to_channel(msg.channel_id)
                 .send()
                 .await;

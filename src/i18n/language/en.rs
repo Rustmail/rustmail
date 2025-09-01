@@ -585,7 +585,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "close.closure_already_scheduled".to_string(),
-        DictionaryMessage::new("A closing is already scheduled in {seconds} seconds. Use !close cancel to cancel it."),
+        DictionaryMessage::new(
+            "A closing is already scheduled in {seconds} seconds. Use !close cancel to cancel it.",
+        ),
     );
     dict.messages.insert(
         "close.closing".to_string(),

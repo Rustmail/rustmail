@@ -153,10 +153,17 @@ pub async fn handle_thread_modal_interaction(
         None => {
             let response = CreateInteractionResponse::Message(
                 MessageBuilder::system_message(&ctx, &config)
-                    .translated_content("feature.not_implemented", None, Some(interaction.user.id), interaction.guild_id.map(|g| g.get())).await
+                    .translated_content(
+                        "feature.not_implemented",
+                        None,
+                        Some(interaction.user.id),
+                        interaction.guild_id.map(|g| g.get()),
+                    )
+                    .await
                     .to_channel(interaction.channel_id)
-                    .build_interaction_message().await
-                    .ephemeral(true)
+                    .build_interaction_message()
+                    .await
+                    .ephemeral(true),
             );
             let _ = interaction.create_response(&ctx.http, response).await;
             return Ok(());
@@ -495,10 +502,17 @@ pub async fn handle_thread_component_interaction(
         None => {
             let response = CreateInteractionResponse::Message(
                 MessageBuilder::system_message(&ctx, &config)
-                    .translated_content("feature.not_implemented", None, Some(interaction.user.id), interaction.guild_id.map(|g| g.get())).await
+                    .translated_content(
+                        "feature.not_implemented",
+                        None,
+                        Some(interaction.user.id),
+                        interaction.guild_id.map(|g| g.get()),
+                    )
+                    .await
                     .to_channel(interaction.channel_id)
-                    .build_interaction_message().await
-                    .ephemeral(true)
+                    .build_interaction_message()
+                    .await
+                    .ephemeral(true),
             );
             let _ = interaction.create_response(&ctx.http, response).await;
             return Ok(());
