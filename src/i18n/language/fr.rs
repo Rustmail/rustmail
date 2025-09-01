@@ -596,4 +596,28 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "id.show_id".to_string(),
         DictionaryMessage::new("ID de {user} : {id}"),
     );
+    dict.messages.insert(
+        "close.closure_canceled".to_string(),
+        DictionaryMessage::new("Fermeture programmée annulée."),
+    );
+    dict.messages.insert(
+        "close.no_scheduled_closures_to_cancel".to_string(),
+        DictionaryMessage::new("Aucune fermeture programmée à annuler."),
+    );
+    dict.messages.insert(
+        "close.closure_already_scheduled".to_string(),
+        DictionaryMessage::new("Une fermeture est déjà programmée dans {seconds} secondes. Utilisez !close cancel pour l'annuler."),
+    );
+    dict.messages.insert(
+        "close.closing".to_string(),
+        DictionaryMessage::new("Ce ticket sera fermé dans {time}."),
+    );
+    dict.messages.insert(
+        "close.silent_closing".to_string(),
+        DictionaryMessage::new("Ce ticket sera fermé silencieusement dans {time}."),
+    );
+    dict.messages.insert(
+        "feature.not_implemented".to_string(),
+        DictionaryMessage::new("Cette feature n'est pas encore implémentée."),
+    );
 }

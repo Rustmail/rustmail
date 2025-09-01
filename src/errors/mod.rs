@@ -72,8 +72,8 @@ pub mod common {
 
 pub mod results {
     use super::*;
-    use serenity::all::{Channel, Message};
     use crate::db::repr::Thread;
+    use serenity::all::{Channel, Message};
 
     pub type DatabaseResult<T> = Result<T, DatabaseError>;
 

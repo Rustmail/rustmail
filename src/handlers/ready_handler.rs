@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
+use crate::modules::scheduled_closures::hydrate_scheduled_closures;
 use serenity::all::ActivityData;
 use serenity::{
     all::{Context, EventHandler, Ready},
@@ -33,6 +34,7 @@ impl EventHandler for ReadyHandler {
                 let recovery_results = recover_missing_messages(&ctx, &config).await;
                 send_recovery_summary(&ctx, &config, &recovery_results).await;
                 sync_features(&ctx, &config).await;
+                hydrate_scheduled_closures(&ctx, &config).await;
             }
         });
     }

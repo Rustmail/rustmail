@@ -124,11 +124,7 @@ async fn delete_inbox_message(
     }
 }
 
-async fn delete_dm_message(
-    ctx: &Context,
-    user_id: i64,
-    message_ids: &MessageIds,
-) {
+async fn delete_dm_message(ctx: &Context, user_id: i64, message_ids: &MessageIds) {
     if let Some(dm_msg_id) = &message_ids.dm_message_id
         && let Ok(msg_id) = dm_msg_id.parse::<u64>()
     {

@@ -1,3 +1,4 @@
+use crate::errors::DiscordError;
 use crate::errors::dictionary::DictionaryManager;
 use crate::errors::types::{ModmailError, ModmailResult};
 use crate::i18n::languages::{Language, LanguageDetector, LanguagePreferences};
@@ -5,7 +6,6 @@ use serenity::all::{ChannelId, Colour, Context, CreateEmbed, CreateMessage, Mess
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::errors::DiscordError;
 
 #[derive(Debug)]
 pub struct ErrorHandler {
@@ -243,14 +243,12 @@ impl ErrorHandler {
     pub fn get_error_severity(&self, error: &ModmailError) -> ErrorSeverity {
         match error {
             ModmailError::Database(_) => ErrorSeverity::High,
-            ModmailError::Discord(discord_err) => {
-                match discord_err {
-                    DiscordError::InvalidToken => ErrorSeverity::Critical,
-                    DiscordError::PermissionDenied => ErrorSeverity::Medium,
-                    DiscordError::RateLimited => ErrorSeverity::Medium,
-                    _ => ErrorSeverity::Low,
-                }
-            }
+            ModmailError::Discord(discord_err) => match discord_err {
+                DiscordError::InvalidToken => ErrorSeverity::Critical,
+                DiscordError::PermissionDenied => ErrorSeverity::Medium,
+                DiscordError::RateLimited => ErrorSeverity::Medium,
+                _ => ErrorSeverity::Low,
+            },
             ModmailError::Command(_) => ErrorSeverity::Low,
             ModmailError::Thread(_) => ErrorSeverity::Medium,
             ModmailError::Message(_) => ErrorSeverity::Low,

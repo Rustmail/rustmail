@@ -1,11 +1,11 @@
-use serenity::all::{Context, Message};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
-use crate::errors::{ModmailError, ModmailResult};
-use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::ThreadError::NotAThreadChannel;
+use crate::errors::common::{database_connection_failed, thread_not_found};
+use crate::errors::{ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{Context, Message};
 
 pub async fn id(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
@@ -21,10 +21,14 @@ pub async fn id(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<
 
         let mut params = std::collections::HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", thread.user_id));
-        params.insert("id".to_string(), format!("||{}||", thread.user_id.to_string()));
+        params.insert(
+            "id".to_string(),
+            format!("||{}||", thread.user_id.to_string()),
+        );
 
         let _ = MessageBuilder::system_message(ctx, config)
-            .translated_content("id.show_id", Some(&params), None, None).await
+            .translated_content("id.show_id", Some(&params), None, None)
+            .await
             .to_channel(msg.channel_id)
             .send()
             .await?;
