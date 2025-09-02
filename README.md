@@ -10,6 +10,10 @@
 [ ![discord-shield][] ][discord-invite]
 
 ---
+A Discord modmail bot written in Rust that allows staff to manage support tickets via channels, with features like message editing, internationalization, structured error handling, and more.
+The bot can operate in single-server or dual-server modes, supports SQLite for data storage, and offers a range of commands for staff to interact with users efficiently.
+
+---
 ## ⚠️ Warning ⚠️
 This is my first major project in Rust; while I have solid experience in C and other languages, I'm learning Rust as I go — feedback and PRs are welcome.
 
@@ -137,12 +141,6 @@ auto_delete_error_messages = true
 error_message_ttl = 30
 ```
 
-### Internal Validation
-- Ensures `enable_logs` ↔ `logs_channel_id`
-- Ensures `enable_features` ↔ `features_channel_id`
-- Validates guild IDs (bot access) before startup
-- Parses hex colors (panic if invalid)
-
 ---
 ## Commands (Prefix configurable – default `!`)
 General format: `!command [arguments]`
@@ -168,11 +166,7 @@ General format: `!command [arguments]`
 | test_all_errors                  | —     | Sequential demo of various errors                                                                               | `!test_all_errors`               |
 
 Notes:
-- `edit`, `delete`, and `reply` must be inside a valid thread channel.
 - `move` uses Levenshtein matching (~50% distance threshold) on category names.
-- `anonreply` hides staff identity from the user.
-- Alerts: subscribed staff are mentioned when the user sends a new message; the subscription is marked as used afterward.
-- System notices indicate if a user has left the server or isn’t in the community guild.
 
 ---
 ## Internationalization (i18n)
@@ -197,24 +191,13 @@ Notes:
 ```bash
 git clone https://github.com/Akinator31/rustmail.git
 cd rustmail
-cp config.example.toml config.toml   # Edit values
+cp config.example.toml config.toml
 cargo run --release
 ```
 
 ### Critical Variables
 - Keep `bot.token` secret (do not commit).
 - Enable required privileged intents (MESSAGE CONTENT, GUILD MEMBERS, PRESENCES) in the developer portal.
-
----
-## Security / Permissions (Current Partial State)
-- Staff detection mostly implicit (e.g. staff guild presence; granular role enforcement to improve).
-- Recommendation: restrict inbox category access via Discord roles.
-- No exhaustive sanitization audit (user content stored verbatim).
-
-Security roadmap:
-- Configurable role matrix per command
-- Rate limiting
-- Dangerous attachment filtering
 
 ---
 ## Roadmap
@@ -242,7 +225,7 @@ MIT. See LICENSE file.
 Alpha phase: open descriptive issues (bugs, UX). PRs accepted after discussion.
 
 ---
-## ⚠️ Final Disclaimer
+## Final Disclaimer
 Project is in **alpha**. APIs, structures, schemas and behaviors may change without backward compatibility. Do not use in critical environments or with sensitive data. Make frequent backups.
 
 ---
