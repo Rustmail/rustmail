@@ -9,9 +9,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     reviewers:
-      - "@modmailbot_rs"
+      - "@rustmail"
     assignees:
-      - "@modmailbot_rs"
+      - "@rustmail"
     labels:
       - "dependencies"
       - "rust"
@@ -28,9 +28,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "@modmailbot_rs"
+      - "@rustmail"
     assignees:
-      - "@modmailbot_rs"
+      - "@rustmail"
     labels:
       - "dependencies"
       - "javascript"
