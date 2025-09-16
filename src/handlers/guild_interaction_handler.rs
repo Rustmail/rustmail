@@ -7,6 +7,7 @@ use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
 use serenity::builder::CreateInteractionResponse;
+use crate ::commands;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
@@ -43,6 +44,17 @@ impl EventHandler for InteractionHandler {
                 {
                     return;
                 }
+            }
+            Interaction::Command(mut command) => {
+                let content = match command.data.name.as_str() {
+                    "id" => {
+                        return;
+                    },
+                    _ => {
+                        println!("Command not implemented: {}", command.data.name);
+                        return;
+                    },
+                };
             }
             _ => {}
         }
