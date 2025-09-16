@@ -45,16 +45,23 @@ impl EventHandler for InteractionHandler {
                     return;
                 }
             }
-            Interaction::Command(mut command) => {
-                let content = match command.data.name.as_str() {
-                    "id" => {
-                        return;
-                    },
+            Interaction::Command(command) => {
+                let content: String = match command.data.name.as_str() {
+                    "id" => commands::id::run(&command, &command.data.options(), &self.config).await,
                     _ => {
                         println!("Command not implemented: {}", command.data.name);
                         return;
                     },
                 };
+
+                let response = CreateInteractionResponse::Message(
+                    MessageBuilder::system_message(&ctx, &self.config)
+                        .content(content)
+                        .to_channel(command.channel_id)
+                        .build_interaction_message()
+                        .await,
+                );
+                let _ = command.create_response(&ctx.http, response).await;
             }
             _ => {}
         }
