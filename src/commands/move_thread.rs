@@ -3,8 +3,19 @@ use crate::db::operations::get_user_id_from_channel_id;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ChannelId, Context, EditChannel, GuildId, Message};
+use serenity::all::{ChannelId, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, EditChannel, GuildId, Message, ResolvedOption};
 use std::collections::HashMap;
+
+pub fn register() -> CreateCommand {
+    CreateCommand::new("move").description("Move a thread in an other category").add_option(
+        CreateCommandOption::new(CommandOptionType::String, "category", "The category where you want to move the thread")
+            .required(true)
+    )
+}
+
+pub async fn run(command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
+    "in progress".to_string()
+}
 
 pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config
