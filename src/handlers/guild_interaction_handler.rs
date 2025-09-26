@@ -47,8 +47,8 @@ impl EventHandler for InteractionHandler {
             }
             Interaction::Command(command) => {
                 let content: String = match command.data.name.as_str() {
-                    "id" => commands::id::run(&command, &command.data.options(), &self.config).await,
-                    "move" => commands::move_thread::run(&command, &command.data.options(), &self.config).await,
+                    "id" => commands::id::run(&ctx, &command, &command.data.options(), &self.config).await,
+                    "move" => commands::move_thread::run(&ctx, &command, &command.data.options(), &self.config).await,
                     _ => {
                         println!("Command not implemented: {}", command.data.name);
                         return;

@@ -13,8 +13,110 @@ pub fn register() -> CreateCommand {
     )
 }
 
-pub async fn run(command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
-    "in progress".to_string()
+pub async fn run(ctx: &Context, command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
+    let pool = match &config.db_pool {
+        Some(pool) => pool,
+        None => {
+            return get_translated_message(
+                config,
+                "database.connection_failed",
+                None,
+                Some(command.user.id),
+                command.guild_id.map(|g| g.get()),
+                None,
+            )
+                .await;
+        }
+    };
+
+    if !get_user_id_from_channel_id(&command.channel_id.to_string(), pool).await.is_some() {
+        return get_translated_message(
+            config,
+            "move.not_in_thread",
+            None,
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+            None,
+        ).await;
+    }
+
+    let category_name = match command.data.options.iter().find(|opt| opt.name == "category") {
+        Some(opt) => match &opt.value {
+            serenity::all::CommandDataOptionValue::String(name) => name.trim().to_string(),
+            _ => String::new(),
+        },
+        None => String::new(),
+    };
+
+
+    if category_name.is_empty() {
+        return get_translated_message(
+            config,
+            "move.missing_category",
+            None,
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+            None,
+        ).await;
+    }
+
+    let categories = fetch_server_categories(ctx, config).await;
+    if categories.is_empty() {
+        return get_translated_message(
+            config,
+            "move.failed_to_fetch_categories",
+            None,
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+            None,
+        ).await;
+    }
+
+    let target_category = find_best_match_category(&category_name, &categories);
+
+    match target_category {
+        Some((category_id, category_name)) => {
+            if let Err(e) = move_channel_to_category_by_command_option(ctx, command, category_id).await {
+                eprintln!("Failed to move channel: {}", e);
+                return get_translated_message(
+                    config,
+                    "move.failed_to_move",
+                    None,
+                    Some(command.user.id),
+                    command.guild_id.map(|g| g.get()),
+                    None,
+                ).await
+            }
+
+            let mut params = HashMap::new();
+            params.insert("category".to_string(), category_name.to_string());
+            params.insert("staff".to_string(), command.user.name.clone());
+
+            get_translated_message(
+                config,
+                "move.success",
+                Some(&params),
+                Some(command.user.id),
+                command.guild_id.map(|g| g.get()),
+                None,
+            )
+                .await
+        }
+        None => {
+            let mut params = HashMap::new();
+            params.insert("category".to_string(), category_name);
+
+            get_translated_message(
+                config,
+                "move.category_not_found",
+                Some(&params),
+                Some(command.user.id),
+                command.guild_id.map(|g| g.get()),
+                None,
+            )
+                .await
+        }
+    }
 }
 
 pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
@@ -44,7 +146,7 @@ pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> Modma
 
     match target_category {
         Some((category_id, category_name)) => {
-            if let Err(e) = move_channel_to_category(ctx, msg, category_id).await {
+            if let Err(e) = move_channel_to_category_by_msg(ctx, msg, category_id).await {
                 eprintln!("Failed to move channel: {}", e);
                 send_error_message(ctx, msg, config, "move.failed_to_move", None).await;
                 return Ok(());
@@ -102,12 +204,22 @@ async fn fetch_server_categories(ctx: &Context, config: &Config) -> Vec<(Channel
     }
 }
 
-async fn move_channel_to_category(
+async fn move_channel_to_category_by_msg(
     ctx: &Context,
     msg: &Message,
     category_id: ChannelId,
 ) -> Result<serenity::model::channel::GuildChannel, serenity::Error> {
     msg.channel_id
+        .edit(&ctx.http, EditChannel::new().category(category_id))
+        .await
+}
+
+async fn move_channel_to_category_by_command_option(
+    ctx: &Context,
+    command: &CommandInteraction,
+    category_id: ChannelId,
+) -> Result<serenity::model::channel::GuildChannel, serenity::Error> {
+    command.channel_id
         .edit(&ctx.http, EditChannel::new().category(category_id))
         .await
 }
