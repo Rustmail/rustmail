@@ -43,6 +43,7 @@ impl EventHandler for ReadyHandler {
 
         let commands = guild_id.set_commands(&ctx.http, vec![
             commands::id::register(),
+            commands::move_thread::register(),
         ]).await;
 
         println!("I now have the following guild slash commands: {commands:#?}");

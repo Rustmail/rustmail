@@ -12,7 +12,7 @@ pub fn register() -> CreateCommand {
     CreateCommand::new("id").description("Get ID of the user in the thread")
 }
 
-pub async fn run(command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
+pub async fn run(_ctx: &Context, command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
     let pool = match &config.db_pool {
         Some(pool) => pool,
         None => {
