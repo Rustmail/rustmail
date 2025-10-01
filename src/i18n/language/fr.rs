@@ -65,6 +65,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_help("Utilisez `{prefix}help` pour voir les commandes disponibles"),
     );
     dict.messages.insert(
+        "command.unknown_slash_command".to_string(),
+        DictionaryMessage::new("Slash Commande inconnue : {command}"),
+    );
+    dict.messages.insert(
         "command.insufficient_permissions".to_string(),
         DictionaryMessage::new("Permissions insuffisantes").with_description(
             "Vous n'avez pas les permissions requises pour utiliser cette commande",
@@ -214,6 +218,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "thread.modal_user_not_found".to_string(),
         DictionaryMessage::new(
             "L'utilisateur spécifié est introuvable, veuillez en choisir un autre.",
+        ),
+    );
+    dict.messages.insert(
+        "thread.category_not_found".to_string(),
+        DictionaryMessage::new(
+            "La catégorie spécifiée pour les tickets n'existe pas sur le serveur.",
         ),
     );
     dict.messages.insert(

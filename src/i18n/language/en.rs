@@ -67,6 +67,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_help("Use `{prefix}help` to see available commands"),
     );
     dict.messages.insert(
+        "command.unknown_slash_command".to_string(),
+        DictionaryMessage::new("Unknown Slash Command: {command}"),
+    );
+    dict.messages.insert(
         "command.insufficient_permissions".to_string(),
         DictionaryMessage::new("Insufficient permissions")
             .with_description("You don't have the required permissions to use this command"),
@@ -98,6 +102,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "thread.modal_invalid_user_id".to_string(),
         DictionaryMessage::new("Invalid user ID"),
+    );
+    dict.messages.insert(
+        "thread.category_not_found".to_string(),
+        DictionaryMessage::new("Category not found in the server."),
     );
     dict.messages.insert(
         "message.not_found".to_string(),
