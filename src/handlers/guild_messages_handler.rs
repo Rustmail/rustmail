@@ -117,7 +117,9 @@ async fn manage_incoming_message(
             .await;
 
             let error = common::validation_failed(&error_msg);
-            let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+            let _ = error_handler
+                .reply_to_msg_with_error(ctx, msg, &error)
+                .await;
             return Err(error);
         }
     }
@@ -136,7 +138,9 @@ async fn manage_incoming_message(
 
             if let Err(e) = send_to_thread(ctx, channel_id, msg, config, false).await {
                 let error = common::validation_failed(&format!("Failed to forward message: {}", e));
-                let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+                let _ = error_handler
+                    .reply_to_msg_with_error(ctx, msg, &error)
+                    .await;
                 return Err(error);
             }
         }
@@ -154,7 +158,9 @@ impl EventHandler for GuildMessagesHandler {
         if msg.guild_id.is_none() {
             if let Err(error) = manage_incoming_message(&ctx, &msg, &self.config).await {
                 if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                    let _ = error_handler
+                        .reply_to_msg_with_error(&ctx, &msg, &error)
+                        .await;
                 } else {
                     eprintln!("DM handling error: {}", error);
                 }
@@ -175,7 +181,9 @@ impl EventHandler for GuildMessagesHandler {
                     command_func(ctx.clone(), msg.clone(), self.config.clone()).await
             {
                 if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                    let _ = error_handler
+                        .reply_to_msg_with_error(&ctx, &msg, &error)
+                        .await;
                 } else {
                     eprintln!("Command error: {}", error);
                 }
