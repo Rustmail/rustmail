@@ -115,7 +115,9 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
 
         let error = validation_failed(&error_msg);
         if let Some(error_handler) = &config.error_handler {
-            let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+            let _ = error_handler
+                .reply_to_msg_with_error(ctx, msg, &error)
+                .await;
         }
         return;
     }

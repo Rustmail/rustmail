@@ -53,6 +53,8 @@ pub enum DiscordError {
     MessageTooLong,
     ChannelCreationFailed,
     DmCreationFailed,
+    FailedToFetchCategories,
+    FailedToMoveChannel,
 }
 
 #[derive(Debug, Clone)]
@@ -61,10 +63,12 @@ pub enum CommandError {
     MissingArguments,
     InvalidArguments(String),
     UnknownCommand(String),
+    UnknownSlashCommand(String),
     CommandFailed(String),
     InsufficientPermissions,
     CommandNotAvailable,
     CooldownActive(u64),
+    NotInThread(),
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +84,7 @@ pub enum ThreadError {
     UserNotInTheServer,
     UserStillInServer,
     NotAThreadChannel,
+    CategoryNotFound,
 }
 
 #[derive(Debug, Clone)]
@@ -178,6 +183,8 @@ impl fmt::Display for DiscordError {
             DiscordError::MessageTooLong => write!(f, "Message too long"),
             DiscordError::ChannelCreationFailed => write!(f, "Failed to create channel"),
             DiscordError::DmCreationFailed => write!(f, "Failed to create DM channel"),
+            DiscordError::FailedToFetchCategories => write!(f, "Failed to fetch categories"),
+            DiscordError::FailedToMoveChannel => write!(f, "Failed to move channel"),
         }
     }
 }
@@ -189,12 +196,14 @@ impl fmt::Display for CommandError {
             CommandError::MissingArguments => write!(f, "Missing arguments"),
             CommandError::InvalidArguments(arg) => write!(f, "Invalid arguments: {}", arg),
             CommandError::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
+            CommandError::UnknownSlashCommand(cmd) => write!(f, "Unknown slash command: {}", cmd),
             CommandError::CommandFailed(msg) => write!(f, "Command failed: {}", msg),
             CommandError::InsufficientPermissions => write!(f, "Insufficient permissions"),
             CommandError::CommandNotAvailable => write!(f, "Command not available"),
             CommandError::CooldownActive(seconds) => {
                 write!(f, "Cooldown active: {} seconds", seconds)
             }
+            CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
         }
     }
 }
@@ -216,6 +225,7 @@ impl fmt::Display for ThreadError {
                 "User still in the server. Use the 'close' command to close this ticket."
             ),
             ThreadError::NotAThreadChannel => write!(f, "This channel is not a ticket channel"),
+            ThreadError::CategoryNotFound => write!(f, "Category not found"),
         }
     }
 }

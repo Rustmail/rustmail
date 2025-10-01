@@ -1,46 +1,55 @@
 use crate::config::Config;
 use crate::db::operations::get_user_id_from_channel_id;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{
+    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, ThreadError, common,
+};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ChannelId, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, EditChannel, GuildId, Message, ResolvedOption};
+use serenity::all::{
+    ChannelId, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    CreateInteractionResponse, EditChannel, GuildId, Message, ResolvedOption,
+};
 use std::collections::HashMap;
 
 pub fn register() -> CreateCommand {
-    CreateCommand::new("move").description("Move a thread in an other category").add_option(
-        CreateCommandOption::new(CommandOptionType::String, "category", "The category where you want to move the thread")
-            .required(true)
-    )
+    CreateCommand::new("move")
+        .description("Move a thread in an other category")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "category",
+                "The category where you want to move the thread",
+            )
+            .required(true),
+        )
 }
 
-pub async fn run(ctx: &Context, command: &CommandInteraction, _options: &[ResolvedOption<'_>], config: &Config) -> String {
+pub async fn run(
+    ctx: &Context,
+    command: &CommandInteraction,
+    _options: &[ResolvedOption<'_>],
+    config: &Config,
+) -> ModmailResult<()> {
     let pool = match &config.db_pool {
         Some(pool) => pool,
         None => {
-            return get_translated_message(
-                config,
-                "database.connection_failed",
-                None,
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-                None,
-            )
-                .await;
+            return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
         }
     };
 
-    if !get_user_id_from_channel_id(&command.channel_id.to_string(), pool).await.is_some() {
-        return get_translated_message(
-            config,
-            "move.not_in_thread",
-            None,
-            Some(command.user.id),
-            command.guild_id.map(|g| g.get()),
-            None,
-        ).await;
+    if !get_user_id_from_channel_id(&command.channel_id.to_string(), pool)
+        .await
+        .is_some()
+    {
+        return Err(ModmailError::Command(CommandError::NotInThread()));
     }
 
-    let category_name = match command.data.options.iter().find(|opt| opt.name == "category") {
+    let category_name = match command
+        .data
+        .options
+        .iter()
+        .find(|opt| opt.name == "category")
+    {
         Some(opt) => match &opt.value {
             serenity::all::CommandDataOptionValue::String(name) => name.trim().to_string(),
             _ => String::new(),
@@ -48,73 +57,53 @@ pub async fn run(ctx: &Context, command: &CommandInteraction, _options: &[Resolv
         None => String::new(),
     };
 
-
     if category_name.is_empty() {
-        return get_translated_message(
-            config,
-            "move.missing_category",
-            None,
-            Some(command.user.id),
-            command.guild_id.map(|g| g.get()),
-            None,
-        ).await;
+        return Err(ModmailError::Thread(ThreadError::CategoryNotFound));
     }
 
     let categories = fetch_server_categories(ctx, config).await;
     if categories.is_empty() {
-        return get_translated_message(
-            config,
-            "move.failed_to_fetch_categories",
-            None,
-            Some(command.user.id),
-            command.guild_id.map(|g| g.get()),
-            None,
-        ).await;
+        return Err(ModmailError::Discord(DiscordError::FailedToFetchCategories));
     }
 
     let target_category = find_best_match_category(&category_name, &categories);
 
     match target_category {
         Some((category_id, category_name)) => {
-            if let Err(e) = move_channel_to_category_by_command_option(ctx, command, category_id).await {
+            if let Err(e) =
+                move_channel_to_category_by_command_option(ctx, command, category_id).await
+            {
                 eprintln!("Failed to move channel: {}", e);
-                return get_translated_message(
-                    config,
-                    "move.failed_to_move",
-                    None,
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                    None,
-                ).await
+                return Err(ModmailError::Discord(DiscordError::FailedToMoveChannel));
             }
 
             let mut params = HashMap::new();
             params.insert("category".to_string(), category_name.to_string());
             params.insert("staff".to_string(), command.user.name.clone());
 
-            get_translated_message(
-                config,
-                "move.success",
-                Some(&params),
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-                None,
-            )
+            let response = MessageBuilder::system_message(&ctx, &config)
+                .translated_content(
+                    "move.success",
+                    Some(&params),
+                    Some(command.user.id),
+                    command.guild_id.map(|g| g.get()),
+                )
                 .await
+                .to_channel(command.channel_id)
+                .build_interaction_message()
+                .await;
+
+            command
+                .create_response(&ctx.http, CreateInteractionResponse::Message(response))
+                .await?;
+
+            Ok(())
         }
         None => {
             let mut params = HashMap::new();
             params.insert("category".to_string(), category_name);
 
-            get_translated_message(
-                config,
-                "move.category_not_found",
-                Some(&params),
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-                None,
-            )
-                .await
+            Err(ModmailError::Thread(ThreadError::CategoryNotFound))
         }
     }
 }
@@ -219,7 +208,8 @@ async fn move_channel_to_category_by_command_option(
     command: &CommandInteraction,
     category_id: ChannelId,
 ) -> Result<serenity::model::channel::GuildChannel, serenity::Error> {
-    command.channel_id
+    command
+        .channel_id
         .edit(&ctx.http, EditChannel::new().category(category_id))
         .await
 }

@@ -1,13 +1,12 @@
+use crate::commands;
 use crate::config::Config;
+use crate::errors::{CommandError, ModmailError};
 use crate::features::handle_feature_component_interaction;
 use crate::modules::threads::{
     handle_thread_component_interaction, handle_thread_modal_interaction,
 };
-use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
-use serenity::builder::CreateInteractionResponse;
-use crate ::commands;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
@@ -46,23 +45,34 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
-                let content: String = match command.data.name.as_str() {
-                    "id" => commands::id::run(&ctx, &command, &command.data.options(), &self.config).await,
-                    "move" => commands::move_thread::run(&ctx, &command, &command.data.options(), &self.config).await,
-                    _ => {
-                        println!("Command not implemented: {}", command.data.name);
-                        return;
-                    },
+                let command_return = match command.data.name.as_str() {
+                    "id" => {
+                        commands::id::run(&ctx, &command, &command.data.options(), &self.config)
+                            .await
+                    }
+                    "move" => {
+                        commands::move_thread::run(
+                            &ctx,
+                            &command,
+                            &command.data.options(),
+                            &self.config,
+                        )
+                        .await
+                    }
+                    _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
+                        command.data.name.clone(),
+                    ))),
                 };
 
-                let response = CreateInteractionResponse::Message(
-                    MessageBuilder::system_message(&ctx, &self.config)
-                        .content(content)
-                        .to_channel(command.channel_id)
-                        .build_interaction_message()
-                        .await,
-                );
-                let _ = command.create_response(&ctx.http, response).await;
+                if let Err(error) = command_return {
+                    if let Some(error_handler) = &self.config.error_handler {
+                        let _ = error_handler
+                            .reply_to_command_with_error(&ctx, &command, &error)
+                            .await;
+                    } else {
+                        eprintln!("Command error: {}", error);
+                    }
+                }
             }
             _ => {}
         }

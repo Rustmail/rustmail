@@ -1,3 +1,4 @@
+use crate::commands;
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
@@ -7,7 +8,6 @@ use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
 };
-use crate ::commands;
 
 #[derive(Clone)]
 pub struct ReadyHandler {
@@ -41,11 +41,11 @@ impl EventHandler for ReadyHandler {
 
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
 
-        let commands = guild_id.set_commands(&ctx.http, vec![
-            commands::id::register(),
-            commands::move_thread::register(),
-        ]).await;
-
-        println!("I now have the following guild slash commands: {commands:#?}");
+        let _ = guild_id
+            .set_commands(
+                &ctx.http,
+                vec![commands::id::register(), commands::move_thread::register()],
+            )
+            .await;
     }
 }

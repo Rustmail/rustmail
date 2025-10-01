@@ -213,6 +213,11 @@ impl DictionaryManager {
                     params.insert("command".to_string(), cmd.clone());
                     ("command.unknown_command".to_string(), Some(params))
                 }
+                CommandError::UnknownSlashCommand(cmd) => {
+                    let mut params = HashMap::new();
+                    params.insert("command".to_string(), cmd.clone());
+                    ("command.unknown_slash_command".to_string(), Some(params))
+                }
                 CommandError::InsufficientPermissions => {
                     ("command.insufficient_permissions".to_string(), None)
                 }
@@ -224,6 +229,7 @@ impl DictionaryManager {
                 ThreadError::ThreadCreationFailed => ("thread.creation_failed".to_string(), None),
                 ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
                 ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
+                ThreadError::CategoryNotFound => ("thread.category_not_found".to_string(), None),
                 _ => ("thread.not_found".to_string(), None),
             },
             ModmailError::Message(msg_err) => match msg_err {

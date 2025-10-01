@@ -239,7 +239,9 @@ pub async fn test_all_errors(ctx: &Context, msg: &Message, config: &Config) -> M
             )
             .await;
 
-        let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+        let _ = error_handler
+            .reply_to_msg_with_error(ctx, msg, &error)
+            .await;
 
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     }
