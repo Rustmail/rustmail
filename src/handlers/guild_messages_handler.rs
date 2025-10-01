@@ -10,7 +10,6 @@ use crate::commands::{
     close::close,
     delete::delete,
     edit::edit_command::edit,
-    new_thread::new_thread,
     recover::recover,
     reply::reply,
     test_errors::{test_all_errors, test_errors, test_language},
@@ -37,6 +36,7 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use crate::commands::new_thread::text_command::new_thread::new_thread;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
