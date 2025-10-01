@@ -7,6 +7,7 @@ use crate::modules::threads::{
 };
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
+use crate::commands::id::slash_command::id;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
@@ -47,7 +48,7 @@ impl EventHandler for InteractionHandler {
             Interaction::Command(command) => {
                 let command_return = match command.data.name.as_str() {
                     "id" => {
-                        commands::id::run(&ctx, &command, &command.data.options(), &self.config)
+                        id::run(&ctx, &command, &command.data.options(), &self.config)
                             .await
                     }
                     "move" => {

@@ -8,6 +8,7 @@ use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
 };
+use crate::commands::id::slash_command::id;
 
 #[derive(Clone)]
 pub struct ReadyHandler {
@@ -44,7 +45,7 @@ impl EventHandler for ReadyHandler {
         let _ = guild_id
             .set_commands(
                 &ctx.http,
-                vec![commands::id::register(), commands::move_thread::register()],
+                vec![id::register(), commands::move_thread::register()],
             )
             .await;
     }
