@@ -1,11 +1,11 @@
-use serenity::all::{CommandInteraction, Context, ResolvedOption};
-use serenity::builder::{CreateCommand, CreateInteractionResponse};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
-use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
+use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{CommandInteraction, Context, ResolvedOption};
+use serenity::builder::{CreateCommand, CreateInteractionResponse};
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("id").description("Get ID of the user in the thread")

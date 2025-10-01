@@ -1,11 +1,11 @@
-use serenity::all::{Context, Message};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
+use crate::errors::ThreadError::NotAThreadChannel;
 use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::{ModmailError, ModmailResult};
-use crate::errors::ThreadError::NotAThreadChannel;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{Context, Message};
 
 pub async fn id(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config

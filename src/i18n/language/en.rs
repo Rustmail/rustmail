@@ -431,34 +431,34 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         .with_description("Confirmation that the alert has been canceled"),
     );
     dict.messages.insert(
-        "move.not_in_thread".to_string(),
+        "move_thread.not_in_thread".to_string(),
         DictionaryMessage::new("❌ This command can only be used in a support thread")
-            .with_description("The move command must be used in a thread channel"),
+            .with_description("The move_thread command must be used in a thread channel"),
     );
     dict.messages.insert(
-        "move.missing_category".to_string(),
+        "move_thread.missing_category".to_string(),
         DictionaryMessage::new(
-            "❌ Please specify a category name. Usage: `{prefix}move <category_name>`",
+            "❌ Please specify a category name. Usage: `{prefix}move_thread <category_name>`",
         )
-        .with_description("The category name is missing in the move command"),
+        .with_description("The category name is missing in the move_thread command"),
     );
     dict.messages.insert(
-        "move.failed_to_fetch_categories".to_string(),
+        "move_thread.failed_to_fetch_categories".to_string(),
         DictionaryMessage::new("❌ Failed to fetch server categories")
             .with_description("The bot couldn't retrieve the list of categories from the server"),
     );
     dict.messages.insert(
-        "move.category_not_found".to_string(),
+        "move_thread.category_not_found".to_string(),
         DictionaryMessage::new("❌ Category '{category}' not found")
             .with_description("No category with that name exists on the server"),
     );
     dict.messages.insert(
-        "move.failed_to_move".to_string(),
-        DictionaryMessage::new("❌ Failed to move thread to the specified category")
+        "move_thread.failed_to_move".to_string(),
+        DictionaryMessage::new("❌ Failed to move_thread thread to the specified category")
             .with_description("An error occurred while moving the thread"),
     );
     dict.messages.insert(
-        "move.success".to_string(),
+        "move_thread.success".to_string(),
         DictionaryMessage::new("✅ Thread moved to category '{category}' by {staff}")
             .with_description("The thread has been successfully moved to the new category"),
     );

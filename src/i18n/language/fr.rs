@@ -452,34 +452,34 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Confirmation que l'alerte a été annulée"),
     );
     dict.messages.insert(
-        "move.not_in_thread".to_string(),
+        "move_thread.not_in_thread".to_string(),
         DictionaryMessage::new(
             "❌ Cette commande ne peut être utilisée que dans un thread de support",
         )
-        .with_description("La commande move doit être utilisée dans un canal de thread"),
+        .with_description("La commande move_thread doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
-        "move.missing_category".to_string(),
-        DictionaryMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move <nom_catégorie>`")
-            .with_description("Le nom de la catégorie est manquant dans la commande move"),
+        "move_thread.missing_category".to_string(),
+        DictionaryMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move_thread <nom_catégorie>`")
+            .with_description("Le nom de la catégorie est manquant dans la commande move_thread"),
     );
     dict.messages.insert(
-        "move.failed_to_fetch_categories".to_string(),
+        "move_thread.failed_to_fetch_categories".to_string(),
         DictionaryMessage::new("❌ Échec de récupération des catégories du serveur")
             .with_description("Le bot n'a pas pu récupérer la liste des catégories du serveur"),
     );
     dict.messages.insert(
-        "move.category_not_found".to_string(),
+        "move_thread.category_not_found".to_string(),
         DictionaryMessage::new("❌ Catégorie '{category}' non trouvée")
             .with_description("Aucune catégorie avec ce nom n'existe sur le serveur"),
     );
     dict.messages.insert(
-        "move.failed_to_move".to_string(),
+        "move_thread.failed_to_move".to_string(),
         DictionaryMessage::new("❌ Échec du déplacement du thread vers la catégorie spécifiée")
             .with_description("Une erreur s'est produite lors du déplacement du thread"),
     );
     dict.messages.insert(
-        "move.success".to_string(),
+        "move_thread.success".to_string(),
         DictionaryMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
             .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
     );

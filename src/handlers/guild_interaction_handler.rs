@@ -1,4 +1,5 @@
-use crate::commands;
+use crate::commands::id::slash_command::id;
+use crate::commands::move_thread::slash_command::move_thread;
 use crate::config::Config;
 use crate::errors::{CommandError, ModmailError};
 use crate::features::handle_feature_component_interaction;
@@ -7,7 +8,6 @@ use crate::modules::threads::{
 };
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
-use crate::commands::id::slash_command::id;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
@@ -47,18 +47,10 @@ impl EventHandler for InteractionHandler {
             }
             Interaction::Command(command) => {
                 let command_return = match command.data.name.as_str() {
-                    "id" => {
-                        id::run(&ctx, &command, &command.data.options(), &self.config)
-                            .await
-                    }
+                    "id" => id::run(&ctx, &command, &command.data.options(), &self.config).await,
                     "move" => {
-                        commands::move_thread::run(
-                            &ctx,
-                            &command,
-                            &command.data.options(),
-                            &self.config,
-                        )
-                        .await
+                        move_thread::run(&ctx, &command, &command.data.options(), &self.config)
+                            .await
                     }
                     _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
                         command.data.name.clone(),
