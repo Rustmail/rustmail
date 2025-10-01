@@ -43,6 +43,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
+        "discord.user_is_a_bot".to_string(),
+        DictionaryMessage::new("L'utilisateur spécifié est un bot")
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Format de commande invalide")
             .with_description("La syntaxe de la commande est incorrecte")
@@ -491,12 +495,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "new_thread.user_has_thread".to_string(),
         DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
-            .with_description("L'utilisateur a déjà un thread ouvert"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread_with_link".to_string(),
         DictionaryMessage::new("❌ {user} a déjà un thread de support actif\n\n📎 **Lien du thread :** <#{channel_id}>")
-            .with_description("L'utilisateur a déjà un thread ouvert avec un lien vers celui-ci"),
     );
     dict.messages.insert(
         "new_thread.user_not_found".to_string(),
@@ -538,7 +540,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_with_dm".to_string(),
-        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\nNotification DM envoyée avec succès.")
+        DictionaryMessage::new("✅ Thread de support créé pour {user} dans {channel_id} par {staff}\n\nNotification DM envoyée avec succès.")
             .with_description("Message de succès quand le thread est créé et le DM envoyé"),
     );
     dict.messages.insert(
@@ -629,5 +631,25 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "feature.not_implemented".to_string(),
         DictionaryMessage::new("Cette feature n'est pas encore implémentée."),
+    );
+    dict.messages.insert(
+        "slash_command.id_command_description".to_string(),
+        DictionaryMessage::new("Afficher l'ID d'un utilisateur du thread de support"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_description".to_string(),
+        DictionaryMessage::new("Déplacer le thread de support vers une autre catégorie"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_name_argument".to_string(),
+        DictionaryMessage::new("La catégorie vers laquelle déplacer le thread"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_command_description".to_string(),
+        DictionaryMessage::new("Créer un nouveau thread de support pour un utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID de l'utilisateur pour lequel créer le thread"),
     );
 }

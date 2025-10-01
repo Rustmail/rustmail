@@ -6,6 +6,7 @@ use crate::db::get_user_id_from_channel_id;
 use crate::errors::{
     CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, ThreadError,
 };
+use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
@@ -13,14 +14,33 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 
-pub fn register() -> CreateCommand {
+pub async fn register(config: &Config) -> CreateCommand {
+    let cmd_desc = get_translated_message(
+        config,
+        "slash_command.move_command_description",
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
+    let catagory_field_desc = get_translated_message(
+        config,
+        "slash_command.move_command_name_argument",
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
+
     CreateCommand::new("move")
-        .description("Move a thread in an other category")
+        .description(cmd_desc)
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
                 "category",
-                "The category where you want to move_thread the thread",
+                catagory_field_desc,
             )
             .required(true),
         )

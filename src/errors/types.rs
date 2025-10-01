@@ -43,6 +43,7 @@ pub enum DiscordError {
     ApiError(String),
     ChannelNotFound,
     UserNotFound,
+    UserIsABot,
     GuildNotFound,
     MessageNotFound,
     PermissionDenied,
@@ -69,6 +70,8 @@ pub enum CommandError {
     CommandNotAvailable,
     CooldownActive(u64),
     NotInThread(),
+    UserHasAlreadyAThread(),
+    UserHasAlreadyAThreadWithLink(String, String),
 }
 
 #[derive(Debug, Clone)]
@@ -173,6 +176,7 @@ impl fmt::Display for DiscordError {
             DiscordError::ApiError(msg) => write!(f, "Discord API error: {}", msg),
             DiscordError::ChannelNotFound => write!(f, "Channel not found"),
             DiscordError::UserNotFound => write!(f, "User not found"),
+            DiscordError::UserIsABot => write!(f, "User is a bot"),
             DiscordError::GuildNotFound => write!(f, "Guild not found"),
             DiscordError::MessageNotFound => write!(f, "Message not found"),
             DiscordError::PermissionDenied => write!(f, "Permission denied"),
@@ -204,6 +208,8 @@ impl fmt::Display for CommandError {
                 write!(f, "Cooldown active: {} seconds", seconds)
             }
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
+            CommandError::UserHasAlreadyAThread() => write!(f, "The user already has an open thread"),
+            CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => write!(f, "The user {} already has an open thread: {}", user, channel_id),
         }
     }
 }

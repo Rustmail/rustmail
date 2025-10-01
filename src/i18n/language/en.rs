@@ -45,6 +45,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
+        "discord.user_is_a_bot".to_string(),
+        DictionaryMessage::new("The specified user is a bot.")
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Invalid command format")
             .with_description("The command syntax is incorrect")
@@ -517,7 +521,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_with_dm".to_string(),
-        DictionaryMessage::new("✅ Support thread created for {user} in <#{channel_id}> by {staff}\n\nDM notification sent successfully.")
+        DictionaryMessage::new("✅ Support thread created for {user} in {channel_id} by {staff}\n\nDM notification sent successfully.")
             .with_description("Success message when thread is created and DM is sent"),
     );
     dict.messages.insert(
@@ -608,5 +612,25 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "feature.not_implemented".to_string(),
         DictionaryMessage::new("This feature is not yet implemented."),
+    );
+    dict.messages.insert(
+        "slash_command.id_command_description".to_string(),
+        DictionaryMessage::new("Get ID of the user in the thread"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_description".to_string(),
+        DictionaryMessage::new("Move the current thread to another category"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_name_argument".to_string(),
+        DictionaryMessage::new("The name of the category to move the thread to"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_command_description".to_string(),
+        DictionaryMessage::new("Create a new support thread for a user"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the user to create the thread for"),
     );
 }

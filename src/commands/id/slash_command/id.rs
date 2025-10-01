@@ -6,9 +6,12 @@ use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::{CreateCommand, CreateInteractionResponse};
+use crate::i18n::get_translated_message;
 
-pub fn register() -> CreateCommand {
-    CreateCommand::new("id").description("Get ID of the user in the thread")
+pub async fn register(config: &Config) -> CreateCommand {
+    let cmd_desc = get_translated_message(config, "slash_command.id_command_description", None, None, None, None).await;
+
+    CreateCommand::new("id").description(cmd_desc)
 }
 
 pub async fn run(

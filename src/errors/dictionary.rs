@@ -196,6 +196,7 @@ impl DictionaryManager {
             ModmailError::Discord(discord_err) => match discord_err {
                 DiscordError::ChannelNotFound => ("discord.channel_not_found".to_string(), None),
                 DiscordError::UserNotFound => ("discord.user_not_found".to_string(), None),
+                DiscordError::UserIsABot => ("discord.user_is_a_bot".to_string(), None),
                 DiscordError::PermissionDenied => ("discord.permission_denied".to_string(), None),
                 DiscordError::DmCreationFailed => ("discord.dm_creation_failed".to_string(), None),
                 _ => ("discord.api_error".to_string(), None),
@@ -220,6 +221,12 @@ impl DictionaryManager {
                 }
                 CommandError::InsufficientPermissions => {
                     ("command.insufficient_permissions".to_string(), None)
+                }
+                CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => {
+                    let mut params = HashMap::new();
+                    params.insert("user".to_string(), user.clone());
+                    params.insert("channel_id".to_string(), channel_id.clone());
+                    ("command.user_has_thread_with_link".to_string(), Some(params))
                 }
                 _ => ("command.invalid_format".to_string(), None),
             },
