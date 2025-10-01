@@ -117,6 +117,8 @@ pub async fn run(
     params.insert("channel_id".to_string(), guild_channel.to_string());
     params.insert("staff".to_string(), command.user.name.clone());
 
+    println!("Thread created for user {} in channel {}", user.name, guild_channel.to_string());
+
     let response = CreateInteractionResponse::Message(
         MessageBuilder::system_message(ctx, config)
             .translated_content("new_thread.success_with_dm", Some(&params), None, None).await

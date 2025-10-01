@@ -105,7 +105,7 @@ pub async fn send_success_message(
 ) {
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
-    params.insert("channel_id".to_string(), channel.id.to_string());
+    params.insert("channel_id".to_string(), channel.to_string());
     params.insert("staff".to_string(), msg.author.name.clone());
 
     let success_key = if dm_sent {
