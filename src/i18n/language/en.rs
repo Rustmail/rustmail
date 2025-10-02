@@ -681,4 +681,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.alert_cancel_argument".to_string(),
         DictionaryMessage::new("Set to true to cancel the alert"),
     );
+    dict.messages.insert(
+        "slash_command.force_close_command_description".to_string(),
+        DictionaryMessage::new("Force close the current thread which the user has left the server"),
+    );
 }
