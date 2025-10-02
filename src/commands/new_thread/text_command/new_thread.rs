@@ -4,7 +4,7 @@ use crate::commands::new_thread::common::{
 };
 use crate::config::Config;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{ModmailResult, common, ModmailError, DiscordError};
+use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
 use serenity::all::{ChannelId, Context, GuildId, Message};
 use std::collections::HashMap;
 
@@ -24,9 +24,7 @@ pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> Modmai
 
     let user = match ctx.http.get_user(user_id).await {
         Ok(user) => user,
-        Err(_) => {
-            return Err(ModmailError::Discord(DiscordError::UserNotFound))
-        }
+        Err(_) => return Err(ModmailError::Discord(DiscordError::UserNotFound)),
     };
 
     if user.bot {

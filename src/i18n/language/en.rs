@@ -46,7 +46,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.user_is_a_bot".to_string(),
-        DictionaryMessage::new("The specified user is a bot.")
+        DictionaryMessage::new("The specified user is a bot."),
     );
     dict.messages.insert(
         "command.invalid_format".to_string(),
@@ -632,5 +632,13 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.new_thread_user_id_argument".to_string(),
         DictionaryMessage::new("The ID of the user to create the thread for"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the user to create the thread for"),
+    );
+    dict.messages.insert(
+        "slash_command.close_command_description".to_string(),
+        DictionaryMessage::new("Close the current thread"),
     );
 }

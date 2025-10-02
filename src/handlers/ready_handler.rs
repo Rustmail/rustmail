@@ -1,5 +1,8 @@
+use crate::commands::close::slash_command::close;
 use crate::commands::id::slash_command::id;
 use crate::commands::move_thread::slash_command::move_thread;
+use crate::commands::new_thread::slash_command::new_thread;
+use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
@@ -9,8 +12,6 @@ use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
 };
-use crate::commands::new_thread::slash_command::new_thread;
-use crate::commands::new_thread::text_command::new_thread::new_thread;
 
 #[derive(Clone)]
 pub struct ReadyHandler {
@@ -45,11 +46,15 @@ impl EventHandler for ReadyHandler {
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
 
         let _ = guild_id
-            .set_commands(&ctx.http, vec![
-                id::register(&self.config).await,
-                move_thread::register(&self.config).await,
-                new_thread::register(&self.config).await,
-            ])
+            .set_commands(
+                &ctx.http,
+                vec![
+                    id::register(&self.config).await,
+                    move_thread::register(&self.config).await,
+                    new_thread::register(&self.config).await,
+                    close::register(&self.config).await,
+                ],
+            )
             .await;
     }
 }
