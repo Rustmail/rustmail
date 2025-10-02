@@ -678,4 +678,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.add_staff_user_id_argument".to_string(),
         DictionaryMessage::new("L'ID du staff à ajouter au ticket"),
     );
+    dict.messages.insert(
+        "slash_command.remove_staff_command_description".to_string(),
+        DictionaryMessage::new("Retirer un membre du staff d'un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID du staff à retirer du ticket"),
+    );
 }
