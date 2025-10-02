@@ -34,16 +34,10 @@ pub async fn register(config: &Config) -> CreateCommand {
     )
     .await;
 
-    CreateCommand::new("move")
-        .description(cmd_desc)
-        .add_option(
-            CreateCommandOption::new(
-                CommandOptionType::String,
-                "category",
-                catagory_field_desc,
-            )
+    CreateCommand::new("move").description(cmd_desc).add_option(
+        CreateCommandOption::new(CommandOptionType::String, "category", catagory_field_desc)
             .required(true),
-        )
+    )
 }
 
 pub async fn run(

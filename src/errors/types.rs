@@ -72,6 +72,8 @@ pub enum CommandError {
     NotInThread(),
     UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
+    ClosureAlreadyScheduled,
+    NoSchedulableClosureToCancel,
 }
 
 #[derive(Debug, Clone)]
@@ -208,8 +210,20 @@ impl fmt::Display for CommandError {
                 write!(f, "Cooldown active: {} seconds", seconds)
             }
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
-            CommandError::UserHasAlreadyAThread() => write!(f, "The user already has an open thread"),
-            CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => write!(f, "The user {} already has an open thread: {}", user, channel_id),
+            CommandError::UserHasAlreadyAThread() => {
+                write!(f, "The user already has an open thread")
+            }
+            CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => write!(
+                f,
+                "The user {} already has an open thread: {}",
+                user, channel_id
+            ),
+            CommandError::ClosureAlreadyScheduled => {
+                write!(f, "Thread closure is already scheduled")
+            }
+            CommandError::NoSchedulableClosureToCancel => {
+                write!(f, "No schedulable closure to cancel")
+            }
         }
     }
 }

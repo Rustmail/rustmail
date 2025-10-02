@@ -226,7 +226,16 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("user".to_string(), user.clone());
                     params.insert("channel_id".to_string(), channel_id.clone());
-                    ("command.user_has_thread_with_link".to_string(), Some(params))
+                    (
+                        "new_thread.user_has_thread_with_link".to_string(),
+                        Some(params),
+                    )
+                }
+                CommandError::ClosureAlreadyScheduled => {
+                    ("close.closure_already_scheduled".to_string(), None)
+                }
+                CommandError::NoSchedulableClosureToCancel => {
+                    ("close.no_scheduled_closures_to_cancel".to_string(), None)
                 }
                 _ => ("command.invalid_format".to_string(), None),
             },

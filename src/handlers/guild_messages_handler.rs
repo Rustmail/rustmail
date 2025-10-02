@@ -1,13 +1,14 @@
 use crate::commands::add_staff::add_staff;
+use crate::commands::close::text_command::close::close;
 use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::commands::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
+use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::commands::remove_staff::remove_staff;
 use crate::commands::{
     alert::alert,
     anonreply::anonreply,
-    close::close,
     delete::delete,
     edit::edit_command::edit,
     recover::recover,
@@ -36,7 +37,6 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use crate::commands::new_thread::text_command::new_thread::new_thread;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));

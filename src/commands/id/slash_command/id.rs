@@ -3,13 +3,21 @@ use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
+use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::{CreateCommand, CreateInteractionResponse};
-use crate::i18n::get_translated_message;
 
 pub async fn register(config: &Config) -> CreateCommand {
-    let cmd_desc = get_translated_message(config, "slash_command.id_command_description", None, None, None, None).await;
+    let cmd_desc = get_translated_message(
+        config,
+        "slash_command.id_command_description",
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
 
     CreateCommand::new("id").description(cmd_desc)
 }

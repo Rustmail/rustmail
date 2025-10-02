@@ -44,7 +44,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.user_is_a_bot".to_string(),
-        DictionaryMessage::new("L'utilisateur spécifié est un bot")
+        DictionaryMessage::new("L'utilisateur spécifié est un bot"),
     );
     dict.messages.insert(
         "command.invalid_format".to_string(),
@@ -494,7 +494,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.user_has_thread".to_string(),
-        DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
+        DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread_with_link".to_string(),
@@ -651,5 +651,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.new_thread_user_id_argument".to_string(),
         DictionaryMessage::new("L'ID de l'utilisateur pour lequel créer le thread"),
+    );
+    dict.messages.insert(
+        "slash_command.close_command_description".to_string(),
+        DictionaryMessage::new("Fermer un ticket de support"),
     );
 }
