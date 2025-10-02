@@ -1,4 +1,5 @@
 use crate::commands::add_staff::text_command::add_staff::add_staff;
+use crate::commands::alert::text_command::alert::alert;
 use crate::commands::close::text_command::close::close;
 use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::commands::edit::text_command::edit::edit;
@@ -7,9 +8,7 @@ use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
-use crate::commands::{
-    alert::alert, anonreply::anonreply, delete::delete, recover::recover, reply::reply,
-};
+use crate::commands::{anonreply::anonreply, delete::delete, recover::recover, reply::reply};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
 use crate::db::operations::messages::get_thread_message_by_message_id;
