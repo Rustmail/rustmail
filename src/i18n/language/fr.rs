@@ -656,4 +656,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.close_command_description".to_string(),
         DictionaryMessage::new("Fermer un ticket de support"),
     );
+    dict.messages.insert(
+        "slash_command.edit_command_description".to_string(),
+        DictionaryMessage::new("Editer un message envoyé dans un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_id_argument".to_string(),
+        DictionaryMessage::new("Le numéro du message à éditer. Vous pouvez trouver le numéro en regardant le footer du message."),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_argument".to_string(),
+        DictionaryMessage::new("Le nouveau contenu du message"),
+    );
 }

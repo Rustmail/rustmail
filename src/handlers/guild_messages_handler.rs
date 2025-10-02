@@ -1,6 +1,7 @@
 use crate::commands::add_staff::add_staff;
 use crate::commands::close::text_command::close::close;
 use crate::commands::edit::message_ops::edit_inbox_message;
+use crate::commands::edit::text_command::edit::edit;
 use crate::commands::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
@@ -10,7 +11,6 @@ use crate::commands::{
     alert::alert,
     anonreply::anonreply,
     delete::delete,
-    edit::edit_command::edit,
     recover::recover,
     reply::reply,
     test_errors::{test_all_errors, test_errors, test_language},
