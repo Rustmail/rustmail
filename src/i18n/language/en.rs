@@ -653,4 +653,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.edit_message_argument".to_string(),
         DictionaryMessage::new("The new content for the message."),
     );
+    dict.messages.insert(
+        "slash_command.add_staff_command_description".to_string(),
+        DictionaryMessage::new(
+            "Add a staff member to the current ticket to which he does not have access",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the staff to add to the ticket"),
+    );
 }
