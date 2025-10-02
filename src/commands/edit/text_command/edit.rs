@@ -1,3 +1,4 @@
+use crate::commands::edit::common::extract_command_content;
 use crate::commands::edit::message_ops::{
     cleanup_command_message, edit_messages, format_new_message, get_message_ids,
 };
@@ -7,9 +8,8 @@ use crate::commands::edit::validation::{
 use crate::config::Config;
 use crate::db::get_thread_message_by_inbox_message_id;
 use crate::db::update_message_content;
-use crate::errors::common::{invalid_command, message_not_found};
+use crate::errors::common::message_not_found;
 use crate::errors::{ModmailResult, common};
-use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
@@ -43,11 +43,18 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         Err(e) => return Err(e),
     };
 
-    let ids =
-        match get_message_ids(command_input.message_number, msg.author.id, pool, ctx, msg).await {
-            Ok(ids) => ids,
-            Err(e) => return Err(e),
-        };
+    let ids = match get_message_ids(
+        command_input.message_number,
+        msg.author.id,
+        pool,
+        ctx,
+        msg.channel_id,
+    )
+    .await
+    {
+        Ok(ids) => ids,
+        Err(e) => return Err(e),
+    };
 
     let dm_msg_id = match ids.dm_message_id {
         Some(msg_id) => msg_id,
@@ -61,7 +68,7 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
 
     let edited_messages_builder = match format_new_message(
         ctx,
-        msg,
+        (Some(msg), None),
         &command_input.new_content,
         &inbox_message_id,
         command_input.message_number as u64,
@@ -154,93 +161,5 @@ pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
             Ok(())
         }
         Err(e) => Err(e),
-    }
-}
-
-fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<String> {
-    extract_reply_content(&msg.content, &config.command.prefix, &["edit", "e"])
-        .ok_or_else(invalid_command)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::{
-        BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig,
-        NotificationsConfig, ThreadConfig,
-    };
-    use std::sync::{Arc, Mutex};
-
-    fn create_test_config() -> Config {
-        Config {
-            bot: BotConfig {
-                token: "test".to_string(),
-                mode: crate::config::ServerMode::Dual {
-                    community_guild_id: 184848,
-                    staff_guild_id: 64456,
-                },
-                status: "test".to_string(),
-                welcome_message: "Welcome to the server!".to_string(),
-                close_message: "Thank you for your message!".to_string(),
-                typing_proxy_from_user: false,
-                typing_proxy_from_staff: false,
-                enable_logs: true,
-                enable_features: true,
-                features_channel_id: Some(12345),
-                logs_channel_id: Some(15456),
-            },
-            command: CommandConfig {
-                prefix: "!".to_string(),
-            },
-            thread: ThreadConfig {
-                inbox_category_id: 12345,
-                embedded_message: false,
-                user_message_color: "ffffff".to_string(),
-                staff_message_color: "ffffff".to_string(),
-                system_message_color: "ffffff".to_string(),
-                block_quote: false,
-                time_to_close_thread: 5,
-                create_ticket_by_create_channel: false,
-            },
-            notifications: NotificationsConfig::default(),
-            logs: LogsConfig::default(),
-            language: LanguageConfig::default(),
-            error_handling: ErrorHandlingConfig::default(),
-            db_pool: None,
-            error_handler: None,
-            thread_locks: Arc::new(Mutex::new(Default::default())),
-        }
-    }
-
-    #[test]
-    fn test_extract_command_content_valid() {
-        let config = create_test_config();
-        let mut msg = Message::default();
-        msg.content = "!edit 3 New message content".to_string();
-
-        let result = extract_command_content(&msg, &config);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "3 New message content");
-    }
-
-    #[test]
-    fn test_extract_command_content_invalid() {
-        let config = create_test_config();
-        let mut msg = Message::default();
-        msg.content = "!other command".to_string();
-
-        let result = extract_command_content(&msg, &config);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_extract_command_content_alias() {
-        let config = create_test_config();
-        let mut msg = Message::default();
-        msg.content = "!e 5 Updated content".to_string();
-
-        let result = extract_command_content(&msg, &config);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "5 Updated content");
     }
 }

@@ -641,4 +641,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.close_command_description".to_string(),
         DictionaryMessage::new("Close the current thread"),
     );
+    dict.messages.insert(
+        "slash_command.edit_command_description".to_string(),
+        DictionaryMessage::new("Edit a previously sent message"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the message to edit. You can find this ID by looking at the bottom of the message."),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_argument".to_string(),
+        DictionaryMessage::new("The new content for the message."),
+    );
 }

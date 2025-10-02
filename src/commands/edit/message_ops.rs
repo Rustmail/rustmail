@@ -8,7 +8,10 @@ use crate::errors::common::{incorrect_message_id, not_found, permission_denied, 
 use crate::errors::{ModmailError, ModmailResult};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ChannelId, Context, EditMessage, Message, MessageId, UserId};
+use serenity::all::{
+    ChannelId, CommandInteraction, Context, EditMessage, GuildId, Message, MessageId, User, UserId,
+};
+
 use sqlx::SqlitePool;
 
 pub async fn get_message_ids(
@@ -16,9 +19,9 @@ pub async fn get_message_ids(
     user_id: UserId,
     pool: &SqlitePool,
     _ctx: &Context,
-    msg: &Message,
+    channel_id: ChannelId,
 ) -> ModmailResult<MessageIds> {
-    let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await {
+    let thread = match get_thread_by_channel_id(&channel_id.to_string(), pool).await {
         Some(thread) => thread,
         None => return Err(thread_not_found()),
     };
@@ -31,7 +34,7 @@ pub async fn get_message_ids(
 
 pub async fn format_new_message<'a>(
     ctx: &'a Context,
-    msg: &Message,
+    msg: (Option<&Message>, Option<&CommandInteraction>),
     content: &str,
     inbox_message_id: &str,
     message_number: u64,
@@ -44,13 +47,32 @@ pub async fn format_new_message<'a>(
         Err(..) => return Err(permission_denied()),
     };
 
-    let mut top_role_name: Option<String> = None;
-    if let Some(guild_id) = msg.guild_id
-        && let (Ok(member), Ok(roles_map)) = (
-            guild_id.member(&ctx.http, msg.author.id).await,
-            guild_id.roles(&ctx.http).await,
-        )
+    let mut guild_id = GuildId::default();
+    let mut user = User::default();
+
+    if let Some(raw_guild_id) = msg
+        .0
+        .map(|m| m.guild_id)
+        .or_else(|| msg.1.map(|i| i.guild_id))
     {
+        if let Some(gid) = raw_guild_id {
+            guild_id = gid;
+        }
+    }
+
+    if let Some(raw_user) = msg
+        .0
+        .map(|m| m.author.clone())
+        .or_else(|| msg.1.map(|i| i.user.clone()))
+    {
+        user = raw_user;
+    }
+
+    let mut top_role_name: Option<String> = None;
+    if let (Ok(member), Ok(roles_map)) = (
+        guild_id.member(&ctx.http, user.clone()).await,
+        guild_id.roles(&ctx.http).await,
+    ) {
         top_role_name = member
             .roles
             .iter()
@@ -61,14 +83,14 @@ pub async fn format_new_message<'a>(
     }
 
     if thread_message.is_anonymous {
-        let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
+        let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, user.id)
             .content(content.to_string())
             .with_message_number(message_number);
         if let Some(role_name) = &top_role_name {
             inbox_builder = inbox_builder.with_role(role_name.clone());
         }
 
-        let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, msg.author.id)
+        let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, user.id)
             .content(content.to_string());
         if let Some(role_name) = &top_role_name {
             dm_builder = dm_builder.with_role(role_name.clone());
@@ -77,16 +99,15 @@ pub async fn format_new_message<'a>(
         Ok((inbox_builder, dm_builder))
     } else {
         let mut inbox_builder =
-            MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
+            MessageBuilder::staff_message(ctx, config, user.id, user.name.clone())
                 .content(content.to_string())
                 .with_message_number(message_number);
         if let Some(role_name) = &top_role_name {
             inbox_builder = inbox_builder.with_role(role_name.clone());
         }
 
-        let mut dm_builder =
-            MessageBuilder::staff_message(ctx, config, msg.author.id, msg.author.name.clone())
-                .content(content.to_string());
+        let mut dm_builder = MessageBuilder::staff_message(ctx, config, user.id, user.name.clone())
+            .content(content.to_string());
         if let Some(role_name) = &top_role_name {
             dm_builder = dm_builder.with_role(role_name.clone());
         }

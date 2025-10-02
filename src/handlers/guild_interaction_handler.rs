@@ -1,9 +1,8 @@
 use crate::commands::close::slash_command::close;
-use crate::commands::close::text_command::close::close;
+use crate::commands::edit::slash_command::edit;
 use crate::commands::id::slash_command::id;
 use crate::commands::move_thread::slash_command::move_thread;
 use crate::commands::new_thread::slash_command::new_thread;
-use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::config::Config;
 use crate::errors::{CommandError, ModmailError};
 use crate::features::handle_feature_component_interaction;
@@ -12,7 +11,6 @@ use crate::modules::threads::{
 };
 use serenity::all::{Context, EventHandler, Interaction};
 use serenity::async_trait;
-use std::clone;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
@@ -62,6 +60,9 @@ impl EventHandler for InteractionHandler {
                     }
                     "close" => {
                         close::run(&ctx, &command, &command.data.options(), &self.config).await
+                    }
+                    "edit" => {
+                        edit::run(&ctx, &command, &command.data.options(), &self.config).await
                     }
                     _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
                         command.data.name.clone(),
