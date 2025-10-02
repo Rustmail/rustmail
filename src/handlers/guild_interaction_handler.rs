@@ -1,4 +1,5 @@
 use crate::commands::add_staff::slash_command::add_staff;
+use crate::commands::alert::slash_command::alert;
 use crate::commands::close::slash_command::close;
 use crate::commands::edit::slash_command::edit;
 use crate::commands::id::slash_command::id;
@@ -72,6 +73,9 @@ impl EventHandler for InteractionHandler {
                     "remove_staff" => {
                         remove_staff::run(&ctx, &command, &command.data.options(), &self.config)
                             .await
+                    }
+                    "alert" => {
+                        alert::run(&ctx, &command, &command.data.options(), &self.config).await
                     }
                     _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
                         command.data.name.clone(),

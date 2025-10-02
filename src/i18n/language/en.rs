@@ -671,4 +671,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.remove_staff_user_id_argument".to_string(),
         DictionaryMessage::new("The ID of the staff to remove from the ticket"),
     );
+    dict.messages.insert(
+        "slash_command.alert_command_description".to_string(),
+        DictionaryMessage::new(
+            "Set or cancel an alert for the next message from the user in this thread",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.alert_cancel_argument".to_string(),
+        DictionaryMessage::new("Set to true to cancel the alert"),
+    );
 }

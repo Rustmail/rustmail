@@ -686,4 +686,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.remove_staff_user_id_argument".to_string(),
         DictionaryMessage::new("L'ID du staff à retirer du ticket"),
     );
+    dict.messages.insert(
+        "slash_command.alert_command_description".to_string(),
+        DictionaryMessage::new("Définir ou annuler une alerte pour être notifié quand l'utilisateur enverra un nouveau message"),
+    );
+    dict.messages.insert(
+        "slash_command.alert_cancel_argument".to_string(),
+        DictionaryMessage::new("Annuler l'alerte"),
+    );
 }
