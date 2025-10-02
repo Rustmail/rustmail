@@ -11,4 +11,3 @@ pub mod new_thread;
 pub mod recover;
 pub mod remove_staff;
 pub mod reply;
-pub mod test_errors;

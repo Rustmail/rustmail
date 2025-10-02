@@ -13,7 +13,6 @@ use crate::commands::{
     delete::delete,
     recover::recover,
     reply::reply,
-    test_errors::{test_all_errors, test_errors, test_language},
 };
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
@@ -67,9 +66,6 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, ["nt", "new_thread"], new_thread);
         wrap_command!(h.commands, "delete", delete);
         wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
-        wrap_command!(h.commands, "test_errors", test_errors);
-        wrap_command!(h.commands, "test_language", test_language);
-        wrap_command!(h.commands, "test_all_errors", test_all_errors);
         wrap_command!(h.commands, ["force_close", "fc"], force_close);
         wrap_command!(h.commands, ["add_staff", "as"], add_staff);
         wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
