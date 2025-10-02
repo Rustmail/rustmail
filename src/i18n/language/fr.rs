@@ -668,4 +668,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.edit_message_argument".to_string(),
         DictionaryMessage::new("Le nouveau contenu du message"),
     );
+    dict.messages.insert(
+        "slash_command.add_staff_command_description".to_string(),
+        DictionaryMessage::new(
+            "Ajouter un membre du staff à un ticket de support auquel il n'a pas accès",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID du staff à ajouter au ticket"),
+    );
 }

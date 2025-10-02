@@ -1,51 +1,13 @@
+use crate::commands::add_staff::common::add_user_to_channel;
+use crate::commands::add_staff::common::extract_user_id;
 use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
 use crate::errors::{ModmailError, ModmailResult, common};
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{
-    ChannelId, Context, Message, PermissionOverwrite, PermissionOverwriteType, UserId,
-};
-use serenity::model::Permissions;
+use serenity::all::{Context, Message, UserId};
 use std::collections::HashMap;
-
-async fn add_user_to_channel(
-    ctx: &Context,
-    channel_id: ChannelId,
-    user_id: UserId,
-) -> ModmailResult<()> {
-    let allow = Permissions::VIEW_CHANNEL | Permissions::SEND_MESSAGES;
-
-    channel_id
-        .create_permission(
-            &ctx.http,
-            PermissionOverwrite {
-                allow,
-                deny: Permissions::empty(),
-                kind: PermissionOverwriteType::Member(user_id),
-            },
-        )
-        .await?;
-
-    Ok(())
-}
-
-async fn extract_user_id(msg: &Message, config: &Config) -> String {
-    let content = msg.content.trim();
-    let prefix = &config.command.prefix;
-    let command_names = ["add_staff", "as"];
-
-    if command_names
-        .iter()
-        .any(|&name| content.starts_with(&format!("{}{}", prefix, name)))
-    {
-        let start = prefix.len() + command_names[0].len();
-        content[start..].trim().to_string()
-    } else {
-        String::new()
-    }
-}
 
 pub async fn add_staff(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let pool = config

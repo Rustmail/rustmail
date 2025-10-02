@@ -1,3 +1,4 @@
+use crate::commands::add_staff::slash_command::add_staff;
 use crate::commands::close::slash_command::close;
 use crate::commands::edit::slash_command::edit;
 use crate::commands::id::slash_command::id;
@@ -63,6 +64,9 @@ impl EventHandler for InteractionHandler {
                     }
                     "edit" => {
                         edit::run(&ctx, &command, &command.data.options(), &self.config).await
+                    }
+                    "add_staff" => {
+                        add_staff::run(&ctx, &command, &command.data.options(), &self.config).await
                     }
                     _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
                         command.data.name.clone(),
