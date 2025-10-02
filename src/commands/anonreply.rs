@@ -88,7 +88,7 @@ pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> Modmail
         }
     }
 
-    let (thread_msg, dm_msg_opt) = match sr.send_and_record(db_pool).await {
+    let (thread_msg, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
         Ok(tuple) => tuple,
         Err(_) => {
             MessageBuilder::system_message(ctx, config)

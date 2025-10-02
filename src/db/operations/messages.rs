@@ -55,6 +55,49 @@ pub async fn insert_staff_message(
     Ok(())
 }
 
+pub async fn insert_staff_message_from_command(
+    inbox_msg_id: String,
+    inbox_msg_content: &str,
+    dm_msg_id: Option<String>,
+    thread_id: &str,
+    staff_user_id: UserId,
+    is_anonymous: bool,
+    pool: &SqlitePool,
+    config: &Config,
+    message_number: u64,
+) -> Result<(), Error> {
+    let user_id = staff_user_id.get() as i64;
+
+    let user_name = get_user_name_from_thread_id(thread_id, pool)
+        .await
+        .unwrap_or_else(|| "Unknown".to_string());
+
+    let message_number_i64 = message_number as i64;
+
+    sqlx::query!(
+        r#"
+        INSERT INTO thread_messages (
+            thread_id, user_id, user_name, is_anonymous, dm_message_id, inbox_message_id, message_number, content, thread_status
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+        "#,
+        thread_id,
+        user_id,
+        user_name,
+        is_anonymous,
+        dm_msg_id,
+        inbox_msg_id,
+        message_number_i64,
+        inbox_msg_content,
+        1
+    )
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
 pub async fn get_message_ids_by_number(
     message_number: i64,
     _user_id: UserId,
@@ -128,7 +171,7 @@ pub async fn update_message_numbers_after_deletion(
     };
 
     sqlx::query!(
-        "UPDATE thread_messages SET message_number = message_number - 1 
+        "UPDATE thread_messages SET message_number = message_number - 1
          WHERE thread_id = ? AND message_number > ? AND message_number IS NOT NULL",
         thread_id,
         deleted_number

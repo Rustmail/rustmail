@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE thread_messages SET message_number = message_number - 1\n         WHERE thread_id = ? AND message_number > ? AND message_number IS NOT NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "bfdec0459ceac78eb020cecca945937cb134188aef7633582c9da2dfb1f74111"
+}

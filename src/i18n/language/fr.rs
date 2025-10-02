@@ -698,4 +698,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.force_close_command_description".to_string(),
         DictionaryMessage::new("Forcer la fermeture d'un ticket de support dont l'utilisateur n'est plus membre du serveur"),
     );
+    dict.messages.insert(
+        "slash_command.reply_command_description".to_string(),
+        DictionaryMessage::new("Répondre à un utilisateur dans son ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_message_argument_description".to_string(),
+        DictionaryMessage::new("Le message à envoyer à l'utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_attachment_argument_description".to_string(),
+        DictionaryMessage::new("Une pièce jointe à envoyer avec le message"),
+    );
 }
