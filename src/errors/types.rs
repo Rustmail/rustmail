@@ -74,6 +74,7 @@ pub enum CommandError {
     UserHasAlreadyAThreadWithLink(String, String),
     ClosureAlreadyScheduled,
     NoSchedulableClosureToCancel,
+    SendDmFailed,
 }
 
 #[derive(Debug, Clone)]
@@ -224,6 +225,7 @@ impl fmt::Display for CommandError {
             CommandError::NoSchedulableClosureToCancel => {
                 write!(f, "No schedulable closure to cancel")
             }
+            CommandError::SendDmFailed => write!(f, "Failed to send DM to user"),
         }
     }
 }

@@ -237,6 +237,7 @@ impl DictionaryManager {
                 CommandError::NoSchedulableClosureToCancel => {
                     ("close.no_scheduled_closures_to_cancel".to_string(), None)
                 }
+                CommandError::SendDmFailed => ("reply.send_failed_dm".to_string(), None),
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

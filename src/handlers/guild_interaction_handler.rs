@@ -7,6 +7,7 @@ use crate::commands::id::slash_command::id;
 use crate::commands::move_thread::slash_command::move_thread;
 use crate::commands::new_thread::slash_command::new_thread;
 use crate::commands::remove_staff::slash_command::remove_staff;
+use crate::commands::reply::slash_command::reply;
 use crate::config::Config;
 use crate::errors::{CommandError, ModmailError};
 use crate::features::handle_feature_component_interaction;
@@ -81,6 +82,9 @@ impl EventHandler for InteractionHandler {
                     "force_close" => {
                         force_close::run(&ctx, &command, &command.data.options(), &self.config)
                             .await
+                    }
+                    "reply" => {
+                        reply::run(&ctx, &command, &command.data.options(), &self.config).await
                     }
                     _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
                         command.data.name.clone(),

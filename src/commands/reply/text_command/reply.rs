@@ -1,54 +1,13 @@
 use crate::config::Config;
-use crate::db::operations::allocate_next_message_number;
+use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
 use crate::errors::{ModmailError, ModmailResult, ThreadError, common};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
 use crate::utils::thread::fetch_thread::fetch_thread;
-use serenity::all::{Attachment, Context, CreateAttachment, GuildId, Message, UserId};
+use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
-
-enum ReplyIntent {
-    Text(String),
-    Attachments(Vec<CreateAttachment>),
-    TextAndAttachments(String, Vec<CreateAttachment>),
-}
-
-async fn extract_intent(
-    content: Option<String>,
-    attachments: &[Attachment],
-) -> Option<ReplyIntent> {
-    let attachments = download_attachments(attachments).await;
-
-    match (content, attachments.is_empty()) {
-        (Some(c), true) => Some(ReplyIntent::Text(c)),
-        (None, false) => Some(ReplyIntent::Attachments(attachments)),
-        (Some(c), false) => Some(ReplyIntent::TextAndAttachments(c, attachments)),
-        (None, true) => None,
-    }
-}
-
-async fn download_attachments(attachments: &[Attachment]) -> Vec<CreateAttachment> {
-    let mut downloaded_attachments = Vec::new();
-
-    for attachment in attachments {
-        if let Ok(response) = reqwest::get(&attachment.url).await {
-            if let Ok(bytes) = response.bytes().await {
-                downloaded_attachments
-                    .push(CreateAttachment::bytes(bytes, attachment.filename.clone()));
-            } else {
-                eprintln!(
-                    "Failed to read bytes from attachment: {}",
-                    attachment.filename
-                );
-            }
-        } else {
-            eprintln!("Failed to download attachment: {}", attachment.filename);
-        }
-    }
-
-    downloaded_attachments
-}
 
 pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config
@@ -101,7 +60,7 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         }
     }
 
-    let (thread_msg, dm_msg_opt) = match sr.send_and_record(db_pool).await {
+    let (thread_msg, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
         Ok(tuple) => tuple,
         Err(_) => {
             MessageBuilder::system_message(ctx, config)

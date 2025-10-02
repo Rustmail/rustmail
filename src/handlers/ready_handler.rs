@@ -7,6 +7,7 @@ use crate::commands::id::slash_command::id;
 use crate::commands::move_thread::slash_command::move_thread;
 use crate::commands::new_thread::slash_command::new_thread;
 use crate::commands::remove_staff::slash_command::remove_staff;
+use crate::commands::reply::slash_command::reply;
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
@@ -62,6 +63,7 @@ impl EventHandler for ReadyHandler {
                     remove_staff::register(&self.config).await,
                     alert::register(&self.config).await,
                     force_close::register(&self.config).await,
+                    reply::register(&self.config).await,
                 ],
             )
             .await;

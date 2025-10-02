@@ -685,4 +685,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.force_close_command_description".to_string(),
         DictionaryMessage::new("Force close the current thread which the user has left the server"),
     );
+    dict.messages.insert(
+        "slash_command.reply_command_description".to_string(),
+        DictionaryMessage::new("Send a message to the user in this thread"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_message_argument_description".to_string(),
+        DictionaryMessage::new("The content of the message to send to the user"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_attachment_argument_description".to_string(),
+        DictionaryMessage::new("An optional attachment to send to the user"),
+    );
 }
