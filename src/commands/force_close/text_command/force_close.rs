@@ -1,20 +1,10 @@
+use crate::commands::force_close::common::delete_channel;
 use crate::config::Config;
-use crate::db::operations::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
+use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::DatabaseError::QueryFailed;
-use crate::errors::DiscordError::ApiError;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
 use crate::errors::{ModmailError, ModmailResult, common};
-use serenity::all::{ChannelId, Context, Message};
-
-async fn delete_channel(ctx: &Context, channel_id: ChannelId) -> ModmailResult<()> {
-    match channel_id.delete(ctx).await {
-        Ok(_) => {
-            println!("Channel {} deleted successfully", channel_id);
-            Ok(())
-        }
-        Err(e) => Err(ModmailError::Discord(ApiError(e.to_string()))),
-    }
-}
+use serenity::all::{Context, Message};
 
 pub async fn force_close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
     let db_pool = config

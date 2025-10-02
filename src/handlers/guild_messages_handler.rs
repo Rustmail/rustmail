@@ -3,7 +3,7 @@ use crate::commands::alert::text_command::alert::alert;
 use crate::commands::close::text_command::close::close;
 use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::commands::edit::text_command::edit::edit;
-use crate::commands::force_close::force_close;
+use crate::commands::force_close::text_command::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;

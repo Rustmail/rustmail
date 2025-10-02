@@ -694,4 +694,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.alert_cancel_argument".to_string(),
         DictionaryMessage::new("Annuler l'alerte"),
     );
+    dict.messages.insert(
+        "slash_command.force_close_command_description".to_string(),
+        DictionaryMessage::new("Forcer la fermeture d'un ticket de support dont l'utilisateur n'est plus membre du serveur"),
+    );
 }
