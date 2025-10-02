@@ -6,7 +6,7 @@ use crate::commands::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
-use crate::commands::remove_staff::remove_staff;
+use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::{
     alert::alert, anonreply::anonreply, delete::delete, recover::recover, reply::reply,
 };

@@ -663,4 +663,12 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.add_staff_user_id_argument".to_string(),
         DictionaryMessage::new("The ID of the staff to add to the ticket"),
     );
+    dict.messages.insert(
+        "slash_command.remove_staff_command_description".to_string(),
+        DictionaryMessage::new("Remove a staff member from the current ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the staff to remove from the ticket"),
+    );
 }
