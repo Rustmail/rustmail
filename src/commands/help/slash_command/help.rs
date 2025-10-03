@@ -1,9 +1,30 @@
-use serenity::all::{Context, Message};
 use crate::config::Config;
 use crate::errors::ModmailResult;
+use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 
-pub async fn help(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn register(config: &Config) -> CreateCommand {
+    let cmd_desc = get_translated_message(
+        config,
+        "slash_command.help_command_description",
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
+
+    CreateCommand::new("help").description(cmd_desc)
+}
+
+pub async fn run(
+    ctx: &Context,
+    command: &CommandInteraction,
+    _options: &[ResolvedOption<'_>],
+    config: &Config,
+) -> ModmailResult<()> {
     let help_message = "# Available commands:\n\n\
         **!add_staff <staff_id>** - Add a staff to an hidden ticket\n\
         **!remove_staff <staff_id>** - Remove a staff from a ticket\n\
@@ -19,11 +40,15 @@ pub async fn help(ctx: &Context, msg: &Message, config: &Config) -> ModmailResul
         **!force_close** - Force close the current thread if it's orphaned\n\
         **!id** - Show the user ID associated with the current thread";
 
-    MessageBuilder::system_message(ctx, config)
+    defer_response(&ctx, &command).await?;
+
+    let response = MessageBuilder::system_message(ctx, config)
         .content(help_message)
-        .to_channel(msg.channel_id)
-        .send()
-        .await?;
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    let _ = command.create_followup(&ctx.http, response).await;
 
     Ok(())
 }

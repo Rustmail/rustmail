@@ -715,4 +715,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             "Retrieve messages missed during the bot's downtime (This process is automatic).",
         ),
     );
+    dict.messages.insert(
+        "slash_command.help_command_description".to_string(),
+        DictionaryMessage::new("Show the help message"),
+    );
 }
