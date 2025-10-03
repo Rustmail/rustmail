@@ -709,4 +709,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.delete_message_id_argument_description".to_string(),
         DictionaryMessage::new("The ID of the message to delete. You can find this ID by looking at the bottom of the message."),
     );
+    dict.messages.insert(
+        "slash_command.recover_command_description".to_string(),
+        DictionaryMessage::new(
+            "Retrieve messages missed during the bot's downtime (This process is automatic).",
+        ),
+    );
 }

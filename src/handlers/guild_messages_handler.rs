@@ -9,7 +9,7 @@ use crate::commands::force_close::text_command::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
-use crate::commands::recover::recover;
+use crate::commands::recover::text_command::recover::recover;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
 use crate::config::Config;
@@ -20,7 +20,7 @@ use crate::db::operations::{
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::get_thread_lock::get_thread_lock;

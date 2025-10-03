@@ -722,4 +722,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.delete_message_id_argument_description".to_string(),
         DictionaryMessage::new("Le numéro du message à supprimer. Vous pouvez trouver le numéro en regardant le footer du message."),
     );
+    dict.messages.insert(
+        "slash_command.recover_command_description".to_string(),
+        DictionaryMessage::new("Récupérer les messages manqués pendant la période d'indisponibilité du bot (Ce processus est automatique)"),
+    );
 }
