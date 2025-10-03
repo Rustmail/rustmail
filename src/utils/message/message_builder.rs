@@ -50,6 +50,7 @@ pub struct MessageBuilder<'a> {
     footer_text: Option<String>,
     bot_user_id: UserId,
     components: Option<Vec<CreateActionRow>>,
+    ephemeral: bool,
 }
 
 impl<'a> MessageBuilder<'a> {
@@ -67,6 +68,7 @@ impl<'a> MessageBuilder<'a> {
             footer_text: None,
             bot_user_id,
             components: None,
+            ephemeral: false,
         }
     }
 
@@ -119,6 +121,13 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn as_system(mut self, user_id: UserId, username: String) -> Self {
         self.sender = Some(MessageSender::System { user_id, username });
+        self
+    }
+
+    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+        if ephemeral {
+            self.ephemeral = ephemeral;
+        }
         self
     }
 
@@ -470,6 +479,10 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
+        if self.ephemeral {
+            message = message.ephemeral(true);
+        }
+
         message
     }
 
@@ -489,6 +502,10 @@ impl<'a> MessageBuilder<'a> {
             for attachment in &self.attachments {
                 message = message.add_file(attachment.clone());
             }
+        }
+
+        if self.ephemeral {
+            message = message.ephemeral(true);
         }
 
         message

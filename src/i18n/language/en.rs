@@ -547,7 +547,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("No message with this number exists in this thread"),
     );
     dict.messages.insert(
-        "delete.discord_delete_failed".to_string(),
+        "command.discord_delete_failed".to_string(),
         DictionaryMessage::new("❌ Failed to delete message from Discord")
             .with_description("An error occurred while deleting the message from Discord"),
     );
@@ -700,5 +700,13 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.reply_anonymous_argument_description".to_string(),
         DictionaryMessage::new("Send the message anonymously"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_command_description".to_string(),
+        DictionaryMessage::new("Delete a message from the thread and the user's DM"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_message_id_argument_description".to_string(),
+        DictionaryMessage::new("The ID of the message to delete. You can find this ID by looking at the bottom of the message."),
     );
 }

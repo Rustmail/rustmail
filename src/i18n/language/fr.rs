@@ -568,7 +568,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Aucun message avec ce numéro n'existe dans ce thread"),
     );
     dict.messages.insert(
-        "delete.discord_delete_failed".to_string(),
+        "command.discord_delete_failed".to_string(),
         DictionaryMessage::new("❌ Échec de suppression du message depuis Discord")
             .with_description(
                 "Une erreur s'est produite lors de la suppression du message depuis Discord",
@@ -713,5 +713,13 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.reply_anonymous_argument_description".to_string(),
         DictionaryMessage::new("Envoyer la réponse anonymement"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_command_description".to_string(),
+        DictionaryMessage::new("Supprimer un message envoyé dans un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_message_id_argument_description".to_string(),
+        DictionaryMessage::new("Le numéro du message à supprimer. Vous pouvez trouver le numéro en regardant le footer du message."),
     );
 }
