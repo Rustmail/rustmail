@@ -2,7 +2,11 @@ use crate::errors::DiscordError;
 use crate::errors::dictionary::DictionaryManager;
 use crate::errors::types::{ModmailError, ModmailResult};
 use crate::i18n::languages::{Language, LanguageDetector, LanguagePreferences};
-use serenity::all::{ChannelId, Colour, Context, CreateEmbed, CreateMessage, Message, UserId};
+use serenity::all::{
+    ChannelId, Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseMessage,
+    CreateMessage, Message, UserId,
+};
+use serenity::builder::CreateInteractionResponse;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -129,7 +133,7 @@ impl ErrorHandler {
         }
     }
 
-    pub async fn reply_with_error(
+    pub async fn reply_to_msg_with_error(
         &self,
         ctx: &Context,
         msg: &Message,
@@ -142,6 +146,32 @@ impl ErrorHandler {
         let embed = self.create_error_embed(&formatted_error).await;
         msg.channel_id
             .send_message(&ctx.http, CreateMessage::new().embed(embed))
+            .await
+    }
+
+    pub async fn reply_to_command_with_error(
+        &self,
+        ctx: &Context,
+        command: &CommandInteraction,
+        error: &ModmailError,
+    ) -> Result<(), serenity::Error> {
+        let formatted_error = self
+            .handle_error(
+                error,
+                Some(command.user.id),
+                command.guild_id.map(|g| g.get()),
+            )
+            .await;
+
+        let embed = self.create_error_embed(&formatted_error).await;
+
+        command
+            .create_response(
+                &ctx.http,
+                CreateInteractionResponse::Message(
+                    CreateInteractionResponseMessage::new().embed(embed),
+                ),
+            )
             .await
     }
 
@@ -381,7 +411,9 @@ impl ErrorHandling for Message {
         error: &ModmailError,
         error_handler: &ErrorHandler,
     ) -> Result<(), serenity::Error> {
-        error_handler.reply_with_error(ctx, msg, error).await?;
+        error_handler
+            .reply_to_msg_with_error(ctx, msg, error)
+            .await?;
         Ok(())
     }
 
@@ -410,7 +442,9 @@ macro_rules! handle_error {
         match $result {
             Ok(value) => value,
             Err(error) => {
-                let _ = $error_handler.reply_with_error($ctx, $msg, &error).await;
+                let _ = $error_handler
+                    .reply_to_msg_with_error($ctx, $msg, &error)
+                    .await;
                 return;
             }
         }

@@ -45,6 +45,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
+        "discord.user_is_a_bot".to_string(),
+        DictionaryMessage::new("The specified user is a bot."),
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Invalid command format")
             .with_description("The command syntax is incorrect")
@@ -65,6 +69,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Unknown command: {command}")
             .with_description("The specified command doesn't exist")
             .with_help("Use `{prefix}help` to see available commands"),
+    );
+    dict.messages.insert(
+        "command.unknown_slash_command".to_string(),
+        DictionaryMessage::new("Unknown Slash Command: {command}"),
     );
     dict.messages.insert(
         "command.insufficient_permissions".to_string(),
@@ -98,6 +106,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "thread.modal_invalid_user_id".to_string(),
         DictionaryMessage::new("Invalid user ID"),
+    );
+    dict.messages.insert(
+        "thread.category_not_found".to_string(),
+        DictionaryMessage::new("Category not found in the server."),
     );
     dict.messages.insert(
         "message.not_found".to_string(),
@@ -423,34 +435,34 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         .with_description("Confirmation that the alert has been canceled"),
     );
     dict.messages.insert(
-        "move.not_in_thread".to_string(),
+        "move_thread.not_in_thread".to_string(),
         DictionaryMessage::new("❌ This command can only be used in a support thread")
-            .with_description("The move command must be used in a thread channel"),
+            .with_description("The move_thread command must be used in a thread channel"),
     );
     dict.messages.insert(
-        "move.missing_category".to_string(),
+        "move_thread.missing_category".to_string(),
         DictionaryMessage::new(
-            "❌ Please specify a category name. Usage: `{prefix}move <category_name>`",
+            "❌ Please specify a category name. Usage: `{prefix}move_thread <category_name>`",
         )
-        .with_description("The category name is missing in the move command"),
+        .with_description("The category name is missing in the move_thread command"),
     );
     dict.messages.insert(
-        "move.failed_to_fetch_categories".to_string(),
+        "move_thread.failed_to_fetch_categories".to_string(),
         DictionaryMessage::new("❌ Failed to fetch server categories")
             .with_description("The bot couldn't retrieve the list of categories from the server"),
     );
     dict.messages.insert(
-        "move.category_not_found".to_string(),
+        "move_thread.category_not_found".to_string(),
         DictionaryMessage::new("❌ Category '{category}' not found")
             .with_description("No category with that name exists on the server"),
     );
     dict.messages.insert(
-        "move.failed_to_move".to_string(),
-        DictionaryMessage::new("❌ Failed to move thread to the specified category")
+        "move_thread.failed_to_move".to_string(),
+        DictionaryMessage::new("❌ Failed to move_thread thread to the specified category")
             .with_description("An error occurred while moving the thread"),
     );
     dict.messages.insert(
-        "move.success".to_string(),
+        "move_thread.success".to_string(),
         DictionaryMessage::new("✅ Thread moved to category '{category}' by {staff}")
             .with_description("The thread has been successfully moved to the new category"),
     );
@@ -509,7 +521,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_with_dm".to_string(),
-        DictionaryMessage::new("✅ Support thread created for {user} in <#{channel_id}> by {staff}\n\nDM notification sent successfully.")
+        DictionaryMessage::new("✅ Support thread created for {user} in {channel_id} by {staff}\n\nDM notification sent successfully.")
             .with_description("Success message when thread is created and DM is sent"),
     );
     dict.messages.insert(
@@ -535,7 +547,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("No message with this number exists in this thread"),
     );
     dict.messages.insert(
-        "delete.discord_delete_failed".to_string(),
+        "command.discord_delete_failed".to_string(),
         DictionaryMessage::new("❌ Failed to delete message from Discord")
             .with_description("An error occurred while deleting the message from Discord"),
     );
@@ -600,5 +612,107 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "feature.not_implemented".to_string(),
         DictionaryMessage::new("This feature is not yet implemented."),
+    );
+    dict.messages.insert(
+        "slash_command.id_command_description".to_string(),
+        DictionaryMessage::new("Get ID of the user in the thread"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_description".to_string(),
+        DictionaryMessage::new("Move the current thread to another category"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_name_argument".to_string(),
+        DictionaryMessage::new("The name of the category to move the thread to"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_command_description".to_string(),
+        DictionaryMessage::new("Create a new support thread for a user"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the user to create the thread for"),
+    );
+    dict.messages.insert(
+        "slash_command.close_command_description".to_string(),
+        DictionaryMessage::new("Close the current thread"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_command_description".to_string(),
+        DictionaryMessage::new("Edit a previously sent message"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the message to edit. You can find this ID by looking at the bottom of the message."),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_argument".to_string(),
+        DictionaryMessage::new("The new content for the message."),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_command_description".to_string(),
+        DictionaryMessage::new(
+            "Add a staff member to the current ticket to which he does not have access",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the staff to add to the ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_command_description".to_string(),
+        DictionaryMessage::new("Remove a staff member from the current ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the staff to remove from the ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.alert_command_description".to_string(),
+        DictionaryMessage::new(
+            "Set or cancel an alert for the next message from the user in this thread",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.alert_cancel_argument".to_string(),
+        DictionaryMessage::new("Set to true to cancel the alert"),
+    );
+    dict.messages.insert(
+        "slash_command.force_close_command_description".to_string(),
+        DictionaryMessage::new("Force close the current thread which the user has left the server"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_command_description".to_string(),
+        DictionaryMessage::new("Send a message to the user in this thread"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_message_argument_description".to_string(),
+        DictionaryMessage::new("The content of the message to send to the user"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_attachment_argument_description".to_string(),
+        DictionaryMessage::new("An optional attachment to send to the user"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_anonymous_argument_description".to_string(),
+        DictionaryMessage::new("Send the message anonymously"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_command_description".to_string(),
+        DictionaryMessage::new("Delete a message from the thread and the user's DM"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_message_id_argument_description".to_string(),
+        DictionaryMessage::new("The ID of the message to delete. You can find this ID by looking at the bottom of the message."),
+    );
+    dict.messages.insert(
+        "slash_command.recover_command_description".to_string(),
+        DictionaryMessage::new(
+            "Retrieve messages missed during the bot's downtime (This process is automatic).",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.help_command_description".to_string(),
+        DictionaryMessage::new("Show the help message"),
     );
 }

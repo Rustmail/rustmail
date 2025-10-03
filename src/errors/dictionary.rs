@@ -196,6 +196,7 @@ impl DictionaryManager {
             ModmailError::Discord(discord_err) => match discord_err {
                 DiscordError::ChannelNotFound => ("discord.channel_not_found".to_string(), None),
                 DiscordError::UserNotFound => ("discord.user_not_found".to_string(), None),
+                DiscordError::UserIsABot => ("discord.user_is_a_bot".to_string(), None),
                 DiscordError::PermissionDenied => ("discord.permission_denied".to_string(), None),
                 DiscordError::DmCreationFailed => ("discord.dm_creation_failed".to_string(), None),
                 _ => ("discord.api_error".to_string(), None),
@@ -213,8 +214,32 @@ impl DictionaryManager {
                     params.insert("command".to_string(), cmd.clone());
                     ("command.unknown_command".to_string(), Some(params))
                 }
+                CommandError::UnknownSlashCommand(cmd) => {
+                    let mut params = HashMap::new();
+                    params.insert("command".to_string(), cmd.clone());
+                    ("command.unknown_slash_command".to_string(), Some(params))
+                }
                 CommandError::InsufficientPermissions => {
                     ("command.insufficient_permissions".to_string(), None)
+                }
+                CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => {
+                    let mut params = HashMap::new();
+                    params.insert("user".to_string(), user.clone());
+                    params.insert("channel_id".to_string(), channel_id.clone());
+                    (
+                        "new_thread.user_has_thread_with_link".to_string(),
+                        Some(params),
+                    )
+                }
+                CommandError::ClosureAlreadyScheduled => {
+                    ("close.closure_already_scheduled".to_string(), None)
+                }
+                CommandError::NoSchedulableClosureToCancel => {
+                    ("close.no_scheduled_closures_to_cancel".to_string(), None)
+                }
+                CommandError::SendDmFailed => ("reply.send_failed_dm".to_string(), None),
+                CommandError::DiscordDeleteFailed => {
+                    ("command.discord_delete_failed".to_string(), None)
                 }
                 _ => ("command.invalid_format".to_string(), None),
             },
@@ -224,6 +249,7 @@ impl DictionaryManager {
                 ThreadError::ThreadCreationFailed => ("thread.creation_failed".to_string(), None),
                 ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
                 ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
+                ThreadError::CategoryNotFound => ("thread.category_not_found".to_string(), None),
                 _ => ("thread.not_found".to_string(), None),
             },
             ModmailError::Message(msg_err) => match msg_err {

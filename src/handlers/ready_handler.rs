@@ -1,8 +1,21 @@
+use crate::commands::add_staff::slash_command::add_staff;
+use crate::commands::alert::slash_command::alert;
+use crate::commands::close::slash_command::close;
+use crate::commands::delete::slash_command::delete;
+use crate::commands::edit::slash_command::edit;
+use crate::commands::force_close::slash_command::force_close;
+use crate::commands::help::slash_command::help;
+use crate::commands::id::slash_command::id;
+use crate::commands::move_thread::slash_command::move_thread;
+use crate::commands::new_thread::slash_command::new_thread;
+use crate::commands::recover::slash_command::recover;
+use crate::commands::remove_staff::slash_command::remove_staff;
+use crate::commands::reply::slash_command::reply;
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
 use crate::modules::scheduled_closures::hydrate_scheduled_closures;
-use serenity::all::ActivityData;
+use serenity::all::{ActivityData, GuildId};
 use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
@@ -37,5 +50,28 @@ impl EventHandler for ReadyHandler {
                 hydrate_scheduled_closures(&ctx, &config).await;
             }
         });
+
+        let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
+
+        let _ = guild_id
+            .set_commands(
+                &ctx.http,
+                vec![
+                    id::register(&self.config).await,
+                    move_thread::register(&self.config).await,
+                    new_thread::register(&self.config).await,
+                    close::register(&self.config).await,
+                    edit::register(&self.config).await,
+                    add_staff::register(&self.config).await,
+                    remove_staff::register(&self.config).await,
+                    alert::register(&self.config).await,
+                    force_close::register(&self.config).await,
+                    reply::register(&self.config).await,
+                    delete::register(&self.config).await,
+                    recover::register(&self.config).await,
+                    help::register(&self.config).await,
+                ],
+            )
+            .await;
     }
 }

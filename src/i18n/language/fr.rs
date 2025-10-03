@@ -43,6 +43,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
+        "discord.user_is_a_bot".to_string(),
+        DictionaryMessage::new("L'utilisateur spécifié est un bot"),
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Format de commande invalide")
             .with_description("La syntaxe de la commande est incorrecte")
@@ -63,6 +67,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Commande inconnue : {command}")
             .with_description("La commande spécifiée n'existe pas")
             .with_help("Utilisez `{prefix}help` pour voir les commandes disponibles"),
+    );
+    dict.messages.insert(
+        "command.unknown_slash_command".to_string(),
+        DictionaryMessage::new("Slash Commande inconnue : {command}"),
     );
     dict.messages.insert(
         "command.insufficient_permissions".to_string(),
@@ -214,6 +222,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "thread.modal_user_not_found".to_string(),
         DictionaryMessage::new(
             "L'utilisateur spécifié est introuvable, veuillez en choisir un autre.",
+        ),
+    );
+    dict.messages.insert(
+        "thread.category_not_found".to_string(),
+        DictionaryMessage::new(
+            "La catégorie spécifiée pour les tickets n'existe pas sur le serveur.",
         ),
     );
     dict.messages.insert(
@@ -442,34 +456,34 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Confirmation que l'alerte a été annulée"),
     );
     dict.messages.insert(
-        "move.not_in_thread".to_string(),
+        "move_thread.not_in_thread".to_string(),
         DictionaryMessage::new(
             "❌ Cette commande ne peut être utilisée que dans un thread de support",
         )
-        .with_description("La commande move doit être utilisée dans un canal de thread"),
+        .with_description("La commande move_thread doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
-        "move.missing_category".to_string(),
-        DictionaryMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move <nom_catégorie>`")
-            .with_description("Le nom de la catégorie est manquant dans la commande move"),
+        "move_thread.missing_category".to_string(),
+        DictionaryMessage::new("❌ Veuillez spécifier un nom de catégorie. Utilisation : `{prefix}move_thread <nom_catégorie>`")
+            .with_description("Le nom de la catégorie est manquant dans la commande move_thread"),
     );
     dict.messages.insert(
-        "move.failed_to_fetch_categories".to_string(),
+        "move_thread.failed_to_fetch_categories".to_string(),
         DictionaryMessage::new("❌ Échec de récupération des catégories du serveur")
             .with_description("Le bot n'a pas pu récupérer la liste des catégories du serveur"),
     );
     dict.messages.insert(
-        "move.category_not_found".to_string(),
+        "move_thread.category_not_found".to_string(),
         DictionaryMessage::new("❌ Catégorie '{category}' non trouvée")
             .with_description("Aucune catégorie avec ce nom n'existe sur le serveur"),
     );
     dict.messages.insert(
-        "move.failed_to_move".to_string(),
+        "move_thread.failed_to_move".to_string(),
         DictionaryMessage::new("❌ Échec du déplacement du thread vers la catégorie spécifiée")
             .with_description("Une erreur s'est produite lors du déplacement du thread"),
     );
     dict.messages.insert(
-        "move.success".to_string(),
+        "move_thread.success".to_string(),
         DictionaryMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
             .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
     );
@@ -480,13 +494,11 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.user_has_thread".to_string(),
-        DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif")
-            .with_description("L'utilisateur a déjà un thread ouvert"),
+        DictionaryMessage::new("❌ Cet utilisateur a déjà un thread de support actif"),
     );
     dict.messages.insert(
         "new_thread.user_has_thread_with_link".to_string(),
         DictionaryMessage::new("❌ {user} a déjà un thread de support actif\n\n📎 **Lien du thread :** <#{channel_id}>")
-            .with_description("L'utilisateur a déjà un thread ouvert avec un lien vers celui-ci"),
     );
     dict.messages.insert(
         "new_thread.user_not_found".to_string(),
@@ -528,7 +540,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_with_dm".to_string(),
-        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\nNotification DM envoyée avec succès.")
+        DictionaryMessage::new("✅ Thread de support créé pour {user} dans {channel_id} par {staff}\n\nNotification DM envoyée avec succès.")
             .with_description("Message de succès quand le thread est créé et le DM envoyé"),
     );
     dict.messages.insert(
@@ -556,7 +568,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Aucun message avec ce numéro n'existe dans ce thread"),
     );
     dict.messages.insert(
-        "delete.discord_delete_failed".to_string(),
+        "command.discord_delete_failed".to_string(),
         DictionaryMessage::new("❌ Échec de suppression du message depuis Discord")
             .with_description(
                 "Une erreur s'est produite lors de la suppression du message depuis Discord",
@@ -619,5 +631,103 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "feature.not_implemented".to_string(),
         DictionaryMessage::new("Cette feature n'est pas encore implémentée."),
+    );
+    dict.messages.insert(
+        "slash_command.id_command_description".to_string(),
+        DictionaryMessage::new("Afficher l'ID d'un utilisateur du thread de support"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_description".to_string(),
+        DictionaryMessage::new("Déplacer le thread de support vers une autre catégorie"),
+    );
+    dict.messages.insert(
+        "slash_command.move_command_name_argument".to_string(),
+        DictionaryMessage::new("La catégorie vers laquelle déplacer le thread"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_command_description".to_string(),
+        DictionaryMessage::new("Créer un nouveau thread de support pour un utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_command.new_thread_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID de l'utilisateur pour lequel créer le thread"),
+    );
+    dict.messages.insert(
+        "slash_command.close_command_description".to_string(),
+        DictionaryMessage::new("Fermer un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_command_description".to_string(),
+        DictionaryMessage::new("Editer un message envoyé dans un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_id_argument".to_string(),
+        DictionaryMessage::new("Le numéro du message à éditer. Vous pouvez trouver le numéro en regardant le footer du message."),
+    );
+    dict.messages.insert(
+        "slash_command.edit_message_argument".to_string(),
+        DictionaryMessage::new("Le nouveau contenu du message"),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_command_description".to_string(),
+        DictionaryMessage::new(
+            "Ajouter un membre du staff à un ticket de support auquel il n'a pas accès",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.add_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID du staff à ajouter au ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_command_description".to_string(),
+        DictionaryMessage::new("Retirer un membre du staff d'un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_staff_user_id_argument".to_string(),
+        DictionaryMessage::new("L'ID du staff à retirer du ticket"),
+    );
+    dict.messages.insert(
+        "slash_command.alert_command_description".to_string(),
+        DictionaryMessage::new("Définir ou annuler une alerte pour être notifié quand l'utilisateur enverra un nouveau message"),
+    );
+    dict.messages.insert(
+        "slash_command.alert_cancel_argument".to_string(),
+        DictionaryMessage::new("Annuler l'alerte"),
+    );
+    dict.messages.insert(
+        "slash_command.force_close_command_description".to_string(),
+        DictionaryMessage::new("Forcer la fermeture d'un ticket de support dont l'utilisateur n'est plus membre du serveur"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_command_description".to_string(),
+        DictionaryMessage::new("Répondre à un utilisateur dans son ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_message_argument_description".to_string(),
+        DictionaryMessage::new("Le message à envoyer à l'utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_attachment_argument_description".to_string(),
+        DictionaryMessage::new("Une pièce jointe à envoyer avec le message"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_anonymous_argument_description".to_string(),
+        DictionaryMessage::new("Envoyer la réponse anonymement"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_command_description".to_string(),
+        DictionaryMessage::new("Supprimer un message envoyé dans un ticket de support"),
+    );
+    dict.messages.insert(
+        "slash_command.delete_message_id_argument_description".to_string(),
+        DictionaryMessage::new("Le numéro du message à supprimer. Vous pouvez trouver le numéro en regardant le footer du message."),
+    );
+    dict.messages.insert(
+        "slash_command.recover_command_description".to_string(),
+        DictionaryMessage::new("Récupérer les messages manqués pendant la période d'indisponibilité du bot (Ce processus est automatique)"),
+    );
+    dict.messages.insert(
+        "slash_command.help_command_description".to_string(),
+        DictionaryMessage::new("Afficher le message d'aide"),
     );
 }

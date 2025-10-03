@@ -1,20 +1,18 @@
-use crate::commands::add_staff::add_staff;
+use crate::commands::add_staff::text_command::add_staff::add_staff;
+use crate::commands::alert::text_command::alert::alert;
+use crate::commands::anonreply::text_command::anonreply::anonreply;
+use crate::commands::close::text_command::close::close;
+use crate::commands::delete::text_command::delete::delete;
 use crate::commands::edit::message_ops::edit_inbox_message;
-use crate::commands::force_close::force_close;
-use crate::commands::id::id;
-use crate::commands::remove_staff::remove_staff;
-use crate::commands::{
-    alert::alert,
-    anonreply::anonreply,
-    close::close,
-    delete::delete,
-    edit::edit_command::edit,
-    move_thread::move_thread,
-    new_thread::new_thread,
-    recover::recover,
-    reply::reply,
-    test_errors::{test_all_errors, test_errors, test_language},
-};
+use crate::commands::edit::text_command::edit::edit;
+use crate::commands::force_close::text_command::force_close::force_close;
+use crate::commands::help::text_command::help::help;
+use crate::commands::id::text_command::id::id;
+use crate::commands::move_thread::text_command::move_thread::move_thread;
+use crate::commands::new_thread::text_command::new_thread::new_thread;
+use crate::commands::recover::text_command::recover::recover;
+use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
+use crate::commands::reply::text_command::reply::reply;
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
 use crate::db::operations::messages::get_thread_message_by_message_id;
@@ -37,7 +35,6 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use crate::commands::help::help;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
@@ -68,9 +65,6 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, ["nt", "new_thread"], new_thread);
         wrap_command!(h.commands, "delete", delete);
         wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
-        wrap_command!(h.commands, "test_errors", test_errors);
-        wrap_command!(h.commands, "test_language", test_language);
-        wrap_command!(h.commands, "test_all_errors", test_all_errors);
         wrap_command!(h.commands, ["force_close", "fc"], force_close);
         wrap_command!(h.commands, ["add_staff", "as"], add_staff);
         wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
@@ -119,7 +113,9 @@ async fn manage_incoming_message(
             .await;
 
             let error = common::validation_failed(&error_msg);
-            let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+            let _ = error_handler
+                .reply_to_msg_with_error(ctx, msg, &error)
+                .await;
             return Err(error);
         }
     }
@@ -138,7 +134,9 @@ async fn manage_incoming_message(
 
             if let Err(e) = send_to_thread(ctx, channel_id, msg, config, false).await {
                 let error = common::validation_failed(&format!("Failed to forward message: {}", e));
-                let _ = error_handler.reply_with_error(ctx, msg, &error).await;
+                let _ = error_handler
+                    .reply_to_msg_with_error(ctx, msg, &error)
+                    .await;
                 return Err(error);
             }
         }
@@ -156,7 +154,9 @@ impl EventHandler for GuildMessagesHandler {
         if msg.guild_id.is_none() {
             if let Err(error) = manage_incoming_message(&ctx, &msg, &self.config).await {
                 if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                    let _ = error_handler
+                        .reply_to_msg_with_error(&ctx, &msg, &error)
+                        .await;
                 } else {
                     eprintln!("DM handling error: {}", error);
                 }
@@ -177,7 +177,9 @@ impl EventHandler for GuildMessagesHandler {
                     command_func(ctx.clone(), msg.clone(), self.config.clone()).await
             {
                 if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler.reply_with_error(&ctx, &msg, &error).await;
+                    let _ = error_handler
+                        .reply_to_msg_with_error(&ctx, &msg, &error)
+                        .await;
                 } else {
                     eprintln!("Command error: {}", error);
                 }
@@ -190,7 +192,7 @@ impl EventHandler for GuildMessagesHandler {
     async fn message_delete(
         &self,
         ctx: Context,
-        channel_id: ChannelId,
+        _channel_id: ChannelId,
         deleted_message_id: MessageId,
         _guild_id: Option<GuildId>,
     ) {
@@ -211,13 +213,6 @@ impl EventHandler for GuildMessagesHandler {
                 Err(_) => return,
             };
 
-        let is_dm = channel_id
-            .to_channel(&ctx.http)
-            .await
-            .ok()
-            .and_then(|c| c.private())
-            .is_some();
-
         let thread_opt =
             get_thread_by_user_id(UserId::new(message_entry.user_id as u64), pool).await;
         let thread = match thread_opt {
@@ -225,45 +220,7 @@ impl EventHandler for GuildMessagesHandler {
             None => return,
         };
 
-        if is_dm {
-            if let Some(inbox_id) = &message_entry.inbox_message_id {
-                if let Ok(inbox_u64) = inbox_id.parse::<u64>() {
-                    {
-                        let mut suppressed = SUPPRESSED_DELETES.lock().unwrap();
-                        suppressed.insert(inbox_u64);
-                    }
-                    let inbox_channel_id = match thread.channel_id.parse::<u64>() {
-                        Ok(id) => ChannelId::new(id),
-                        Err(_) => ChannelId::new(0),
-                    };
-                    let _ = inbox_channel_id
-                        .delete_message(&ctx.http, MessageId::new(inbox_u64))
-                        .await;
-                }
-            }
-        } else {
-            if let Some(dm_id) = &message_entry.dm_message_id {
-                if let Ok(dm_u64) = dm_id.parse::<u64>() {
-                    if let Ok(user) = ctx
-                        .http
-                        .get_user(UserId::new(message_entry.user_id as u64))
-                        .await
-                    {
-                        if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
-                            if let Ok(dm_msg) = dm_channel.message(&ctx.http, dm_u64).await {
-                                {
-                                    let mut suppressed = SUPPRESSED_DELETES.lock().unwrap();
-                                    suppressed.insert(dm_u64);
-                                }
-                                let _ = dm_msg.delete(&ctx.http).await;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if self.config.logs.show_log_on_edit {
+        if self.config.logs.show_log_on_delete {
             let guild_id = self.config.bot.get_community_guild_id();
             let mut params = HashMap::new();
 
