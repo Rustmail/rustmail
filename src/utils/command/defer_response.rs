@@ -12,3 +12,11 @@ pub async fn defer_response(ctx: &Context, command: &CommandInteraction) -> Modm
         .await?;
     Ok(())
 }
+
+pub async fn defer_response_ephemeral(
+    ctx: &Context,
+    command: &CommandInteraction,
+) -> ModmailResult<()> {
+    command.defer_ephemeral(&ctx.http).await?;
+    Ok(())
+}

@@ -75,6 +75,7 @@ pub enum CommandError {
     ClosureAlreadyScheduled,
     NoSchedulableClosureToCancel,
     SendDmFailed,
+    DiscordDeleteFailed,
 }
 
 #[derive(Debug, Clone)]
@@ -226,6 +227,7 @@ impl fmt::Display for CommandError {
                 write!(f, "No schedulable closure to cancel")
             }
             CommandError::SendDmFailed => write!(f, "Failed to send DM to user"),
+            CommandError::DiscordDeleteFailed => write!(f, "Failed to delete message on Discord"),
         }
     }
 }

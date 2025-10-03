@@ -2,15 +2,16 @@ use crate::commands::add_staff::text_command::add_staff::add_staff;
 use crate::commands::alert::text_command::alert::alert;
 use crate::commands::anonreply::text_command::anonreply::anonreply;
 use crate::commands::close::text_command::close::close;
+use crate::commands::delete::text_command::delete::delete;
 use crate::commands::edit::message_ops::edit_inbox_message;
 use crate::commands::edit::text_command::edit::edit;
 use crate::commands::force_close::text_command::force_close::force_close;
 use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
+use crate::commands::recover::recover;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
-use crate::commands::{delete::delete, recover::recover};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
 use crate::db::operations::messages::get_thread_message_by_message_id;
@@ -19,7 +20,7 @@ use crate::db::operations::{
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
@@ -189,7 +190,7 @@ impl EventHandler for GuildMessagesHandler {
     async fn message_delete(
         &self,
         ctx: Context,
-        channel_id: ChannelId,
+        _channel_id: ChannelId,
         deleted_message_id: MessageId,
         _guild_id: Option<GuildId>,
     ) {
@@ -210,13 +211,6 @@ impl EventHandler for GuildMessagesHandler {
                 Err(_) => return,
             };
 
-        let is_dm = channel_id
-            .to_channel(&ctx.http)
-            .await
-            .ok()
-            .and_then(|c| c.private())
-            .is_some();
-
         let thread_opt =
             get_thread_by_user_id(UserId::new(message_entry.user_id as u64), pool).await;
         let thread = match thread_opt {
@@ -224,45 +218,7 @@ impl EventHandler for GuildMessagesHandler {
             None => return,
         };
 
-        if is_dm {
-            if let Some(inbox_id) = &message_entry.inbox_message_id {
-                if let Ok(inbox_u64) = inbox_id.parse::<u64>() {
-                    {
-                        let mut suppressed = SUPPRESSED_DELETES.lock().unwrap();
-                        suppressed.insert(inbox_u64);
-                    }
-                    let inbox_channel_id = match thread.channel_id.parse::<u64>() {
-                        Ok(id) => ChannelId::new(id),
-                        Err(_) => ChannelId::new(0),
-                    };
-                    let _ = inbox_channel_id
-                        .delete_message(&ctx.http, MessageId::new(inbox_u64))
-                        .await;
-                }
-            }
-        } else {
-            if let Some(dm_id) = &message_entry.dm_message_id {
-                if let Ok(dm_u64) = dm_id.parse::<u64>() {
-                    if let Ok(user) = ctx
-                        .http
-                        .get_user(UserId::new(message_entry.user_id as u64))
-                        .await
-                    {
-                        if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
-                            if let Ok(dm_msg) = dm_channel.message(&ctx.http, dm_u64).await {
-                                {
-                                    let mut suppressed = SUPPRESSED_DELETES.lock().unwrap();
-                                    suppressed.insert(dm_u64);
-                                }
-                                let _ = dm_msg.delete(&ctx.http).await;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if self.config.logs.show_log_on_edit {
+        if self.config.logs.show_log_on_delete {
             let guild_id = self.config.bot.get_community_guild_id();
             let mut params = HashMap::new();
 

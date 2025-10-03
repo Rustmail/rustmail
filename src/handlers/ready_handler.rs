@@ -1,6 +1,7 @@
 use crate::commands::add_staff::slash_command::add_staff;
 use crate::commands::alert::slash_command::alert;
 use crate::commands::close::slash_command::close;
+use crate::commands::delete::slash_command::delete;
 use crate::commands::edit::slash_command::edit;
 use crate::commands::force_close::slash_command::force_close;
 use crate::commands::id::slash_command::id;
@@ -64,6 +65,7 @@ impl EventHandler for ReadyHandler {
                     alert::register(&self.config).await,
                     force_close::register(&self.config).await,
                     reply::register(&self.config).await,
+                    delete::register(&self.config).await,
                 ],
             )
             .await;
