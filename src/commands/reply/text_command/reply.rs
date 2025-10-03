@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{ModmailError, ModmailResult, ThreadError, common};
+use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
@@ -60,36 +60,15 @@ pub async fn reply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResu
         }
     }
 
-    let (thread_msg, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
+    let (_, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
         Ok(tuple) => tuple,
         Err(_) => {
-            MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "reply.send_failed_thread",
-                    None,
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(msg.channel_id)
-                .send_and_forget()
-                .await;
             return Err(common::validation_failed("Failed to send to thread"));
         }
     };
 
     if dm_msg_opt.is_none() {
-        MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "reply.send_failed_dm",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            )
-            .await
-            .to_channel(thread_msg.channel_id)
-            .send_and_forget()
-            .await;
+        return Err(ModmailError::Command(CommandError::SendDmFailed));
     }
 
     if config.notifications.show_success_on_reply {
