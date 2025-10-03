@@ -11,7 +11,7 @@ use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    CreateInteractionResponse, ResolvedOption,
+    ResolvedOption,
 };
 use std::collections::HashMap;
 
@@ -109,12 +109,10 @@ pub async fn run(
                 )
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message()
+                .build_interaction_message_followup()
                 .await;
 
-            command
-                .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                .await?;
+            command.create_followup(&ctx.http, response).await?;
 
             Ok(())
         }

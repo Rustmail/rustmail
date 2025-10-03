@@ -3,10 +3,9 @@ use crate::errors::dictionary::DictionaryManager;
 use crate::errors::types::{ModmailError, ModmailResult};
 use crate::i18n::languages::{Language, LanguageDetector, LanguagePreferences};
 use serenity::all::{
-    ChannelId, Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseMessage,
+    ChannelId, Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateMessage, Message, UserId,
 };
-use serenity::builder::CreateInteractionResponse;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -154,7 +153,7 @@ impl ErrorHandler {
         ctx: &Context,
         command: &CommandInteraction,
         error: &ModmailError,
-    ) -> Result<(), serenity::Error> {
+    ) -> Result<Message, serenity::Error> {
         let formatted_error = self
             .handle_error(
                 error,
@@ -166,11 +165,9 @@ impl ErrorHandler {
         let embed = self.create_error_embed(&formatted_error).await;
 
         command
-            .create_response(
+            .create_followup(
                 &ctx.http,
-                CreateInteractionResponse::Message(
-                    CreateInteractionResponseMessage::new().embed(embed),
-                ),
+                CreateInteractionResponseFollowup::new().embed(embed),
             )
             .await
     }
