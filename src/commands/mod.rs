@@ -5,6 +5,7 @@ pub mod close;
 pub mod delete;
 pub mod edit;
 pub mod force_close;
+pub mod help;
 pub mod id;
 pub mod move_thread;
 pub mod new_thread;

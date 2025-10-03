@@ -34,6 +34,7 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use crate::commands::help::help;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
@@ -68,6 +69,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, ["add_staff", "as"], add_staff);
         wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
         wrap_command!(h.commands, "id", id);
+        wrap_command!(h.commands, "help", help);
         h
     }
 }
