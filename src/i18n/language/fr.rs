@@ -710,4 +710,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.reply_attachment_argument_description".to_string(),
         DictionaryMessage::new("Une pièce jointe à envoyer avec le message"),
     );
+    dict.messages.insert(
+        "slash_command.reply_anonymous_argument_description".to_string(),
+        DictionaryMessage::new("Envoyer la réponse anonymement"),
+    );
 }

@@ -5,12 +5,12 @@ use crate::errors::{
     CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
 };
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
-    CreateCommand, CreateCommandOption, GuildId, ResolvedOption, UserId,
+    CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, GuildId, ResolvedOption,
 };
-use serenity::builder::CreateInteractionResponse;
 use std::collections::HashMap;
 
 pub async fn register(config: &Config) -> CreateCommand {
@@ -52,6 +52,8 @@ pub async fn run(
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
+
+    defer_response(&ctx, &command).await?;
 
     let user_id = match command
         .data
@@ -137,16 +139,16 @@ pub async fn run(
         guild_channel.to_string()
     );
 
-    let response = CreateInteractionResponse::Message(
-        MessageBuilder::system_message(ctx, config)
-            .translated_content("new_thread.success_with_dm", Some(&params), None, None)
-            .await
-            .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await,
-    );
+    let response = MessageBuilder::system_message(ctx, config)
+        .translated_content("new_thread.success_with_dm", Some(&params), None, None)
+        .await
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
 
-    let _ = command.create_response(&ctx.http, response).await?;
+    let _ = command
+        .create_followup(&ctx.http, CreateInteractionResponseFollowup::from(response))
+        .await?;
 
     Ok(())
 }

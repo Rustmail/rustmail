@@ -108,12 +108,10 @@ pub async fn handle_cancel_alert_from_command(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message()
+            .build_interaction_message_followup()
             .await;
 
-        let _ = command
-            .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-            .await;
+        let _ = command.create_followup(&ctx.http, response).await;
 
         Ok(())
     }
@@ -161,12 +159,10 @@ pub async fn handle_set_alert_from_command(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message()
+            .build_interaction_message_followup()
             .await;
 
-        let _ = command
-            .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-            .await;
+        let _ = command.create_followup(&ctx.http, response).await;
 
         Ok(())
     }

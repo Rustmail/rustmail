@@ -3,12 +3,13 @@ use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
 use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{
     Attachment, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
-    CreateCommand, CreateCommandOption, CreateInteractionResponse, GuildId, ResolvedOption, UserId,
+    CreateCommand, CreateCommandOption, GuildId, ResolvedOption, UserId,
 };
 use std::collections::HashMap;
 
@@ -40,6 +41,15 @@ pub async fn register(config: &Config) -> CreateCommand {
         None,
     )
     .await;
+    let anonymous_desc = get_translated_message(
+        config,
+        "slash_command.reply_anonymous_argument_description",
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
 
     CreateCommand::new("reply")
         .description(cmd_desc)
@@ -55,6 +65,11 @@ pub async fn register(config: &Config) -> CreateCommand {
             )
             .required(false),
         )
+        .add_option(CreateCommandOption::new(
+            CommandOptionType::Boolean,
+            "anonymous",
+            anonymous_desc,
+        ))
 }
 
 pub async fn run(
@@ -68,8 +83,11 @@ pub async fn run(
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
+    defer_response(&ctx, &command).await?;
+
     let mut content: Option<String> = None;
     let mut attachments: Vec<Attachment> = Vec::new();
+    let mut anonymous: bool = false;
 
     for option in &command.data.options {
         match &option.value {
@@ -80,6 +98,9 @@ pub async fn run(
                 if let Some(att) = command.data.resolved.attachments.get(att_id) {
                     attachments.push(att.clone());
                 }
+            }
+            CommandDataOptionValue::Boolean(anonym) if option.name == "anonymous" => {
+                anonymous = *anonym;
             }
             _ => {}
         }
@@ -113,6 +134,7 @@ pub async fn run(
         next_message_number,
     )
     .to_thread(command.channel_id)
+    .anonymous(anonymous)
     .to_user(user_id);
 
     match intent {
@@ -151,12 +173,10 @@ pub async fn run(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message()
+            .build_interaction_message_followup()
             .await;
 
-        let _ = command
-            .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-            .await;
+        let _ = command.create_followup(&ctx.http, response).await;
     }
 
     Ok(())

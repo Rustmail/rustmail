@@ -5,12 +5,13 @@ use crate::db::{
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, CreateInteractionResponse, GuildId, ResolvedOption, UserId,
+    CreateCommandOption, GuildId, ResolvedOption, UserId,
 };
 use std::collections::HashMap;
 use std::time::Duration;
@@ -52,6 +53,8 @@ pub async fn run(
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
+
+    defer_response(&ctx, &command).await?;
 
     let mut time_before_close: Option<String> = None;
     let mut silent: Option<bool> = None;
@@ -105,12 +108,10 @@ pub async fn run(
                 )
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message()
+                .build_interaction_message_followup()
                 .await;
 
-            let _ = command
-                .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                .await;
+            let _ = command.create_followup(&ctx.http, response).await;
             Ok(())
         } else {
             Err(ModmailError::Command(
@@ -158,12 +159,10 @@ pub async fn run(
                 )
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message()
+                .build_interaction_message_followup()
                 .await;
 
-            let _ = command
-                .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                .await;
+            let _ = command.create_followup(&ctx.http, response).await;
         } else {
             let response = MessageBuilder::system_message(ctx, config)
                 .translated_content(
@@ -174,12 +173,10 @@ pub async fn run(
                 )
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message()
+                .build_interaction_message_followup()
                 .await;
 
-            let _ = command
-                .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                .await;
+            let _ = command.create_followup(&ctx.http, response).await;
         };
 
         let thread_id = thread.id.clone();
@@ -287,12 +284,10 @@ pub async fn run(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message()
+            .build_interaction_message_followup()
             .await;
 
-        let _ = command
-            .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-            .await;
+        let _ = command.create_followup(&ctx.http, response).await;
     }
 
     close_thread(&thread.id, db_pool).await?;

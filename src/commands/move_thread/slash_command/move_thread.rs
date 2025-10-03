@@ -7,6 +7,7 @@ use crate::errors::{
     CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, ThreadError,
 };
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
@@ -52,6 +53,8 @@ pub async fn run(
             return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
         }
     };
+
+    defer_response(&ctx, &command).await?;
 
     if !get_user_id_from_channel_id(&command.channel_id.to_string(), pool)
         .await

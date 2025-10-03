@@ -4,9 +4,10 @@ use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
-use serenity::builder::{CreateCommand, CreateInteractionResponse};
+use serenity::builder::CreateCommand;
 
 pub async fn register(config: &Config) -> CreateCommand {
     let cmd_desc = get_translated_message(
@@ -35,6 +36,8 @@ pub async fn run(
         }
     };
 
+    defer_response(&ctx, &command).await?;
+
     if !is_a_ticket_channel(command.channel_id, pool).await {
         return Err(ModmailError::Thread(NotAThreadChannel));
     }
@@ -53,15 +56,14 @@ pub async fn run(
         format!("||{}||", thread.user_id.to_string()),
     );
 
-    let response = CreateInteractionResponse::Message(
-        MessageBuilder::system_message(&ctx, &config)
-            .translated_content("id.show_id", Some(&params), None, None)
-            .await
-            .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await,
-    );
-    let _ = command.create_response(&ctx.http, response).await;
+    let response = MessageBuilder::system_message(&ctx, &config)
+        .translated_content("id.show_id", Some(&params), None, None)
+        .await
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    let _ = command.create_followup(&ctx.http, response).await;
 
     Ok(())
 }

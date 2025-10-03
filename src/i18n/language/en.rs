@@ -697,4 +697,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.reply_attachment_argument_description".to_string(),
         DictionaryMessage::new("An optional attachment to send to the user"),
     );
+    dict.messages.insert(
+        "slash_command.reply_anonymous_argument_description".to_string(),
+        DictionaryMessage::new("Send the message anonymously"),
+    );
 }

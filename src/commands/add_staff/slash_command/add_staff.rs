@@ -5,12 +5,12 @@ use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, ResolvedOption,
 };
-use serenity::builder::CreateInteractionResponse;
 use std::collections::HashMap;
 
 pub async fn register(config: &Config) -> CreateCommand {
@@ -52,6 +52,8 @@ pub async fn run(
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
+    defer_response(&ctx, &command).await?;
+
     let user_id = match command
         .data
         .options
@@ -79,12 +81,10 @@ pub async fn run(
                     .translated_content("add_staff.add_success", Some(&params), None, None)
                     .await
                     .to_channel(command.channel_id)
-                    .build_interaction_message()
+                    .build_interaction_message_followup()
                     .await;
 
-                let _ = command
-                    .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                    .await;
+                let _ = command.create_followup(&ctx.http, response).await;
 
                 Ok(())
             }

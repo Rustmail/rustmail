@@ -4,8 +4,8 @@ use crate::i18n::get_translated_message;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use serenity::all::{
     ChannelId, Colour, CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateMessage, EditMessage, Message, Timestamp, UserId,
+    CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponseFollowup, CreateMessage,
+    EditMessage, Message, Timestamp, UserId,
 };
 use serenity::builder::{CreateActionRow, CreateInteractionResponseMessage};
 use sqlx::SqlitePool;
@@ -761,13 +761,6 @@ impl<'a> StaffReply<'a> {
         let thread_channel = self
             .thread_channel
             .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
-
-        command
-            .create_response(
-                &self.ctx.http,
-                CreateInteractionResponse::Defer(CreateInteractionResponseMessage::new()),
-            )
-            .await?;
 
         let top_role_name: Option<String> = self.get_top_role_name(thread_channel).await;
 

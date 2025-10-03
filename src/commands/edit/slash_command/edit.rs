@@ -5,11 +5,12 @@ use crate::db::{get_thread_message_by_inbox_message_id, update_message_content};
 use crate::errors::common::message_not_found;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::utils::command::defer_response::defer_response;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, CreateInteractionResponse, ResolvedOption,
+    CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 
@@ -64,6 +65,8 @@ pub async fn run(
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
+
+    defer_response(&ctx, &command).await?;
 
     let mut msg_id: i64 = 0;
     let mut new_content: String = String::new();
@@ -149,12 +152,10 @@ pub async fn run(
                     .await
                     .color(hex_string_to_int(&config.thread.system_message_color) as u32)
                     .to_channel(command.channel_id)
-                    .build_interaction_message()
+                    .build_interaction_message_followup()
                     .await;
 
-                let _ = command
-                    .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                    .await;
+                let _ = command.create_followup(&ctx.http, response).await;
             };
 
             if config.logs.show_log_on_edit {
@@ -186,12 +187,10 @@ pub async fn run(
                     )
                     .await
                     .to_channel(command.channel_id)
-                    .build_interaction_message()
+                    .build_interaction_message_followup()
                     .await;
 
-                let _ = command
-                    .create_response(&ctx.http, CreateInteractionResponse::Message(response))
-                    .await;
+                let _ = command.create_followup(&ctx.http, response).await;
             }
 
             match update_message_content(&dm_msg_id, &new_content, pool).await {
