@@ -479,9 +479,7 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
-        if self.ephemeral {
-            message = message.ephemeral(true);
-        }
+        message = message.ephemeral(true);
 
         message
     }
@@ -504,9 +502,7 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
-        if self.ephemeral {
-            message = message.ephemeral(true);
-        }
+        message = message.ephemeral(true);
 
         message
     }
