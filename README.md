@@ -13,19 +13,11 @@
 A Discord modmail bot written in Rust that allows staff to manage support tickets via channels, with features like message editing, internationalization, structured error handling, and more.
 The bot can operate in single-server or dual-server modes, supports SQLite for data storage, and offers a range of commands for staff to interact with users efficiently.
 
-Slash commands are currently under development and will be available soon! See [this](https://github.com/Akinator31/rustmail/tree/convert_to_slash_commands)
-
-
 ---
 ## ⚠️ Warning ⚠️
 This is my first major project in Rust; while I have solid experience in C and other languages, I'm learning Rust as I go — feedback and PRs are welcome.
 
 Project documentation is currently being written.
-
----
-> Status: **Public Alpha** – **NON PRODUCTION-READY** (unstable, API & schema subject to change, data loss risk). Use at your own risk.
->
-> Goal: Provide a performant, extensible Rust modmail foundation with thread management, message editing, i18n, rich error system and future advanced features.
 
 ---
 ## Feature Summary (Currently Implemented)
