@@ -9,9 +9,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     reviewers:
-      - "@rustmail"
+      - "@Akinator31"
     assignees:
-      - "@rustmail"
+      - "@Akinator31"
     labels:
       - "dependencies"
       - "rust"
@@ -28,9 +28,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "@rustmail"
+      - "@Akinator31"
     assignees:
-      - "@rustmail"
+      - "@Akinator31"
     labels:
       - "dependencies"
       - "javascript"
