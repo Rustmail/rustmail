@@ -479,7 +479,7 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
-        message = message.ephemeral(true);
+        message = message.ephemeral(self.ephemeral);
 
         message
     }
@@ -502,7 +502,7 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
-        message = message.ephemeral(true);
+        message = message.ephemeral(self.ephemeral);
 
         message
     }
