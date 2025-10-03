@@ -1,10 +1,10 @@
 use crate::config::Config;
-use crate::db::messages::{get_thread_message_by_inbox_message_id, MessageIds};
+use crate::db::messages::{MessageIds, get_thread_message_by_inbox_message_id};
 use crate::db::operations::{
     get_message_ids_by_number, get_thread_by_channel_id, get_user_id_from_channel_id,
 };
-use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
 use crate::errors::MessageError::{DmAccessFailed, EditFailed};
+use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
 use crate::errors::{ModmailError, ModmailResult};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
