@@ -1,35 +1,26 @@
-use crate::commands::add_staff::slash_command::add_staff;
-use crate::commands::alert::slash_command::alert;
-use crate::commands::close::slash_command::close;
-use crate::commands::delete::slash_command::delete;
-use crate::commands::edit::slash_command::edit;
-use crate::commands::force_close::slash_command::force_close;
-use crate::commands::help::slash_command::help;
-use crate::commands::id::slash_command::id;
-use crate::commands::move_thread::slash_command::move_thread;
-use crate::commands::new_thread::slash_command::new_thread;
-use crate::commands::recover::slash_command::recover;
-use crate::commands::remove_staff::slash_command::remove_staff;
-use crate::commands::reply::slash_command::reply;
+use crate::commands::{CommandRegistry, RegistrableCommand};
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
 use crate::modules::scheduled_closures::hydrate_scheduled_closures;
-use serenity::all::{ActivityData, GuildId};
+use serenity::all::{ActivityData, CreateCommand, GuildId};
 use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
 };
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ReadyHandler {
     pub config: Config,
+    pub registry: Arc<CommandRegistry>,
 }
 
 impl ReadyHandler {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: &Config, registry: Arc<CommandRegistry>) -> Self {
         Self {
             config: config.clone(),
+            registry,
         }
     }
 }
@@ -53,27 +44,14 @@ impl EventHandler for ReadyHandler {
 
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
 
-        if let Err(e) = guild_id
-            .set_commands(
-                &ctx.http,
-                vec![
-                    id::register(&self.config).await,
-                    move_thread::register(&self.config).await,
-                    new_thread::register(&self.config).await,
-                    close::register(&self.config).await,
-                    edit::register(&self.config).await,
-                    add_staff::register(&self.config).await,
-                    remove_staff::register(&self.config).await,
-                    alert::register(&self.config).await,
-                    force_close::register(&self.config).await,
-                    reply::register(&self.config).await,
-                    delete::register(&self.config).await,
-                    recover::register(&self.config).await,
-                    help::register(&self.config).await,
-                ],
-            )
-            .await
-        {
+        let mut commands: Vec<CreateCommand> = Vec::new();
+
+        for command in self.registry.all() {
+            let mut cmds = command.register(&self.config).await;
+            commands.append(&mut cmds);
+        }
+
+        if let Err(e) = guild_id.set_commands(&ctx.http, commands).await {
             eprintln!("set_commands() failed: {:?}", e);
         }
     }

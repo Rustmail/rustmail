@@ -1,3 +1,17 @@
+use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
+use crate::commands::alert::slash_command::alert::AlertCommand;
+use crate::commands::close::slash_command::close::CloseCommand;
+use crate::commands::delete::slash_command::delete::DeleteCommand;
+use crate::commands::edit::slash_command::edit::EditCommand;
+use crate::commands::force_close::slash_command::force_close::ForceCloseCommand;
+use crate::commands::help::slash_command::help::HelpCommand;
+use crate::commands::id::slash_command::id::IdCommand;
+use crate::commands::move_thread::slash_command::move_thread::MoveCommand;
+use crate::commands::new_thread::slash_command::new_thread::NewThreadCommand;
+use crate::commands::recover::slash_command::recover::RecoverCommand;
+use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
+use crate::commands::reply::slash_command::reply::ReplyCommand;
+use crate::commands::CommandRegistry;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
@@ -11,6 +25,7 @@ use handlers::{
 use serenity::all::{ClientBuilder, GatewayIntents};
 use serenity::cache::Settings as CacheSettings;
 use std::process;
+use std::sync::Arc;
 use std::time::Duration;
 
 mod commands;
@@ -51,15 +66,32 @@ async fn main() {
     cache_settings.max_messages = 10_000;
     cache_settings.time_to_live = Duration::from_secs(6 * 60 * 60);
 
+    let mut registry = CommandRegistry::new();
+    registry.register_command(AddStaffCommand);
+    registry.register_command(AlertCommand);
+    registry.register_command(CloseCommand);
+    registry.register_command(DeleteCommand);
+    registry.register_command(EditCommand);
+    registry.register_command(ForceCloseCommand);
+    registry.register_command(HelpCommand);
+    registry.register_command(IdCommand);
+    registry.register_command(MoveCommand);
+    registry.register_command(NewThreadCommand);
+    registry.register_command(RecoverCommand);
+    registry.register_command(RemoveStaffCommand);
+    registry.register_command(ReplyCommand);
+
+    let registry = Arc::new(registry);
+
     let mut client: serenity::Client = ClientBuilder::new(config.bot.token.clone(), intents)
         .cache_settings(cache_settings)
-        .event_handler(ReadyHandler::new(&config))
+        .event_handler(ReadyHandler::new(&config, registry.clone()))
         .event_handler(GuildMessagesHandler::new(&config))
         .event_handler(TypingProxyHandler::new(&config))
         .event_handler(GuildMembersHandler::new(&config))
         .event_handler(GuildMessageReactionsHandler::new(&config))
         .event_handler(GuildModerationHandler::new(&config))
-        .event_handler(InteractionHandler::new(&config))
+        .event_handler(InteractionHandler::new(&config, registry.clone()))
         .event_handler(GuildHandler::new(&config))
         .await
         .expect("Failed to create client.");
