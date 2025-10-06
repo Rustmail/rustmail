@@ -53,7 +53,7 @@ impl EventHandler for ReadyHandler {
 
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
 
-        let _ = guild_id
+        if let Err(e) = guild_id
             .set_commands(
                 &ctx.http,
                 vec![
@@ -72,6 +72,9 @@ impl EventHandler for ReadyHandler {
                     help::register(&self.config).await,
                 ],
             )
-            .await;
+            .await
+        {
+            eprintln!("set_commands() failed: {:?}", e);
+        }
     }
 }
