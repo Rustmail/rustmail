@@ -1,39 +1,28 @@
-use crate::commands::add_staff::slash_command::add_staff;
-use crate::commands::alert::slash_command::alert;
-use crate::commands::close::slash_command::close;
-use crate::commands::delete::slash_command::delete;
-use crate::commands::edit::slash_command::edit;
-use crate::commands::force_close::slash_command::force_close;
-use crate::commands::help::slash_command::help;
-use crate::commands::id::slash_command::id;
-use crate::commands::move_thread::slash_command::move_thread;
-use crate::commands::new_thread::slash_command::new_thread;
-use crate::commands::recover::slash_command::recover;
-use crate::commands::remove_staff::slash_command::remove_staff;
-use crate::commands::reply::slash_command::reply;
+use crate::commands::CommandRegistry;
 use crate::config::Config;
-use crate::errors::{CommandError, ModmailError};
 use crate::features::handle_feature_component_interaction;
 use crate::modules::threads::{
     handle_thread_component_interaction, handle_thread_modal_interaction,
 };
 use serenity::all::{Context, EventHandler, Interaction};
-use serenity::async_trait;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
     pub config: Config,
+    pub registry: Arc<CommandRegistry>,
 }
 
 impl InteractionHandler {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: &Config, register: Arc<CommandRegistry>) -> Self {
         Self {
             config: config.clone(),
+            registry: register,
         }
     }
 }
 
-#[async_trait]
+#[async_trait::async_trait]
 impl EventHandler for InteractionHandler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         match interaction {
@@ -57,60 +46,23 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
-                let command_return = match command.data.name.as_str() {
-                    "id" => id::run(&ctx, &command, &command.data.options(), &self.config).await,
-                    "move" => {
-                        move_thread::run(&ctx, &command, &command.data.options(), &self.config)
-                            .await
-                    }
-                    "new_thread" => {
-                        new_thread::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "close" => {
-                        close::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "edit" => {
-                        edit::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "add_staff" => {
-                        add_staff::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "remove_staff" => {
-                        remove_staff::run(&ctx, &command, &command.data.options(), &self.config)
-                            .await
-                    }
-                    "alert" => {
-                        alert::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "force_close" => {
-                        force_close::run(&ctx, &command, &command.data.options(), &self.config)
-                            .await
-                    }
-                    "reply" => {
-                        reply::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "delete" => {
-                        delete::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "recover" => {
-                        recover::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    "help" => {
-                        help::run(&ctx, &command, &command.data.options(), &self.config).await
-                    }
-                    _ => Err(ModmailError::Command(CommandError::UnknownSlashCommand(
-                        command.data.name.clone(),
-                    ))),
-                };
+                let ctx = ctx.clone();
+                let command = command.clone();
+                let options = command.data.options().clone();
+                let config = self.config.clone();
 
-                if let Err(error) = command_return {
-                    if let Some(error_handler) = &self.config.error_handler {
-                        let _ = error_handler
-                            .reply_to_command_with_error(&ctx, &command, &error)
-                            .await;
-                    } else {
-                        eprintln!("Command error: {}", error);
+                if let Some(handler) = self.registry.get(command.data.name.as_str()) {
+                    let result = handler.run(&ctx, &command, &options, &config).await;
+
+                    if let Err(e) = result {
+                        if let Some(error_handler) = &self.config.error_handler {
+                            let _ = error_handler
+                                .reply_to_command_with_error(&ctx, &command, &e)
+                                .await;
+                        }
                     }
+                } else {
+                    eprintln!("Command {} not found", command.data.name);
                 }
             }
             _ => {}

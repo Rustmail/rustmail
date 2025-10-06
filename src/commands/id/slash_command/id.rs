@@ -1,3 +1,4 @@
+use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
@@ -9,61 +10,82 @@ use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::CreateCommand;
 
-pub async fn register(config: &Config) -> CreateCommand {
-    let cmd_desc = get_translated_message(
-        config,
-        "slash_command.id_command_description",
-        None,
-        None,
-        None,
-        None,
-    )
-    .await;
+pub struct IdCommand;
 
-    CreateCommand::new("id").description(cmd_desc)
-}
-
-pub async fn run(
-    ctx: &Context,
-    command: &CommandInteraction,
-    _options: &[ResolvedOption<'_>],
-    config: &Config,
-) -> ModmailResult<()> {
-    let pool = match &config.db_pool {
-        Some(pool) => pool,
-        None => {
-            return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
-        }
-    };
-
-    defer_response(&ctx, &command).await?;
-
-    if !is_a_ticket_channel(command.channel_id, pool).await {
-        return Err(ModmailError::Thread(NotAThreadChannel));
+#[async_trait::async_trait]
+impl RegistrableCommand for IdCommand {
+    fn name(&self) -> &'static str {
+        "id"
     }
 
-    let thread = match get_thread_by_channel_id(&command.channel_id.to_string(), pool).await {
-        Some(thread) => thread,
-        None => {
-            return Err(ModmailError::Thread(ThreadNotFound));
-        }
-    };
+    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+        let config = config.clone();
 
-    let mut params = std::collections::HashMap::new();
-    params.insert("user".to_string(), format!("<@{}>", thread.user_id));
-    params.insert(
-        "id".to_string(),
-        format!("||{}||", thread.user_id.to_string()),
-    );
+        Box::pin(async move {
+            let cmd_desc = get_translated_message(
+                &config,
+                "slash_command.id_command_description",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
 
-    let response = MessageBuilder::system_message(&ctx, &config)
-        .translated_content("id.show_id", Some(&params), None, None)
-        .await
-        .to_channel(command.channel_id)
-        .build_interaction_message_followup()
-        .await;
+            vec![CreateCommand::new("id").description(cmd_desc)]
+        })
+    }
 
-    let _ = command.create_followup(&ctx.http, response).await;
+    fn run(
+        &self,
+        ctx: &Context,
+        command: &CommandInteraction,
+        options: &[ResolvedOption<'_>],
+        config: &Config,
+    ) -> BoxFuture<ModmailResult<()>> {
+        let ctx = ctx.clone();
+        let command = command.clone();
+        let config = config.clone();
 
-    Ok(())
+        Box::pin(async move {
+            let pool = match &config.db_pool {
+                Some(pool) => pool,
+                None => {
+                    return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
+                }
+            };
+
+            defer_response(&ctx, &command).await?;
+
+            if !is_a_ticket_channel(command.channel_id, pool).await {
+                return Err(ModmailError::Thread(NotAThreadChannel));
+            }
+
+            let thread = match get_thread_by_channel_id(&command.channel_id.to_string(), pool).await
+            {
+                Some(thread) => thread,
+                None => {
+                    return Err(ModmailError::Thread(ThreadNotFound));
+                }
+            };
+
+            let mut params = std::collections::HashMap::new();
+            params.insert("user".to_string(), format!("<@{}>", thread.user_id));
+            params.insert(
+                "id".to_string(),
+                format!("||{}||", thread.user_id.to_string()),
+            );
+
+            let response = MessageBuilder::system_message(&ctx, &config)
+                .translated_content("id.show_id", Some(&params), None, None)
+                .await
+                .to_channel(command.channel_id)
+                .build_interaction_message_followup()
+                .await;
+
+            let _ = command.create_followup(&ctx.http, response).await;
+
+            Ok(())
+        })
+    }
 }
