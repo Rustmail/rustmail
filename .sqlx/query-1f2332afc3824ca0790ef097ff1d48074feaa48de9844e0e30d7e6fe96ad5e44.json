@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE reminders\n        SET completed = ?\n        WHERE thread_id = ? AND trigger_time = ? AND completed = FALSE\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "1f2332afc3824ca0790ef097ff1d48074feaa48de9844e0e30d7e6fe96ad5e44"
+}

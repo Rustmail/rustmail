@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
 
+pub mod add_reminder;
 pub mod add_staff;
 pub mod alert;
 pub mod anonreply;

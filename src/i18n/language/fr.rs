@@ -730,4 +730,22 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.help_command_description".to_string(),
         DictionaryMessage::new("Afficher le message d'aide"),
     );
+    dict.messages.insert(
+        "reminder.registered_without_content".to_string(),
+        DictionaryMessage::new("⏰ Rappel enregistré pour {time} ({remaining_time}) !"),
+    );
+    dict.messages.insert(
+        "reminder.registered_with_content".to_string(),
+        DictionaryMessage::new(
+            "⏰ Rappel enregistré pour {time} ({remaining_time}) !\n\n{content}",
+        ),
+    );
+    dict.messages.insert(
+        "reminder.show_with_content".to_string(),
+        DictionaryMessage::new("⏰ Rappel : \n\n{content} !"),
+    );
+    dict.messages.insert(
+        "reminder.show_without_content".to_string(),
+        DictionaryMessage::new("⏰ Rappel !"),
+    );
 }

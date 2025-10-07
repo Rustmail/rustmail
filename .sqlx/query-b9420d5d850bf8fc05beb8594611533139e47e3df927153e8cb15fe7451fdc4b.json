@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed\n        FROM reminders\n        WHERE completed = FALSE\n        ORDER BY trigger_time ASC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "thread_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "channel_id",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "guild_id",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "reminder_content",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "trigger_time",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "completed",
+        "ordinal": 7,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b9420d5d850bf8fc05beb8594611533139e47e3df927153e8cb15fe7451fdc4b"
+}

@@ -1,3 +1,4 @@
+use crate::commands::add_reminder::text_command::add_reminder::add_reminder;
 use crate::commands::add_staff::text_command::add_staff::add_staff;
 use crate::commands::alert::text_command::alert::alert;
 use crate::commands::anonreply::text_command::anonreply::anonreply;
@@ -70,6 +71,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
         wrap_command!(h.commands, "id", id);
         wrap_command!(h.commands, "help", help);
+        wrap_command!(h.commands, ["add_reminder", "add_rap"], add_reminder);
         h
     }
 }
