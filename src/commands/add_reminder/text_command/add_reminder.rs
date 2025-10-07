@@ -2,7 +2,7 @@ use crate::commands::add_reminder::common::{send_register_confirmation, send_rem
 use crate::config::Config;
 use crate::db::reminders::{insert_reminder, update_reminder_status, Reminder};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
@@ -61,9 +61,7 @@ pub async fn add_reminder(ctx: &Context, msg: &Message, config: &Config) -> Modm
     let thread = match get_thread_by_user_id(msg.author.id, pool).await {
         Some(t) => t,
         None => {
-            return Err(ModmailError::Command(CommandError::InvalidArguments(
-                "No active thread found for user".to_string(),
-            )));
+            return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
         }
     };
 
