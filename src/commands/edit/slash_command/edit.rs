@@ -4,7 +4,7 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::{get_thread_message_by_inbox_message_id, update_message_content};
 use crate::errors::common::message_not_found;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;

@@ -2,7 +2,7 @@ use crate::config::Config;
 use crate::db::{cancel_alert_for_staff, get_user_id_from_channel_id, set_alert_for_staff};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::DiscordError::ApiError;
-use crate::errors::{common, ModmailError, ModmailResult};
+use crate::errors::{ModmailError, ModmailResult, common};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::colours::branding::GREEN;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, Message};

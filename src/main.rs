@@ -1,3 +1,4 @@
+use crate::commands::CommandRegistry;
 use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
 use crate::commands::alert::slash_command::alert::AlertCommand;
 use crate::commands::close::slash_command::close::CloseCommand;
@@ -11,7 +12,6 @@ use crate::commands::new_thread::slash_command::new_thread::NewThreadCommand;
 use crate::commands::recover::slash_command::recover::RecoverCommand;
 use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
 use crate::commands::reply::slash_command::reply::ReplyCommand;
-use crate::commands::CommandRegistry;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;

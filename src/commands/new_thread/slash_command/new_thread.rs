@@ -3,7 +3,7 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
+    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
 };
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
