@@ -4,13 +4,14 @@ use crate::commands::delete::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
+use crate::db::messages::get_thread_message_by_message_id;
 use crate::errors::{MessageError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, ResolvedOption,
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
+    CreateCommand, CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 
@@ -56,6 +57,7 @@ impl RegistrableCommand for DeleteCommand {
                         )
                         .required(true),
                     ),
+                CreateCommand::new("delete").kind(CommandType::Message),
             ]
         })
     }
@@ -95,9 +97,32 @@ impl RegistrableCommand for DeleteCommand {
             let (user_id, thread) = get_thread_info(&command.channel_id.to_string(), pool).await?;
 
             if message_number < 0 {
-                return Err(ModmailError::Message(MessageError::MessageNotFound(
-                    "".to_string(),
-                )));
+                if let Some(message_id) = &command.data.target_id {
+                    let thread_message = match get_thread_message_by_message_id(
+                        &message_id.to_message_id().to_string(),
+                        pool,
+                    )
+                    .await
+                    {
+                        Ok(thread_message) => thread_message,
+                        Err(e) => {
+                            return Err(ModmailError::Message(MessageError::MessageNotFound(
+                                e.to_string(),
+                            )));
+                        }
+                    };
+                    if let Some(msg_number) = thread_message.message_number {
+                        message_number = msg_number;
+                    } else {
+                        return Err(ModmailError::Message(MessageError::MessageNotFound(
+                            "".to_string(),
+                        )));
+                    }
+                } else {
+                    return Err(ModmailError::Message(MessageError::MessageNotFound(
+                        "".to_string(),
+                    )));
+                }
             }
 
             let message_ids = get_message_ids(user_id, &thread, message_number, pool).await?;
