@@ -9,8 +9,8 @@ use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, CreateInteractionResponseFollowup, ResolvedOption,
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
+    CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, ResolvedOption,
 };
 use std::collections::HashMap;
 
@@ -53,6 +53,7 @@ impl RegistrableCommand for RemoveStaffCommand {
                         CreateCommandOption::new(CommandOptionType::User, "user_id", user_id_desc)
                             .required(true),
                     ),
+                CreateCommand::new("remove_staff").kind(CommandType::User),
             ]
         })
     }
@@ -90,7 +91,15 @@ impl RegistrableCommand for RemoveStaffCommand {
                         )));
                     }
                 },
-                None => return Err(ModmailError::Command(CommandError::MissingArguments)),
+                None => {
+                    if let Some(user_id) = command.data.target_id {
+                        user_id.to_user_id()
+                    } else {
+                        return Err(ModmailError::Command(CommandError::InvalidArguments(
+                            "user_id".to_string(),
+                        )));
+                    }
+                }
             };
 
             if thread_exists(command.user.id, pool).await {
