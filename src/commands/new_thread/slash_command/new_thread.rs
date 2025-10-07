@@ -9,7 +9,7 @@ use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
+    ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
     CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, GuildId, ResolvedOption,
 };
 use std::collections::HashMap;
@@ -53,6 +53,7 @@ impl RegistrableCommand for NewThreadCommand {
                         CreateCommandOption::new(CommandOptionType::User, "user_id", user_id_desc)
                             .required(true),
                     ),
+                CreateCommand::new("new_thread").kind(CommandType::User),
             ]
         })
     }
@@ -90,7 +91,15 @@ impl RegistrableCommand for NewThreadCommand {
                         )));
                     }
                 },
-                None => return Err(ModmailError::Command(CommandError::MissingArguments)),
+                None => {
+                    if let Some(user_id) = command.data.target_id {
+                        user_id.to_user_id()
+                    } else {
+                        return Err(ModmailError::Command(CommandError::InvalidArguments(
+                            "user_id".to_string(),
+                        )));
+                    }
+                }
             };
 
             let user = match ctx.http.get_user(user_id).await {
