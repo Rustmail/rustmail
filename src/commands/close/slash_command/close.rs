@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;

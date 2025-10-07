@@ -1,6 +1,6 @@
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
 use crate::utils::command::defer_response::defer_response;

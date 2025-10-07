@@ -4,7 +4,7 @@ use crate::commands::delete::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::{common, MessageError, ModmailError, ModmailResult};
+use crate::errors::{MessageError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
