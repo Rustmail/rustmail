@@ -725,10 +725,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.show_with_content".to_string(),
-        DictionaryMessage::new("⏰ Reminder: \n\n{content} !"),
+        DictionaryMessage::new("⏰ Reminder <@{user}>: \n\n{content} !"),
     );
     dict.messages.insert(
         "reminder.show_without_content".to_string(),
-        DictionaryMessage::new("⏰ Reminder!"),
+        DictionaryMessage::new("⏰ Reminder <@{user}>!"),
     );
 }

@@ -742,10 +742,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.show_with_content".to_string(),
-        DictionaryMessage::new("⏰ Rappel : \n\n{content} !"),
+        DictionaryMessage::new("⏰ Rappel <@{user}> : \n\n{content} !"),
     );
     dict.messages.insert(
         "reminder.show_without_content".to_string(),
-        DictionaryMessage::new("⏰ Rappel !"),
+        DictionaryMessage::new("⏰ Rappel <@{user}> !"),
     );
 }

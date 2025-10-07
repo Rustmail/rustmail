@@ -4,7 +4,7 @@ use crate::db::operations::{
 };
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message};
+use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message, UserId};
 use std::collections::HashMap;
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
@@ -146,8 +146,10 @@ pub async fn send_to_thread(
         && !alerts.is_empty()
     {
         let mut ping_mentions = String::new();
+        let mut mentions = Vec::<UserId>::new();
         for staff_id in &alerts {
             ping_mentions.push_str(&format!("<@{}> ", staff_id));
+            mentions.push(UserId::new(*staff_id as u64));
         }
 
         let mut params = HashMap::new();
@@ -166,6 +168,7 @@ pub async fn send_to_thread(
 
         let _ = MessageBuilder::system_message(ctx, config)
             .content(full_content)
+            .mention(mentions)
             .to_channel(channel_id)
             .send()
             .await;

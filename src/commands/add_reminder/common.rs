@@ -1,10 +1,16 @@
 use crate::config::Config;
+use crate::db::reminders::{update_reminder_status, Reminder};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{Context, Message};
+use chrono::Local;
+use serenity::all::{ChannelId, Context, Message, UserId};
+use sqlx::SqlitePool;
 use std::collections::HashMap;
+use std::time::Duration;
+use tokio::time::sleep;
 
 pub async fn send_register_confirmation(
+    reminder_id: i64,
     reminder_content: &str,
     ctx: &Context,
     msg: &Message,
@@ -32,6 +38,7 @@ pub async fn send_register_confirmation(
             )
             .await
             .to_channel(msg.channel_id)
+            .footer(format!("{}: {}", "ID", reminder_id))
             .send()
             .await;
     } else {
@@ -44,44 +51,65 @@ pub async fn send_register_confirmation(
             )
             .await
             .to_channel(msg.channel_id)
+            .footer(format!("{}: {}", "ID", reminder_id))
             .send()
             .await;
     }
 }
 
-pub async fn send_reminder_content(
-    reminder_content: &str,
-    ctx: &Context,
-    msg: &Message,
-    config: &Config,
-    trigger_timestamp: i64,
-) {
-    let mut params = HashMap::new();
-    params.insert("time".to_string(), format!("<t:{}:F>", trigger_timestamp));
-    params.insert(
-        "remaining_time".to_string(),
-        format!("<t:{}:R>", trigger_timestamp),
-    );
+pub fn spawn_reminder(reminder: &Reminder, ctx: &Context, config: &Config, pool: &SqlitePool) {
+    let pool = pool.clone();
+    let config = config.clone();
+    let ctx = ctx.clone();
+    let reminder = reminder.clone();
 
-    if !reminder_content.is_empty() {
-        params.insert("content".to_string(), reminder_content.to_string());
-    }
+    tokio::spawn(async move {
+        let now = Local::now().timestamp();
+        let delay_duration = if reminder.trigger_time > now {
+            reminder.trigger_time - now
+        } else {
+            0
+        };
+        sleep(Duration::from_secs(delay_duration as u64)).await;
 
-    if !reminder_content.is_empty() {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content("reminder.show_with_content", Some(&params), None, None)
-            .await
-            .to_channel(msg.channel_id)
-            .color(hex_string_to_int(&config.reminders.embed_color) as u32)
-            .send()
-            .await;
-    } else {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content("reminder.show_without_content", None, None, None)
-            .await
-            .to_channel(msg.channel_id)
-            .color(hex_string_to_int(&config.reminders.embed_color) as u32)
-            .send()
-            .await;
-    }
+        let mut params = HashMap::new();
+        params.insert(
+            "time".to_string(),
+            format!("<t:{}:F>", reminder.trigger_time),
+        );
+        params.insert(
+            "remaining_time".to_string(),
+            format!("<t:{}:R>", reminder.trigger_time),
+        );
+
+        params.insert("user".to_string(), reminder.user_id.to_string());
+        params.insert("content".to_string(), reminder.reminder_content.to_string());
+
+        let mut mentions = Vec::<UserId>::new();
+        mentions.push(UserId::new(reminder.user_id as u64));
+
+        if !reminder.reminder_content.is_empty() {
+            let _ = MessageBuilder::system_message(&ctx, &config)
+                .translated_content("reminder.show_with_content", Some(&params), None, None)
+                .await
+                .to_channel(ChannelId::new(reminder.channel_id as u64))
+                .color(hex_string_to_int(&config.reminders.embed_color) as u32)
+                .mention(mentions)
+                .send()
+                .await;
+        } else {
+            let _ = MessageBuilder::system_message(&ctx, &config)
+                .translated_content("reminder.show_without_content", Some(&params), None, None)
+                .await
+                .to_channel(ChannelId::new(reminder.channel_id as u64))
+                .color(hex_string_to_int(&config.reminders.embed_color) as u32)
+                .mention(mentions)
+                .send()
+                .await;
+        }
+
+        if let Err(e) = update_reminder_status(&reminder, true, &pool).await {
+            eprintln!("Failed to update reminder status: {}", e);
+        }
+    });
 }

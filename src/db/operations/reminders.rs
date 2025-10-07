@@ -13,12 +13,12 @@ pub struct Reminder {
 pub async fn insert_reminder(
     reminder: &Reminder,
     pool: &sqlx::SqlitePool,
-) -> Result<(), sqlx::Error> {
+) -> Result<i64, sqlx::Error> {
     let user_id = reminder.user_id;
     let channel_id = &reminder.channel_id;
     let guild_id = &reminder.guild_id;
 
-    sqlx::query!(
+    let result = sqlx::query!(
         r#"
         INSERT INTO reminders (thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -34,7 +34,8 @@ pub async fn insert_reminder(
     )
     .execute(pool)
     .await?;
-    Ok(())
+
+    Ok(result.last_insert_rowid())
 }
 
 pub async fn update_reminder_status(

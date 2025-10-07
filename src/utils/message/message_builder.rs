@@ -51,6 +51,7 @@ pub struct MessageBuilder<'a> {
     bot_user_id: UserId,
     components: Option<Vec<CreateActionRow>>,
     ephemeral: bool,
+    mention: Vec<UserId>,
 }
 
 impl<'a> MessageBuilder<'a> {
@@ -69,6 +70,7 @@ impl<'a> MessageBuilder<'a> {
             bot_user_id,
             components: None,
             ephemeral: false,
+            mention: Vec::<UserId>::new(),
         }
     }
 
@@ -121,6 +123,11 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn as_system(mut self, user_id: UserId, username: String) -> Self {
         self.sender = Some(MessageSender::System { user_id, username });
+        self
+    }
+
+    pub fn mention(mut self, mention: Vec<UserId>) -> Self {
+        self.mention.extend(mention);
         self
     }
 
@@ -434,6 +441,13 @@ impl<'a> MessageBuilder<'a> {
 
         if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
+
+            if !self.mention.is_empty() {
+                let mentions: Vec<String> =
+                    self.mention.iter().map(|id| format!("<@{}>", id)).collect();
+                let mention_str = mentions.join(" ");
+                message = message.content(mention_str);
+            }
         } else {
             let content = self.build_plain_message();
             if !content.is_empty() {
