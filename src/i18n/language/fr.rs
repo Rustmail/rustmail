@@ -748,4 +748,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "reminder.show_without_content".to_string(),
         DictionaryMessage::new("⏰ Rappel <@{user}> !"),
     );
+    dict.messages.insert(
+        "slash_command.add_reminder_command_description".to_string(),
+        DictionaryMessage::new("Ajouter un rappel pour vous-même"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_time_argument_description".to_string(),
+        DictionaryMessage::new("L'heure à laquelle vous souhaitez être rappelé (format HH:MM)"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_content_argument_description".to_string(),
+        DictionaryMessage::new("Le contenu du rappel (optionnel)"),
+    );
 }

@@ -731,4 +731,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "reminder.show_without_content".to_string(),
         DictionaryMessage::new("⏰ Reminder <@{user}>!"),
     );
+    dict.messages.insert(
+        "slash_command.add_reminder_command_description".to_string(),
+        DictionaryMessage::new("Add a reminder for yourself"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_time_argument_description".to_string(),
+        DictionaryMessage::new("The time when the reminder should trigger (format: HH:MM)"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_content_argument_description".to_string(),
+        DictionaryMessage::new("Optional content for the reminder"),
+    );
 }

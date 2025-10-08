@@ -3,13 +3,13 @@ use crate::db::reminders::{update_reminder_status, Reminder};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Local;
-use serenity::all::{ChannelId, Context, Message, UserId};
+use serenity::all::{ChannelId, CommandInteraction, Context, Message, UserId};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn send_register_confirmation(
+pub async fn send_register_confirmation_from_message(
     reminder_id: i64,
     reminder_content: &str,
     ctx: &Context,
@@ -54,6 +54,58 @@ pub async fn send_register_confirmation(
             .footer(format!("{}: {}", "ID", reminder_id))
             .send()
             .await;
+    }
+}
+
+pub async fn send_register_confirmation_from_command(
+    reminder_id: i64,
+    reminder_content: &str,
+    ctx: &Context,
+    command: &CommandInteraction,
+    config: &Config,
+    trigger_timestamp: i64,
+) {
+    let mut params = HashMap::new();
+    params.insert("time".to_string(), format!("<t:{}:F>", trigger_timestamp));
+    params.insert(
+        "remaining_time".to_string(),
+        format!("<t:{}:R>", trigger_timestamp),
+    );
+
+    if !reminder_content.is_empty() {
+        params.insert("content".to_string(), reminder_content.to_string());
+    }
+
+    if !reminder_content.is_empty() {
+        let response = MessageBuilder::system_message(&ctx, &config)
+            .translated_content(
+                "reminder.registered_with_content",
+                Some(&params),
+                None,
+                None,
+            )
+            .await
+            .to_channel(command.channel_id)
+            .footer(format!("{}: {}", "ID", reminder_id))
+            .build_interaction_message_followup()
+            .await;
+
+        let _ = command.create_followup(&ctx.http, response).await;
+    } else {
+        let response = MessageBuilder::system_message(&ctx, &config)
+            .translated_content(
+                "reminder.registered_without_content",
+                Some(&params),
+                None,
+                None,
+            )
+            .await
+            .to_channel(command.channel_id)
+            .footer(format!("{}: {}", "ID", reminder_id))
+            .build_interaction_message_followup()
+            .await;
+
+        let _ = command.create_followup(&ctx.http, response).await;
     }
 }
 

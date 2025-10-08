@@ -1,4 +1,6 @@
-use crate::commands::add_reminder::common::{send_register_confirmation, spawn_reminder};
+use crate::commands::add_reminder::common::{
+    send_register_confirmation_from_message, spawn_reminder,
+};
 use crate::config::Config;
 use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
@@ -86,11 +88,11 @@ pub async fn add_reminder(ctx: &Context, msg: &Message, config: &Config) -> Modm
         }
     };
 
-    send_register_confirmation(
+    send_register_confirmation_from_message(
         reminder_id,
         reminder_content,
         ctx,
-        msg,
+        &msg,
         config,
         trigger_timestamp,
     )
