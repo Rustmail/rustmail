@@ -199,7 +199,7 @@ impl RegistrableCommand for AddReminderCommand {
             )
             .await;
 
-            spawn_reminder(&reminder, &ctx, &config, &pool);
+            spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool);
 
             Ok(())
         })

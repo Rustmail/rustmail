@@ -774,4 +774,16 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.add_reminder_content_argument_description".to_string(),
         DictionaryMessage::new("Le contenu du rappel (optionnel)"),
     );
+    dict.messages.insert(
+        "remove_reminder.confirmation".to_string(),
+        DictionaryMessage::new("Le rappel **#{id}** a été supprimé avec succès."),
+    );
+    dict.messages.insert(
+        "slash_command.remove_reminder_command_description".to_string(),
+        DictionaryMessage::new("Supprimer un rappel que vous avez créé."),
+    );
+    dict.messages.insert(
+        "slash_command.remove_reminder_id_argument".to_string(),
+        DictionaryMessage::new("L'ID du rappel à supprimer."),
+    );
 }

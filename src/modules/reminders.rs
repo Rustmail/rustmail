@@ -10,7 +10,7 @@ pub async fn load_reminders(ctx: &Context, config: &Config, pool: &sqlx::SqliteP
     });
 
     for reminder in reminders {
-        spawn_reminder(&reminder, &ctx, &config, &pool);
+        spawn_reminder(&reminder, None, &ctx, &config, &pool);
     }
     println!("All pending reminders have been scheduled.");
 }

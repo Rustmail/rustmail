@@ -12,6 +12,7 @@ use crate::commands::id::text_command::id::id;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::commands::recover::text_command::recover::recover;
+use crate::commands::remove_reminder::text_command::remove_reminder::remove_reminder;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
 use crate::config::Config;
@@ -72,6 +73,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "id", id);
         wrap_command!(h.commands, "help", help);
         wrap_command!(h.commands, ["add_reminder", "add_rap"], add_reminder);
+        wrap_command!(h.commands, ["remove_reminder", "rr"], remove_reminder);
         h
     }
 }

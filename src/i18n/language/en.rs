@@ -755,4 +755,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.add_reminder_content_argument_description".to_string(),
         DictionaryMessage::new("Optional content for the reminder"),
     );
+    dict.messages.insert(
+        "remove_reminder.confirmation".to_string(),
+        DictionaryMessage::new("Reminder **#{id}** has been removed successfully"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_reminder_command_description".to_string(),
+        DictionaryMessage::new("Remove one of your reminders"),
+    );
+    dict.messages.insert(
+        "slash_command.remove_reminder_id_argument".to_string(),
+        DictionaryMessage::new("The ID of the reminder to remove"),
+    );
 }
