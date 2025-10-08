@@ -1,6 +1,7 @@
 pub mod features;
 pub mod init;
 pub mod messages;
+pub mod reminders;
 pub mod scheduled;
 pub mod threads;
 

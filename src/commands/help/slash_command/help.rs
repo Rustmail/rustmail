@@ -53,7 +53,7 @@ impl RegistrableCommand for HelpCommand {
                 **!annonreply <message>** - Reply anonymously to a ticket\n\
                 **!close [reason]** - Close the current thread with an optional reason\n\
                 **!delete [reason]** - Delete the current thread with an optional reason\n\
-                **!hide** - Make the current thread hidden to non-staff members\n\
+                **!add_rap** - Add reminder\n\
                 **!new_thread <user_id>** - Create a new ticket with a specific user\n\
                 **!alert [cancel]** - Set or cancel an alert for staff in the current thread\n\
                 **!force_close** - Force close the current thread if it's orphaned\n\

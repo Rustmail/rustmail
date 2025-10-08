@@ -14,7 +14,7 @@ mod tests {
     use super::*;
     use crate::config::{
         BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig,
-        NotificationsConfig, ThreadConfig,
+        NotificationsConfig, ReminderConfig, ThreadConfig,
     };
     use std::sync::{Arc, Mutex};
 
@@ -52,6 +52,7 @@ mod tests {
             notifications: NotificationsConfig::default(),
             logs: LogsConfig::default(),
             language: LanguageConfig::default(),
+            reminders: ReminderConfig::default(),
             error_handling: ErrorHandlingConfig::default(),
             db_pool: None,
             error_handler: None,

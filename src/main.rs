@@ -1,4 +1,5 @@
 use crate::commands::CommandRegistry;
+use crate::commands::add_reminder::slash_command::add_reminder::AddReminderCommand;
 use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
 use crate::commands::alert::slash_command::alert::AlertCommand;
 use crate::commands::close::slash_command::close::CloseCommand;
@@ -80,6 +81,7 @@ async fn main() {
     registry.register_command(RecoverCommand);
     registry.register_command(RemoveStaffCommand);
     registry.register_command(ReplyCommand);
+    registry.register_command(AddReminderCommand);
 
     let registry = Arc::new(registry);
 
