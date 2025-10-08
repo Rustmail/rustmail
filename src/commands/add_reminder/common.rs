@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::db::reminders::{Reminder, update_reminder_status};
+use crate::db::reminders::{Reminder, is_reminder_active, update_reminder_status};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Local;
@@ -109,7 +109,13 @@ pub async fn send_register_confirmation_from_command(
     }
 }
 
-pub fn spawn_reminder(reminder: &Reminder, ctx: &Context, config: &Config, pool: &SqlitePool) {
+pub fn spawn_reminder(
+    reminder: &Reminder,
+    reminder_id: Option<i64>,
+    ctx: &Context,
+    config: &Config,
+    pool: &SqlitePool,
+) {
     let pool = pool.clone();
     let config = config.clone();
     let ctx = ctx.clone();
@@ -123,6 +129,20 @@ pub fn spawn_reminder(reminder: &Reminder, ctx: &Context, config: &Config, pool:
             0
         };
         sleep(Duration::from_secs(delay_duration as u64)).await;
+
+        if let Some(reminder_id) = reminder_id {
+            match is_reminder_active(reminder_id, &pool).await {
+                Ok(active) => {
+                    if !active {
+                        return;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to check reminder status: {}", e);
+                    return;
+                }
+            }
+        }
 
         let mut params = HashMap::new();
         params.insert(

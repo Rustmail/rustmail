@@ -11,6 +11,7 @@ use crate::commands::id::slash_command::id::IdCommand;
 use crate::commands::move_thread::slash_command::move_thread::MoveCommand;
 use crate::commands::new_thread::slash_command::new_thread::NewThreadCommand;
 use crate::commands::recover::slash_command::recover::RecoverCommand;
+use crate::commands::remove_reminder::slash_command::remove_reminder::RemoveReminderCommand;
 use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
 use crate::commands::reply::slash_command::reply::ReplyCommand;
 use crate::handlers::guild_handler::GuildHandler;
@@ -82,6 +83,7 @@ async fn main() {
     registry.register_command(RemoveStaffCommand);
     registry.register_command(ReplyCommand);
     registry.register_command(AddReminderCommand);
+    registry.register_command(RemoveReminderCommand);
 
     let registry = Arc::new(registry);
 

@@ -100,7 +100,7 @@ pub async fn add_reminder(ctx: &Context, msg: &Message, config: &Config) -> Modm
 
     let _ = msg.delete(&ctx.http).await;
 
-    spawn_reminder(&reminder, &ctx, &config, &pool);
+    spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool);
 
     Ok(())
 }
