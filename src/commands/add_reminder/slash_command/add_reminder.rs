@@ -3,10 +3,10 @@ use crate::commands::add_reminder::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::db::reminders::{insert_reminder, Reminder};
+use crate::db::reminders::{Reminder, insert_reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
+    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
 };
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
