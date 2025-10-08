@@ -657,6 +657,20 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Fermer un ticket de support"),
     );
     dict.messages.insert(
+        "slash_command.close_time_before_close_argument".to_string(),
+        DictionaryMessage::new("Le temps avant la fermeture du ticket (ex: 1s, 1m, 1h, 1d)"),
+    );
+    dict.messages.insert(
+        "slash_command.close_silent_argument".to_string(),
+        DictionaryMessage::new(
+            "Fermer le ticket silencieusement sans envoyer de message à l'utilisateur",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.close_cancel_argument".to_string(),
+        DictionaryMessage::new("Annuler la fermeture programmée du ticket"),
+    );
+    dict.messages.insert(
         "slash_command.edit_command_description".to_string(),
         DictionaryMessage::new("Editer un message envoyé dans un ticket de support"),
     );

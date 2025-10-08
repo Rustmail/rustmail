@@ -2,10 +2,10 @@ use crate::commands::add_reminder::common::{
     send_register_confirmation_from_message, spawn_reminder,
 };
 use crate::config::Config;
-use crate::db::reminders::{insert_reminder, Reminder};
+use crate::db::reminders::{Reminder, insert_reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
+    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
 };
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime};

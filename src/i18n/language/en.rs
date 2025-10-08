@@ -638,6 +638,18 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Close the current thread"),
     );
     dict.messages.insert(
+        "slash_command.close_time_before_close_argument".to_string(),
+        DictionaryMessage::new("The time to wait before closing the ticket (ex: 1s, 1m, 1h, 1d)"),
+    );
+    dict.messages.insert(
+        "slash_command.close_silent_argument".to_string(),
+        DictionaryMessage::new("Set to true to close the ticket without notifying the user"),
+    );
+    dict.messages.insert(
+        "slash_command.close_cancel_argument".to_string(),
+        DictionaryMessage::new("Set to true to cancel a scheduled closure"),
+    );
+    dict.messages.insert(
         "slash_command.edit_command_description".to_string(),
         DictionaryMessage::new("Edit a previously sent message"),
     );

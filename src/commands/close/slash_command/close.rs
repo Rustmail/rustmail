@@ -39,21 +39,53 @@ impl RegistrableCommand for CloseCommand {
                 None,
             )
             .await;
+            let time_before_close_desc = get_translated_message(
+                &config,
+                "slash_command.close_time_before_close_argument",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
+            let silent_desc = get_translated_message(
+                &config,
+                "slash_command.close_silent_argument",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
+            let cancel_desc = get_translated_message(
+                &config,
+                "slash_command.close_cancel_argument",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
 
             vec![
-                CreateCommand::new("close").description(cmd_desc).add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::String, "time_before_close", "Duration before the thread is closed (e.g., 10m, 1h, 2d). Defaults the thread is closed immediately.")
-                        .required(false)
-                ).add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::Boolean, "silent", "If set, the user will not be notified when the thread is closed.")
-                        .required(false)
-                ).add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::Boolean, "cancel", "If set, cancels any scheduled closure for this thread.")
-                        .required(false)
-                )
+                CreateCommand::new("close")
+                    .description(cmd_desc)
+                    .add_option(
+                        CreateCommandOption::new(
+                            CommandOptionType::String,
+                            "time_before_close",
+                            time_before_close_desc,
+                        )
+                        .required(false),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(CommandOptionType::Boolean, "silent", silent_desc)
+                            .required(false),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(CommandOptionType::Boolean, "cancel", cancel_desc)
+                            .required(false),
+                    ),
             ]
         })
     }
