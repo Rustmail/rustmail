@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT completed\n        FROM reminders\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "completed",
+        "ordinal": 0,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8c1812a53a9a92d31b6b692a0c9983b12d0c46835fe8deb108c846324557be09"
+}
