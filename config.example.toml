@@ -37,12 +37,15 @@ show_success_on_delete = false
 
 [logs]
 show_log_on_edit = true
+show_log_on_delete = true
 
 [language]
 default_language = "en"
-auto_detect = true
 fallback_language = "en"
 supported_languages = ["en", "fr", "es", "de"]
+
+[reminders]
+embed_color = "ffb800"
 
 [error_handling]
 show_detailed_errors = false
