@@ -1,12 +1,15 @@
 use crate::config::Config;
-use crate::db::reminders::{Reminder, is_reminder_active, update_reminder_status};
+use crate::db::reminders::{is_reminder_active, update_reminder_status, Reminder};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Local;
 use serenity::all::{ChannelId, CommandInteraction, Context, Message, UserId};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::select;
+use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
 
 pub async fn send_register_confirmation_from_message(
@@ -115,11 +118,13 @@ pub fn spawn_reminder(
     ctx: &Context,
     config: &Config,
     pool: &SqlitePool,
+    shutdown: Arc<Receiver<bool>>,
 ) {
     let pool = pool.clone();
     let config = config.clone();
     let ctx = ctx.clone();
     let reminder = reminder.clone();
+    let mut shutdown_rx = shutdown.as_ref().clone();
 
     tokio::spawn(async move {
         let now = Local::now().timestamp();
@@ -128,7 +133,12 @@ pub fn spawn_reminder(
         } else {
             0
         };
-        sleep(Duration::from_secs(delay_duration as u64)).await;
+        select! {
+            _ = sleep(Duration::from_secs(delay_duration as u64)) => {}
+            _ = shutdown_rx.changed() => {
+                return;
+            }
+        }
 
         if let Some(reminder_id) = reminder_id {
             match is_reminder_active(reminder_id, &pool).await {

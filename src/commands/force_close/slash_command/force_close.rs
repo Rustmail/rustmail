@@ -4,9 +4,11 @@ use crate::config::Config;
 use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
-use crate::errors::{ModmailError, ModmailResult, common};
+use crate::errors::{common, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct ForceCloseCommand;
 
@@ -38,8 +40,9 @@ impl RegistrableCommand for ForceCloseCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

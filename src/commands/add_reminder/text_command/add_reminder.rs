@@ -2,17 +2,24 @@ use crate::commands::add_reminder::common::{
     send_register_confirmation_from_message, spawn_reminder,
 };
 use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
+use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
+    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
 };
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
 use serenity::all::{Context, Message};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn add_reminder(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn add_reminder(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
@@ -100,7 +107,7 @@ pub async fn add_reminder(ctx: &Context, msg: &Message, config: &Config) -> Modm
 
     let _ = msg.delete(&ctx.http).await;
 
-    spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool);
+    spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool, shutdown);
 
     Ok(())
 }

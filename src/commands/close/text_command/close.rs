@@ -3,16 +3,23 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
 
-pub async fn close(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn close(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
         .as_ref()

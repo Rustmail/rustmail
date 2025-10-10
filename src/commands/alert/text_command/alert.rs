@@ -3,10 +3,17 @@ use crate::commands::alert::common::{
     handle_set_alert_from_msg,
 };
 use crate::config::Config;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use serenity::all::{Context, Message};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn alert(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn alert(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()

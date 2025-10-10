@@ -1,12 +1,19 @@
 use crate::config::Config;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn recover(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn recover(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let _ = config
         .db_pool
         .as_ref()

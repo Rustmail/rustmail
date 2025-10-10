@@ -112,9 +112,11 @@ pub struct ErrorHandlingConfig {
     pub error_message_ttl: Option<u64>,
 }
 
-pub fn load_config(path: &str) -> Config {
-    let content = fs::read_to_string(path)
-        .expect("No configuration file found ! Add 'config.toml' file at the root!");
+pub fn load_config(path: &str) -> Option<Config> {
+    let content = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(_) => return None,
+    };
 
     let mut config: Config =
         toml::from_str(&content).expect("The format of the config.toml is not correct!");
@@ -155,7 +157,7 @@ pub fn load_config(path: &str) -> Config {
 
     config.thread_locks = Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
 
-    config
+    Some(config)
 }
 
 impl Default for LanguageConfig {

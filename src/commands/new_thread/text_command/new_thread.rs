@@ -4,11 +4,18 @@ use crate::commands::new_thread::common::{
 };
 use crate::config::Config;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
+use crate::errors::{common, DiscordError, ModmailError, ModmailResult};
 use serenity::all::{ChannelId, Context, GuildId, Message};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn new_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn new_thread(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()

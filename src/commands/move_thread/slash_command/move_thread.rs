@@ -15,6 +15,8 @@ use serenity::all::{
     ResolvedOption,
 };
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct MoveCommand;
 
@@ -64,8 +66,9 @@ impl RegistrableCommand for MoveCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

@@ -1,14 +1,21 @@
 use crate::config::Config;
 use crate::db::operations::allocate_next_message_number;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn anonreply(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn anonreply(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
         .as_ref()

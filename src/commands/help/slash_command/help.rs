@@ -5,6 +5,8 @@ use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct HelpCommand;
 
@@ -36,8 +38,9 @@ impl RegistrableCommand for HelpCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

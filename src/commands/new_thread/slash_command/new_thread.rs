@@ -3,7 +3,7 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
+    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
 };
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
@@ -13,6 +13,8 @@ use serenity::all::{
     CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, GuildId, ResolvedOption,
 };
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct NewThreadCommand;
 
@@ -62,8 +64,9 @@ impl RegistrableCommand for NewThreadCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

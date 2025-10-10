@@ -23,7 +23,7 @@ use crate::db::operations::{
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
@@ -37,12 +37,18 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use tokio::sync::watch::Receiver;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
 
 type CommandFunc = Arc<StaticCommandFunc>;
-type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
+type StaticCommandFunc = dyn Fn(
+        Context,
+        Message,
+        Config,
+        Receiver<bool>,
+    ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
     + Send
     + Sync
     + 'static;
@@ -50,13 +56,15 @@ type StaticCommandFunc = dyn Fn(Context, Message, Config) -> Pin<Box<dyn Future<
 pub struct GuildMessagesHandler {
     pub config: Config,
     pub commands: HashMap<String, CommandFunc>,
+    pub shutdown: Receiver<bool>,
 }
 
 impl GuildMessagesHandler {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: &Config, shutdown: Receiver<bool>) -> Self {
         let mut h = Self {
             config: config.clone(),
             commands: HashMap::new(),
+            shutdown,
         };
         wrap_command!(h.commands, ["reply", "r"], reply);
         wrap_command!(h.commands, ["edit", "e"], edit);
@@ -177,8 +185,13 @@ impl EventHandler for GuildMessagesHandler {
             }
 
             if let Some(command_func) = self.commands.get(command_name)
-                && let Err(error) =
-                    command_func(ctx.clone(), msg.clone(), self.config.clone()).await
+                && let Err(error) = command_func(
+                    ctx.clone(),
+                    msg.clone(),
+                    self.config.clone(),
+                    self.shutdown.clone(),
+                )
+                .await
             {
                 if let Some(error_handler) = &self.config.error_handler {
                     let _ = error_handler
