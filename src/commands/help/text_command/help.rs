@@ -2,8 +2,15 @@ use crate::config::Config;
 use crate::errors::ModmailResult;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn help(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn help(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let help_message = "# Available commands:\n\n\
         **!add_staff <staff_id>** - Add a staff to an hidden ticket\n\
         **!remove_staff <staff_id>** - Remove a staff from a ticket\n\

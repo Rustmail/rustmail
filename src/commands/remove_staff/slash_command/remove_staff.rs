@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -13,6 +13,8 @@ use serenity::all::{
     CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, ResolvedOption,
 };
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct RemoveStaffCommand;
 
@@ -62,8 +64,9 @@ impl RegistrableCommand for RemoveStaffCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

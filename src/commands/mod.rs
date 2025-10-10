@@ -4,6 +4,7 @@ use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub mod add_reminder;
 pub mod add_staff;
@@ -35,18 +36,25 @@ pub trait RegistrableCommand: Send + Sync {
         command: &CommandInteraction,
         options: &[ResolvedOption<'_>],
         config: &Config,
+        shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>>;
 }
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
+    shutdown: Arc<Receiver<bool>>,
 }
 
 impl CommandRegistry {
-    pub fn new() -> Self {
+    pub fn new(shutdown: Receiver<bool>) -> Self {
         Self {
             commands: HashMap::new(),
+            shutdown: Arc::new(shutdown),
         }
+    }
+
+    pub fn shutdown(&self) -> Arc<Receiver<bool>> {
+        self.shutdown.clone()
     }
 
     pub fn register_command<C: RegistrableCommand + 'static>(&mut self, command: C) {

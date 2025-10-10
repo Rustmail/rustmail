@@ -3,10 +3,10 @@ use crate::commands::add_reminder::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
+use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
+    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
 };
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
@@ -16,6 +16,8 @@ use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, ResolvedOption,
 };
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct AddReminderCommand;
 
@@ -81,8 +83,9 @@ impl RegistrableCommand for AddReminderCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
@@ -199,7 +202,7 @@ impl RegistrableCommand for AddReminderCommand {
             )
             .await;
 
-            spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool);
+            spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool, shutdown);
 
             Ok(())
         })

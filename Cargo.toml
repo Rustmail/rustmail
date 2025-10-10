@@ -8,12 +8,14 @@ license = "MIT"
 serde = { version = "*", features = ["derive"] }
 serenity = "0.12.4"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
-tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
+tokio = { version = "1.47.1", features = ["rt-multi-thread", "signal"] }
 toml = "0.9.7"
 reqwest = "0.12.23"
 async-trait = "0.1.89"
 chrono = { version = "0.4.42", features = ["serde"] }
 regex = "1.11.3"
+axum = "0.8.6"
+hyper = "1.7.0"
 
 [dependencies.uuid]
 version = "1.18.1"

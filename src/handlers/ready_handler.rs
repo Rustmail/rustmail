@@ -1,4 +1,4 @@
-use crate::commands::{CommandRegistry, RegistrableCommand};
+use crate::commands::CommandRegistry;
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
@@ -10,18 +10,25 @@ use serenity::{
     async_trait,
 };
 use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 #[derive(Clone)]
 pub struct ReadyHandler {
     pub config: Config,
     pub registry: Arc<CommandRegistry>,
+    pub shutdown: Arc<Receiver<bool>>,
 }
 
 impl ReadyHandler {
-    pub fn new(config: &Config, registry: Arc<CommandRegistry>) -> Self {
+    pub fn new(
+        config: &Config,
+        registry: Arc<CommandRegistry>,
+        shutdown: Arc<Receiver<bool>>,
+    ) -> Self {
         Self {
             config: config.clone(),
             registry,
+            shutdown,
         }
     }
 }
@@ -51,7 +58,7 @@ impl EventHandler for ReadyHandler {
             }
         });
 
-        load_reminders(&ctx, &self.config, pool).await;
+        load_reminders(&ctx, &self.config, pool, self.shutdown.clone()).await;
 
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
 

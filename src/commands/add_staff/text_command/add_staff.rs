@@ -4,12 +4,19 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{ModmailError, ModmailResult, common};
+use crate::errors::{common, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message, UserId};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn add_staff(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn add_staff(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()

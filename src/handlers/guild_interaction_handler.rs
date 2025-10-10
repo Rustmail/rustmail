@@ -6,18 +6,21 @@ use crate::modules::threads::{
 };
 use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
     pub config: Config,
     pub registry: Arc<CommandRegistry>,
+    pub shutdown: Arc<Receiver<bool>>,
 }
 
 impl InteractionHandler {
-    pub fn new(config: &Config, register: Arc<CommandRegistry>) -> Self {
+    pub fn new(config: &Config, register: Arc<CommandRegistry>, shutdown: Receiver<bool>) -> Self {
         Self {
             config: config.clone(),
             registry: register,
+            shutdown: Arc::new(shutdown),
         }
     }
 }
@@ -52,7 +55,9 @@ impl EventHandler for InteractionHandler {
                 let config = self.config.clone();
 
                 if let Some(handler) = self.registry.get(command.data.name.as_str()) {
-                    let result = handler.run(&ctx, &command, &options, &config).await;
+                    let result = handler
+                        .run(&ctx, &command, &options, &config, self.shutdown.clone())
+                        .await;
 
                     if let Err(e) = result {
                         if let Some(error_handler) = &self.config.error_handler {

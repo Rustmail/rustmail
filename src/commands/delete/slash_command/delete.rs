@@ -5,7 +5,7 @@ use crate::commands::delete::common::{
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_message_id;
-use crate::errors::{MessageError, ModmailError, ModmailResult, common};
+use crate::errors::{common, MessageError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -14,6 +14,8 @@ use serenity::all::{
     CreateCommand, CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct DeleteCommand;
 
@@ -66,8 +68,9 @@ impl RegistrableCommand for DeleteCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

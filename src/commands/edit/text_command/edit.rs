@@ -3,19 +3,26 @@ use crate::commands::edit::message_ops::{
     cleanup_command_message, edit_messages, format_new_message, get_message_ids,
 };
 use crate::commands::edit::validation::{
-    EditCommandInput, parse_edit_command, validate_edit_permissions,
+    parse_edit_command, validate_edit_permissions, EditCommandInput,
 };
 use crate::config::Config;
 use crate::db::get_thread_message_by_inbox_message_id;
 use crate::db::update_message_content;
 use crate::errors::common::message_not_found;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn edit(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn edit(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()

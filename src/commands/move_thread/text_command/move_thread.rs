@@ -5,10 +5,17 @@ use crate::commands::move_thread::common::{
 use crate::config::Config;
 use crate::errors::CommandError::NotInThread;
 use crate::errors::ThreadError::CategoryNotFound;
-use crate::errors::{CommandError, DiscordError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, DiscordError, ModmailError, ModmailResult};
 use serenity::all::{Context, Message};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
-pub async fn move_thread(ctx: &Context, msg: &Message, config: &Config) -> ModmailResult<()> {
+pub async fn move_thread(
+    ctx: &Context,
+    msg: &Message,
+    config: &Config,
+    _shutdown: Arc<Receiver<bool>>,
+) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
