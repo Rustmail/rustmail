@@ -1,6 +1,5 @@
 /target
 config.toml
-/src/generated/prisma
 node_modules
 .env
 db/db.sqlite
@@ -8,3 +7,5 @@ db/db.sqlite
 .vscode/
 package-lock.json
 bin
+rustmail/static
+rustmail_panel/dist
