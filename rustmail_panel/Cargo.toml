@@ -5,5 +5,5 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.21", features = ["csr"] }
 yew-router = "0.18.0"
