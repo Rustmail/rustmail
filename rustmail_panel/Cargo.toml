@@ -6,3 +6,4 @@ license = "MIT"
 
 [dependencies]
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew-router = "0.18.0"
