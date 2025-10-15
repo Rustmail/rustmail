@@ -4,7 +4,9 @@ use crate::config::Config;
 use axum::extract::Path;
 use axum::response::Response;
 use rust_embed::RustEmbed;
+use serenity::http::Http;
 use std::borrow::Cow;
+use std::sync::Arc;
 use tokio::signal;
 use tokio::sync::watch::Sender;
 use tokio::task::JoinHandle;
@@ -19,11 +21,12 @@ mod features;
 mod handlers;
 mod i18n;
 mod modules;
+mod panel_commands;
 mod utils;
 
 pub struct Database;
 
-enum BotStatus {
+pub enum BotStatus {
     Stopped,
     Running {
         handle: JoinHandle<()>,
@@ -31,10 +34,25 @@ enum BotStatus {
     },
 }
 
+enum BotCommand {
+    CheckUserRole {
+        user_id: u64,
+        role_id: u64,
+        resp: tokio::sync::oneshot::Sender<bool>,
+    },
+    CheckUserIsMember {
+        user_id: u64,
+        resp: tokio::sync::oneshot::Sender<bool>,
+    },
+    Test,
+}
+
 struct BotState {
     config: Option<Config>,
     status: BotStatus,
     db_pool: Option<sqlx::SqlitePool>,
+    command_tx: tokio::sync::mpsc::Sender<BotCommand>,
+    bot_http: Option<Arc<Http>>,
 }
 
 #[derive(RustEmbed)]

@@ -40,6 +40,8 @@ pub struct BotConfig {
     pub enable_logs: bool,
     pub enable_features: bool,
     pub enable_panel: bool,
+    pub client_id: u64,
+    pub client_secret: String,
 
     #[serde(default)]
     pub logs_channel_id: Option<u64>,

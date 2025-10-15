@@ -1,4 +1,3 @@
-use crate::commands::CommandRegistry;
 use crate::commands::add_reminder::slash_command::add_reminder::AddReminderCommand;
 use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
 use crate::commands::alert::slash_command::alert::AlertCommand;
@@ -14,9 +13,10 @@ use crate::commands::recover::slash_command::recover::RecoverCommand;
 use crate::commands::remove_reminder::slash_command::remove_reminder::RemoveReminderCommand;
 use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
 use crate::commands::reply::slash_command::reply::ReplyCommand;
+use crate::commands::CommandRegistry;
 use crate::config::load_config;
-use crate::errors::ModmailError;
 use crate::errors::types::ConfigError;
+use crate::errors::ModmailError;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::handlers::guild_members_handler::GuildMembersHandler;
@@ -25,14 +25,14 @@ use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::handlers::guild_moderation_handler::GuildModerationHandler;
 use crate::handlers::ready_handler::ReadyHandler;
 use crate::handlers::typing_proxy_handler::TypingProxyHandler;
-use crate::{BotState, BotStatus, db};
+use crate::panel_commands::user::is_member::is_member;
+use crate::{db, BotCommand, BotState, BotStatus};
 use serenity::all::{ClientBuilder, GatewayIntents};
 use serenity::cache::Settings as CacheSettings;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use tokio::sync::watch::Receiver;
 use tokio::{select, spawn};
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
@@ -43,10 +43,14 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
 
     let config = load_config("config.toml");
 
+    let (command_tx, _command_rx) = tokio::sync::mpsc::channel(32);
+
     let bot_state = BotState {
         config,
         status: BotStatus::Stopped,
         db_pool: Some(pool),
+        command_tx: command_tx.clone(),
+        bot_http: None,
     };
 
     Arc::new(Mutex::new(bot_state))
@@ -64,11 +68,12 @@ pub async fn start_bot_if_config_valid(
             }
 
             let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);
+            let (command_tx, command_rx) = tokio::sync::mpsc::channel(32);
             let bot_state_clone = bot_state.clone();
 
             let handle = spawn(async move {
                 let mut shutdown_rx_owned = shutdown_rx.clone();
-                run_bot(bot_state_clone.clone(), &mut shutdown_rx_owned).await;
+                run_bot(bot_state_clone.clone(), &mut shutdown_rx_owned, command_rx).await;
                 let mut s = bot_state_clone.lock().await;
                 s.status = BotStatus::Stopped;
             });
@@ -76,6 +81,7 @@ pub async fn start_bot_if_config_valid(
                 handle,
                 shutdown: shutdown_tx,
             };
+            state_lock.command_tx = command_tx;
 
             drop(state_lock);
             Ok(())
@@ -84,7 +90,11 @@ pub async fn start_bot_if_config_valid(
     }
 }
 
-pub async fn run_bot(bot_state: Arc<Mutex<BotState>>, shutdown: &mut Receiver<bool>) {
+pub async fn run_bot(
+    bot_state: Arc<Mutex<BotState>>,
+    shutdown: &mut tokio::sync::watch::Receiver<bool>,
+    mut command_rx: tokio::sync::mpsc::Receiver<BotCommand>,
+) {
     let shutdown_rx_command = shutdown.clone();
     let shutdown_rx = shutdown.clone();
 
@@ -161,6 +171,11 @@ pub async fn run_bot(bot_state: Arc<Mutex<BotState>>, shutdown: &mut Receiver<bo
         .await
         .expect("Failed to create client.");
 
+    {
+        let mut state_lock = bot_state.lock().await;
+        state_lock.bot_http = Some(client.http.clone());
+    }
+
     if let Err(e) = config.validate_servers(&client.http).await {
         eprintln!("Configuration validation error: {}", e);
         eprintln!(
@@ -185,19 +200,40 @@ pub async fn run_bot(bot_state: Arc<Mutex<BotState>>, shutdown: &mut Receiver<bo
 
     let shard_manager = client.shard_manager.clone();
 
-    let discord_task = spawn(async move {
+    let mut discord_task = spawn(async move {
         if let Err(e) = client.start().await {
             println!("Failed to initialize client: {e}");
         }
     });
 
-    select! {
-        _ = shutdown.changed() => {
-            println!("Shutdown signal received, shutting down...");
-            shard_manager.shutdown_all().await;
-        }
-        _ = discord_task => {
-            println!("Discord task ended.");
+    loop {
+        select! {
+            _ = shutdown.changed() => {
+                println!("Shutdown signal received, shutting down...");
+                shard_manager.shutdown_all().await;
+                break;
+            }
+            Some(cmd) = command_rx.recv() => {
+                match cmd {
+                    BotCommand::CheckUserIsMember { user_id, resp} => {
+                        println!("Checking if user {} is member of staff guild...", user_id);
+                        let http = {
+                            let state_lock = bot_state.lock().await;
+                            state_lock.bot_http.clone().expect("Failed to get bot http")
+                        };
+                        let is_member = is_member(http, config.bot.get_staff_guild_id(), user_id).await;
+
+                        let _ = resp.send(is_member);
+                        continue;
+                    }
+                    _ => {}
+                }
+            }
+
+            _ = &mut discord_task => {
+                println!("Discord task ended.");
+                break;
+            }
         }
     }
 

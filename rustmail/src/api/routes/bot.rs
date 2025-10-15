@@ -1,8 +1,8 @@
-use crate::BotState;
 use crate::api::handler::bot::start::handle_start_bot;
 use crate::api::handler::bot::stop::handle_stop_bot;
-use axum::Router;
+use crate::BotState;
 use axum::routing::post;
+use axum::Router;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
