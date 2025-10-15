@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO sessions_panel (session_id, user_id, access_token, refresh_token, expires_at)\n        VALUES (?, ?, ?, ?, ?)\n        ON CONFLICT(session_id) DO UPDATE SET\n            access_token = excluded.access_token,\n            refresh_token = excluded.refresh_token,\n            expires_at = excluded.expires_at\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "e4c9d5e2f4d17f6780ca93b20f62424b8f80ed91a6849b179c7f37bbdc9bc5b6"
+}

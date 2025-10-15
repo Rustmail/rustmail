@@ -7,3 +7,6 @@ license = "MIT"
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
 yew-router = "0.18.0"
+wasm-bindgen-futures = "0.4.50"
+gloo-net = "0.6.0"
+gloo-utils = "0.2.0"
