@@ -8,6 +8,7 @@
     "error": "Erreur"
   },
   "panel": {
+    "welcome": "Bienvenue sur le panel de Rustmail",
     "logout": "Se déconnecter"
   }
 }

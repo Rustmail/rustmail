@@ -55,7 +55,7 @@ pub fn panel() -> Html {
 
                             <h1 class="text-3xl font-bold mb-2">{"Rustmail Panel"}</h1>
                             <p class="max-w-xl text-center text-gray-400 mb-8">
-                                {"Bienvenue sur le panel de Rustmail"}
+                                { i18n.t("panel.welcome") }
                             </p>
                         </section>
                     },
