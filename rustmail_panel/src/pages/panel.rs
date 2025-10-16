@@ -1,8 +1,15 @@
 use crate::components::language_switcher::LanguageSwitcher;
+use crate::components::logout_button::LogoutButton;
 use gloo_net::http::Request;
 use gloo_utils::window;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+
+#[derive(Clone, PartialEq)]
+enum PanelTab {
+    Config,
+    Logs,
+}
 
 #[function_component(Panel)]
 pub fn panel() -> Html {
@@ -48,10 +55,7 @@ pub fn panel() -> Html {
                         <section class="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
                             <img src="logo.png" alt="Rustmail logo" class="w-40 h-40 mb-6" />
 
-                            <a href="/api/auth/logout"
-                                class="absolute top-6 right-6 px-4 py-2 border border-gray-500 rounded-lg hover:bg-gray-800 transition">
-                                { i18n.t("panel.logout") }
-                            </a>
+                            <LogoutButton />
 
                             <h1 class="text-3xl font-bold mb-2">{"Rustmail Panel"}</h1>
                             <p class="max-w-xl text-center text-gray-400 mb-8">
