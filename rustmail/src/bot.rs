@@ -224,7 +224,6 @@ pub async fn run_bot(
                         let is_member = is_member(http, config.bot.get_staff_guild_id(), user_id).await;
 
                         let _ = resp.send(is_member);
-                        continue;
                     }
                     _ => {}
                 }
