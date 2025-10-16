@@ -1,4 +1,5 @@
 use crate::bot::run_bot;
+use crate::config::load_config;
 use crate::{BotState, BotStatus};
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -14,6 +15,8 @@ pub async fn handle_start_bot(
 
     match state_lock.status {
         BotStatus::Stopped => {
+            state_lock.config = load_config("config.toml");
+
             if state_lock.config.is_none() {
                 return (StatusCode::BAD_REQUEST, Json("Missing configuration."));
             }
