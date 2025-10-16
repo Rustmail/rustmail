@@ -1,0 +1,10 @@
+{
+  "home": {
+    "welcome": "Bienvenue. Pour continuer, veuillez vous connecter avec votre compte Discord.",
+    "connect_button": "Se connecter"
+  },
+  "back_to_home": "Retour à l'accueil",
+  "error": {
+    "error": "Erreur"
+  }
+}

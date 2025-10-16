@@ -2,9 +2,9 @@ use crate::BotState;
 use axum::extract::{Query, State};
 use axum::response::Redirect;
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
+use chrono::{Duration, Utc};
 use reqwest::Client;
 use std::sync::Arc;
-use chrono::{Duration, Utc};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -36,8 +36,8 @@ pub async fn handle_callback(
     };
 
     let client = Client::new();
-    
-    let token_response = client
+
+    let token_response = match client
         .post("https://discord.com/api/oauth2/token")
         .form(&[
             ("client_id", config.bot.client_id.to_string().as_str()),
@@ -48,32 +48,56 @@ pub async fn handle_callback(
         ])
         .send()
         .await
-        .unwrap();
+    {
+        Ok(resp) => {
+            if !resp.status().is_success() {
+                eprintln!("⚠️ Token exchange failed with status: {}", resp.status());
+                return (jar, Redirect::to("/error?message=Token+exchange+failed"));
+            }
+            resp
+        }
+        Err(e) => {
+            eprintln!(
+                "⚠️ Failed to exchange code for token (maybe client_secret or client_id: {}",
+                e
+            );
+            return (
+                jar,
+                Redirect::to("/error?message=Failed+to+exchange+code+for+token"),
+            );
+        }
+    };
 
     let token_data: serde_json::Value = token_response.json().await.unwrap();
 
     let access_token = token_data["access_token"].as_str().unwrap_or("");
     let refresh_token = token_data["refresh_token"].as_str().unwrap_or("");
     let expires_in = token_data["expires_in"].as_i64().unwrap_or(3600);
-    
-    let user_response = client
+
+    let user_response = match client
         .get("https://discord.com/api/users/@me")
         .bearer_auth(access_token)
         .send()
         .await
-        .unwrap();
+    {
+        Ok(resp) => resp,
+        Err(e) => {
+            eprintln!("⚠️ Failed to fetch user info: {}", e);
+            return (
+                jar,
+                Redirect::to("/error?message=Failed+to+fetch+user+info"),
+            );
+        }
+    };
 
     let user: DiscordUser = user_response.json().await.unwrap();
     let user_id = user.id.clone();
-    
+
     let session_id = Uuid::new_v4().to_string();
     let expires_at = Utc::now() + Duration::seconds(expires_in);
     let timestamp = expires_at.timestamp();
 
-    if let Err(e) = sqlx::query!(
-        r#"DELETE FROM sessions_panel WHERE user_id = ?"#,
-        user_id
-    )
+    if let Err(e) = sqlx::query!(r#"DELETE FROM sessions_panel WHERE user_id = ?"#, user_id)
         .execute(db_pool)
         .await
     {
@@ -96,13 +120,13 @@ pub async fn handle_callback(
         refresh_token,
         timestamp,
     )
-        .execute(db_pool)
-        .await
+    .execute(db_pool)
+    .await
     {
         eprintln!("⚠️ Failed to store session in database: {}", e);
         return (jar, Redirect::to("/error?message=Database+write+failed"));
     }
-    
+
     let cookie_session = Cookie::build(("session_id", session_id))
         .path("/")
         .http_only(true)
@@ -116,6 +140,6 @@ pub async fn handle_callback(
         .build();
 
     let jar = jar.add(cookie_session).add(cookie_user);
-    
+
     (jar, Redirect::to("/panel"))
 }

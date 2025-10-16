@@ -1,4 +1,5 @@
 use crate::pages::docs::Docs;
+use crate::pages::error::Error;
 use crate::pages::home::Home;
 use crate::pages::panel::Panel;
 use yew::prelude::*;
@@ -12,6 +13,8 @@ pub enum Route {
     Documentation,
     #[at("/panel")]
     Panel,
+    #[at("/error")]
+    Error,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -22,6 +25,7 @@ pub fn switch(routes: Route) -> Html {
         Route::Home => html! { <Home /> },
         Route::Documentation => html! { <Docs /> },
         Route::Panel => html! { <Panel /> },
+        Route::Error => html! { <Error /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }

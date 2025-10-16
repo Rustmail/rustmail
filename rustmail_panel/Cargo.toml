@@ -10,3 +10,6 @@ yew-router = "0.18.0"
 wasm-bindgen-futures = "0.4.50"
 gloo-net = "0.6.0"
 gloo-utils = "0.2.0"
+web-sys = "0.3.77"
+serde_json = "1.0.145"
+i18nrs = { version = "0.1.7", features = ["yew"] }
