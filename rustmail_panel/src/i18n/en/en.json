@@ -10,5 +10,8 @@
   "panel": {
     "welcome": "Welcome on the Rustmail Panel",
     "logout": "Logout"
+  },
+  "docs": {
+    "back_to_home": "Back to home"
   }
 }
