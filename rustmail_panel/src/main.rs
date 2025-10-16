@@ -2,7 +2,6 @@ mod components;
 mod pages;
 mod router;
 
-use crate::components::language_switcher::LanguageSwitcher;
 use crate::router::{switch, Route};
 use i18nrs::yew::I18nProvider;
 use i18nrs::StorageType;
@@ -26,7 +25,6 @@ fn App() -> Html {
         >
             <BrowserRouter>
                 <Switch<Route> render={switch} />
-                <LanguageSwitcher />
             </BrowserRouter>
         </I18nProvider>
     }

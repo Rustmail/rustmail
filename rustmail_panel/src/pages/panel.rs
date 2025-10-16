@@ -1,10 +1,13 @@
-use yew::prelude::*;
+use crate::components::language_switcher::LanguageSwitcher;
 use gloo_net::http::Request;
 use gloo_utils::window;
 use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
 
 #[function_component(Panel)]
 pub fn panel() -> Html {
+    let (i18n, _set_language) = i18nrs::yew::use_translation();
+
     let authorized = use_state(|| None::<bool>);
 
     {
@@ -44,6 +47,12 @@ pub fn panel() -> Html {
                     Some(true) => html! {
                         <section class="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
                             <img src="logo.png" alt="Rustmail logo" class="w-40 h-40 mb-6" />
+
+                            <a href="/api/auth/logout"
+                                class="absolute top-6 right-6 px-4 py-2 border border-gray-500 rounded-lg hover:bg-gray-800 transition">
+                                { i18n.t("panel.logout") }
+                            </a>
+
                             <h1 class="text-3xl font-bold mb-2">{"Rustmail Panel"}</h1>
                             <p class="max-w-xl text-center text-gray-400 mb-8">
                                 {"Bienvenue sur le panel de Rustmail"}
@@ -53,6 +62,7 @@ pub fn panel() -> Html {
                     Some(false) => html! {},
                 }
             }
+            <LanguageSwitcher />
         </>
     }
 }

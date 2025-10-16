@@ -6,5 +6,8 @@
   "back_to_home": "Back to home",
   "error": {
     "error": "Error"
+  },
+  "panel": {
+    "logout": "Logout"
   }
 }
