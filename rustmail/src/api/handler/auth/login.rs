@@ -1,14 +1,15 @@
 use crate::BotState;
 use axum::extract::State;
 use axum::response::Redirect;
-use std::sync::Arc;
 use axum_extra::extract::CookieJar;
-use sqlx::{query, Row};
+use sqlx::{Row, query};
+use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub async fn handle_login(
     jar: CookieJar,
-    State(bot_state): State<Arc<Mutex<BotState>>>) -> Redirect {
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+) -> Redirect {
     let state_lock = bot_state.lock().await;
 
     let session_cookie = jar.get("session_id");
@@ -19,11 +20,12 @@ pub async fn handle_login(
         let user_id = user_id.value();
 
         if let Some(db_pool) = &state_lock.db_pool {
-            if let Ok(row) = query("SELECT expires_at FROM sessions_panel WHERE session_id = ? AND user_id = ?")
-                .bind(session_id)
-                .bind(user_id)
-                .fetch_one(db_pool)
-                .await
+            if let Ok(row) =
+                query("SELECT expires_at FROM sessions_panel WHERE session_id = ? AND user_id = ?")
+                    .bind(session_id)
+                    .bind(user_id)
+                    .fetch_one(db_pool)
+                    .await
             {
                 let expires_at: i64 = row.get::<i64, _>("expires_at");
                 let current_timestamp = chrono::Utc::now().timestamp();

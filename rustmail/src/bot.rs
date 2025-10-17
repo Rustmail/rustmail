@@ -216,7 +216,6 @@ pub async fn run_bot(
             Some(cmd) = command_rx.recv() => {
                 match cmd {
                     BotCommand::CheckUserIsMember { user_id, resp} => {
-                        println!("Rustmail is checking if user {} is member of staff guild...", user_id);
                         let http = {
                             let state_lock = bot_state.lock().await;
                             state_lock.bot_http.clone().expect("Failed to get bot http")

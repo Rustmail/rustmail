@@ -1,9 +1,9 @@
+use crate::BotState;
 use crate::api::handler::auth::callback::handle_callback;
 use crate::api::handler::auth::login::handle_login;
 use crate::api::handler::auth::logout::handle_logout;
-use crate::BotState;
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

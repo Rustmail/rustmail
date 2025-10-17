@@ -18,7 +18,7 @@ struct DiscordUser {
     id: String,
     username: String,
     discriminator: String,
-    avatar: Option<String>,
+    avatar: String,
 }
 
 pub async fn handle_callback(
@@ -107,18 +107,20 @@ pub async fn handle_callback(
 
     if let Err(e) = sqlx::query!(
         r#"
-        INSERT INTO sessions_panel (session_id, user_id, access_token, refresh_token, expires_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO sessions_panel (session_id, user_id, access_token, refresh_token, expires_at, avatar_hash)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(session_id) DO UPDATE SET
             access_token = excluded.access_token,
             refresh_token = excluded.refresh_token,
-            expires_at = excluded.expires_at
+            expires_at = excluded.expires_at,
+            avatar_hash = excluded.avatar_hash
         "#,
         session_id,
         user_id,
         access_token,
         refresh_token,
         timestamp,
+        user.avatar
     )
     .execute(db_pool)
     .await

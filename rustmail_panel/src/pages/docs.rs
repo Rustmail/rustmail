@@ -1,6 +1,6 @@
 use crate::components::language_switcher::LanguageSwitcher;
 use i18nrs::yew::use_translation;
-use yew::{function_component, html, Html};
+use yew::{Html, function_component, html};
 
 #[function_component(Docs)]
 pub fn docs() -> Html {

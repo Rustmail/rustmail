@@ -13,3 +13,5 @@ gloo-utils = "0.2.0"
 web-sys = "0.3.77"
 serde_json = "1.0.145"
 i18nrs = { version = "0.1.7", features = ["yew"] }
+tailyew = "0.1.38"
+serde = { version = "1.0.228", features = ["derive"] }
