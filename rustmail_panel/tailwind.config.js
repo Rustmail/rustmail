@@ -1,7 +1,7 @@
 module.exports = {
     mode: "jit",
     content: {
-        files: ["src/**/*.rs", "index.html", "assets/**/*.png"],
+        files: ["index.html", "src/**/*.rs", "assets/**/*.png"],
     },
     darkMode: "media",
     theme: {

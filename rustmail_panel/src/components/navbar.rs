@@ -1,9 +1,12 @@
 use crate::components::language_switcher::LanguageSwitcher;
-use yew::{function_component, html, use_state, Callback, Html, Properties};
+use crate::pages::panel::Page;
+use yew::{function_component, html, use_state, Callback, Html, Properties, classes};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct RustmailNavbarProps {
     pub avatar_url: String,
+    pub on_page_change: Callback<Page>,
+    pub current_page: Page,
 }
 
 #[function_component(RustmailNavbar)]
@@ -27,18 +30,68 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                 <div class="flex h-16 items-center justify-between">
 
                     <div class="flex items-center space-x-4">
-                        <a href="#">
+                        <button onclick={{
+                            let on_page_change = props.on_page_change.clone();
+                            move |_| on_page_change.emit(Page::Home)
+                        }}>
                             <img
                                 src="logo.png"
                                 alt="Logo"
                                 class="h-7 w-auto"
                             />
-                        </a>
+                        </button>
 
                         <div class="hidden sm:flex space-x-4">
-                            <a href="/panel" class="rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20 transition">{"Accueil"}</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white">{"Configuration"}</a>
-                            <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white">{"Tickets"}</a>
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    move |_| on_page_change.emit(Page::Home)
+                                }}
+                                class={classes!(
+                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Home {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Accueil"}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    move |_| on_page_change.emit(Page::Configuration)
+                                }}
+                                class={classes!(
+                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Configuration {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Configuration"}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    move |_| on_page_change.emit(Page::Tickets)
+                                }}
+                                class={classes!(
+                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Tickets {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Tickets"}
+                            </button>
                         </div>
                     </div>
 
@@ -49,7 +102,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                             </svg>
                         </button>
 
-                        <LanguageSwitcher placement="nav"/>
+                        <LanguageSwitcher placement="nav" />
 
                         <button type="button" class="relative rounded-full p-1 text-gray-300 hover:text-white transition">
                             <span class="sr-only">{"View notifications"}</span>
@@ -86,9 +139,68 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                 html! {
                     <div class="sm:hidden border-t border-gray-700 bg-slate-900/95 backdrop-blur-md">
                         <div class="px-2 pt-2 pb-3 space-y-1">
-                            <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/10">{"Accueil"}</a>
-                            <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/10 hover:text-white">{"Configuration"}</a>
-                            <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/10 hover:text-white">{"Tickets"}</a>
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        on_page_change.emit(Page::Home);
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Home {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Accueil"}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        on_page_change.emit(Page::Configuration);
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Configuration {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Configuration"}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let on_page_change = props.on_page_change.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        on_page_change.emit(Page::Tickets);
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if props.current_page == Page::Tickets {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Tickets"}
+                            </button>
                         </div>
                     </div>
                 }
