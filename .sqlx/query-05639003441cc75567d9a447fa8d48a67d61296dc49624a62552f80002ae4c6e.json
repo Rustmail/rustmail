@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT avatar_hash FROM sessions_panel WHERE user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "avatar_hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "05639003441cc75567d9a447fa8d48a67d61296dc49624a62552f80002ae4c6e"
+}
