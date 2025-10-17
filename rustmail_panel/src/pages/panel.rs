@@ -2,8 +2,8 @@ use crate::components::navbar::RustmailNavbar;
 use gloo_net::http::Request;
 use gloo_utils::window;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::HtmlDocument;
 use web_sys::wasm_bindgen::JsCast;
+use web_sys::HtmlDocument;
 use yew::prelude::*;
 
 #[derive(serde::Deserialize, Debug, serde::Serialize)]

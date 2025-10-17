@@ -1,5 +1,5 @@
 use crate::components::language_switcher::LanguageSwitcher;
-use yew::{Callback, Html, Properties, function_component, html, use_state};
+use yew::{function_component, html, use_state, Callback, Html, Properties};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct RustmailNavbarProps {

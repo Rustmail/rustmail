@@ -21,32 +21,48 @@ pub async fn handle_get_user_avatar(
     let state_lock = bot_state.lock().await;
 
     let pool = match &state_lock.db_pool {
-        Some(pool) => pool,
+        Some(pool) => pool.clone(),
         None => {
             return axum::response::Json(serde_json::json!(UserAvatar { avatar_url: None }));
         }
     };
 
-    let user_id = params.id;
+    drop(state_lock);
+
+    let user_id_str = params.id;
+
+    let user_id: u64 = match user_id_str.parse::<u64>() {
+        Ok(id) => id,
+        Err(e) => {
+            eprintln!("Error parsing user ID: {}", e);
+            return axum::response::Json(serde_json::json!(UserAvatar { avatar_url: None }));
+        }
+    };
 
     let user_avatar = match sqlx::query!(
         "SELECT avatar_hash FROM sessions_panel WHERE user_id = ?",
-        user_id
+        user_id_str
     )
-    .fetch_one(pool)
+    .fetch_one(&pool)
     .await
     {
         Ok(record) => {
             if let Some(avatar_hash) = record.avatar_hash {
                 let avatar_url = format!(
                     "https://cdn.discordapp.com/avatars/{}/{}.png",
-                    user_id, avatar_hash
+                    user_id_str, avatar_hash
                 );
                 UserAvatar {
                     avatar_url: Some(avatar_url),
                 }
             } else {
-                UserAvatar { avatar_url: None }
+                let avatar_url = format!(
+                    "https://cdn.discordapp.com/embed/avatars/{}.png",
+                    (user_id >> 22) % 6
+                );
+                UserAvatar {
+                    avatar_url: Some(avatar_url),
+                }
             }
         }
         Err(e) => {

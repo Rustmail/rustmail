@@ -18,7 +18,7 @@ struct DiscordUser {
     id: String,
     username: String,
     discriminator: String,
-    avatar: String,
+    avatar: Option<String>,
 }
 
 pub async fn handle_callback(
@@ -90,7 +90,16 @@ pub async fn handle_callback(
         }
     };
 
-    let user: DiscordUser = user_response.json().await.unwrap();
+    let user: DiscordUser = match user_response.json().await {
+        Ok(user) => user,
+        Err(e) => {
+            eprintln!("⚠️ Failed to parse user info: {}", e);
+            return (
+                jar,
+                Redirect::to("/error?message=Failed+to+parse+user+info"),
+            );
+        }
+    };
     let user_id = user.id.clone();
 
     let session_id = Uuid::new_v4().to_string();
