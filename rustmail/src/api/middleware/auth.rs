@@ -10,6 +10,7 @@ use serenity::all::{GuildId, UserId};
 use sqlx::{Row, query};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 
 async fn check_user_with_bot(bot_state: Arc<Mutex<BotState>>, user_id: &str) -> bool {
     let user_id_num = match user_id.parse::<u64>() {
@@ -86,14 +87,10 @@ pub async fn auth_middleware(
     next: Next,
 ) -> Response {
     let session_cookie = jar.get("session_id");
-    let user_cookie = jar.get("user_id");
 
-    if session_cookie.is_none() || user_cookie.is_none() {
+    if session_cookie.is_none() {
         return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
     }
-
-    let session_id = session_cookie.unwrap().value().to_string();
-    let user_id = user_cookie.unwrap().value().to_string();
 
     let db_pool = {
         let state_lock = bot_state.lock().await;
@@ -108,6 +105,9 @@ pub async fn auth_middleware(
             }
         }
     };
+
+    let session_id = session_cookie.unwrap().value().to_string();
+    let user_id = get_user_id_from_session(&session_id, &db_pool).await;
 
     let guild_id = {
         let state_lock = bot_state.lock().await;

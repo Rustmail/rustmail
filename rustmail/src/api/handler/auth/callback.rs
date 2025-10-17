@@ -144,13 +144,7 @@ pub async fn handle_callback(
         .same_site(SameSite::Lax)
         .build();
 
-    let cookie_user = Cookie::build(("user_id", user_id.clone()))
-        .path("/")
-        .http_only(false)
-        .same_site(SameSite::Lax)
-        .build();
-
-    let jar = jar.add(cookie_session).add(cookie_user);
+    let jar = jar.add(cookie_session);
 
     (jar, Redirect::to("/panel"))
 }

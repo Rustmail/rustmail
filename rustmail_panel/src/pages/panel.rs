@@ -2,30 +2,11 @@ use crate::components::navbar::RustmailNavbar;
 use gloo_net::http::Request;
 use gloo_utils::window;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::wasm_bindgen::JsCast;
-use web_sys::HtmlDocument;
 use yew::prelude::*;
 
 #[derive(serde::Deserialize, Debug, serde::Serialize)]
 pub struct UserAvatar {
     pub avatar_url: Option<String>,
-}
-
-fn get_cookie(name: &str) -> Option<String> {
-    let document = web_sys::window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .dyn_into::<HtmlDocument>()
-        .unwrap();
-
-    let cookies = document.cookie().unwrap_or_default();
-
-    cookies
-        .split(';')
-        .map(|s| s.trim())
-        .find(|s| s.starts_with(&format!("{}=", name)))
-        .map(|s| s.split_at(name.len() + 1).1.to_string())
 }
 
 #[function_component(Panel)]
@@ -58,23 +39,16 @@ pub fn panel() -> Html {
         });
     }
 
-    let user_id: u64 = get_cookie("user_id")
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0);
-
     let avatar = use_state(|| None::<String>);
     {
         let avatar = avatar.clone();
-        use_effect_with(user_id, move |&user_id| {
-            let avatar = avatar.clone();
-            spawn_local(async move {
-                if user_id == 0 {
-                    avatar.set(None);
-                    return;
-                }
 
-                let url = format!("/api/user/avatar?id={}", user_id);
-                if let Ok(resp) = Request::get(&url).send().await {
+        use_effect_with((), move |()| {
+            let avatar = avatar.clone();
+
+            spawn_local(async move {
+
+                if let Ok(resp) = Request::get(&"/api/user/avatar".to_string()).send().await {
                     if let Ok(user_avatar) = resp.json::<UserAvatar>().await {
                         avatar.set(user_avatar.avatar_url);
                     } else {
