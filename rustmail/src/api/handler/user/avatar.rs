@@ -47,10 +47,10 @@ pub async fn handle_get_user_avatar(
     .await
     {
         Ok(record) => {
-            if let Some(avatar_hash) = record.avatar_hash {
+            if !record.avatar_hash.is_empty() {
                 let avatar_url = format!(
                     "https://cdn.discordapp.com/avatars/{}/{}.png",
-                    user_id_str, avatar_hash
+                    user_id_str, record.avatar_hash
                 );
                 UserAvatar {
                     avatar_url: Some(avatar_url),
