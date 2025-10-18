@@ -22,6 +22,7 @@ pub async fn handle_stop_bot(
         handle.await.unwrap();
         (StatusCode::OK, Json("Bot stopped"))
     } else {
+        println!("Not Starting bot stop");
         (StatusCode::CONFLICT, Json("Bot is not running"))
     }
 }

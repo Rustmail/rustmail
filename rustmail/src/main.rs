@@ -6,6 +6,7 @@ use axum::response::Response;
 use rust_embed::RustEmbed;
 use serenity::http::Http;
 use std::borrow::Cow;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::signal;
 use tokio::sync::watch::Sender;
@@ -53,6 +54,7 @@ struct BotState {
     db_pool: Option<sqlx::SqlitePool>,
     command_tx: tokio::sync::mpsc::Sender<BotCommand>,
     bot_http: Option<Arc<Http>>,
+    internal_token: String,
 }
 
 #[derive(RustEmbed)]
@@ -120,10 +122,10 @@ async fn main() {
                     .route("/", axum::routing::get(static_handler))
                     .route("/{*path}", axum::routing::get(static_handler));
 
-                let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
+                let listener = tokio::net::TcpListener::bind("127.0.0.1:3002").await.unwrap();
                 println!("listening on {}", listener.local_addr().unwrap());
 
-                axum::serve(listener, app)
+                axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
                     .with_graceful_shutdown(shutdown_signal())
                     .await
                     .unwrap();

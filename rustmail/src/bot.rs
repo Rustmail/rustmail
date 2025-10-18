@@ -32,6 +32,8 @@ use serenity::cache::Settings as CacheSettings;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;
+use base64::Engine;
+use rand::RngCore;
 use tokio::sync::Mutex;
 use tokio::{select, spawn};
 
@@ -40,6 +42,10 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         .await
         .expect("An error occured!");
     println!("Database connected!");
+
+    let mut bytes = [0u8; 32];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    let token = base64::engine::general_purpose::STANDARD.encode(&bytes);
 
     let config = load_config("config.toml");
 
@@ -51,6 +57,7 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         db_pool: Some(pool),
         command_tx: command_tx.clone(),
         bot_http: None,
+        internal_token: token,
     };
 
     Arc::new(Mutex::new(bot_state))

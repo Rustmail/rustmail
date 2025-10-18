@@ -12,7 +12,6 @@ pub async fn handle_start_bot(
     State(bot_state): State<Arc<Mutex<BotState>>>,
 ) -> (StatusCode, Json<&'static str>) {
     let mut state_lock = bot_state.lock().await;
-
     match state_lock.status {
         BotStatus::Stopped => {
             state_lock.config = load_config("config.toml");
