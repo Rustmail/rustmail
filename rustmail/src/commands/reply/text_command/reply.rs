@@ -15,7 +15,7 @@ pub async fn reply(
     ctx: &Context,
     msg: &Message,
     config: &Config,
-    shutdown: Arc<Receiver<bool>>,
+    _shutdown: Arc<Receiver<bool>>,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool

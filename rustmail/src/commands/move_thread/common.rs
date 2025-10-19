@@ -66,30 +66,6 @@ pub async fn move_channel_to_category_by_command_option(
         .await
 }
 
-pub async fn send_error_message(
-    ctx: &Context,
-    msg: &Message,
-    config: &Config,
-    error_key: &str,
-    params: Option<&HashMap<String, String>>,
-) {
-    let error_msg = get_translated_message(
-        config,
-        error_key,
-        params,
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
-
-    let _ = MessageBuilder::system_message(ctx, config)
-        .content(error_msg)
-        .to_channel(msg.channel_id)
-        .send()
-        .await;
-}
-
 pub async fn send_success_message(
     ctx: &Context,
     msg: &Message,

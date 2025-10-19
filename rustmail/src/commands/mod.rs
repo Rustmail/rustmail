@@ -42,19 +42,19 @@ pub trait RegistrableCommand: Send + Sync {
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
-    shutdown: Arc<Receiver<bool>>,
+    _shutdown: Arc<Receiver<bool>>,
 }
 
 impl CommandRegistry {
     pub fn new(shutdown: Receiver<bool>) -> Self {
         Self {
             commands: HashMap::new(),
-            shutdown: Arc::new(shutdown),
+            _shutdown: Arc::new(shutdown),
         }
     }
 
-    pub fn shutdown(&self) -> Arc<Receiver<bool>> {
-        self.shutdown.clone()
+    pub fn _shutdown(&self) -> Arc<Receiver<bool>> {
+        self._shutdown.clone()
     }
 
     pub fn register_command<C: RegistrableCommand + 'static>(&mut self, command: C) {

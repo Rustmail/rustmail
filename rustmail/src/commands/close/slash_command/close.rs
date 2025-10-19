@@ -10,15 +10,13 @@ use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
-use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, GuildId, ResolvedOption, UserId,
-};
+use serenity::all::{CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, GuildId, ResolvedOption, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
+use crate::utils::command::category::{get_category_id_from_command, get_category_name_from_command, get_required_permissions_channel_from_command};
 
 pub struct CloseCommand;
 
@@ -238,8 +236,14 @@ impl RegistrableCommand for CloseCommand {
                 let thread_id = thread.id.clone();
                 let close_at = Utc::now().timestamp() + delay.as_secs() as i64;
                 let silent = silent.unwrap_or(false);
+
+                let closed_by = command.user.id.to_string();
+                let category_id = get_category_id_from_command(&ctx, &command).await;
+                let category_name = get_category_name_from_command(&ctx, &command).await;
+                let required_permissions = get_required_permissions_channel_from_command(&ctx, &command).await;
+
                 if let Err(e) =
-                    upsert_scheduled_closure(&thread_id, close_at, silent, db_pool).await
+                    upsert_scheduled_closure(&thread_id, close_at, silent, &closed_by, &category_id, &category_name, &required_permissions.to_string(), db_pool).await
                 {
                     eprintln!("Failed to persist scheduled closure: {e:?}");
                 }
@@ -256,7 +260,7 @@ impl RegistrableCommand for CloseCommand {
                             get_scheduled_closure(&thread_id_for_task, pool).await
                         {
                             if record.close_at <= Utc::now().timestamp() {
-                                let _ = close_thread(&thread_id_for_task, pool).await;
+                                let _ = close_thread(&thread_id_for_task, &record.closed_by, &record.category_id, &record.category_name, record.required_permissions.parse::<u64>().unwrap_or(0), pool).await;
                                 let _ = delete_scheduled_closure(&thread_id_for_task, pool).await;
 
                                 let community_guild_id =
@@ -290,7 +294,7 @@ impl RegistrableCommand for CloseCommand {
                                             get_scheduled_closure(&thread_id_again, pool2).await
                                         {
                                             if r2.close_at <= Utc::now().timestamp() {
-                                                let _ = close_thread(&thread_id_again, pool2).await;
+                                                let _ = close_thread(&thread_id_again, &r2.closed_by, &r2.category_id, &r2.category_name, r2.required_permissions.parse::<u64>().unwrap_or(0), pool2).await;
                                                 let _ = delete_scheduled_closure(
                                                     &thread_id_again,
                                                     pool2,
@@ -327,6 +331,11 @@ impl RegistrableCommand for CloseCommand {
 
             let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
 
+            let closed_by = command.user.id.to_string();
+            let category_id = get_category_id_from_command(&ctx, &command).await;
+            let category_name = get_category_name_from_command(&ctx, &command).await;
+            let required_permissions = get_required_permissions_channel_from_command(&ctx, &command).await;
+
             if user_still_member
                 && let Some(silent) = silent
                 && !silent
@@ -355,7 +364,7 @@ impl RegistrableCommand for CloseCommand {
                 let _ = command.create_followup(&ctx.http, response).await;
             }
 
-            close_thread(&thread.id, db_pool).await?;
+            close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, db_pool).await?;
             let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
             let _ = command.channel_id.delete(&ctx.http).await?;
