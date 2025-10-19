@@ -9,7 +9,7 @@ pub use features::{get_feature_message, upsert_feature_message};
 pub use init::{get_last_recovery_timestamp, init_database, update_last_recovery_timestamp};
 pub use messages::{
     delete_message, get_latest_thread_message, get_message_ids_by_message_id,
-    get_message_ids_by_number, get_thread_message_by_inbox_message_id, insert_recovered_message,
+    get_message_ids_by_number, get_thread_message_by_inbox_message_id,
     insert_staff_message, insert_user_message_with_ids, update_message_content,
     update_message_numbers_after_deletion,
 };

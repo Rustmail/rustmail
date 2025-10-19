@@ -1,3 +1,4 @@
+use chrono::Utc;
 use crate::db::repr::Thread;
 use crate::errors::ModmailResult;
 use serenity::all::{ChannelId, GuildChannel, UserId};
@@ -144,8 +145,29 @@ pub async fn create_thread_for_user(
     }
 }
 
-pub async fn close_thread(thread_id: &str, pool: &SqlitePool) -> ModmailResult<()> {
-    sqlx::query!("UPDATE threads SET status = 0 WHERE id = ?", thread_id)
+pub async fn close_thread(thread_id: &str, closed_by: &str, category_id: &str, category_name: &str, required_permissions: u64, pool: &SqlitePool) -> ModmailResult<()> {
+    let closed_at = Utc::now().timestamp();
+    let required_permissions = required_permissions.clone().to_string();
+
+    sqlx::query!(
+        r#"
+        UPDATE threads
+        SET
+            status = 0,
+            closed_at = ?,
+            closed_by = ?,
+            category_id = ?,
+            category_name = ?,
+            required_permissions = ?
+        WHERE id = ?
+        "#,
+        closed_at,
+        closed_by,
+        category_id,
+        category_name,
+        required_permissions,
+        thread_id
+    )
         .execute(pool)
         .await?;
 
@@ -233,7 +255,7 @@ pub async fn cancel_alert_for_staff(
 }
 
 pub async fn set_alert_for_staff(
-    staff_user_id: serenity::all::UserId,
+    staff_user_id: UserId,
     thread_user_id: i64,
     pool: &SqlitePool,
 ) -> Result<(), Error> {
