@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE threads\n        SET\n            status = 0,\n            closed_at = ?,\n            closed_by = ?,\n            category_id = ?,\n            category_name = ?,\n            required_permissions = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "2eff567a5668138fed25817ebd77f268f5a140c04524e7dde35a3b6c9d05fa35"
+}

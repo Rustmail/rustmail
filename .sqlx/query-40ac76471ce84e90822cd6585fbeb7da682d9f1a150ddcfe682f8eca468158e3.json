@@ -1,0 +1,92 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT\n                id,\n                user_id,\n                user_name,\n                channel_id,\n                created_at as \"created_at: String\",\n                next_message_number as new_message_number,\n                status,\n                user_left,\n                closed_at as \"closed_at: Option<String>\",\n                closed_by,\n                category_id,\n                category_name,\n                required_permissions\n            FROM threads\n            WHERE id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "user_name",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "channel_id",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at: String",
+        "ordinal": 4,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "new_message_number",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "status",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "user_left",
+        "ordinal": 7,
+        "type_info": "Bool"
+      },
+      {
+        "name": "closed_at: Option<String>",
+        "ordinal": 8,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "closed_by",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "category_id",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "category_name",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "required_permissions",
+        "ordinal": 12,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "40ac76471ce84e90822cd6585fbeb7da682d9f1a150ddcfe682f8eca468158e3"
+}
