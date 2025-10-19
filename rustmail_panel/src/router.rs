@@ -12,6 +12,8 @@ pub enum Route {
     #[at("/docs")]
     Documentation,
     #[at("/panel")]
+    PanelRoot,
+    #[at("/panel/*")]
     Panel,
     #[at("/error")]
     Error,
@@ -24,8 +26,9 @@ pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
         Route::Documentation => html! { <Docs /> },
-        Route::Panel => html! { <Panel /> },
+        Route::PanelRoot | Route::Panel => html! { <Panel /> },
         Route::Error => html! { <Error /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }
+

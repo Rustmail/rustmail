@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::db::operations::{
     get_all_opened_threads, get_last_recovery_timestamp, get_latest_thread_message,
-    insert_recovered_message, update_last_recovery_timestamp,
+    update_last_recovery_timestamp,
 };
 use crate::db::repr::Thread;
 use crate::i18n::get_translated_message;

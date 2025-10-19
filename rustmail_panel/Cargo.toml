@@ -17,3 +17,5 @@ tailyew = "0.1.38"
 serde = { version = "1.0.228", features = ["derive"] }
 js-sys = "0.3.77"
 wasm-bindgen = "0.2.100"
+[build-dependencies]
+navigator = "0.3.0"

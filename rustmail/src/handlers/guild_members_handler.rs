@@ -5,12 +5,13 @@ use crate::db::threads::get_thread_by_user_id;
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ButtonStyle, Member};
+use serenity::all::{ButtonStyle, Channel, Member, PermissionOverwriteType, RoleId};
 use serenity::{
     all::{Context, EventHandler, GuildId, User},
     async_trait,
 };
 use std::collections::HashMap;
+use crate::utils::thread::category::get_required_permissions_channel_from_guild_channel;
 
 pub struct GuildMembersHandler {
     pub config: Config,
@@ -101,6 +102,50 @@ impl EventHandler for GuildMembersHandler {
             eprintln!("Erreur lors de la mise à jour du statut du thread: {:?}", e);
         }
 
-        let _ = close_thread(&thread.id, pool).await;
+        let closed_by = "user_left_server".to_string();
+        let category_id = match channel_id.to_channel(&ctx.http).await {
+            Ok(channel) => {
+                match channel.category() {
+                    Some(category) => category.id.to_string(),
+                    None => String::new(),
+                }
+            }
+            _ => String::new(),
+        };
+        let category_name = match channel_id.to_channel(&ctx.http).await {
+            Ok(channel) => {
+                match channel.category() {
+                    Some(category) => category.name.clone(),
+                    None => String::new(),
+                }
+            }
+            _ => String::new(),
+        };
+
+        let required_permissions = match channel_id.to_channel(&ctx.http).await {
+            Ok(Channel::Guild(guild_channel)) => {
+                let guild_id = guild_channel.guild_id;
+                let guild = guild_id.to_partial_guild(&ctx.http).await.ok();
+
+                let everyone_role_id = RoleId::new(guild_id.get());
+
+                let mut perms = guild
+                    .and_then(|g| g.roles.get(&everyone_role_id).map(|r| r.permissions.bits()))
+                    .unwrap_or(0u64);
+
+                for overwrite in &guild_channel.permission_overwrites {
+                    if let PermissionOverwriteType::Role(_) = overwrite.kind {
+                        let allow = overwrite.allow.bits();
+                        let deny = overwrite.deny.bits();
+                        perms = (perms & !deny) | allow;
+                    }
+                }
+
+                perms
+            }
+            _ => 0u64,
+        };
+
+        let _ = close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, pool).await;
     }
 }
