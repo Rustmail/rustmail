@@ -1,5 +1,5 @@
 use crate::BotState;
-use axum::extract::{Query, State};
+use axum::extract::State;
 use axum::response::IntoResponse;
 use std::sync::Arc;
 use axum_extra::extract::CookieJar;

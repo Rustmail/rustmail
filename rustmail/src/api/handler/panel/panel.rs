@@ -1,7 +1,6 @@
 use crate::BotState;
 use axum::extract::State;
-use axum::response::{IntoResponse, Redirect};
-use hyper::StatusCode;
+use axum::response::IntoResponse;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

@@ -1929,6 +1929,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "navigator"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acd7563c38e388f6d2a568ae781a71ca4e957768655923526d2e0d64a67bc4d6"
+
+[[package]]
 name = "num-bigint-dig"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2671,6 +2677,7 @@ dependencies = [
  "gloo-utils 0.2.0",
  "i18nrs",
  "js-sys",
+ "navigator",
  "serde",
  "serde_json",
  "tailyew",
