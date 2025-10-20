@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
-use crate::errors::ModmailResult;
 use crate::errors::common::message_not_found;
+use crate::errors::ModmailResult;
 use serenity::all::{Message, MessageId, UserId};
 use sqlx::{Error, SqlitePool};
 
@@ -174,6 +174,8 @@ pub async fn get_latest_thread_message(
     )
     .fetch_optional(pool)
     .await?;
+
+    println!("Debug: Fetched latest thread message row: {:?}", row);
 
     let latest = row.map(|row| ThreadMessage {
         id: row.id,

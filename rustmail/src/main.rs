@@ -122,13 +122,16 @@ async fn main() {
                     .route("/", axum::routing::get(static_handler))
                     .route("/{*path}", axum::routing::get(static_handler));
 
-                let listener = tokio::net::TcpListener::bind("127.0.0.1:3002").await.unwrap();
+                let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
                 println!("listening on {}", listener.local_addr().unwrap());
 
-                axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
-                    .with_graceful_shutdown(shutdown_signal())
-                    .await
-                    .unwrap();
+                axum::serve(
+                    listener,
+                    app.into_make_service_with_connect_info::<SocketAddr>(),
+                )
+                .with_graceful_shutdown(shutdown_signal())
+                .await
+                .unwrap();
             });
 
             tokio::select! {

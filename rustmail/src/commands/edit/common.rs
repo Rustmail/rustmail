@@ -1,6 +1,6 @@
 use crate::config::Config;
-use crate::errors::ModmailResult;
 use crate::errors::common::invalid_command;
+use crate::errors::ModmailResult;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use serenity::all::Message;
 
@@ -38,6 +38,7 @@ mod tests {
                 logs_channel_id: Some(15456),
                 client_id: 123456789012345678,
                 client_secret: "secret".to_string(),
+                redirect_url: "http://localhost:3002/api/auth/callback".to_string(),
             },
             command: CommandConfig {
                 prefix: "!".to_string(),

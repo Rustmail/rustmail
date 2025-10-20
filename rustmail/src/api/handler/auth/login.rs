@@ -1,11 +1,11 @@
+use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 use crate::BotState;
 use axum::extract::State;
 use axum::response::Redirect;
 use axum_extra::extract::CookieJar;
-use sqlx::{Row, query};
+use sqlx::{query, Row};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 
 pub async fn handle_login(
     jar: CookieJar,
@@ -56,7 +56,7 @@ pub async fn handle_login(
     let url = format!(
         "https://discord.com/oauth2/authorize?client_id={}&redirect_uri={}&response_type=code&scope=identify%20guilds",
         bot_config.bot.client_id,
-        urlencoding::encode("http://localhost:3002/api/auth/callback")
+        urlencoding::encode(bot_config.bot.redirect_url.as_str())
     );
 
     Redirect::to(&url)

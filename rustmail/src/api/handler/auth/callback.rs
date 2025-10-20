@@ -44,7 +44,7 @@ pub async fn handle_callback(
             ("client_secret", config.bot.client_secret.as_str()),
             ("grant_type", "authorization_code"),
             ("code", params.code.as_str()),
-            ("redirect_uri", "http://localhost:3002/api/auth/callback"),
+            ("redirect_uri", config.bot.redirect_url.as_str()),
         ])
         .send()
         .await
