@@ -1,9 +1,12 @@
 use gloo_net::http::Request;
+use i18nrs::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
 #[function_component(ConfigurationPage)]
 pub fn configuration_page() -> Html {
+    let (i18n, _set_language) = use_translation();
+
     let bot_status = use_state(|| "running".to_string());
     let is_loading = use_state(|| false);
 
@@ -90,7 +93,8 @@ pub fn configuration_page() -> Html {
             spawn_local(async move {
                 let _ = Request::post("/api/bot/config")
                     .header("Content-Type", "application/json")
-                    .body(serde_json::to_string(&data).unwrap()).expect("REASON")
+                    .body(serde_json::to_string(&data).unwrap())
+                    .expect("REASON")
                     .send()
                     .await;
             });
@@ -102,15 +106,15 @@ pub fn configuration_page() -> Html {
             <div class="max-w-4xl mx-auto">
 
                 <div class="mb-8">
-                    <h1 class="text-3xl text-white mb-2">{"Configuration"}</h1>
-                    <p class="text-gray-400">{"Gérez les paramètres de votre bot Discord"}</p>
+                    <h1 class="text-3xl text-white mb-2">{i18n.t("panel.configuration.title")}</h1>
+                    <p class="text-gray-400">{i18n.t("panel.configuration.description")}</p>
                 </div>
 
                 <div class="mb-6 bg-slate-800/50 border border-slate-700 rounded-lg p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <h2 class="text-xl text-white mb-1">{"Statut du Bot"}</h2>
-                            <p class="text-gray-400 text-sm">{"Contrôlez l'état de votre bot"}</p>
+                            <h2 class="text-xl text-white mb-1">{i18n.t("panel.configuration.bot_status")}</h2>
+                            <p class="text-gray-400 text-sm">{i18n.t("panel.configuration.bot_status_description")}</p>
                         </div>
 
                         <div class="flex items-center gap-2">
@@ -119,7 +123,7 @@ pub fn configuration_page() -> Html {
                                 if *bot_status == "running" { "bg-green-500" } else { "bg-red-500" }
                             )}></div>
                             <span class="text-sm text-gray-300">
-                                { if *bot_status == "running" { "En ligne" } else { "Hors ligne" } }
+                                { if *bot_status == "running" { i18n.t("panel.configuration.online") } else { i18n.t("panel.configuration.offline") } }
                             </span>
                         </div>
                     </div>
@@ -134,7 +138,7 @@ pub fn configuration_page() -> Html {
                             class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
                             <i class="bi bi-play-fill"></i>
-                            {"Démarrer"}
+                            {i18n.t("panel.configuration.start_bot")}
                         </button>
 
                         <button
@@ -146,7 +150,7 @@ pub fn configuration_page() -> Html {
                             class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
                             <i class="bi bi-stop-fill"></i>
-                            {"Arrêter"}
+                            {i18n.t("panel.configuration.stop_bot")}
                         </button>
 
                         <button
@@ -158,13 +162,13 @@ pub fn configuration_page() -> Html {
                             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
                             <i class="bi bi-arrow-repeat"></i>
-                            {"Redémarrer"}
+                            {i18n.t("panel.configuration.restart_bot")}
                         </button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                    <h2 class="text-xl text-white mb-4">{"Paramètres du Bot"}</h2>
+                    <h2 class="text-xl text-white mb-4">{i18n.t("panel.configuration.config_file.title")}</h2>
 
                     <div class="space-y-6">
 

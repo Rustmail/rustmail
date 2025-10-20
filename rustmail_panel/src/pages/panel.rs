@@ -1,13 +1,15 @@
+use crate::components::configuration::ConfigurationPage;
+use crate::components::home::Home;
 use crate::components::navbar::RustmailNavbar;
+use crate::components::ticket::{TicketDetails, TicketsList};
 use gloo_net::http::Request;
 use gloo_utils::window;
+use i18nrs::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::hooks::use_navigator;
-use yew_router::{navigator, BrowserRouter, Routable, Switch};
 use yew_router::navigator::Navigator;
-use crate::components::configuration::ConfigurationPage;
-use crate::components::ticket::{TicketDetails, TicketsList, TicketsPage};
+use yew_router::{BrowserRouter, Routable, Switch};
 
 #[derive(serde::Deserialize, Debug, serde::Serialize)]
 pub struct UserAvatar {
@@ -26,9 +28,10 @@ pub enum PanelRoute {
     TicketDetails { id: String },
 }
 
-
 #[function_component(Panel)]
 pub fn panel() -> Html {
+    let (i18n, _set_language) = use_translation();
+
     let authorized = use_state(|| None::<bool>);
     let navigator = use_navigator();
     {
@@ -79,14 +82,13 @@ pub fn panel() -> Html {
 
     let avatar_url = (*avatar).clone().unwrap_or_default();
 
-
     html! {
         <>
             {
                 match *authorized {
                     None => html! {
                         <section class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                            <p class="text-gray-400 animate-pulse">{"Vérification de l'accès..."}</p>
+                            <p class="text-gray-400 animate-pulse">{i18n.t("panel.check_access")}</p>
                         </section>
                     },
                     Some(true) => html! {
@@ -108,15 +110,7 @@ pub fn panel() -> Html {
 
 fn switch(route: PanelRoute, navigator: Option<Navigator>) -> Html {
     match route {
-        PanelRoute::Home => html! {
-            <div class="flex flex-col items-center justify-center text-center">
-                <img src="logo.png" alt="Rustmail logo" class="w-40 h-40 mb-6" />
-                <h1 class="text-3xl font-bold mb-2">{"Rustmail Panel"}</h1>
-                <p class="max-w-xl text-gray-400 mb-8">
-                    {"Bienvenue sur le panneau d'administration Rustmail"}
-                </p>
-            </div>
-        },
+        PanelRoute::Home => html! { <Home /> },
         PanelRoute::Configuration => html! { <ConfigurationPage /> },
         PanelRoute::TicketsList => html! { <TicketsList /> },
         PanelRoute::TicketDetails { id } => {

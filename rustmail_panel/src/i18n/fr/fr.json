@@ -7,11 +7,47 @@
   "error": {
     "error": "Erreur"
   },
-  "panel": {
-    "welcome": "Bienvenue sur le panel de Rustmail",
+  "navbar": {
+    "home": "Accueil",
+    "config": "Configuration",
+    "tickets": "Tickets",
     "logout": "Se déconnecter"
   },
-  "docs": {
-    "back_to_home": "Retour à l'accueil"
+  "panel": {
+    "title": "Panel Rustmail",
+    "welcome": "Bienvenue sur le panneau d'administration Rustmail",
+    "check_access": "Vérification de vos droits d'accès...",
+    "logout": "Se déconnecter",
+    "configuration": {
+      "title": "Configuration",
+      "description": "Gérez les paramètres de Rustmail ici.",
+      "bot_status": "Statut",
+      "bot_status_description": "Contrôlez l'état de Rustmail",
+      "start_bot": "Démarrer",
+      "stop_bot": "Arrêter",
+      "restart_bot": "Redémarrer",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "config_file": {
+        "title": "Paramètres de Rustmail (pas encore implémenté)"
+      }
+    },
+    "tickets": {
+      "title": "Tickets fermés",
+      "description": "Consultez l'historique des tickets fermés",
+      "sort_by": "Filtrer par catégorie",
+      "all": "Toutes les catégories",
+      "loading": "Chargement des tickets...",
+      "none": "Aucun ticket fermé trouvé.",
+      "none_category": "Inconnue",
+      "back_to_tickets": "← Retour aux tickets",
+      "user": "Utilisateur",
+      "category": "Catégorie",
+      "opened": "Ouvert",
+      "closed": "Fermé",
+      "unknown_date": "Date inconnue",
+      "loading_ticket": "Chargement du ticket...",
+      "ticket_not_found": "Ticket introuvable."
+    }
   }
 }

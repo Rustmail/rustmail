@@ -1,6 +1,6 @@
 use crate::components::language_switcher::LanguageSwitcher;
 use crate::pages::panel::PanelRoute;
-use yew::{function_component, html, use_state, Callback, Html, Properties, classes};
+use yew::{classes, function_component, html, use_state, Callback, Html, Properties};
 use yew_router::hooks::{use_location, use_navigator};
 
 #[derive(Properties, PartialEq, Clone)]
@@ -10,6 +10,8 @@ pub struct RustmailNavbarProps {
 
 #[function_component(RustmailNavbar)]
 pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
+    let (i18n, _set_language) = i18nrs::yew::use_translation();
+
     let mobile_menu_open = use_state(|| false);
     let profile_menu_open = use_state(|| false);
     let navigator = use_navigator();
@@ -63,7 +65,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                     }
                                 )}
                             >
-                                {"Accueil"}
+                                {i18n.t("navbar.home")}
                             </button>
 
                             <button
@@ -82,7 +84,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                     }
                                 )}
                             >
-                                {"Configuration"}
+                                {i18n.t("navbar.config")}
                             </button>
 
                             <button
@@ -101,7 +103,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                     }
                                 )}
                             >
-                                {"Tickets"}
+                                {i18n.t("navbar.tickets")}
                             </button>
                         </div>
                     </div>
@@ -128,7 +130,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                             { if *profile_menu_open {
                                 html! {
                                     <div class="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-gray-900/90 backdrop-blur-md py-1 shadow-lg ring-1 ring-black/5">
-                                        <a href="/api/auth/logout" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">{"Déconnexion"}</a>
+                                        <a href="/api/auth/logout" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">{i18n.t("navbar.logout")}</a>
                                     </div>
                                 }
                             } else {
@@ -165,7 +167,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                             }
                         )}
                     >
-                        {"Accueil"}
+                        {i18n.t("navbar.home")}
                     </button>
 
                     <button
@@ -188,7 +190,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                             }
                         )}
                     >
-                        {"Configuration"}
+                        {i18n.t("navbar.config")}
                     </button>
 
                     <button
@@ -211,7 +213,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                             }
                         )}
                     >
-                        {"Tickets"}
+                        {i18n.t("navbar.tickets")}
                     </button>
                 </div>
             </div>

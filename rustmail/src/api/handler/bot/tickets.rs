@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use crate::BotState;
 use axum::{
     extract::{Query, State},
     http::StatusCode,
     Json,
 };
-use tokio::sync::Mutex;
 use serde::{Deserialize, Serialize};
-use crate::BotState;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ThreadMessage {
@@ -65,7 +65,6 @@ pub async fn handle_tickets_bot(
     };
 
     if let Some(id) = params.id {
-
         let thread = match sqlx::query!(
             r#"
             SELECT
@@ -87,8 +86,8 @@ pub async fn handle_tickets_bot(
             "#,
             id
         )
-            .fetch_optional(&db_pool)
-            .await
+        .fetch_optional(&db_pool)
+        .await
         {
             Ok(Some(row)) => row,
             Ok(None) => {
@@ -129,8 +128,8 @@ pub async fn handle_tickets_bot(
             "#,
             thread.id
         )
-            .fetch_all(&db_pool)
-            .await
+        .fetch_all(&db_pool)
+        .await
         {
             Ok(rows) => rows,
             Err(err) => {
@@ -196,8 +195,8 @@ pub async fn handle_tickets_bot(
         ORDER BY closed_at DESC
         "#
     )
-        .fetch_all(&db_pool)
-        .await
+    .fetch_all(&db_pool)
+    .await
     {
         Ok(rows) => rows,
         Err(err) => {
@@ -233,8 +232,8 @@ pub async fn handle_tickets_bot(
             "#,
             thread.id
         )
-            .fetch_all(&db_pool)
-            .await
+        .fetch_all(&db_pool)
+        .await
         {
             Ok(rows) => rows,
             Err(err) => {

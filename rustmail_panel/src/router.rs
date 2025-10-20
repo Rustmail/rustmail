@@ -1,4 +1,3 @@
-use crate::pages::docs::Docs;
 use crate::pages::error::Error;
 use crate::pages::home::Home;
 use crate::pages::panel::Panel;
@@ -9,8 +8,6 @@ use yew_router::prelude::*;
 pub enum Route {
     #[at("/")]
     Home,
-    #[at("/docs")]
-    Documentation,
     #[at("/panel")]
     PanelRoot,
     #[at("/panel/*")]
@@ -25,10 +22,8 @@ pub enum Route {
 pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
-        Route::Documentation => html! { <Docs /> },
         Route::PanelRoot | Route::Panel => html! { <Panel /> },
         Route::Error => html! { <Error /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }
-

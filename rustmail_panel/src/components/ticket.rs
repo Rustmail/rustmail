@@ -1,10 +1,11 @@
 use gloo_net::http::Request;
+use i18nrs::yew::use_translation;
 use js_sys::Date;
+use serde::Deserialize;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use wasm_bindgen::JsValue;
-use serde::Deserialize;
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct ThreadMessage {
@@ -74,6 +75,8 @@ pub fn tickets_page() -> Html {
 
 #[function_component(TicketsList)]
 pub fn tickets_list() -> Html {
+    let (i18n, _set_language) = use_translation();
+
     let tickets = use_state(|| Vec::<CompleteThread>::new());
     let loading = use_state(|| true);
     let selected_category = use_state(|| "all".to_string());
@@ -131,7 +134,7 @@ pub fn tickets_list() -> Html {
         d.set_time(timestamp as f64 * 1000.0);
         d.to_locale_string("fr-FR", &JsValue::UNDEFINED)
             .as_string()
-            .unwrap_or_else(|| "date inconnue".into())
+            .unwrap_or_else(|| i18n.t("panel.tickets.unknown_date").into())
     };
 
     let status_color = |status: i64| match status {
@@ -143,13 +146,13 @@ pub fn tickets_list() -> Html {
     html! {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-white">
             <div class="mb-8">
-                <h1 class="text-3xl text-white mb-2">{"Tickets Fermés"}</h1>
-                <p class="text-gray-400">{"Consultez l'historique des tickets fermés"}</p>
+                <h1 class="text-3xl text-white mb-2">{i18n.t("panel.tickets.title")}</h1>
+                <p class="text-gray-400">{i18n.t("panel.tickets.description")}</p>
             </div>
 
             <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
                 <div class="p-4 border-b border-slate-700">
-                    <label class="block text-sm text-gray-300 mb-2">{"Filtrer par catégorie"}</label>
+                    <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.tickets.sort_by")}</label>
                     <select
                         value={(*selected_category).clone()}
                         onchange={{
@@ -162,7 +165,7 @@ pub fn tickets_list() -> Html {
                         class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         { for categories.iter().map(|c| html! {
-                            <option value={c.clone()}>{ if c == "all" { "Toutes les catégories" } else { c } }</option>
+                            <option value={c.clone()}>{ if c == "all" { i18n.t("panel.tickets.all") } else { c.clone() } }</option>
                         }) }
                     </select>
                 </div>
@@ -171,12 +174,12 @@ pub fn tickets_list() -> Html {
                     if *loading {
                         html! {
                             <div class="p-8 text-center text-gray-400">
-                                {"Chargement..."}
+                                { i18n.t("panel.tickets.loading") }
                             </div>
                         }
                     } else if filtered_tickets.is_empty() {
                         html! {
-                            <div class="p-8 text-center text-gray-400">{"Aucun ticket trouvé"}</div>
+                            <div class="p-8 text-center text-gray-400">{ i18n.t("panel.tickets.none") }</div>
                         }
                     } else {
                         html! {
@@ -199,7 +202,7 @@ pub fn tickets_list() -> Html {
                                                     </div>
                                                     <p class="text-xs text-gray-400 mb-1">{ &ticket.user_name }</p>
                                                     <div class="flex items-center gap-2 text-xs text-gray-500">
-                                                        <span>{ ticket.category_name.clone().unwrap_or_else(|| "Inconnue".into()) }</span>
+                                                        <span>{ ticket.category_name.clone().unwrap_or_else(|| i18n.t("panel.tickets.none_category").into()) }</span>
                                                         <span>{"•"}</span>
                                                         <span>{ format_date(ticket.created_at) }</span>
                                                     </div>
@@ -225,6 +228,8 @@ pub struct TicketDetailsProps {
 
 #[function_component(TicketDetails)]
 pub fn ticket_details(props: &TicketDetailsProps) -> Html {
+    let (i18n, _set_language) = use_translation();
+
     let ticket = use_state(|| None::<CompleteThread>);
     let loading = use_state(|| true);
 
@@ -253,7 +258,7 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
         d.set_time(timestamp as f64 * 1000.0);
         d.to_locale_string("fr-FR", &JsValue::UNDEFINED)
             .as_string()
-            .unwrap_or_else(|| "date inconnue".into())
+            .unwrap_or_else(|| i18n.t("panel.tickets.unknown_date").into())
     };
 
     html! {
@@ -265,22 +270,22 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                 }}
                 class="text-blue-400 hover:underline mb-6"
             >
-                {"← Retour à la liste"}
+                {i18n.t("panel.tickets.back_to_tickets")}
             </button>
 
             {
                 if *loading {
-                    html! { <p class="text-gray-400">{"Chargement du ticket..."}</p> }
+                    html! { <p class="text-gray-400">{i18n.t("panel.tickets.loading_ticket")}</p> }
                 } else if let Some(ticket) = &*ticket {
                     html! {
                         <div>
                             <h2 class="text-2xl text-white mb-2">{ format!("Ticket #{}", ticket.id) }</h2>
                             <p class="text-gray-400 text-sm mb-4">
-                                { format!("Utilisateur : {} • Catégorie : {} • Ouvert : {}", ticket.user_name, ticket.category_name.clone().unwrap_or_default(), format_date(ticket.created_at)) }
+                                { format!("{} : {} • {} : {} • {} : {}", i18n.t("panel.tickets.user"), ticket.user_name, i18n.t("panel.tickets.category"), ticket.category_name.clone().unwrap_or_default(), i18n.t("panel.tickets.opened"), format_date(ticket.created_at)) }
                                 {
                                     if let Some(closed) = ticket.closed_at {
                                         html! {
-                                            <span>{ format!(" • Fermé : {}", format_date(closed)) }</span>
+                                            <span>{ format!(" • {} : {}", i18n.t("panel.tickets.closed"), format_date(closed)) }</span>
                                         }
                                     } else {
                                         html! {}
@@ -302,7 +307,7 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                         </div>
                     }
                 } else {
-                    html! { <p class="text-gray-400">{"Ticket introuvable."}</p> }
+                    html! { <p class="text-gray-400">{i18n.t("panel.tickets.ticket_not_found")}</p> }
                 }
             }
         </div>
