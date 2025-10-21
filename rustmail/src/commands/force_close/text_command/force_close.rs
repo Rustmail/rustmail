@@ -3,7 +3,8 @@ use crate::config::Config;
 use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
-use crate::errors::{ModmailError, ModmailResult, common};
+use crate::errors::{common, ModmailError, ModmailResult};
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -13,6 +14,7 @@ pub async fn force_close(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool

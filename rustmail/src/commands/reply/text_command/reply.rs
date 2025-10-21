@@ -1,10 +1,11 @@
 use crate::config::Config;
 use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
@@ -16,6 +17,7 @@ pub async fn reply(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool

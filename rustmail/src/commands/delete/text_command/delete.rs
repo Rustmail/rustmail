@@ -3,7 +3,8 @@ use crate::commands::delete::common::{
     get_thread_info, send_delete_message, update_message_numbers,
 };
 use crate::config::Config;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -13,6 +14,7 @@ pub async fn delete(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

@@ -23,6 +23,7 @@ mod handlers;
 mod i18n;
 mod modules;
 mod panel_commands;
+mod types;
 mod utils;
 
 pub struct Database;

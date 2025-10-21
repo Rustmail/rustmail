@@ -16,6 +16,7 @@ pub mod edit;
 pub mod force_close;
 pub mod help;
 pub mod id;
+pub mod logs;
 pub mod move_thread;
 pub mod new_thread;
 pub mod recover;

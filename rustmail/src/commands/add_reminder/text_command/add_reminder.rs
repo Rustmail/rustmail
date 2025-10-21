@@ -2,11 +2,12 @@ use crate::commands::add_reminder::common::{
     send_register_confirmation_from_message, spawn_reminder,
 };
 use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
+use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
+    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
 };
+use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
@@ -19,6 +20,7 @@ pub async fn add_reminder(
     msg: &Message,
     config: &Config,
     shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool
