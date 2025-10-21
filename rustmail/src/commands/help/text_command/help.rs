@@ -29,7 +29,7 @@ pub async fn help(
     MessageBuilder::system_message(ctx, config)
         .content(help_message)
         .to_channel(msg.channel_id)
-        .send()
+        .send(false)
         .await?;
 
     Ok(())

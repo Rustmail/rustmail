@@ -85,13 +85,13 @@ async fn create_or_get_thread_for_user(
         let _ = MessageBuilder::system_message(ctx, config)
             .to_channel(target_channel_id)
             .content(open_thread_message)
-            .send()
+            .send(false)
             .await;
 
         let _ = MessageBuilder::system_message(ctx, config)
             .content(&config.bot.welcome_message)
             .to_user(user_id)
-            .send()
+            .send(false)
             .await;
 
         println!("Thread created successfully");
@@ -436,14 +436,14 @@ pub async fn handle_thread_modal_interaction(
                 )
                 .await
                 .to_channel(interaction.channel_id)
-                .send()
+                .send(false)
                 .await;
 
             let _ = MessageBuilder::system_message(ctx, config)
                 .translated_content("new_thread.dm_notification", None, Some(user_id), None)
                 .await
                 .to_user(user_id)
-                .send()
+                .send(false)
                 .await;
 
             let mut params = HashMap::new();

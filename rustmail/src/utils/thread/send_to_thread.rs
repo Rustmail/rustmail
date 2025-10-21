@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::db::operations::{
     get_staff_alerts_for_user, get_thread_id_by_user_id, is_user_left, mark_alert_as_used,
 };
+use crate::errors::{DatabaseError, ModmailError, ModmailResult, ThreadError};
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message, UserId};
@@ -69,12 +70,12 @@ pub async fn send_to_thread(
     msg: &Message,
     config: &Config,
     is_anonymous: bool,
-) -> serenity::Result<Message> {
+) -> ModmailResult<Message> {
     let pool = match &config.db_pool {
         Some(pool) => pool,
         None => {
             eprintln!("Database pool is not set in config.");
-            return Err(serenity::Error::Other("Database pool not available"));
+            return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
         }
     };
 
@@ -88,7 +89,7 @@ pub async fn send_to_thread(
             .translated_content("user.left_server", Some(&params), Some(msg.author.id), None)
             .await
             .to_channel(channel_id)
-            .send()
+            .send(false)
             .await;
     }
 
@@ -106,7 +107,7 @@ pub async fn send_to_thread(
             )
             .await
             .to_channel(channel_id)
-            .send()
+            .send(false)
             .await;
     }
 
@@ -123,7 +124,7 @@ pub async fn send_to_thread(
         Some(thread_id) => thread_id,
         None => {
             eprintln!("Failed to get thread ID");
-            return Err(serenity::Error::Other("Failed to get thread ID"));
+            return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
         }
     };
 
@@ -170,7 +171,7 @@ pub async fn send_to_thread(
             .content(full_content)
             .mention(mentions)
             .to_channel(channel_id)
-            .send()
+            .send(false)
             .await;
 
         for staff_id in &alerts {

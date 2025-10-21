@@ -26,13 +26,21 @@ fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64
                             ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
                         let user_id = UserId::new(thread.user_id as u64);
 
-                        let _ = close_thread(&thread_id, &current.closed_by, &current.category_id, &current.category_name, current.required_permissions.parse::<u64>().unwrap_or(0), pool).await;
+                        let _ = close_thread(
+                            &thread_id,
+                            &current.closed_by,
+                            &current.category_id,
+                            &current.category_name,
+                            current.required_permissions.parse::<u64>().unwrap_or(0),
+                            pool,
+                        )
+                        .await;
                         let _ = delete_scheduled_closure(&thread_id, pool).await;
                         if !current.silent {
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
                                 .to_user(user_id)
-                                .send()
+                                .send(false)
                                 .await;
                         }
                         let _ = channel_id.delete(&ctx_clone.http).await;
@@ -68,13 +76,21 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
             if sc.close_at <= Utc::now().timestamp() {
                 let channel_id = ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
                 let user_id = UserId::new(thread.user_id as u64);
-                let _ = close_thread(&thread.id, &sc.closed_by, &sc.category_id, &sc.category_name, sc.required_permissions.parse::<u64>().unwrap_or(0), pool).await;
+                let _ = close_thread(
+                    &thread.id,
+                    &sc.closed_by,
+                    &sc.category_id,
+                    &sc.category_name,
+                    sc.required_permissions.parse::<u64>().unwrap_or(0),
+                    pool,
+                )
+                .await;
                 let _ = delete_scheduled_closure(&thread.id, pool).await;
                 if !sc.silent {
                     let _ = MessageBuilder::system_message(ctx, config)
                         .content(&config.bot.close_message)
                         .to_user(user_id)
-                        .send()
+                        .send(false)
                         .await;
                 }
                 let _ = channel_id.delete(&ctx.http).await;

@@ -166,6 +166,6 @@ pub async fn send_delete_message(
         )
         .await
         .to_channel(msg.channel_id)
-        .send()
+        .send(false)
         .await;
 }

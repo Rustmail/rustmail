@@ -60,7 +60,19 @@ pub async fn send_welcome_message(
         )
         .await
         .to_channel(channel.id)
-        .send()
+        .send(false)
+        .await;
+
+    let _ = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "new_thread.welcome_message",
+            Some(&params),
+            None,
+            Some(channel.guild_id.get()),
+        )
+        .await
+        .to_user(user.id)
+        .send(true)
         .await;
 }
 
@@ -69,7 +81,7 @@ pub async fn send_dm_to_user(ctx: &Context, user: &User, config: &Config) -> Mod
         .translated_content("new_thread.dm_notification", None, Some(user.id), None)
         .await
         .to_user(user.id)
-        .send()
+        .send(false)
         .await;
 
     Ok(())
@@ -91,7 +103,7 @@ pub async fn send_error_message(
         )
         .await
         .to_channel(msg.channel_id)
-        .send()
+        .send(false)
         .await;
 }
 
@@ -123,6 +135,6 @@ pub async fn send_success_message(
         )
         .await
         .to_channel(msg.channel_id)
-        .send()
+        .send(false)
         .await;
 }

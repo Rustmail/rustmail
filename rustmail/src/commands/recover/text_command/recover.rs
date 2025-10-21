@@ -35,7 +35,7 @@ pub async fn recover(
     let _ = MessageBuilder::system_message(ctx, config)
         .content(confirmation_message)
         .to_channel(msg.channel_id)
-        .send()
+        .send(false)
         .await;
 
     let ctx_clone = ctx.clone();
@@ -67,7 +67,7 @@ pub async fn recover(
         let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
             .content(summary_message)
             .to_channel(channel_id)
-            .send()
+            .send(false)
             .await;
     });
 

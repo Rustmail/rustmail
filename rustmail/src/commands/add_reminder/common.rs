@@ -42,7 +42,7 @@ pub async fn send_register_confirmation_from_message(
             .await
             .to_channel(msg.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .send()
+            .send(false)
             .await;
     } else {
         let _ = MessageBuilder::system_message(&ctx, &config)
@@ -55,7 +55,7 @@ pub async fn send_register_confirmation_from_message(
             .await
             .to_channel(msg.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .send()
+            .send(false)
             .await;
     }
 }
@@ -177,7 +177,7 @@ pub fn spawn_reminder(
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
-                .send()
+                .send(false)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(&ctx, &config)
@@ -186,7 +186,7 @@ pub fn spawn_reminder(
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
-                .send()
+                .send(false)
                 .await;
         }
 

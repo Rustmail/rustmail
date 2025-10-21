@@ -37,7 +37,7 @@ pub async fn id(
             .translated_content("id.show_id", Some(&params), None, None)
             .await
             .to_channel(msg.channel_id)
-            .send()
+            .send(false)
             .await?;
 
         Ok(())

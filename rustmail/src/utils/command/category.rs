@@ -1,37 +1,31 @@
-use serenity::all::{Channel, Context, PermissionOverwriteType, RoleId};
 use serenity::all::CommandInteraction;
+use serenity::all::{Channel, Context, PermissionOverwriteType, RoleId};
 
 pub async fn get_category_id_from_command(ctx: &Context, command: &CommandInteraction) -> String {
     match command.channel_id.to_channel(&ctx.http).await {
-        Ok(channel) => {
-            match channel.guild() {
-                Some(guild_channel) => match guild_channel.parent_id {
-                    Some(category_id) => category_id.to_string(),
-                    None => String::new(),
-                },
+        Ok(channel) => match channel.guild() {
+            Some(guild_channel) => match guild_channel.parent_id {
+                Some(category_id) => category_id.to_string(),
                 None => String::new(),
-            }
-        }
+            },
+            None => String::new(),
+        },
         _ => String::new(),
     }
 }
 
 pub async fn get_category_name_from_command(ctx: &Context, command: &CommandInteraction) -> String {
     match command.channel_id.to_channel(&ctx.http).await {
-        Ok(channel) => {
-            match channel.guild() {
-                Some(guild_channel) => match guild_channel.parent_id {
-                    Some(category_id) => {
-                        match category_id.name(&ctx.http).await {
-                            Ok(category_name) => category_name.clone(),
-                            _ => String::new(),
-                        }
-                    }
-                    None => String::new(),
+        Ok(channel) => match channel.guild() {
+            Some(guild_channel) => match guild_channel.parent_id {
+                Some(category_id) => match category_id.name(&ctx.http).await {
+                    Ok(category_name) => category_name.clone(),
+                    _ => String::new(),
                 },
                 None => String::new(),
-            }
-        }
+            },
+            None => String::new(),
+        },
         _ => String::new(),
     }
 }

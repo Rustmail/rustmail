@@ -43,7 +43,7 @@ pub async fn add_staff(
                     .translated_content("add_staff.add_success", Some(&params), None, None)
                     .await
                     .to_channel(msg.channel_id)
-                    .send()
+                    .send(false)
                     .await;
 
                 Ok(())

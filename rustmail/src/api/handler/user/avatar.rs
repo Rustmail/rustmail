@@ -1,11 +1,11 @@
 use crate::BotState;
+use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 use axum::extract::State;
 use axum::response::IntoResponse;
-use std::sync::Arc;
 use axum_extra::extract::CookieJar;
 use sqlx::Row;
+use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 
 #[derive(serde::Deserialize, Debug, serde::Serialize)]
 pub struct UserAvatar {
@@ -16,7 +16,6 @@ pub async fn handle_get_user_avatar(
     State(bot_state): State<Arc<Mutex<BotState>>>,
     jar: CookieJar,
 ) -> impl IntoResponse {
-
     let pool = {
         let state_lock = bot_state.lock().await;
         if let Some(pool) = &state_lock.db_pool {
@@ -42,11 +41,10 @@ pub async fn handle_get_user_avatar(
         }
     };
 
-    let user_avatar = match sqlx::query(
-        "SELECT avatar_hash FROM sessions_panel WHERE user_id = ?")
+    let user_avatar = match sqlx::query("SELECT avatar_hash FROM sessions_panel WHERE user_id = ?")
         .bind(user_id_str.clone())
-    .fetch_one(&pool)
-    .await
+        .fetch_one(&pool)
+        .await
     {
         Ok(record) => {
             let avatar_hash: String = record.get::<String, _>("avatar_hash");

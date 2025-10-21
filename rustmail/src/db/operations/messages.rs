@@ -1,8 +1,9 @@
 use crate::config::Config;
 use crate::db::operations::threads::get_user_name_from_thread_id;
-use crate::errors::common::message_not_found;
 use crate::errors::ModmailResult;
+use crate::errors::common::message_not_found;
 use serenity::all::{Message, MessageId, UserId};
+use serenity::client::Context;
 use sqlx::{Error, SqlitePool};
 
 #[derive(Debug, Clone)]
@@ -12,6 +13,7 @@ pub struct MessageIds {
 }
 
 pub async fn insert_staff_message(
+    ctx: &Context,
     inbox_msg: &Message,
     dm_msg_id: Option<String>,
     thread_id: &str,
@@ -19,14 +21,16 @@ pub async fn insert_staff_message(
     is_anonymous: bool,
     pool: &SqlitePool,
     config: &Config,
-    message_number: u64,
+    message_number: i64,
 ) -> Result<(), Error> {
     let inbox_message_id = inbox_msg.id.to_string();
     let user_id = staff_user_id.get() as i64;
 
-    let user_name = get_user_name_from_thread_id(thread_id, pool)
+    let user_name = staff_user_id
+        .to_user(&ctx.http)
         .await
-        .unwrap_or_else(|| "Unknown".to_string());
+        .map(|user| user.name)
+        .unwrap_or_else(|_| "Unknown".to_string());
 
     let content = extract_message_content(inbox_msg, config);
     let message_number_i64 = message_number as i64;
