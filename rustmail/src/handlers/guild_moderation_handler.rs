@@ -237,8 +237,18 @@ async fn manage_creating_ticket_via_opening_thread(
     let yes = get_translated_message(&config, "general.yes", None, None, None, None).await;
     let no = get_translated_message(&config, "general.no", None, None, None, None).await;
     let res_button = make_buttons(&[
-        (yes.as_ref(), "ticket:wants_to_create", ButtonStyle::Success),
-        (no.as_ref(), "ticket:dont_create", ButtonStyle::Danger),
+        (
+            yes.as_ref(),
+            "ticket:wants_to_create",
+            ButtonStyle::Success,
+            false,
+        ),
+        (
+            no.as_ref(),
+            "ticket:dont_create",
+            ButtonStyle::Danger,
+            false,
+        ),
     ]);
 
     let _ = MessageBuilder::system_message(&ctx, &config)

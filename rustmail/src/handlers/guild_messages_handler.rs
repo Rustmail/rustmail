@@ -9,6 +9,7 @@ use crate::commands::edit::text_command::edit::edit;
 use crate::commands::force_close::text_command::force_close::force_close;
 use crate::commands::help::text_command::help::help;
 use crate::commands::id::text_command::id::id;
+use crate::commands::logs::text_command::logs::logs;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::commands::recover::text_command::recover::recover;
@@ -23,8 +24,9 @@ use crate::db::operations::{
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
 use crate::utils::thread::send_to_thread::send_to_thread;
@@ -48,6 +50,7 @@ type StaticCommandFunc = dyn Fn(
         Message,
         Config,
         Receiver<bool>,
+        PaginationStore,
     ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
     + Send
     + Sync
@@ -57,13 +60,15 @@ pub struct GuildMessagesHandler {
     pub config: Config,
     pub commands: HashMap<String, CommandFunc>,
     pub shutdown: Receiver<bool>,
+    pub pagination: PaginationStore,
 }
 
 impl GuildMessagesHandler {
-    pub fn new(config: &Config, shutdown: Receiver<bool>) -> Self {
+    pub fn new(config: &Config, shutdown: Receiver<bool>, pagination: PaginationStore) -> Self {
         let mut h = Self {
             config: config.clone(),
             commands: HashMap::new(),
+            pagination,
             shutdown,
         };
         wrap_command!(h.commands, ["reply", "r"], reply);
@@ -82,6 +87,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "help", help);
         wrap_command!(h.commands, ["add_reminder", "add_rap"], add_reminder);
         wrap_command!(h.commands, ["remove_reminder", "rr"], remove_reminder);
+        wrap_command!(h.commands, "logs", logs);
         h
     }
 }
@@ -190,6 +196,7 @@ impl EventHandler for GuildMessagesHandler {
                     msg.clone(),
                     self.config.clone(),
                     self.shutdown.clone(),
+                    self.pagination.clone(),
                 )
                 .await
             {

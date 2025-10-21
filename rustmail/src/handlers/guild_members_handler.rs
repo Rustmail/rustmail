@@ -74,6 +74,7 @@ impl EventHandler for GuildMembersHandler {
                 .as_ref(),
                 "ticket:keep",
                 ButtonStyle::Success,
+                false,
             ),
             (
                 get_translated_message(&self.config, "thread.ask_to_close", None, None, None, None)
@@ -81,6 +82,7 @@ impl EventHandler for GuildMembersHandler {
                     .as_ref(),
                 "ticket:delete",
                 ButtonStyle::Danger,
+                false,
             ),
         ]);
 
