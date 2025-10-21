@@ -1,4 +1,4 @@
-use super::{Feature, make_buttons};
+use super::{make_buttons, Feature};
 use crate::config::Config;
 use crate::utils::message::message_builder::MessageBuilder;
 use async_trait::async_trait;
@@ -23,8 +23,9 @@ impl<'a> Feature<'a> for PollFeature {
                 "Créer un sondage",
                 "feature:poll:create",
                 ButtonStyle::Success,
+                false,
             ),
-            ("Test", "feature:poll:delete", ButtonStyle::Danger),
+            ("Test", "feature:poll:delete", ButtonStyle::Danger, false),
         ]);
 
         MessageBuilder::system_message(ctx, config)
