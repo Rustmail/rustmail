@@ -1,4 +1,4 @@
-use super::{make_buttons, Feature};
+use super::{Feature, make_buttons};
 use crate::config::Config;
 use crate::utils::message::message_builder::MessageBuilder;
 use async_trait::async_trait;

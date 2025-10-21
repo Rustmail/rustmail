@@ -1,10 +1,10 @@
 use crate::config::Config;
 use crate::db::operations::allocate_next_message_number;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
+use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;

@@ -5,7 +5,7 @@ use crate::commands::move_thread::common::{
 use crate::config::Config;
 use crate::errors::CommandError::NotInThread;
 use crate::errors::ThreadError::CategoryNotFound;
-use crate::errors::{common, CommandError, DiscordError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, DiscordError, ModmailError, ModmailResult, common};
 use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;

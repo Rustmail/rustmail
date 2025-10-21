@@ -3,7 +3,7 @@ use crate::commands::delete::common::{
     get_thread_info, send_delete_message, update_message_numbers,
 };
 use crate::config::Config;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;

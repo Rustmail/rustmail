@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::types::logs::PaginationStore;
 use crate::utils::message::category::{
     get_category_id_from_message, get_category_name_from_message,

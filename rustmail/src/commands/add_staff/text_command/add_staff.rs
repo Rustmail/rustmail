@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{common, ModmailError, ModmailResult};
+use crate::errors::{ModmailError, ModmailResult, common};
 use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message, UserId};
