@@ -1,9 +1,11 @@
 use crate::commands::CommandRegistry;
 use crate::config::Config;
 use crate::features::handle_feature_component_interaction;
+use crate::modules::commands::handle_command_component_interaction;
 use crate::modules::threads::{
     handle_thread_component_interaction, handle_thread_modal_interaction,
 };
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -13,14 +15,21 @@ pub struct InteractionHandler {
     pub config: Config,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
+    pub pagination: PaginationStore,
 }
 
 impl InteractionHandler {
-    pub fn new(config: &Config, register: Arc<CommandRegistry>, shutdown: Receiver<bool>) -> Self {
+    pub fn new(
+        config: &Config,
+        register: Arc<CommandRegistry>,
+        shutdown: Receiver<bool>,
+        pagination: PaginationStore,
+    ) -> Self {
         Self {
             config: config.clone(),
             registry: register,
             shutdown: Arc::new(shutdown),
+            pagination,
         }
     }
 }
@@ -37,6 +46,16 @@ impl EventHandler for InteractionHandler {
                 }
                 if let Err(..) =
                     handle_thread_component_interaction(&ctx, &self.config, &mut comp).await
+                {
+                    return;
+                }
+                if let Err(..) = handle_command_component_interaction(
+                    &ctx,
+                    &self.config,
+                    &mut comp,
+                    self.pagination.clone(),
+                )
+                .await
                 {
                     return;
                 }

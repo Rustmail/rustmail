@@ -792,4 +792,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.remove_reminder_id_argument".to_string(),
         DictionaryMessage::new("L'ID du rappel à supprimer."),
     );
+    dict.messages.insert(
+        "logs_command.next".to_string(),
+        DictionaryMessage::new("Suivant"),
+    );
+    dict.messages.insert(
+        "logs_command.prev".to_string(),
+        DictionaryMessage::new("Précédent"),
+    );
 }

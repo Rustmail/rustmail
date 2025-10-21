@@ -768,4 +768,12 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.remove_reminder_id_argument".to_string(),
         DictionaryMessage::new("The ID of the reminder to remove"),
     );
+    dict.messages.insert(
+        "logs_command.next".to_string(),
+        DictionaryMessage::new("Next"),
+    );
+    dict.messages.insert(
+        "logs_command.prev".to_string(),
+        DictionaryMessage::new("Previous"),
+    );
 }

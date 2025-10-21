@@ -547,6 +547,10 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
+        if let Some(components) = &self.components {
+            message = message.components(components.clone());
+        }
+
         message
     }
 
