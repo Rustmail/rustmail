@@ -6,17 +6,23 @@ use crate::db::{
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::utils::command::category::{
+    get_category_id_from_command, get_category_name_from_command,
+    get_required_permissions_channel_from_command,
+};
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
-use serenity::all::{CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, GuildId, ResolvedOption, UserId};
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, GuildId, ResolvedOption, UserId,
+};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
-use crate::utils::command::category::{get_category_id_from_command, get_category_name_from_command, get_required_permissions_channel_from_command};
 
 pub struct CloseCommand;
 
@@ -111,7 +117,7 @@ impl RegistrableCommand for CloseCommand {
             defer_response(&ctx, &command).await?;
 
             let mut time_before_close: Option<String> = None;
-            let mut silent: Option<bool> = None;
+            let mut silent: bool = false;
             let mut cancel: Option<bool> = None;
             let mut duration: Option<Duration> = None;
 
@@ -124,7 +130,7 @@ impl RegistrableCommand for CloseCommand {
                     }
                     "silent" => {
                         if let CommandDataOptionValue::Boolean(val) = &option.value {
-                            silent.replace(*val);
+                            silent = *val;
                         }
                     }
                     "cancel" => {
@@ -201,9 +207,7 @@ impl RegistrableCommand for CloseCommand {
                 let mut params = HashMap::new();
                 params.insert("time".to_string(), human);
 
-                let _ = if let Some(silent) = silent
-                    && silent
-                {
+                let _ = if silent {
                     let response = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
                             "close.silent_closing",
@@ -235,15 +239,24 @@ impl RegistrableCommand for CloseCommand {
 
                 let thread_id = thread.id.clone();
                 let close_at = Utc::now().timestamp() + delay.as_secs() as i64;
-                let silent = silent.unwrap_or(false);
 
                 let closed_by = command.user.id.to_string();
                 let category_id = get_category_id_from_command(&ctx, &command).await;
                 let category_name = get_category_name_from_command(&ctx, &command).await;
-                let required_permissions = get_required_permissions_channel_from_command(&ctx, &command).await;
+                let required_permissions =
+                    get_required_permissions_channel_from_command(&ctx, &command).await;
 
-                if let Err(e) =
-                    upsert_scheduled_closure(&thread_id, close_at, silent, &closed_by, &category_id, &category_name, &required_permissions.to_string(), db_pool).await
+                if let Err(e) = upsert_scheduled_closure(
+                    &thread_id,
+                    close_at,
+                    silent,
+                    &closed_by,
+                    &category_id,
+                    &category_name,
+                    &required_permissions.to_string(),
+                    db_pool,
+                )
+                .await
                 {
                     eprintln!("Failed to persist scheduled closure: {e:?}");
                 }
@@ -260,7 +273,15 @@ impl RegistrableCommand for CloseCommand {
                             get_scheduled_closure(&thread_id_for_task, pool).await
                         {
                             if record.close_at <= Utc::now().timestamp() {
-                                let _ = close_thread(&thread_id_for_task, &record.closed_by, &record.category_id, &record.category_name, record.required_permissions.parse::<u64>().unwrap_or(0), pool).await;
+                                let _ = close_thread(
+                                    &thread_id_for_task,
+                                    &record.closed_by,
+                                    &record.category_id,
+                                    &record.category_name,
+                                    record.required_permissions.parse::<u64>().unwrap_or(0),
+                                    pool,
+                                )
+                                .await;
                                 let _ = delete_scheduled_closure(&thread_id_for_task, pool).await;
 
                                 let community_guild_id =
@@ -276,7 +297,7 @@ impl RegistrableCommand for CloseCommand {
                                         MessageBuilder::system_message(&ctx_clone, &config_clone)
                                             .content(&config_clone.bot.close_message)
                                             .to_user(user_id_clone)
-                                            .send()
+                                            .send(false)
                                             .await;
                                 }
                                 let _ = channel_id.delete(&ctx_clone.http).await;
@@ -294,7 +315,17 @@ impl RegistrableCommand for CloseCommand {
                                             get_scheduled_closure(&thread_id_again, pool2).await
                                         {
                                             if r2.close_at <= Utc::now().timestamp() {
-                                                let _ = close_thread(&thread_id_again, &r2.closed_by, &r2.category_id, &r2.category_name, r2.required_permissions.parse::<u64>().unwrap_or(0), pool2).await;
+                                                let _ = close_thread(
+                                                    &thread_id_again,
+                                                    &r2.closed_by,
+                                                    &r2.category_id,
+                                                    &r2.category_name,
+                                                    r2.required_permissions
+                                                        .parse::<u64>()
+                                                        .unwrap_or(0),
+                                                    pool2,
+                                                )
+                                                .await;
                                                 let _ = delete_scheduled_closure(
                                                     &thread_id_again,
                                                     pool2,
@@ -314,7 +345,7 @@ impl RegistrableCommand for CloseCommand {
                                                     )
                                                     .content(&config_clone2.bot.close_message)
                                                     .to_user(user_id_clone)
-                                                    .send()
+                                                    .send(false)
                                                     .await;
                                                 }
                                                 let _ = channel_id.delete(&ctx_clone2.http).await;
@@ -334,16 +365,14 @@ impl RegistrableCommand for CloseCommand {
             let closed_by = command.user.id.to_string();
             let category_id = get_category_id_from_command(&ctx, &command).await;
             let category_name = get_category_name_from_command(&ctx, &command).await;
-            let required_permissions = get_required_permissions_channel_from_command(&ctx, &command).await;
+            let required_permissions =
+                get_required_permissions_channel_from_command(&ctx, &command).await;
 
-            if user_still_member
-                && let Some(silent) = silent
-                && !silent
-            {
+            if user_still_member && !silent {
                 let _ = MessageBuilder::system_message(&ctx, &config)
                     .content(&config.bot.close_message)
                     .to_user(user_id)
-                    .send()
+                    .send(false)
                     .await;
             } else if !user_still_member {
                 let mut params = HashMap::new();
@@ -364,7 +393,15 @@ impl RegistrableCommand for CloseCommand {
                 let _ = command.create_followup(&ctx.http, response).await;
             }
 
-            close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, db_pool).await?;
+            close_thread(
+                &thread.id,
+                &closed_by,
+                &category_id,
+                &category_name,
+                required_permissions,
+                db_pool,
+            )
+            .await?;
             let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
             let _ = command.channel_id.delete(&ctx.http).await?;

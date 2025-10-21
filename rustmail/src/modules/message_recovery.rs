@@ -86,6 +86,8 @@ async fn recover_messages_for_thread(
         }
     };
 
+    println!("Recovering messages for thread {:?}", latest_message);
+
     let last_dm_message_id = match &latest_message.dm_message_id {
         Some(id) => id,
         None => {
@@ -193,7 +195,7 @@ async fn recover_messages_for_thread(
             )
             .await
             .to_channel(channel_id)
-            .send()
+            .send(false)
             .await;
     }
 

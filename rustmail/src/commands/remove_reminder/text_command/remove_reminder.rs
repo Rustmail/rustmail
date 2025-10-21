@@ -64,7 +64,7 @@ pub async fn remove_reminder(
                 .translated_content("remove_reminder.confirmation", Some(&params), None, None)
                 .await
                 .to_channel(msg.channel_id)
-                .send()
+                .send(false)
                 .await;
         }
         Err(e) => {

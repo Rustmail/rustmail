@@ -43,19 +43,19 @@ pub async fn upsert_scheduled_closure(
             required_permissions = excluded.required_permissions
         "#,
     )
-        .bind(thread_id)
-        .bind(close_at)
-        .bind(silent)
-        .bind(closed_by)
-        .bind(category_id)
-        .bind(category_name)
-        .bind(required_permissions)
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Failed to upsert scheduled closure: {e:?}");
-            common::validation_failed("Failed to upsert scheduled closure")
-        })?;
+    .bind(thread_id)
+    .bind(close_at)
+    .bind(silent)
+    .bind(closed_by)
+    .bind(category_id)
+    .bind(category_name)
+    .bind(required_permissions)
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Failed to upsert scheduled closure: {e:?}");
+        common::validation_failed("Failed to upsert scheduled closure")
+    })?;
 
     Ok(())
 }

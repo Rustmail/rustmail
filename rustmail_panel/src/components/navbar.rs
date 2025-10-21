@@ -1,6 +1,6 @@
 use crate::components::language_switcher::LanguageSwitcher;
 use crate::pages::panel::PanelRoute;
-use yew::{classes, function_component, html, use_state, Callback, Html, Properties};
+use yew::{Callback, Html, Properties, classes, function_component, html, use_state};
 use yew_router::hooks::{use_location, use_navigator};
 
 #[derive(Properties, PartialEq, Clone)]

@@ -2,10 +2,13 @@ use crate::config::Config;
 use crate::db::close_thread;
 use crate::db::operations::get_thread_by_channel_id;
 use crate::db::threads::is_an_opened_ticket_channel;
+use crate::utils::thread::category::{
+    get_category_id_from_guild_channel, get_category_name_from_guild_channel,
+    get_required_permissions_channel_from_guild_channel,
+};
 use async_trait::async_trait;
 use serenity::all::{Context, GuildChannel, Message};
 use serenity::client::EventHandler;
-use crate::utils::thread::category::{get_category_id_from_guild_channel, get_category_name_from_guild_channel, get_required_permissions_channel_from_guild_channel};
 
 pub struct GuildHandler {
     pub config: Config,
@@ -46,9 +49,19 @@ impl EventHandler for GuildHandler {
             let closed_by = "deleted_by_client".to_string();
             let category_id = get_category_id_from_guild_channel(&ctx, &channel).await;
             let category_name = get_category_name_from_guild_channel(&ctx, &channel).await;
-            let required_permissions = get_required_permissions_channel_from_guild_channel(&ctx, &channel).await;
+            let required_permissions =
+                get_required_permissions_channel_from_guild_channel(&ctx, &channel).await;
 
-            match close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, pool).await {
+            match close_thread(
+                &thread.id,
+                &closed_by,
+                &category_id,
+                &category_name,
+                required_permissions,
+                pool,
+            )
+            .await
+            {
                 Ok(_) => {
                     println!("Close thread successfully by deleted channel!");
                 }

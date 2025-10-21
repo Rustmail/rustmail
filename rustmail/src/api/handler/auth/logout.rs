@@ -1,10 +1,10 @@
 use crate::BotState;
+use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 use axum::extract::State;
 use axum::response::Redirect;
 use axum_extra::extract::CookieJar;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 
 pub async fn handle_logout(
     jar: CookieJar,

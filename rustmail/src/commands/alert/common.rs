@@ -192,7 +192,7 @@ pub async fn send_alert_message(
         .await
         .to_channel(msg.channel_id)
         .color(GREEN.0)
-        .send()
+        .send(false)
         .await;
 }
 

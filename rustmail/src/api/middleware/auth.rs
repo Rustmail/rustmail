@@ -1,8 +1,7 @@
-use subtle::ConstantTimeEq;
-use std::net::SocketAddr;
+use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 use crate::{BotCommand, BotState, BotStatus};
-use axum::extract::{ConnectInfo, Request};
 use axum::extract::State;
+use axum::extract::{ConnectInfo, Request};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
@@ -10,9 +9,10 @@ use chrono::Utc;
 use hyper::StatusCode;
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, query};
+use std::net::SocketAddr;
 use std::sync::Arc;
+use subtle::ConstantTimeEq;
 use tokio::sync::Mutex;
-use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
 
 async fn check_user_with_bot(bot_state: Arc<Mutex<BotState>>, user_id: &str) -> bool {
     let user_id_num = match user_id.parse::<u64>() {
@@ -89,7 +89,6 @@ pub async fn auth_middleware(
     req: Request,
     next: Next,
 ) -> Response {
-
     if addr.ip().is_loopback() {
         if let Some(h) = req.headers().get("x-internal-call") {
             if let Ok(s) = h.to_str() {

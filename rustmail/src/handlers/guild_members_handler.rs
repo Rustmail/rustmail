@@ -11,7 +11,6 @@ use serenity::{
     async_trait,
 };
 use std::collections::HashMap;
-use crate::utils::thread::category::get_required_permissions_channel_from_guild_channel;
 
 pub struct GuildMembersHandler {
     pub config: Config,
@@ -95,7 +94,7 @@ impl EventHandler for GuildMembersHandler {
             .await
             .to_channel(channel_id)
             .components(close_buttons)
-            .send()
+            .send(false)
             .await;
 
         if let Err(e) = update_thread_user_left(&thread.channel_id, pool).await {
@@ -104,21 +103,17 @@ impl EventHandler for GuildMembersHandler {
 
         let closed_by = "user_left_server".to_string();
         let category_id = match channel_id.to_channel(&ctx.http).await {
-            Ok(channel) => {
-                match channel.category() {
-                    Some(category) => category.id.to_string(),
-                    None => String::new(),
-                }
-            }
+            Ok(channel) => match channel.category() {
+                Some(category) => category.id.to_string(),
+                None => String::new(),
+            },
             _ => String::new(),
         };
         let category_name = match channel_id.to_channel(&ctx.http).await {
-            Ok(channel) => {
-                match channel.category() {
-                    Some(category) => category.name.clone(),
-                    None => String::new(),
-                }
-            }
+            Ok(channel) => match channel.category() {
+                Some(category) => category.name.clone(),
+                None => String::new(),
+            },
             _ => String::new(),
         };
 
@@ -146,6 +141,14 @@ impl EventHandler for GuildMembersHandler {
             _ => 0u64,
         };
 
-        let _ = close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, pool).await;
+        let _ = close_thread(
+            &thread.id,
+            &closed_by,
+            &category_id,
+            &category_name,
+            required_permissions,
+            pool,
+        )
+        .await;
     }
 }

@@ -4,6 +4,10 @@ use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::utils::message::category::{
+    get_category_id_from_message, get_category_name_from_message,
+    get_required_permissions_channel_from_message,
+};
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
@@ -13,7 +17,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
-use crate::utils::message::category::{get_category_id_from_message, get_category_name_from_message, get_required_permissions_channel_from_message};
 
 pub async fn close(
     ctx: &Context,
@@ -88,7 +91,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send()
+                .send(false)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(ctx, config)
@@ -100,7 +103,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send()
+                .send(false)
                 .await;
         }
         return Ok(());
@@ -123,7 +126,7 @@ pub async fn close(
                     )
                     .await
                     .to_channel(msg.channel_id)
-                    .send()
+                    .send(false)
                     .await;
                 return Ok(());
             }
@@ -154,7 +157,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send()
+                .send(false)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(ctx, config)
@@ -166,27 +169,23 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send()
+                .send(false)
                 .await;
         };
 
         let closed_by = msg.author.id.to_string();
         let category_id = match msg.channel_id.to_channel(&ctx.http).await {
-            Ok(channel) => {
-                match channel.category() {
-                    Some(category) => category.id.to_string(),
-                    None => String::new(),
-                }
-            }
+            Ok(channel) => match channel.category() {
+                Some(category) => category.id.to_string(),
+                None => String::new(),
+            },
             _ => String::new(),
         };
         let category_name = match msg.channel_id.to_channel(&ctx.http).await {
-            Ok(channel) => {
-                match channel.category() {
-                    Some(category) => category.name.clone(),
-                    None => String::new(),
-                }
-            }
+            Ok(channel) => match channel.category() {
+                Some(category) => category.name.clone(),
+                None => String::new(),
+            },
             _ => String::new(),
         };
 
@@ -216,7 +215,18 @@ pub async fn close(
 
         let thread_id = thread.id.clone();
         let close_at = Utc::now().timestamp() + delay.as_secs() as i64;
-        if let Err(e) = upsert_scheduled_closure(&thread_id, close_at, silent, &closed_by, &category_id, &category_name, &required_permissions.to_string(), db_pool).await {
+        if let Err(e) = upsert_scheduled_closure(
+            &thread_id,
+            close_at,
+            silent,
+            &closed_by,
+            &category_id,
+            &category_name,
+            &required_permissions.to_string(),
+            db_pool,
+        )
+        .await
+        {
             eprintln!("Failed to persist scheduled closure: {e:?}");
         }
         let channel_id = msg.channel_id;
@@ -230,7 +240,15 @@ pub async fn close(
             if let Some(pool) = config_clone.db_pool.as_ref() {
                 if let Ok(Some(record)) = get_scheduled_closure(&thread_id_for_task, pool).await {
                     if record.close_at <= Utc::now().timestamp() {
-                        let _ = close_thread(&thread_id_for_task, &record.closed_by, &record.category_id, &category_name, record.required_permissions.parse::<u64>().unwrap_or(0), pool).await;
+                        let _ = close_thread(
+                            &thread_id_for_task,
+                            &record.closed_by,
+                            &record.category_id,
+                            &category_name,
+                            record.required_permissions.parse::<u64>().unwrap_or(0),
+                            pool,
+                        )
+                        .await;
                         let _ = delete_scheduled_closure(&thread_id_for_task, pool).await;
 
                         let community_guild_id =
@@ -245,7 +263,7 @@ pub async fn close(
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
                                 .to_user(user_id_clone)
-                                .send()
+                                .send(false)
                                 .await;
                         }
                         let _ = channel_id.delete(&ctx_clone.http).await;
@@ -262,7 +280,15 @@ pub async fn close(
                                     get_scheduled_closure(&thread_id_again, pool2).await
                                 {
                                     if r2.close_at <= Utc::now().timestamp() {
-                                        let _ = close_thread(&thread_id_again, &r2.closed_by, &r2.category_id, &r2.category_id, r2.required_permissions.parse::<u64>().unwrap_or(0), pool2).await;
+                                        let _ = close_thread(
+                                            &thread_id_again,
+                                            &r2.closed_by,
+                                            &r2.category_id,
+                                            &r2.category_id,
+                                            r2.required_permissions.parse::<u64>().unwrap_or(0),
+                                            pool2,
+                                        )
+                                        .await;
                                         let _ =
                                             delete_scheduled_closure(&thread_id_again, pool2).await;
                                         let community_guild_id = GuildId::new(
@@ -279,7 +305,7 @@ pub async fn close(
                                             )
                                             .content(&config_clone2.bot.close_message)
                                             .to_user(user_id_clone)
-                                            .send()
+                                            .send(false)
                                             .await;
                                         }
                                         let _ = channel_id.delete(&ctx_clone2.http).await;
@@ -305,7 +331,7 @@ pub async fn close(
         let _ = MessageBuilder::system_message(ctx, config)
             .content(&config.bot.close_message)
             .to_user(user_id)
-            .send()
+            .send(false)
             .await;
     } else if !user_still_member {
         let mut params = HashMap::new();
@@ -320,11 +346,19 @@ pub async fn close(
             )
             .await
             .to_channel(msg.channel_id)
-            .send()
+            .send(false)
             .await;
     }
 
-    close_thread(&thread.id, &closed_by, &category_id, &category_name, required_permissions, db_pool).await?;
+    close_thread(
+        &thread.id,
+        &closed_by,
+        &category_id,
+        &category_name,
+        required_permissions,
+        db_pool,
+    )
+    .await?;
     let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
     let _ = msg.channel_id.delete(&ctx.http).await?;

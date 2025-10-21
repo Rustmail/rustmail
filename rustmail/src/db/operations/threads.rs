@@ -1,6 +1,6 @@
-use chrono::Utc;
 use crate::db::repr::Thread;
 use crate::errors::ModmailResult;
+use chrono::Utc;
 use serenity::all::{ChannelId, GuildChannel, UserId};
 use sqlx::{Error, SqlitePool};
 use uuid::Uuid;
@@ -145,7 +145,14 @@ pub async fn create_thread_for_user(
     }
 }
 
-pub async fn close_thread(thread_id: &str, closed_by: &str, category_id: &str, category_name: &str, required_permissions: u64, pool: &SqlitePool) -> ModmailResult<()> {
+pub async fn close_thread(
+    thread_id: &str,
+    closed_by: &str,
+    category_id: &str,
+    category_name: &str,
+    required_permissions: u64,
+    pool: &SqlitePool,
+) -> ModmailResult<()> {
     let closed_at = Utc::now().timestamp();
     let required_permissions = required_permissions.clone().to_string();
 
@@ -168,8 +175,8 @@ pub async fn close_thread(thread_id: &str, closed_by: &str, category_id: &str, c
         required_permissions,
         thread_id
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
