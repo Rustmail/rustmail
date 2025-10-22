@@ -150,9 +150,7 @@ pub async fn handle_thread_modal_interaction(
     config: &Config,
     interaction: &mut ModalInteraction,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let _ = interaction
-        .create_response(&ctx.http, CreateInteractionResponse::Acknowledge)
-        .await;
+
 
     let parts = match parse_thread_interaction(&interaction.data.custom_id) {
         Some(parts) => parts,

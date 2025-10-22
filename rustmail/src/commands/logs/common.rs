@@ -8,7 +8,6 @@ pub fn extract_user_id(msg: &Message, config: &Config) -> String {
     let command_name = "logs";
 
     if content.starts_with(&format!("{}{}", prefix, command_name)) {
-        println!("Logging in...");
         let start = prefix.len() + command_name.len();
         content[start..].trim().to_string()
     } else {

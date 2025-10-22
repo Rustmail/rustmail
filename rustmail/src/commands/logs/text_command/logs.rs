@@ -1,4 +1,4 @@
-use crate::commands::logs::common::extract_user_id;
+use crate::commands::logs::common::{extract_user_id, render_logs_page};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::logs::get_logs_from_user_id;
@@ -6,46 +6,13 @@ use crate::errors::{DatabaseError, ModmailError, ModmailResult, ThreadError};
 use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::modules::commands::LOGS_PAGE_SIZE;
-use crate::types::logs::{PaginationContext, PaginationStore, TicketLog};
+use crate::types::logs::{PaginationContext, PaginationStore};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ButtonStyle, Context, Message};
 use sqlx::SqlitePool;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
 use uuid::Uuid;
-
-fn render_logs_page(logs: &[TicketLog], page: usize, per_page: usize) -> String {
-    let total_pages = (logs.len() + per_page - 1) / per_page;
-    let start = page * per_page;
-    let end = usize::min(start + per_page, logs.len());
-
-    let mut desc = String::new();
-
-    for (_, log) in logs[start..end].iter().enumerate() {
-        use std::fmt::Write;
-        let _ = writeln!(
-            desc,
-            "**#{}** | [`Ticket {}`]({}) | Fermé le {} {}",
-            log.id,
-            log.ticket_id,
-            format!("http://localhost:3002/panel/tickets/{}", log.ticket_id),
-            log.created_at,
-            "\n".to_string(),
-        );
-    }
-
-    if desc.is_empty() {
-        desc = "_Aucun log trouvé pour cet utilisateur._".into();
-    }
-
-    format!(
-        "{}\n_Page {}/{} ({} logs totaux)_",
-        desc,
-        page + 1,
-        total_pages.max(1),
-        logs.len()
-    )
-}
 
 pub async fn handle_logs_in_thread(
     ctx: &Context,
@@ -102,13 +69,13 @@ pub async fn handle_logs_from_user_id(
             &prev_button.to_string(),
             &format!("command:logs_prev:{}", session_id),
             ButtonStyle::Primary,
-            true,
+            page == 0,
         ),
         (
             &next_button.to_string(),
             &format!("command:logs_next:{}", session_id),
             ButtonStyle::Primary,
-            false,
+            (page + 1) * 10 >= logs.len(),
         ),
     ]);
 
