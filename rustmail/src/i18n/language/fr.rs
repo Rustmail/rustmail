@@ -800,4 +800,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "logs_command.prev".to_string(),
         DictionaryMessage::new("Précédent"),
     );
+    dict.messages.insert(
+        "slash_commands.logs_command_description".to_string(),
+        DictionaryMessage::new("Afficher les logs d'un utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_commands.logs_id_argument_description".to_string(),
+        DictionaryMessage::new("L'ID de l'utilisateur dont vous souhaitez voir les logs"),
+    );
 }
