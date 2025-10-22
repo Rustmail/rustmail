@@ -13,6 +13,7 @@ use serenity::all::{
 };
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
+use crate::types::logs::PaginationStore;
 
 pub struct AlertCommand;
 
@@ -63,6 +64,7 @@ impl RegistrableCommand for AlertCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

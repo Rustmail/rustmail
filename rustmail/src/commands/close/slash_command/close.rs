@@ -23,6 +23,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
+use crate::types::logs::PaginationStore;
 
 pub struct CloseCommand;
 
@@ -103,6 +104,7 @@ impl RegistrableCommand for CloseCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

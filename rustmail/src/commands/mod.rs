@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
+use crate::types::logs::PaginationStore;
 
 pub mod add_reminder;
 pub mod add_staff;
@@ -38,19 +39,22 @@ pub trait RegistrableCommand: Send + Sync {
         options: &[ResolvedOption<'_>],
         config: &Config,
         shutdown: Arc<Receiver<bool>>,
+        pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>>;
 }
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     _shutdown: Arc<Receiver<bool>>,
+    pagination: PaginationStore,
 }
 
 impl CommandRegistry {
-    pub fn new(shutdown: Receiver<bool>) -> Self {
+    pub fn new(shutdown: Receiver<bool>, pagination: PaginationStore) -> Self {
         Self {
             commands: HashMap::new(),
             _shutdown: Arc::new(shutdown),
+            pagination,
         }
     }
 

@@ -18,6 +18,7 @@ use serenity::all::{
 };
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
+use crate::types::logs::PaginationStore;
 
 pub struct AddReminderCommand;
 
@@ -86,6 +87,7 @@ impl RegistrableCommand for AddReminderCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
