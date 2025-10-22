@@ -38,6 +38,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::{select, spawn};
+use crate::commands::logs::slash_command::logs::LogsCommand;
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
     let pool = db::operations::init_database()
@@ -142,7 +143,7 @@ pub async fn run_bot(
     cache_settings.max_messages = 10_000;
     cache_settings.time_to_live = Duration::from_secs(6 * 60 * 60);
 
-    let mut registry = CommandRegistry::new(shutdown_rx_command);
+    let mut registry = CommandRegistry::new(shutdown_rx_command, pagination.clone());
     registry.register_command(AddStaffCommand);
     registry.register_command(AlertCommand);
     registry.register_command(CloseCommand);
@@ -158,6 +159,7 @@ pub async fn run_bot(
     registry.register_command(ReplyCommand);
     registry.register_command(AddReminderCommand);
     registry.register_command(RemoveReminderCommand);
+    registry.register_command(LogsCommand);
 
     let registry = Arc::new(registry);
 

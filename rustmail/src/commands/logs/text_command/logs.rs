@@ -1,4 +1,4 @@
-use crate::commands::logs::common::{extract_user_id, render_logs_page};
+use crate::commands::logs::common::{extract_user_id, get_response, render_logs_page};
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::logs::get_logs_from_user_id;
@@ -7,8 +7,7 @@ use crate::features::make_buttons;
 use crate::i18n::get_translated_message;
 use crate::modules::commands::LOGS_PAGE_SIZE;
 use crate::types::logs::{PaginationContext, PaginationStore};
-use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{ButtonStyle, Context, Message};
+use serenity::all::{ButtonStyle, ChannelId, CommandInteraction, Context, Message};
 use sqlx::SqlitePool;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -16,30 +15,33 @@ use uuid::Uuid;
 
 pub async fn handle_logs_in_thread(
     ctx: &Context,
-    msg: &Message,
+    channel_id: &ChannelId,
+    command: Option<CommandInteraction>,
     config: &Config,
     pool: &SqlitePool,
     pagination: PaginationStore,
 ) -> ModmailResult<()> {
-    let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), &pool).await {
+    let thread = match get_thread_by_channel_id(&channel_id.to_string(), &pool).await {
         Some(thread) => thread,
         None => return Err(ModmailError::Thread(ThreadError::ThreadNotFound)),
     };
 
     handle_logs_from_user_id(
         &ctx,
-        &msg,
+        channel_id,
+        command,
         &config,
         &pool,
         &thread.user_id.to_string(),
-        pagination,
+        pagination
     )
     .await
 }
 
 pub async fn handle_logs_from_user_id(
     ctx: &Context,
-    msg: &Message,
+    channel_id: &ChannelId,
+    command: Option<CommandInteraction>,
     config: &Config,
     pool: &SqlitePool,
     user_id: &str,
@@ -79,12 +81,7 @@ pub async fn handle_logs_from_user_id(
         ),
     ]);
 
-    let response = MessageBuilder::system_message(&ctx, &config)
-        .content(content)
-        .components(components)
-        .to_channel(msg.channel_id)
-        .send(false)
-        .await?;
+    let response = get_response(ctx.clone(), config.clone(), &content, components, *channel_id, command).await?;
 
     pagination_store.lock().await.insert(
         session_id.clone(),
@@ -115,8 +112,8 @@ pub async fn logs(
     let user_id = extract_user_id(&msg, &config);
 
     if user_id.is_empty() {
-        handle_logs_in_thread(&ctx, &msg, &config, &pool, pagination).await
+        handle_logs_in_thread(&ctx, &msg.channel_id, None, &config, &pool, pagination).await
     } else {
-        handle_logs_from_user_id(&ctx, &msg, &config, &pool, &user_id, pagination).await
+        handle_logs_from_user_id(&ctx, &msg.channel_id, None, config, &pool, &user_id.to_string(), pagination).await
     }
 }
