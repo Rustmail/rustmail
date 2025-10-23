@@ -27,13 +27,14 @@ pub fn registry<'a>() -> Vec<Arc<dyn Feature<'a>>> {
     vec![Arc::new(PollFeature)]
 }
 
-pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle)]) -> Vec<CreateActionRow> {
+pub fn make_buttons(pairs: &[(&str, &str, ButtonStyle, bool)]) -> Vec<CreateActionRow> {
     let mut row = CreateActionRow::Buttons(vec![]);
     let mut buttons: Vec<CreateButton> = Vec::new();
-    for (label, custom_id, style) in pairs {
+    for (label, custom_id, style, disable) in pairs {
         let b = CreateButton::new(custom_id.to_string())
             .label(label.to_string())
-            .style(*style);
+            .style(*style)
+            .disabled(*disable);
         buttons.push(b);
     }
 

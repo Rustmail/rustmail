@@ -4,6 +4,7 @@ use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
 use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
@@ -100,6 +101,7 @@ impl RegistrableCommand for ReplyCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

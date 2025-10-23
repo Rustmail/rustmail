@@ -6,6 +6,7 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
@@ -63,6 +64,7 @@ impl RegistrableCommand for AlertCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

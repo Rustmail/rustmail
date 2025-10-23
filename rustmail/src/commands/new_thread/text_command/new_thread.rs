@@ -5,6 +5,7 @@ use crate::commands::new_thread::common::{
 use crate::config::Config;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use serenity::all::{ChannelId, Context, GuildId, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -15,6 +16,7 @@ pub async fn new_thread(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

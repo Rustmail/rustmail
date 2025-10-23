@@ -4,6 +4,7 @@ use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::NotAThreadChannel;
 use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::{ModmailError, ModmailResult};
+use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
@@ -14,6 +15,7 @@ pub async fn id(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool

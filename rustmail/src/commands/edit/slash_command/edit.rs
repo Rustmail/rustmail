@@ -6,6 +6,7 @@ use crate::db::{get_thread_message_by_inbox_message_id, update_message_content};
 use crate::errors::common::message_not_found;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -87,6 +88,7 @@ impl RegistrableCommand for EditCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

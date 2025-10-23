@@ -547,6 +547,10 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
+        if let Some(components) = &self.components {
+            message = message.components(components.clone());
+        }
+
         message
     }
 
@@ -560,6 +564,10 @@ impl<'a> MessageBuilder<'a> {
             if !content.is_empty() {
                 message = message.content(content);
             }
+        }
+
+        if let Some(components) = &self.components {
+            message = message.components(components.clone());
         }
 
         message = message.ephemeral(self.ephemeral);
@@ -583,6 +591,10 @@ impl<'a> MessageBuilder<'a> {
             for attachment in &self.attachments {
                 message = message.add_file(attachment.clone());
             }
+        }
+
+        if let Some(components) = &self.components {
+            message = message.components(components.clone());
         }
 
         message = message.ephemeral(self.ephemeral);

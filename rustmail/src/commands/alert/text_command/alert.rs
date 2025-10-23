@@ -4,6 +4,7 @@ use crate::commands::alert::common::{
 };
 use crate::config::Config;
 use crate::errors::{ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -13,6 +14,7 @@ pub async fn alert(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

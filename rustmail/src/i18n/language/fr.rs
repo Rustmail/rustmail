@@ -792,4 +792,24 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.remove_reminder_id_argument".to_string(),
         DictionaryMessage::new("L'ID du rappel à supprimer."),
     );
+    dict.messages.insert(
+        "logs_command.next".to_string(),
+        DictionaryMessage::new("Suivant"),
+    );
+    dict.messages.insert(
+        "logs_command.prev".to_string(),
+        DictionaryMessage::new("Précédent"),
+    );
+    dict.messages.insert(
+        "slash_commands.logs_command_description".to_string(),
+        DictionaryMessage::new("Afficher les logs d'un utilisateur"),
+    );
+    dict.messages.insert(
+        "slash_commands.logs_id_argument_description".to_string(),
+        DictionaryMessage::new("L'ID de l'utilisateur dont vous souhaitez voir les logs"),
+    );
+    dict.messages.insert(
+        "slash_commands.no_logs_found".to_string(),
+        DictionaryMessage::new("Aucun log trouvé pour cet utilisateur."),
+    );
 }

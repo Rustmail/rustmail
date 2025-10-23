@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::errors::ModmailResult;
+use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
 use std::pin::Pin;
@@ -16,6 +17,7 @@ pub mod edit;
 pub mod force_close;
 pub mod help;
 pub mod id;
+pub mod logs;
 pub mod move_thread;
 pub mod new_thread;
 pub mod recover;
@@ -37,19 +39,22 @@ pub trait RegistrableCommand: Send + Sync {
         options: &[ResolvedOption<'_>],
         config: &Config,
         shutdown: Arc<Receiver<bool>>,
+        pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>>;
 }
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     _shutdown: Arc<Receiver<bool>>,
+    pagination: PaginationStore,
 }
 
 impl CommandRegistry {
-    pub fn new(shutdown: Receiver<bool>) -> Self {
+    pub fn new(shutdown: Receiver<bool>, pagination: PaginationStore) -> Self {
         Self {
             commands: HashMap::new(),
             _shutdown: Arc::new(shutdown),
+            pagination,
         }
     }
 

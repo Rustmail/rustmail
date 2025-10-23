@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::db::reminders::{get_reminder_by_id, update_reminder_status};
 use crate::errors::{CommandError, DatabaseError, ModmailError, ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
@@ -13,6 +14,7 @@ pub async fn remove_reminder(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

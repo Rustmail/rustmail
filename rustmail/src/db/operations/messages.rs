@@ -179,8 +179,6 @@ pub async fn get_latest_thread_message(
     .fetch_optional(pool)
     .await?;
 
-    println!("Debug: Fetched latest thread message row: {:?}", row);
-
     let latest = row.map(|row| ThreadMessage {
         id: row.id,
         thread_id: row.thread_id,

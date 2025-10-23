@@ -6,6 +6,7 @@ use crate::db::{
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::category::{
     get_category_id_from_command, get_category_name_from_command,
     get_required_permissions_channel_from_command,
@@ -103,6 +104,7 @@ impl RegistrableCommand for CloseCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

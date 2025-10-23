@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::errors::{ModmailResult, common};
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
+use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
@@ -13,6 +14,7 @@ pub async fn recover(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let _ = config
         .db_pool

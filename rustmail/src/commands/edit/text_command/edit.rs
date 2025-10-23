@@ -10,6 +10,7 @@ use crate::db::get_thread_message_by_inbox_message_id;
 use crate::db::update_message_content;
 use crate::errors::common::message_not_found;
 use crate::errors::{ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
@@ -22,6 +23,7 @@ pub async fn edit(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

@@ -3,6 +3,7 @@ use crate::config::Config;
 use crate::db::reminders::{get_reminder_by_id, update_reminder_status};
 use crate::errors::{CommandError, DatabaseError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
@@ -57,6 +58,7 @@ impl RegistrableCommand for RemoveReminderCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         _shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

@@ -4,6 +4,7 @@ use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use crate::utils::message::category::{
     get_category_id_from_message, get_category_name_from_message,
     get_required_permissions_channel_from_message,
@@ -23,6 +24,7 @@ pub async fn close(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool

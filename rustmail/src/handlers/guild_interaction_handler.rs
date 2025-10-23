@@ -1,9 +1,11 @@
 use crate::commands::CommandRegistry;
 use crate::config::Config;
 use crate::features::handle_feature_component_interaction;
+use crate::modules::commands::handle_command_component_interaction;
 use crate::modules::threads::{
     handle_thread_component_interaction, handle_thread_modal_interaction,
 };
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -13,14 +15,21 @@ pub struct InteractionHandler {
     pub config: Config,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
+    pub pagination: PaginationStore,
 }
 
 impl InteractionHandler {
-    pub fn new(config: &Config, register: Arc<CommandRegistry>, shutdown: Receiver<bool>) -> Self {
+    pub fn new(
+        config: &Config,
+        register: Arc<CommandRegistry>,
+        shutdown: Receiver<bool>,
+        pagination: PaginationStore,
+    ) -> Self {
         Self {
             config: config.clone(),
             registry: register,
             shutdown: Arc::new(shutdown),
+            pagination,
         }
     }
 }
@@ -40,6 +49,16 @@ impl EventHandler for InteractionHandler {
                 {
                     return;
                 }
+                if let Err(..) = handle_command_component_interaction(
+                    &ctx,
+                    &self.config,
+                    &mut comp,
+                    self.pagination.clone(),
+                )
+                .await
+                {
+                    return;
+                }
             }
             Interaction::Modal(mut modal) => {
                 if let Err(..) =
@@ -53,10 +72,18 @@ impl EventHandler for InteractionHandler {
                 let command = command.clone();
                 let options = command.data.options().clone();
                 let config = self.config.clone();
+                let pagination = self.pagination.clone();
 
                 if let Some(handler) = self.registry.get(command.data.name.as_str()) {
                     let result = handler
-                        .run(&ctx, &command, &options, &config, self.shutdown.clone())
+                        .run(
+                            &ctx,
+                            &command,
+                            &options,
+                            &config,
+                            self.shutdown.clone(),
+                            pagination,
+                        )
                         .await;
 
                     if let Err(e) = result {

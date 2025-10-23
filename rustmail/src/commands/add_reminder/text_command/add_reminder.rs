@@ -7,6 +7,7 @@ use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
     CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
 };
+use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
@@ -19,6 +20,7 @@ pub async fn add_reminder(
     msg: &Message,
     config: &Config,
     shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

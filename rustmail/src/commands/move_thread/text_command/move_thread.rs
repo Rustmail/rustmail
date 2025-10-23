@@ -6,6 +6,7 @@ use crate::config::Config;
 use crate::errors::CommandError::NotInThread;
 use crate::errors::ThreadError::CategoryNotFound;
 use crate::errors::{CommandError, DiscordError, ModmailError, ModmailResult, common};
+use crate::types::logs::PaginationStore;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
@@ -15,6 +16,7 @@ pub async fn move_thread(
     msg: &Message,
     config: &Config,
     _shutdown: Arc<Receiver<bool>>,
+    _pagination: PaginationStore,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool

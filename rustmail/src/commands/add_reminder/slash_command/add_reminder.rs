@@ -9,6 +9,7 @@ use crate::errors::{
     CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
 };
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
@@ -86,6 +87,7 @@ impl RegistrableCommand for AddReminderCommand {
         _options: &[ResolvedOption<'_>],
         config: &Config,
         shutdown: Arc<Receiver<bool>>,
+        _pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();

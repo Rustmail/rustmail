@@ -23,8 +23,9 @@ impl<'a> Feature<'a> for PollFeature {
                 "Créer un sondage",
                 "feature:poll:create",
                 ButtonStyle::Success,
+                false,
             ),
-            ("Test", "feature:poll:delete", ButtonStyle::Danger),
+            ("Test", "feature:poll:delete", ButtonStyle::Danger, false),
         ]);
 
         MessageBuilder::system_message(ctx, config)
