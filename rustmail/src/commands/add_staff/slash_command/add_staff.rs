@@ -4,13 +4,13 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
     CreateCommand, CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
@@ -55,7 +55,6 @@ impl RegistrableCommand for AddStaffCommand {
                         CreateCommandOption::new(CommandOptionType::User, "user_id", user_id_desc)
                             .required(true),
                     ),
-                CreateCommand::new("add_staff").kind(CommandType::User),
             ]
         })
     }
