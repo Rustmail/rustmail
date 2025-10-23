@@ -784,4 +784,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_commands.logs_id_argument_description".to_string(),
         DictionaryMessage::new("The ID of the user to view logs for"),
     );
+    dict.messages.insert(
+        "slash_commands.no_logs_found".to_string(),
+        DictionaryMessage::new("No logs found for this user."),
+    );
 }

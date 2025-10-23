@@ -808,4 +808,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_commands.logs_id_argument_description".to_string(),
         DictionaryMessage::new("L'ID de l'utilisateur dont vous souhaitez voir les logs"),
     );
+    dict.messages.insert(
+        "slash_commands.no_logs_found".to_string(),
+        DictionaryMessage::new("Aucun log trouvé pour cet utilisateur."),
+    );
 }

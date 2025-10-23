@@ -58,7 +58,7 @@ pub async fn handle_logs_from_user_id(
     };
 
     let page = 0;
-    let content = render_logs_page(&logs, page, LOGS_PAGE_SIZE);
+    let content = render_logs_page(config, &logs, page, LOGS_PAGE_SIZE).await;
     let session_id = Uuid::new_v4().to_string();
 
     let next_button =

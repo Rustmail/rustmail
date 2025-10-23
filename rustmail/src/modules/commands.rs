@@ -36,7 +36,13 @@ async fn handle_logs_action(
             return Ok(());
         }
 
-        let new_content = render_logs_page(&ctx_data.logs, ctx_data.current_page, LOGS_PAGE_SIZE);
+        let new_content = render_logs_page(
+            config,
+            &ctx_data.logs,
+            ctx_data.current_page,
+            LOGS_PAGE_SIZE,
+        )
+        .await;
 
         if new_content.is_empty() {
             return Ok(());
