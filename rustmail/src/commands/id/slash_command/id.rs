@@ -5,13 +5,13 @@ use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::CreateCommand;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct IdCommand;
 

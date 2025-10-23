@@ -76,7 +76,14 @@ impl EventHandler for InteractionHandler {
 
                 if let Some(handler) = self.registry.get(command.data.name.as_str()) {
                     let result = handler
-                        .run(&ctx, &command, &options, &config, self.shutdown.clone(), pagination)
+                        .run(
+                            &ctx,
+                            &command,
+                            &options,
+                            &config,
+                            self.shutdown.clone(),
+                            pagination,
+                        )
                         .await;
 
                     if let Err(e) = result {

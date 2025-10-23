@@ -7,6 +7,7 @@ use crate::config::Config;
 use crate::db::messages::get_thread_message_by_message_id;
 use crate::errors::{MessageError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
@@ -16,7 +17,6 @@ use serenity::all::{
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct DeleteCommand;
 

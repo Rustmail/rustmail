@@ -1,10 +1,10 @@
 use crate::config::Config;
+use crate::errors::ModmailError;
 use crate::types::logs::TicketLog;
+use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ChannelId, CommandInteraction, Message};
 use serenity::builder::CreateActionRow;
 use serenity::client::Context;
-use crate::errors::ModmailError;
-use crate::utils::message::message_builder::MessageBuilder;
 
 pub fn extract_user_id(msg: &Message, config: &Config) -> String {
     let content = msg.content.trim();
@@ -56,8 +56,14 @@ pub fn render_logs_page(logs: &[TicketLog], page: usize, per_page: usize) -> Str
     )
 }
 
-pub async fn get_response(ctx: Context, config: Config, content: &str, components: Vec<CreateActionRow>, channel_id: ChannelId, command: Option<CommandInteraction>) -> Result<Message, ModmailError> {
-
+pub async fn get_response(
+    ctx: Context,
+    config: Config,
+    content: &str,
+    components: Vec<CreateActionRow>,
+    channel_id: ChannelId,
+    command: Option<CommandInteraction>,
+) -> Result<Message, ModmailError> {
     if !command.is_none() {
         let command = command.unwrap();
 
@@ -71,7 +77,6 @@ pub async fn get_response(ctx: Context, config: Config, content: &str, component
         let tkt = command.create_followup(&ctx.http, response).await;
 
         Ok(tkt?)
-
     } else {
         MessageBuilder::system_message(&ctx, &config)
             .content(content)

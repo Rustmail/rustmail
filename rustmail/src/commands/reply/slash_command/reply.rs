@@ -4,6 +4,7 @@ use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
 use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
@@ -15,7 +16,6 @@ use serenity::all::{
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct ReplyCommand;
 

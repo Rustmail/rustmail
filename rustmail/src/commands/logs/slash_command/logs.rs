@@ -1,13 +1,16 @@
-use std::sync::Arc;
-use serenity::all::{CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, ResolvedOption, UserId};
-use tokio::sync::watch::Receiver;
-use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::commands::logs::text_command::logs::{handle_logs_from_user_id, handle_logs_in_thread};
+use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, ResolvedOption, UserId,
+};
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 
 pub struct LogsCommand;
 
@@ -28,7 +31,7 @@ impl RegistrableCommand for LogsCommand {
                 None,
                 None,
             )
-                .await;
+            .await;
             let id_desc = get_translated_message(
                 &config,
                 "slash_commands.logs_id_argument_description",
@@ -37,25 +40,28 @@ impl RegistrableCommand for LogsCommand {
                 None,
                 None,
             )
-                .await;
+            .await;
 
-            vec![
-                CreateCommand::new("logs").description(cmd_desc)
-                    .add_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::User, "id", id_desc).required(false)
-                    )
-            ]
+            vec![CreateCommand::new("logs").description(cmd_desc).add_option(
+                CreateCommandOption::new(CommandOptionType::User, "id", id_desc).required(false),
+            )]
         })
     }
 
-    fn run(&self, ctx: &Context, command: &CommandInteraction, options: &[ResolvedOption<'_>], config: &Config, shutdown: Arc<Receiver<bool>>, pagination: PaginationStore) -> BoxFuture<ModmailResult<()>> {
+    fn run(
+        &self,
+        ctx: &Context,
+        command: &CommandInteraction,
+        _options: &[ResolvedOption<'_>],
+        config: &Config,
+        _shutdown: Arc<Receiver<bool>>,
+        pagination: PaginationStore,
+    ) -> BoxFuture<ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();
 
         Box::pin(async move {
-
             let pool = match config.db_pool.clone() {
                 Some(pool) => pool.clone(),
                 None => return Err(ModmailError::Database(DatabaseError::ConnectionFailed)),
@@ -77,11 +83,27 @@ impl RegistrableCommand for LogsCommand {
             }
 
             if !user_id.is_some() {
-                handle_logs_in_thread(&ctx, &command.clone().channel_id, Some(command.clone()), &config, &pool, pagination).await
+                handle_logs_in_thread(
+                    &ctx,
+                    &command.clone().channel_id,
+                    Some(command.clone()),
+                    &config,
+                    &pool,
+                    pagination,
+                )
+                .await
             } else {
-                handle_logs_from_user_id(&ctx, &command.clone().channel_id, Some(command), &config, &pool, &user_id.unwrap().to_string(), pagination).await
+                handle_logs_from_user_id(
+                    &ctx,
+                    &command.clone().channel_id,
+                    Some(command),
+                    &config,
+                    &pool,
+                    &user_id.unwrap().to_string(),
+                    pagination,
+                )
+                .await
             }
-
         })
     }
 }

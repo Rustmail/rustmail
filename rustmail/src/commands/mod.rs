@@ -1,11 +1,11 @@
 use crate::config::Config;
 use crate::errors::ModmailResult;
+use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub mod add_reminder;
 pub mod add_staff;

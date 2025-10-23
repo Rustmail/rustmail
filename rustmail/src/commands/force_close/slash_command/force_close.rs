@@ -6,10 +6,10 @@ use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
 use crate::errors::{ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct ForceCloseCommand;
 

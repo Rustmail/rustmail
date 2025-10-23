@@ -8,6 +8,7 @@ use crate::commands::edit::slash_command::edit::EditCommand;
 use crate::commands::force_close::slash_command::force_close::ForceCloseCommand;
 use crate::commands::help::slash_command::help::HelpCommand;
 use crate::commands::id::slash_command::id::IdCommand;
+use crate::commands::logs::slash_command::logs::LogsCommand;
 use crate::commands::move_thread::slash_command::move_thread::MoveCommand;
 use crate::commands::new_thread::slash_command::new_thread::NewThreadCommand;
 use crate::commands::recover::slash_command::recover::RecoverCommand;
@@ -38,7 +39,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::{select, spawn};
-use crate::commands::logs::slash_command::logs::LogsCommand;
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
     let pool = db::operations::init_database()

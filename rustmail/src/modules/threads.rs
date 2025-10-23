@@ -150,8 +150,6 @@ pub async fn handle_thread_modal_interaction(
     config: &Config,
     interaction: &mut ModalInteraction,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-
-
     let parts = match parse_thread_interaction(&interaction.data.custom_id) {
         Some(parts) => parts,
         None => {

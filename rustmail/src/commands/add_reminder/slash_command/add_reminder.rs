@@ -9,6 +9,7 @@ use crate::errors::{
     CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
 };
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use chrono::{Local, NaiveTime};
 use regex::Regex;
@@ -18,7 +19,6 @@ use serenity::all::{
 };
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct AddReminderCommand;
 

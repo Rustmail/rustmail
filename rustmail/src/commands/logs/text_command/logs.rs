@@ -33,7 +33,7 @@ pub async fn handle_logs_in_thread(
         &config,
         &pool,
         &thread.user_id.to_string(),
-        pagination
+        pagination,
     )
     .await
 }
@@ -81,7 +81,15 @@ pub async fn handle_logs_from_user_id(
         ),
     ]);
 
-    let response = get_response(ctx.clone(), config.clone(), &content, components, *channel_id, command).await?;
+    let response = get_response(
+        ctx.clone(),
+        config.clone(),
+        &content,
+        components,
+        *channel_id,
+        command,
+    )
+    .await?;
 
     pagination_store.lock().await.insert(
         session_id.clone(),
@@ -114,6 +122,15 @@ pub async fn logs(
     if user_id.is_empty() {
         handle_logs_in_thread(&ctx, &msg.channel_id, None, &config, &pool, pagination).await
     } else {
-        handle_logs_from_user_id(&ctx, &msg.channel_id, None, config, &pool, &user_id.to_string(), pagination).await
+        handle_logs_from_user_id(
+            &ctx,
+            &msg.channel_id,
+            None,
+            config,
+            &pool,
+            &user_id.to_string(),
+            pagination,
+        )
+        .await
     }
 }

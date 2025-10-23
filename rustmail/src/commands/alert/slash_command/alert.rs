@@ -6,6 +6,7 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
@@ -13,7 +14,6 @@ use serenity::all::{
 };
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;
-use crate::types::logs::PaginationStore;
 
 pub struct AlertCommand;
 

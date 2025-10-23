@@ -6,6 +6,7 @@ use crate::db::{
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::i18n::get_translated_message;
+use crate::types::logs::PaginationStore;
 use crate::utils::command::category::{
     get_category_id_from_command, get_category_name_from_command,
     get_required_permissions_channel_from_command,
@@ -23,7 +24,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
-use crate::types::logs::PaginationStore;
 
 pub struct CloseCommand;
 
