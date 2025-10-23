@@ -794,4 +794,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             "This user has {count} previous rustmail ticket(s). Use `{prefix}logs` to view them.",
         ),
     );
+    dict.messages.insert(
+        "reminder.reminder_already_exists".to_string(),
+        DictionaryMessage::new("Vous avez déjà un rappel programmé à cette heure."),
+    );
 }

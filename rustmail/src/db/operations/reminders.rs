@@ -1,3 +1,8 @@
+use crate::errors::CommandError::ReminderAlreadyExists;
+use crate::errors::{ModmailError, ModmailResult};
+use sqlx::Error::Database;
+use sqlx::error::ErrorKind::UniqueViolation;
+
 #[derive(Debug, Clone)]
 pub struct Reminder {
     pub thread_id: String,
@@ -10,13 +15,26 @@ pub struct Reminder {
     pub completed: bool,
 }
 
-pub async fn insert_reminder(
-    reminder: &Reminder,
-    pool: &sqlx::SqlitePool,
-) -> Result<i64, sqlx::Error> {
+pub async fn insert_reminder(reminder: &Reminder, pool: &sqlx::SqlitePool) -> ModmailResult<i64> {
     let user_id = reminder.user_id;
     let channel_id = &reminder.channel_id;
     let guild_id = &reminder.guild_id;
+
+    let existing = sqlx::query_scalar!(
+        r#"
+        SELECT id FROM reminders
+        WHERE user_id = ? AND guild_id = ? AND trigger_time = ? AND completed = 0
+        "#,
+        reminder.user_id,
+        reminder.guild_id,
+        reminder.trigger_time
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    if let Some(_existging_id) = existing {
+        return Err(ModmailError::Command(ReminderAlreadyExists));
+    }
 
     let result = sqlx::query!(
         r#"

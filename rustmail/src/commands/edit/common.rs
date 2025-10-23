@@ -40,6 +40,7 @@ mod tests {
                 client_secret: "secret".to_string(),
                 redirect_url: "http://localhost:3002/api/auth/callback".to_string(),
                 ip: Option::from("0.0.0.0".to_string()),
+                timezone: "Europe/Paris".to_string().parse().unwrap(),
             },
             command: CommandConfig {
                 prefix: "!".to_string(),

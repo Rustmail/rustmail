@@ -3,15 +3,13 @@ use crate::commands::add_reminder::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::db::reminders::{insert_reminder, Reminder};
+use crate::db::reminders::{Reminder, insert_reminder};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{
-    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
-};
+use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
-use chrono::{Local, NaiveTime};
+use chrono::{Local, NaiveTime, TimeZone};
 use regex::Regex;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
@@ -157,14 +155,19 @@ impl RegistrableCommand for AddReminderCommand {
                 .unwrap_or(0);
 
             let time = NaiveTime::from_hms_opt(hours, minutes, 0).unwrap();
-            let now = Local::now().naive_local();
-            let mut trigger_dt = now.date().and_time(time);
+            let now = Local::now().with_timezone(&config.bot.timezone);
+
+            let mut trigger_dt = config
+                .bot
+                .timezone
+                .from_local_datetime(&now.date_naive().and_time(time))
+                .unwrap();
 
             if trigger_dt < now {
                 trigger_dt += chrono::Duration::days(1);
             }
 
-            let trigger_timestamp = trigger_dt.and_local_timezone(Local).unwrap().timestamp();
+            let trigger_timestamp = trigger_dt.with_timezone(&config.bot.timezone).timestamp();
 
             let thread = match get_thread_by_user_id(command.user.id, pool).await {
                 Some(t) => t,
@@ -188,9 +191,7 @@ impl RegistrableCommand for AddReminderCommand {
                 Ok(id) => id,
                 Err(e) => {
                     eprintln!("Failed to insert reminder: {}", e);
-                    return Err(ModmailError::Database(DatabaseError::InsertFailed(
-                        e.to_string(),
-                    )));
+                    return Err(e);
                 }
             };
 

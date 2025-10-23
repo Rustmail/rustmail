@@ -4,12 +4,10 @@ use crate::commands::add_reminder::common::{
 use crate::config::Config;
 use crate::db::reminders::{Reminder, insert_reminder};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{
-    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
-};
+use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
-use chrono::{Local, NaiveTime};
+use chrono::{Local, NaiveTime, TimeZone};
 use regex::Regex;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
@@ -60,14 +58,19 @@ pub async fn add_reminder(
         .unwrap_or(0);
 
     let time = NaiveTime::from_hms_opt(hours, minutes, 0).unwrap();
-    let now = Local::now();
-    let mut trigger_dt = now.date_naive().and_time(time);
+    let now = Local::now().with_timezone(&config.bot.timezone);
 
-    if trigger_dt < now.date_naive().and_time(time) {
+    let mut trigger_dt = config
+        .bot
+        .timezone
+        .from_local_datetime(&now.date_naive().and_time(time))
+        .unwrap();
+
+    if trigger_dt < now {
         trigger_dt += chrono::Duration::days(1);
     }
 
-    let trigger_timestamp = trigger_dt.and_local_timezone(Local).unwrap().timestamp();
+    let trigger_timestamp = trigger_dt.with_timezone(&config.bot.timezone).timestamp();
 
     let thread = match get_thread_by_user_id(msg.author.id, pool).await {
         Some(t) => t,
@@ -91,9 +94,7 @@ pub async fn add_reminder(
         Ok(id) => id,
         Err(e) => {
             eprintln!("Failed to insert reminder: {}", e);
-            return Err(ModmailError::Database(DatabaseError::InsertFailed(
-                e.to_string(),
-            )));
+            return Err(e);
         }
     };
 

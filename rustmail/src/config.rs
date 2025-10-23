@@ -1,5 +1,6 @@
 use crate::errors::handler::ErrorHandler;
 use crate::i18n::languages::Language;
+use chrono_tz::Tz;
 use serde::Deserialize;
 use serenity::all::GuildId;
 use serenity::http::Http;
@@ -42,13 +43,30 @@ pub struct BotConfig {
     pub client_id: u64,
     pub client_secret: String,
     pub redirect_url: String,
-
+    #[serde(
+        default = "default_timezone",
+        deserialize_with = "deserialize_timezone"
+    )]
+    pub timezone: Tz,
     #[serde(default)]
     pub logs_channel_id: Option<u64>,
     #[serde(default)]
     pub features_channel_id: Option<u64>,
     #[serde(default)]
     pub ip: Option<String>,
+}
+
+fn deserialize_timezone<'de, D>(deserializer: D) -> Result<Tz, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    s.parse::<Tz>().map_err(serde::de::Error::custom)
+}
+
+fn default_timezone() -> Tz {
+    println!("yes");
+    chrono_tz::UTC
 }
 
 #[derive(Debug, Deserialize, Clone)]

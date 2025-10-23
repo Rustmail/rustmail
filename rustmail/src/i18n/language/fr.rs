@@ -816,4 +816,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "new_thread.show_logs".to_string(),
         DictionaryMessage::new("Cet utilisateur a **{logs_count}** ancien(s) ticket(s) rustmail. Utilisez `{prefix}logs` pour les voir."),
     );
+    dict.messages.insert(
+        "reminder.reminder_already_exists".to_string(),
+        DictionaryMessage::new("Vous avez déjà un rappel programmé à cette heure."),
+    );
 }

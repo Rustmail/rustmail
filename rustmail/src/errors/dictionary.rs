@@ -241,6 +241,9 @@ impl DictionaryManager {
                 CommandError::DiscordDeleteFailed => {
                     ("command.discord_delete_failed".to_string(), None)
                 }
+                CommandError::ReminderAlreadyExists => {
+                    ("reminder.reminder_already_exists".to_string(), None)
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

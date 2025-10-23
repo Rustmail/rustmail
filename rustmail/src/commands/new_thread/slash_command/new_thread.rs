@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
+    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
 };
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
