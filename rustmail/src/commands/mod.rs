@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::errors::ModmailResult;
 use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
+use std::any::Any;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -27,7 +28,11 @@ pub mod reply;
 
 pub type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 
-pub trait RegistrableCommand: Send + Sync {
+pub trait RegistrableCommand: Any + Send + Sync {
+    fn as_community(&self) -> Option<&dyn CommunityRegistrable> {
+        None
+    }
+
     fn name(&self) -> &'static str;
 
     fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>>;
@@ -41,6 +46,10 @@ pub trait RegistrableCommand: Send + Sync {
         shutdown: Arc<Receiver<bool>>,
         pagination: PaginationStore,
     ) -> BoxFuture<ModmailResult<()>>;
+}
+
+pub trait CommunityRegistrable: RegistrableCommand {
+    fn register_community(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>>;
 }
 
 pub struct CommandRegistry {

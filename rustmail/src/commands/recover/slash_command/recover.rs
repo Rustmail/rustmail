@@ -1,6 +1,6 @@
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
 use crate::types::logs::PaginationStore;
