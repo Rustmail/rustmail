@@ -157,10 +157,10 @@ impl RegistrableCommand for AddReminderCommand {
                 .unwrap_or(0);
 
             let time = NaiveTime::from_hms_opt(hours, minutes, 0).unwrap();
-            let now = Local::now();
-            let mut trigger_dt = now.date_naive().and_time(time);
+            let now = Local::now().naive_local();
+            let mut trigger_dt = now.date().and_time(time);
 
-            if trigger_dt < now.date_naive().and_time(time) {
+            if trigger_dt < now {
                 trigger_dt += chrono::Duration::days(1);
             }
 
