@@ -107,13 +107,13 @@ async fn create_or_get_thread_for_user(
         let _ = MessageBuilder::system_message(ctx, config)
             .to_channel(target_channel_id)
             .content(open_thread_message)
-            .send(false)
+            .send(true)
             .await;
 
         let _ = MessageBuilder::system_message(ctx, config)
             .content(&config.bot.welcome_message)
             .to_user(user_id)
-            .send(false)
+            .send(true)
             .await;
 
         println!("Thread created successfully");
