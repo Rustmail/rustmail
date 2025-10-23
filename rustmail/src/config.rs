@@ -5,6 +5,7 @@ use serenity::all::GuildId;
 use serenity::http::Http;
 use sqlx::SqlitePool;
 use std::fs;
+use std::net::UdpSocket;
 use std::sync::Arc;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -46,6 +47,8 @@ pub struct BotConfig {
     pub logs_channel_id: Option<u64>,
     #[serde(default)]
     pub features_channel_id: Option<u64>,
+    #[serde(default)]
+    pub ip: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -114,6 +117,13 @@ pub struct ErrorHandlingConfig {
     pub error_message_ttl: Option<u64>,
 }
 
+fn get_local_ip() -> Option<String> {
+    let socket = UdpSocket::bind("0.0.0.0:0").ok()?;
+
+    socket.connect("1.1.1.1:80").ok()?;
+    Some(socket.local_addr().ok()?.ip().to_string())
+}
+
 pub fn load_config(path: &str) -> Option<Config> {
     let content = match fs::read_to_string(path) {
         Ok(c) => c,
@@ -127,6 +137,10 @@ pub fn load_config(path: &str) -> Option<Config> {
             return None;
         }
     };
+
+    if config.bot.ip.is_none() {
+        config.bot.ip = get_local_ip();
+    }
 
     match u64::from_str_radix(&config.thread.user_message_color, 16) {
         Ok(_) => {}

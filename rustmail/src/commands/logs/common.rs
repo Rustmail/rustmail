@@ -52,7 +52,11 @@ pub async fn render_logs_page(
             "**#{}** | [`🎫 {}`]({}) | 🔒 {} {}",
             log.id,
             log.ticket_id,
-            format!("http://localhost:3002/panel/tickets/{}", log.ticket_id),
+            format!(
+                "http://{}:3002/panel/tickets/{}",
+                &config.bot.ip.clone().unwrap(),
+                log.ticket_id
+            ),
             log.created_at,
             "\n".to_string(),
         );
