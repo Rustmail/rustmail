@@ -3,9 +3,14 @@ use crate::commands::new_thread::common::{
     send_welcome_message,
 };
 use crate::config::Config;
+use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
+use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
+use crate::utils::message::message_builder::MessageBuilder;
+use crate::utils::thread::user_recap::get_user_recap;
+use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
 use serenity::all::{ChannelId, Context, GuildId, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -79,6 +84,42 @@ pub async fn new_thread(
             return Ok(());
         }
     };
+
+    let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
+
+    let member_join_date = get_member_join_date_for_user(&ctx, user_id, community_guild_id)
+        .await
+        .unwrap_or_else(|| "Unknown".to_string());
+
+    let logs_count = match get_logs_from_user_id(&user_id.clone().to_string(), pool).await {
+        Ok(logs) => logs.len(),
+        Err(_) => 0,
+    };
+
+    let params = {
+        let mut p = HashMap::new();
+        p.insert("logs_count".to_string(), logs_count.to_string());
+        p.insert("prefix".to_string(), config.command.prefix.clone());
+        p
+    };
+
+    let logs_info = get_translated_message(
+        &config,
+        "new_thread.show_logs",
+        Some(&params),
+        None,
+        None,
+        None,
+    )
+    .await;
+
+    let recap = get_user_recap(user_id, &user.name, &member_join_date, &logs_info);
+
+    let _ = MessageBuilder::system_message(&ctx, &config)
+        .content(recap)
+        .to_channel(guild_channel.id)
+        .send(true)
+        .await;
 
     let _ = match create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool)
         .await

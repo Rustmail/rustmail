@@ -788,4 +788,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_commands.no_logs_found".to_string(),
         DictionaryMessage::new("No logs found for this user."),
     );
+    dict.messages.insert(
+        "new_thread.show_logs".to_string(),
+        DictionaryMessage::new(
+            "This user has {count} previous rustmail ticket(s). Use `{prefix}logs` to view them.",
+        ),
+    );
 }

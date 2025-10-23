@@ -1,6 +1,6 @@
 use crate::config::Config;
-use crate::errors::common::invalid_command;
 use crate::errors::ModmailResult;
+use crate::errors::common::invalid_command;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use serenity::all::Message;
 

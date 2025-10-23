@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::db::logs::get_logs_from_user_id;
 use crate::db::operations::{create_thread_for_user, get_thread_channel_by_user_id};
 use crate::errors::common::validation_failed;
 use crate::i18n::get_translated_message;
@@ -6,7 +7,7 @@ use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::message::ui;
 use crate::utils::thread::get_thread_lock::get_thread_lock;
 use crate::utils::thread::send_to_thread::send_to_thread;
-use crate::utils::time::format_duration_since::format_duration_since;
+use crate::utils::thread::user_recap::get_user_recap;
 use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
 use serenity::all::{
     ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId,
@@ -74,12 +75,33 @@ async fn create_or_get_thread_for_user(
             .await
             .unwrap_or_else(|| "Unknown".to_string());
 
-        let open_thread_message = format!(
-            "ACCOUNT AGE **{}**, ID **{}**\nNICKNAME **{}**, JOINED **{}**",
-            format_duration_since(user_id.created_at()),
+        let logs_count = match get_logs_from_user_id(&user_id.clone().to_string(), pool).await {
+            Ok(logs) => logs.len(),
+            Err(_) => 0,
+        };
+
+        let params = {
+            let mut p = HashMap::new();
+            p.insert("logs_count".to_string(), logs_count.to_string());
+            p.insert("prefix".to_string(), config.command.prefix.clone());
+            p
+        };
+
+        let logs_info = get_translated_message(
+            &config,
+            "new_thread.show_logs",
+            Some(&params),
+            None,
+            None,
+            None,
+        )
+        .await;
+
+        let open_thread_message = get_user_recap(
             user_id,
-            username,
-            member_join_date
+            &username.to_string(),
+            &member_join_date,
+            &logs_info,
         );
 
         let _ = MessageBuilder::system_message(ctx, config)

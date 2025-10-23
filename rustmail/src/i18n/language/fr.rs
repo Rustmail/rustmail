@@ -812,4 +812,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_commands.no_logs_found".to_string(),
         DictionaryMessage::new("Aucun log trouvé pour cet utilisateur."),
     );
+    dict.messages.insert(
+        "new_thread.show_logs".to_string(),
+        DictionaryMessage::new("Cet utilisateur a **{logs_count}** ancien(s) ticket(s) rustmail. Utilisez `{prefix}logs` pour les voir."),
+    );
 }
