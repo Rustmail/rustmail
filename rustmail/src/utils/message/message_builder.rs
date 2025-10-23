@@ -490,7 +490,7 @@ impl<'a> MessageBuilder<'a> {
                 false,
                 &pool,
                 self.config,
-                -1,
+                None,
             )
             .await
             {
@@ -852,7 +852,7 @@ impl<'a> StaffReply<'a> {
             self.is_anonymous,
             pool,
             self.config,
-            self.message_number as i64,
+            Some(self.message_number as i64),
         )
         .await
         {
@@ -920,7 +920,7 @@ impl<'a> StaffReply<'a> {
             self.is_anonymous,
             pool,
             self.config,
-            self.message_number as i64,
+            Some(self.message_number as i64),
         )
         .await
         {
