@@ -3,10 +3,10 @@ use crate::commands::add_reminder::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
+use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{
-    CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError, common,
+    common, CommandError, DatabaseError, ModmailError, ModmailResult, ThreadError,
 };
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
@@ -157,10 +157,10 @@ impl RegistrableCommand for AddReminderCommand {
                 .unwrap_or(0);
 
             let time = NaiveTime::from_hms_opt(hours, minutes, 0).unwrap();
-            let now = Local::now();
-            let mut trigger_dt = now.date_naive().and_time(time);
+            let now = Local::now().naive_local();
+            let mut trigger_dt = now.date().and_time(time);
 
-            if trigger_dt < now.date_naive().and_time(time) {
+            if trigger_dt < now {
                 trigger_dt += chrono::Duration::days(1);
             }
 

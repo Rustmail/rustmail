@@ -1,4 +1,4 @@
-use crate::commands::CommandRegistry;
+use crate::commands::{CommandRegistry, CommunityRegistrable};
 use crate::config::Config;
 use crate::features::sync_features;
 use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
@@ -61,15 +61,29 @@ impl EventHandler for ReadyHandler {
         load_reminders(&ctx, &self.config, pool, self.shutdown.clone()).await;
 
         let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
+        let guild_id2 = GuildId::new(self.config.bot.get_community_guild_id());
 
-        let mut commands: Vec<CreateCommand> = Vec::new();
+        let mut guild_commands: Vec<CreateCommand> = Vec::new();
+        let mut community_commands: Vec<CreateCommand> = Vec::new();
 
         for command in self.registry.all() {
             let mut cmds = command.register(&self.config).await;
-            commands.append(&mut cmds);
+            guild_commands.append(&mut cmds);
+
+            if let Some(commu) = command.as_community() {
+                let mut commu_cmds = commu.register_community(&self.config).await;
+                community_commands.append(&mut commu_cmds);
+            }
         }
 
-        if let Err(e) = guild_id.set_commands(&ctx.http, commands).await {
+        if let Err(e) = guild_id
+            .set_commands(&ctx.http, guild_commands.clone())
+            .await
+        {
+            eprintln!("set_commands() failed: {:?}", e);
+        }
+
+        if let Err(e) = guild_id2.set_commands(&ctx.http, community_commands).await {
             eprintln!("set_commands() failed: {:?}", e);
         }
     }

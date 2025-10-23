@@ -5,7 +5,7 @@ use crate::commands::delete::common::{
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_message_id;
-use crate::errors::{MessageError, ModmailError, ModmailResult, common};
+use crate::errors::{common, MessageError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response_ephemeral;

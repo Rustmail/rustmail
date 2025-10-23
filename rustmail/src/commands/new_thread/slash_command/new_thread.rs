@@ -1,10 +1,10 @@
 use crate::commands::new_thread::common::send_welcome_message;
-use crate::commands::{BoxFuture, RegistrableCommand};
+use crate::commands::{BoxFuture, CommunityRegistrable, RegistrableCommand};
 use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
+    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
 };
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
@@ -24,6 +24,10 @@ pub struct NewThreadCommand;
 
 #[async_trait::async_trait]
 impl RegistrableCommand for NewThreadCommand {
+    fn as_community(&self) -> Option<&dyn CommunityRegistrable> {
+        Some(self)
+    }
+
     fn name(&self) -> &'static str {
         "new_thread"
     }
@@ -233,5 +237,11 @@ impl RegistrableCommand for NewThreadCommand {
 
             Ok(())
         })
+    }
+}
+
+impl CommunityRegistrable for NewThreadCommand {
+    fn register_community(&self, _config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+        Box::pin(async move { vec![CreateCommand::new("new_thread").kind(CommandType::User)] })
     }
 }

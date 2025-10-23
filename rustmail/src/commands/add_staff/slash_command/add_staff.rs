@@ -10,8 +10,8 @@ use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
-    CreateCommand, CreateCommandOption, ResolvedOption,
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
