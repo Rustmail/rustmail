@@ -2,9 +2,9 @@ use crate::commands::add_reminder::common::{
     send_register_confirmation_from_message, spawn_reminder,
 };
 use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
+use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
 use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime, TimeZone};
@@ -25,18 +25,15 @@ pub async fn add_reminder(
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    let content = match extract_reply_content(
-        &msg.content,
-        &config.command.prefix,
-        &["add_reminder", "add_rap"],
-    ) {
-        Some(c) => c,
-        None => {
-            return Err(ModmailError::Command(CommandError::InvalidArguments(
-                "No content provided".to_string(),
-            )));
-        }
-    };
+    let content =
+        match extract_reply_content(&msg.content, &config.command.prefix, &["remind", "rem"]) {
+            Some(c) => c,
+            None => {
+                return Err(ModmailError::Command(CommandError::InvalidArguments(
+                    "No content provided".to_string(),
+                )));
+            }
+        };
 
     let mut parts = content.splitn(2, ' ');
     let duration_str = parts.next().unwrap_or("");
