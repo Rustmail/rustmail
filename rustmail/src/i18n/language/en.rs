@@ -406,6 +406,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("The alert command must be used in a thread channel"),
     );
     dict.messages.insert(
+        "command.not_in_thread".to_string(),
+        DictionaryMessage::new("This command can only be used in a support thread"),
+    );
+    dict.messages.insert(
         "alert.set_failed".to_string(),
         DictionaryMessage::new("❌ Failed to set alert")
             .with_description("An error occurred while setting the alert"),

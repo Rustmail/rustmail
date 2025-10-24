@@ -120,7 +120,7 @@ pub fn find_best_match_category(
     }
 
     if let Some((id, name)) = best_match {
-        let max_distance = (target_name.len().max(name.len()) as f64 * 0.5) as usize;
+        let max_distance = (target_name.len().max(name.len()) as f64 * 0.7) as usize;
         if best_distance <= max_distance {
             return Some((id, name));
         }

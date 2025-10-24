@@ -244,6 +244,7 @@ impl DictionaryManager {
                 CommandError::ReminderAlreadyExists => {
                     ("reminder.reminder_already_exists".to_string(), None)
                 }
+                CommandError::NotInThread() => ("command.not_in_thread".to_string(), None),
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

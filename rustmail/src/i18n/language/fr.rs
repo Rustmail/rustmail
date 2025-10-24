@@ -432,6 +432,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         .with_description("La commande alert doit être utilisée dans un canal de thread"),
     );
     dict.messages.insert(
+        "command.not_in_thread".to_string(),
+        DictionaryMessage::new(
+            "Cette commande ne peut être utilisée que dans un thread de support",
+        ),
+    );
+    dict.messages.insert(
         "alert.set_failed".to_string(),
         DictionaryMessage::new("❌ Échec de la définition de l'alerte")
             .with_description("Une erreur s'est produite lors de la définition de l'alerte"),
