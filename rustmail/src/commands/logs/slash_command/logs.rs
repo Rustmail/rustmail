@@ -2,15 +2,14 @@ use crate::commands::logs::text_command::logs::{handle_logs_from_user_id, handle
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, ResolvedOption, UserId,
 };
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub struct LogsCommand;
 
@@ -19,7 +18,7 @@ impl RegistrableCommand for LogsCommand {
         "logs"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -54,9 +53,8 @@ impl RegistrableCommand for LogsCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();
@@ -89,7 +87,7 @@ impl RegistrableCommand for LogsCommand {
                     Some(command.clone()),
                     &config,
                     &pool,
-                    pagination,
+                    handler.pagination.clone(),
                 )
                 .await
             } else {
@@ -100,7 +98,7 @@ impl RegistrableCommand for LogsCommand {
                     &config,
                     &pool,
                     &user_id.unwrap().to_string(),
-                    pagination,
+                    handler.pagination.clone(),
                 )
                 .await
             }

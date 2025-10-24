@@ -3,27 +3,25 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{ModmailError, ModmailResult, common};
-use crate::types::logs::PaginationStore;
+use crate::errors::{common, ModmailError, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn remove_staff(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    let user_id_str = extract_user_id(msg, config).await;
+    let user_id_str = extract_user_id(&msg, config).await;
 
     if user_id_str.is_empty() {
         return Err(ModmailError::Command(InvalidFormat));
@@ -35,12 +33,12 @@ pub async fn remove_staff(
     };
 
     if thread_exists(msg.author.id, pool).await {
-        match remove_user_from_channel(ctx, msg.channel_id, user_id).await {
+        match remove_user_from_channel(&ctx, msg.channel_id, user_id).await {
             Ok(_) => {
                 let mut params = HashMap::new();
                 params.insert("user".to_string(), format!("<@{}>", user_id));
 
-                let _ = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(&ctx, config)
                     .translated_content("add_staff.remove_success", Some(&params), None, None)
                     .await
                     .to_channel(msg.channel_id)

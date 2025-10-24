@@ -5,9 +5,9 @@ use crate::commands::delete::common::{
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_message_id;
-use crate::errors::{MessageError, ModmailError, ModmailResult, common};
+use crate::errors::{common, MessageError, ModmailError, ModmailResult};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
@@ -16,7 +16,6 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub struct DeleteCommand;
 
@@ -26,7 +25,7 @@ impl RegistrableCommand for DeleteCommand {
         "delete"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -71,9 +70,8 @@ impl RegistrableCommand for DeleteCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();

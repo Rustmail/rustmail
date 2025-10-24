@@ -1,17 +1,15 @@
 use crate::config::Config;
 use crate::errors::ModmailResult;
-use crate::types::logs::PaginationStore;
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn help(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let help_message = "# Available commands:\n\n\
         **!add_staff <staff_id>** - Add a staff to an hidden ticket\n\
@@ -28,7 +26,7 @@ pub async fn help(
         **!force_close** - Force close the current thread if it's orphaned\n\
         **!id** - Show the user ID associated with the current thread";
 
-    MessageBuilder::system_message(ctx, config)
+    MessageBuilder::system_message(&ctx, config)
         .content(help_message)
         .to_channel(msg.channel_id)
         .send(false)

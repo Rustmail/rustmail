@@ -2,12 +2,12 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{
     Attachment, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
@@ -15,7 +15,6 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub struct ReplyCommand;
 
@@ -25,7 +24,7 @@ impl RegistrableCommand for ReplyCommand {
         "reply"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -100,9 +99,8 @@ impl RegistrableCommand for ReplyCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();

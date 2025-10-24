@@ -4,14 +4,13 @@ use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
 use crate::errors::{DatabaseError, ModmailError, ModmailResult};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::CreateCommand;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub struct IdCommand;
 
@@ -21,7 +20,7 @@ impl RegistrableCommand for IdCommand {
         "id"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -45,9 +44,8 @@ impl RegistrableCommand for IdCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();

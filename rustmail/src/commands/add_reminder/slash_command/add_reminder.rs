@@ -6,8 +6,8 @@ use crate::config::Config;
 use crate::db::reminders::{insert_reminder, Reminder};
 use crate::db::threads::get_thread_by_user_id;
 use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use chrono::{Local, NaiveTime, TimeZone};
 use regex::Regex;
@@ -16,7 +16,6 @@ use serenity::all::{
     CreateCommandOption, ResolvedOption,
 };
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub struct AddReminderCommand;
 
@@ -26,7 +25,7 @@ impl RegistrableCommand for AddReminderCommand {
         "remind"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
         let name = self.name();
 
@@ -84,9 +83,8 @@ impl RegistrableCommand for AddReminderCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();
@@ -205,7 +203,14 @@ impl RegistrableCommand for AddReminderCommand {
             )
             .await;
 
-            spawn_reminder(&reminder, Some(reminder_id), &ctx, &config, &pool, shutdown);
+            spawn_reminder(
+                &reminder,
+                Some(reminder_id),
+                &ctx,
+                &config,
+                &pool,
+                handler.shutdown.clone(),
+            );
 
             Ok(())
         })

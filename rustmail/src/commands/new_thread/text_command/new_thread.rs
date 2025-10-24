@@ -5,32 +5,30 @@ use crate::commands::new_thread::common::{
 use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
+use crate::errors::{common, DiscordError, ModmailError, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::user_recap::get_user_recap;
 use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
 use serenity::all::{ChannelId, Context, GuildId, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn new_thread(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    let user_id = extract_user_id(msg, config).await;
+    let user_id = extract_user_id(&msg, config).await;
     if user_id.is_none() {
-        send_error_message(ctx, msg, config, "new_thread.missing_user", None).await;
+        send_error_message(&ctx, &msg, config, "new_thread.missing_user", None).await;
         return Ok(());
     }
 
@@ -52,15 +50,15 @@ pub async fn new_thread(
             params.insert("channel_id".to_string(), channel_id_str.clone());
 
             send_error_message(
-                ctx,
-                msg,
+                &ctx,
+                &msg,
                 config,
                 "new_thread.user_has_thread_with_link",
                 Some(&params),
             )
             .await;
         } else {
-            send_error_message(ctx, msg, config, "new_thread.user_has_thread", None).await;
+            send_error_message(&ctx, &msg, config, "new_thread.user_has_thread", None).await;
         }
         return Ok(());
     }
@@ -80,7 +78,14 @@ pub async fn new_thread(
         Ok(channel) => channel,
         Err(e) => {
             eprintln!("Failed to create channel: {}", e);
-            send_error_message(ctx, msg, config, "new_thread.channel_creation_failed", None).await;
+            send_error_message(
+                &ctx,
+                &msg,
+                config,
+                "new_thread.channel_creation_failed",
+                None,
+            )
+            .await;
             return Ok(());
         }
     };
@@ -128,20 +133,20 @@ pub async fn new_thread(
         Err(e) => {
             eprintln!("Failed to create thread in database: {}", e);
             let _ = guild_channel.delete(&ctx.http).await;
-            send_error_message(ctx, msg, config, "new_thread.database_error", None).await;
+            send_error_message(&ctx, &msg, config, "new_thread.database_error", None).await;
             return Ok(());
         }
     };
 
-    send_welcome_message(ctx, &guild_channel, config, &user).await;
+    send_welcome_message(&ctx, &guild_channel, config, &user).await;
 
-    match send_dm_to_user(ctx, &user, config).await {
+    match send_dm_to_user(&ctx, &user, config).await {
         Ok(_) => {
-            send_success_message(ctx, msg, config, &user, &guild_channel, true).await;
+            send_success_message(&ctx, &msg, config, &user, &guild_channel, true).await;
         }
         Err(dm_error) => {
             eprintln!("Failed to send DM to user: {}", dm_error);
-            send_success_message(ctx, msg, config, &user, &guild_channel, false).await;
+            send_success_message(&ctx, &msg, config, &user, &guild_channel, false).await;
         }
     }
 
