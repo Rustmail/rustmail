@@ -82,7 +82,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
         wrap_command!(h.commands, ["force_close", "fc"], force_close);
         wrap_command!(h.commands, ["addmod", "am"], add_staff);
-        wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
+        wrap_command!(h.commands, ["delmod", "dm"], remove_staff);
         wrap_command!(h.commands, "id", id);
         wrap_command!(h.commands, "help", help);
         wrap_command!(h.commands, ["remind", "rem"], add_reminder);

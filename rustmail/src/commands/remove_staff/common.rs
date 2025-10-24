@@ -28,13 +28,13 @@ pub async fn remove_user_from_channel(
 pub async fn extract_user_id(msg: &Message, config: &Config) -> String {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
-    let command_names = ["remove_staff", "rs"];
+    let command_names = ["delmod", "dm"];
 
-    if command_names
+    if let Some(matched_name) = command_names
         .iter()
-        .any(|&name| content.starts_with(&format!("{}{}", prefix, name)))
+        .find(|&name| content.starts_with(&format!("{}{}", prefix, name)))
     {
-        let start = prefix.len() + command_names[0].len();
+        let start = prefix.len() + matched_name.len();
         content[start..].trim().to_string()
     } else {
         String::new()
