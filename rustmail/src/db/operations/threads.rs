@@ -1,5 +1,6 @@
 use crate::db::repr::Thread;
-use crate::errors::ModmailResult;
+use crate::errors::CommandError::AlertDoesNotExist;
+use crate::errors::{DatabaseError, ModmailError, ModmailResult};
 use chrono::Utc;
 use serenity::all::{ChannelId, GuildChannel, UserId};
 use sqlx::{Error, SqlitePool};
@@ -248,8 +249,24 @@ pub async fn cancel_alert_for_staff(
     staff_user_id: serenity::all::UserId,
     thread_user_id: i64,
     pool: &SqlitePool,
-) -> Result<(), Error> {
+) -> ModmailResult<()> {
     let staff_user_id_i64 = staff_user_id.get() as i64;
+
+    let existing = sqlx::query_scalar!(
+        r#"
+        SELECT id FROM staff_alerts
+        WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE
+        "#,
+        staff_user_id_i64,
+        thread_user_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    if existing.is_none() {
+        return Err(ModmailError::Command(AlertDoesNotExist));
+    }
+
     sqlx::query!(
         "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ?",
         staff_user_id_i64,
@@ -265,15 +282,25 @@ pub async fn set_alert_for_staff(
     staff_user_id: UserId,
     thread_user_id: i64,
     pool: &SqlitePool,
-) -> Result<(), Error> {
+) -> ModmailResult<()> {
     let staff_user_id_i64 = staff_user_id.get() as i64;
-    sqlx::query!(
-        "DELETE FROM staff_alerts WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE",
+
+    let existing = sqlx::query_scalar!(
+        r#"
+        SELECT id FROM staff_alerts
+        WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE
+        "#,
         staff_user_id_i64,
         thread_user_id
     )
-    .execute(pool)
+    .fetch_optional(pool)
     .await?;
+
+    if existing.is_some() {
+        return Err(ModmailError::Database(DatabaseError::InsertFailed(
+            "".to_string(),
+        )));
+    }
 
     sqlx::query!(
         "INSERT INTO staff_alerts (staff_user_id, thread_user_id) VALUES (?, ?)",
