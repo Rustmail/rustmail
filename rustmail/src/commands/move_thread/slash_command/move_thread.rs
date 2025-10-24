@@ -12,8 +12,8 @@ use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    ResolvedOption,
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -53,7 +53,7 @@ impl RegistrableCommand for MoveCommand {
             vec![
                 CreateCommand::new("move").description(cmd_desc).add_option(
                     CreateCommandOption::new(
-                        CommandOptionType::String,
+                        CommandOptionType::Channel,
                         "category",
                         catagory_field_desc,
                     )
@@ -93,18 +93,22 @@ impl RegistrableCommand for MoveCommand {
                 return Err(ModmailError::Command(CommandError::NotInThread()));
             }
 
-            let category_name = match command
+            let category_option = command
                 .data
                 .options
                 .iter()
                 .find(|opt| opt.name == "category")
-            {
-                Some(opt) => match &opt.value {
-                    serenity::all::CommandDataOptionValue::String(name) => name.trim().to_string(),
-                    _ => String::new(),
-                },
-                None => String::new(),
+                .ok_or(ModmailError::Command(CommandError::MissingArguments))?;
+
+            let category_channel = match &category_option.value {
+                CommandDataOptionValue::Channel(category) => category,
+                _ => return Err(ModmailError::Command(CommandError::MissingArguments)),
             };
+
+            let category_name = category_channel
+                .name(&ctx.http)
+                .await
+                .map_err(|_| ModmailError::Command(CommandError::MissingArguments))?;
 
             if category_name.is_empty() {
                 return Err(ModmailError::Thread(ThreadError::CategoryNotFound));
