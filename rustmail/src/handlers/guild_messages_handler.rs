@@ -86,7 +86,7 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "id", id);
         wrap_command!(h.commands, "help", help);
         wrap_command!(h.commands, ["remind", "rem"], add_reminder);
-        wrap_command!(h.commands, ["remove_reminder", "rr"], remove_reminder);
+        wrap_command!(h.commands, ["unremind", "urem"], remove_reminder);
         wrap_command!(h.commands, "logs", logs);
         h
     }
