@@ -1,11 +1,13 @@
 use crate::config::Config;
 use crate::db::{cancel_alert_for_staff, get_user_id_from_channel_id, set_alert_for_staff};
+use crate::errors::CommandError::AlertDoesNotExist;
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::DiscordError::ApiError;
-use crate::errors::{ModmailError, ModmailResult, common};
+use crate::errors::{common, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::colours::branding::GREEN;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, Message};
+use serenity::futures::SinkExt;
 use std::collections::HashMap;
 
 pub async fn get_thread_user_id_from_msg(
@@ -74,9 +76,7 @@ pub async fn handle_cancel_alert_from_msg(
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
     if let Err(e) = cancel_alert_for_staff(msg.author.id, user_id, pool).await {
-        eprintln!("Failed to cancel alert: {}", e);
-        send_alert_message(ctx, msg, config, "alert.cancel_failed", None).await;
-        return Ok(());
+        return Err(e);
     }
 
     let mut params = HashMap::new();
@@ -93,8 +93,8 @@ pub async fn handle_cancel_alert_from_command(
     user_id: i64,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
-    if let Err(e) = cancel_alert_for_staff(command.user.id, user_id, pool).await {
-        Err(ModmailError::Database(QueryFailed(e.to_string())))
+    if let Err(_) = cancel_alert_for_staff(command.user.id, user_id, pool).await {
+        Err(ModmailError::Command(AlertDoesNotExist))
     } else {
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", user_id));
@@ -125,7 +125,6 @@ pub async fn handle_set_alert_from_msg(
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
     if let Err(e) = set_alert_for_staff(msg.author.id, user_id, pool).await {
-        eprintln!("Failed to set alert: {}", e);
         send_alert_message(ctx, msg, config, "alert.set_failed", None).await;
         return Ok(());
     }
@@ -175,14 +174,7 @@ pub async fn send_alert_message(
     message_key: &str,
     params: Option<&HashMap<String, String>>,
 ) {
-    let bot_user = match ctx.http.get_current_user().await {
-        Ok(user) => user,
-        Err(_) => return,
-    };
-
-    let bot_user_id = ctx.cache.current_user().id;
-
-    let _ = MessageBuilder::staff_message(ctx, config, bot_user_id, bot_user.name.clone())
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             message_key,
             params,
@@ -191,7 +183,6 @@ pub async fn send_alert_message(
         )
         .await
         .to_channel(msg.channel_id)
-        .color(GREEN.0)
         .send(false)
         .await;
 }
@@ -205,7 +196,7 @@ pub async fn extract_alert_action(msg: &Message, config: &Config) -> bool {
         let start = prefix.len() + command_name.len();
         let args = content[start..].trim();
 
-        args.to_lowercase() == "cancel"
+        args.contains("cancel") || args.contains("c")
     } else {
         false
     }

@@ -77,6 +77,7 @@ pub enum CommandError {
     SendDmFailed,
     DiscordDeleteFailed,
     ReminderAlreadyExists,
+    AlertDoesNotExist,
 }
 
 #[derive(Debug, Clone)]
@@ -230,6 +231,7 @@ impl fmt::Display for CommandError {
             CommandError::SendDmFailed => write!(f, "Failed to send DM to user"),
             CommandError::DiscordDeleteFailed => write!(f, "Failed to delete message on Discord"),
             CommandError::ReminderAlreadyExists => write!(f, "A reminder already exists"),
+            CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
         }
     }
 }
