@@ -24,7 +24,7 @@ use crate::db::operations::{
 };
 use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -81,12 +81,12 @@ impl GuildMessagesHandler {
         wrap_command!(h.commands, "delete", delete);
         wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
         wrap_command!(h.commands, ["force_close", "fc"], force_close);
-        wrap_command!(h.commands, ["add_staff", "as"], add_staff);
-        wrap_command!(h.commands, ["remove_staff", "rs"], remove_staff);
+        wrap_command!(h.commands, ["addmod", "am"], add_staff);
+        wrap_command!(h.commands, ["delmod", "dm"], remove_staff);
         wrap_command!(h.commands, "id", id);
         wrap_command!(h.commands, "help", help);
-        wrap_command!(h.commands, ["add_reminder", "add_rap"], add_reminder);
-        wrap_command!(h.commands, ["remove_reminder", "rr"], remove_reminder);
+        wrap_command!(h.commands, ["remind", "rem"], add_reminder);
+        wrap_command!(h.commands, ["unremind", "urem"], remove_reminder);
         wrap_command!(h.commands, "logs", logs);
         h
     }

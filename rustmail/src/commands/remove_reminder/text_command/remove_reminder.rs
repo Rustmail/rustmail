@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::db::reminders::{get_reminder_by_id, update_reminder_status};
-use crate::errors::{CommandError, DatabaseError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, DatabaseError, ModmailError, ModmailResult};
 use crate::types::logs::PaginationStore;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
@@ -21,18 +21,15 @@ pub async fn remove_reminder(
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    let content = match extract_reply_content(
-        &msg.content,
-        &config.command.prefix,
-        &["remove_reminder", "rr"],
-    ) {
-        Some(c) => c,
-        None => {
-            return Err(ModmailError::Command(CommandError::InvalidArguments(
-                "".to_string(),
-            )));
-        }
-    };
+    let content =
+        match extract_reply_content(&msg.content, &config.command.prefix, &["unremind", "urem"]) {
+            Some(c) => c,
+            None => {
+                return Err(ModmailError::Command(CommandError::InvalidArguments(
+                    "".to_string(),
+                )));
+            }
+        };
 
     let reminder_id = match content.parse::<u64>() {
         Ok(id) => id,

@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
 use crate::i18n::get_translated_message;
 use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
@@ -22,11 +22,12 @@ pub struct RemoveStaffCommand;
 #[async_trait::async_trait]
 impl RegistrableCommand for RemoveStaffCommand {
     fn name(&self) -> &'static str {
-        "remove_staff"
+        "delmod"
     }
 
     fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
         let config = config.clone();
+        let name = self.name();
 
         Box::pin(async move {
             let cmd_desc = get_translated_message(
@@ -50,13 +51,11 @@ impl RegistrableCommand for RemoveStaffCommand {
             .await;
 
             vec![
-                CreateCommand::new("remove_staff")
-                    .description(cmd_desc)
-                    .add_option(
-                        CreateCommandOption::new(CommandOptionType::User, "user_id", user_id_desc)
-                            .required(true),
-                    ),
-                CreateCommand::new("remove_staff").kind(CommandType::User),
+                CreateCommand::new(name).description(cmd_desc).add_option(
+                    CreateCommandOption::new(CommandOptionType::User, "user_id", user_id_desc)
+                        .required(true),
+                ),
+                CreateCommand::new(name).kind(CommandType::User),
             ]
         })
     }

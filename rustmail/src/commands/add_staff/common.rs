@@ -29,13 +29,13 @@ pub async fn add_user_to_channel(
 pub async fn extract_user_id(msg: &Message, config: &Config) -> String {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
-    let command_names = ["add_staff", "as"];
+    let command_names = ["addmod", "am"];
 
-    if command_names
+    if let Some(matched_name) = command_names
         .iter()
-        .any(|&name| content.starts_with(&format!("{}{}", prefix, name)))
+        .find(|&name| content.starts_with(&format!("{}{}", prefix, name)))
     {
-        let start = prefix.len() + command_names[0].len();
+        let start = prefix.len() + matched_name.len();
         content[start..].trim().to_string()
     } else {
         String::new()
