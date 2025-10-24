@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id FROM reminders\n        WHERE user_id = ? AND guild_id = ? AND trigger_time = ? AND completed = 0\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "dee8be2076aabbf5c6895c2b0824dced4343f955a6361389fd36c932fe249b2d"
+}
