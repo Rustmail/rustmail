@@ -36,6 +36,8 @@ pub trait RegistrableCommand: Any + Send + Sync {
 
     fn name(&self) -> &'static str;
 
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String>;
+
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>>;
 
     fn run(
