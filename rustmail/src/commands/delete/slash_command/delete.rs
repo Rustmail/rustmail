@@ -16,6 +16,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct DeleteCommand;
 
@@ -23,6 +24,12 @@ pub struct DeleteCommand;
 impl RegistrableCommand for DeleteCommand {
     fn name(&self) -> &'static str {
         "delete"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.delete", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

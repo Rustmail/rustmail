@@ -15,6 +15,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct ReplyCommand;
 
@@ -22,6 +23,12 @@ pub struct ReplyCommand;
 impl RegistrableCommand for ReplyCommand {
     fn name(&self) -> &'static str {
         "reply"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.reply", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

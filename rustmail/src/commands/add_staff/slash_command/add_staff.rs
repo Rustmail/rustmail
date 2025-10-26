@@ -15,12 +15,19 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct AddStaffCommand;
 
 impl RegistrableCommand for AddStaffCommand {
     fn name(&self) -> &'static str {
         "addmod"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.add_staff", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

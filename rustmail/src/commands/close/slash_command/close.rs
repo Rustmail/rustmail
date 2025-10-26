@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::category::{
@@ -22,6 +22,7 @@ use serenity::all::{
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
+use serenity::FutureExt;
 use tokio::time::sleep;
 
 pub struct CloseCommand;
@@ -30,6 +31,12 @@ pub struct CloseCommand;
 impl RegistrableCommand for CloseCommand {
     fn name(&self) -> &'static str {
         "close"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.close", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

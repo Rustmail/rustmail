@@ -9,6 +9,7 @@ use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct RecoverCommand;
 
@@ -16,6 +17,12 @@ pub struct RecoverCommand;
 impl RegistrableCommand for RecoverCommand {
     fn name(&self) -> &'static str {
         "recover"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.recover", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

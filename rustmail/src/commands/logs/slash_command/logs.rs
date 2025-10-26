@@ -10,12 +10,19 @@ use serenity::all::{
     CreateCommandOption, ResolvedOption, UserId,
 };
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct LogsCommand;
 
 impl RegistrableCommand for LogsCommand {
     fn name(&self) -> &'static str {
         "logs"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.logs", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

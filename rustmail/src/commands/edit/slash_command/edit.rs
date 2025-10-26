@@ -16,6 +16,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct EditCommand;
 
@@ -23,6 +24,12 @@ pub struct EditCommand;
 impl RegistrableCommand for EditCommand {
     fn name(&self) -> &'static str {
         "edit"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.edit", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

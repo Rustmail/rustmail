@@ -11,6 +11,7 @@ use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::CreateCommand;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct IdCommand;
 
@@ -18,6 +19,12 @@ pub struct IdCommand;
 impl RegistrableCommand for IdCommand {
     fn name(&self) -> &'static str {
         "id"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.id", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

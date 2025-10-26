@@ -9,6 +9,7 @@ use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct ForceCloseCommand;
 
@@ -16,6 +17,12 @@ pub struct ForceCloseCommand;
 impl RegistrableCommand for ForceCloseCommand {
     fn name(&self) -> &'static str {
         "force_close"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.force_close", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

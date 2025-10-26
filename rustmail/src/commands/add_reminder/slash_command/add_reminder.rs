@@ -16,6 +16,7 @@ use serenity::all::{
     CreateCommandOption, ResolvedOption,
 };
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct AddReminderCommand;
 
@@ -23,6 +24,12 @@ pub struct AddReminderCommand;
 impl RegistrableCommand for AddReminderCommand {
     fn name(&self) -> &'static str {
         "remind"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.add_reminder", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

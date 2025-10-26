@@ -12,12 +12,19 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct RemoveReminderCommand;
 
 impl RegistrableCommand for RemoveReminderCommand {
     fn name(&self) -> &'static str {
         "unremind"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.remove_reminder", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

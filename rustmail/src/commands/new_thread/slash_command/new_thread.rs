@@ -18,6 +18,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use serenity::FutureExt;
 
 pub struct NewThreadCommand;
 
@@ -29,6 +30,12 @@ impl RegistrableCommand for NewThreadCommand {
 
     fn name(&self) -> &'static str {
         "new_thread"
+    }
+
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.new_thread", None, None, None, None).await
+        }.boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
