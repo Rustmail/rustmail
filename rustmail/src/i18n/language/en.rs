@@ -803,6 +803,74 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.reminder_already_exists".to_string(),
-        DictionaryMessage::new("Vous avez déjà un rappel programmé à cette heure."),
+        DictionaryMessage::new("You already have a reminder scheduled for that time."),
+    );
+    dict.messages.insert(
+        "help.add_reminder".to_string(),
+        DictionaryMessage::new("Sets a reminder for a specific time. To do so, use `!remind <HH:MM> <reminder content>` or `!rem <HH:MM> <reminder content>`. If the specified time has already passed today, the reminder will be scheduled for tomorrow."),
+    );
+    dict.messages.insert(
+        "help.add_staff".to_string(),
+        DictionaryMessage::new("Adds a staff member to a ticket. To do so, use `!addmod <staff_id>` or `!am <staff_id>` inside a ticket."),
+    );
+    dict.messages.insert(
+        "help.alert".to_string(),
+        DictionaryMessage::new("Sets an alert for a user when they send a new message. To create an alert, use `!alert` inside a ticket. To cancel a scheduled alert, use `!alert cancel` or `!alert c`."),
+    );
+    dict.messages.insert(
+        "help.close".to_string(),
+        DictionaryMessage::new("Closes the current ticket. You can specify a delay before closing using `!close <duration (d, h, m or s)>` or `!c <duration (d, h, m or s)>`. You can also add the `--silent` or `-s` option to avoid notifying the user that their ticket has been closed. To cancel a scheduled closure, use `!close --cancel`, `!close -c`, or `!close cancel`."),
+    );
+    dict.messages.insert(
+        "help.delete".to_string(),
+        DictionaryMessage::new("Deletes a specific message within a thread. To do so, use `!delete <message_id>` inside a ticket."),
+    );
+    dict.messages.insert(
+        "help.edit".to_string(),
+        DictionaryMessage::new("Edits the content of a previously sent message in a ticket. To edit a message, use `!edit <message_id> <new content>` or `!e <message_id> <new content>` inside a ticket."),
+    );
+    dict.messages.insert(
+        "help.force_close".to_string(),
+        DictionaryMessage::new("Force-closes a ticket when an error prevents normal closure. This command will be removed in future versions. To force-close a ticket, use `!force_close` or `!fc` inside a ticket."),
+    );
+    dict.messages.insert(
+        "help.help".to_string(),
+        DictionaryMessage::new("Displays a list of all available commands with a short description. To view the help message, use `!help`."),
+    );
+    dict.messages.insert(
+        "help.id".to_string(),
+        DictionaryMessage::new("Displays the Discord ID of the user associated with the ticket. To view the user's ID, use `!id` inside a ticket."),
+    );
+    dict.messages.insert(
+        "help.logs".to_string(),
+        DictionaryMessage::new("Retrieves logs from all previous tickets of a user. You can either specify a Discord ID (`!logs <discord_id>`) or run the command inside a ticket to get that ticket’s logs."),
+    );
+    dict.messages.insert(
+        "help.move".to_string(),
+        DictionaryMessage::new("Moves the current ticket to another category. To move a ticket, use `!move <category>` or `!mv <category>` inside the ticket."),
+    );
+    dict.messages.insert(
+        "help.new_thread".to_string(),
+        DictionaryMessage::new("Creates a new ticket for a specified user. To create a ticket, use `!new_thread <user>` or `!nt <user>`."),
+    );
+    dict.messages.insert(
+        "help.recover".to_string(),
+        DictionaryMessage::new("Starts the process of recovering missing messages in Modmail tickets. This process runs automatically, but you can trigger it manually if needed. To do so, use `!recover`."),
+    );
+    dict.messages.insert(
+        "help.remove_reminder".to_string(),
+        DictionaryMessage::new("Deletes a reminder you previously set. To remove a reminder, use `!unremind <id>` or `!urem <id>`."),
+    );
+    dict.messages.insert(
+        "help.remove_staff".to_string(),
+        DictionaryMessage::new("Removes a staff member from the current ticket. To remove a staff member, use `!delmod <user>` or `!dm <user>` inside the ticket."),
+    );
+    dict.messages.insert(
+        "help.reply".to_string(),
+        DictionaryMessage::new("Replies in a ticket. To reply, use `!reply <message> [attachment]` or `!r <message> [attachment]` inside the ticket. If you want to reply anonymously, use `!anonreply`, `!ar`, or specify the option in the slash command `/reply`."),
+    );
+    dict.messages.insert(
+        "help.message".to_string(),
+        DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands_** with the **__same name__**.\n\n"),
     );
 }
