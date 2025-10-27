@@ -42,7 +42,7 @@ pub async fn remove_staff(
                     .translated_content("add_staff.remove_success", Some(&params), None, None)
                     .await
                     .to_channel(msg.channel_id)
-                    .send(false)
+                    .send(true)
                     .await;
 
                 Ok(())

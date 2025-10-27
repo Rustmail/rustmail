@@ -89,7 +89,7 @@ pub async fn send_to_thread(
             .translated_content("user.left_server", Some(&params), Some(msg.author.id), None)
             .await
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await;
     }
 
@@ -107,7 +107,7 @@ pub async fn send_to_thread(
             )
             .await
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await;
     }
 
@@ -171,7 +171,7 @@ pub async fn send_to_thread(
             .content(full_content)
             .mention(mentions)
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await;
 
         for staff_id in &alerts {

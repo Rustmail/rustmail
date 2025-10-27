@@ -6,7 +6,7 @@ use crate::db::{
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, UserId};
-use tokio::time::{Duration, sleep};
+use tokio::time::{sleep, Duration};
 
 fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
     let now = Utc::now().timestamp();
@@ -40,7 +40,7 @@ fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
                                 .to_user(user_id)
-                                .send(false)
+                                .send(true)
                                 .await;
                         }
                         let _ = channel_id.delete(&ctx_clone.http).await;
@@ -90,7 +90,7 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
                     let _ = MessageBuilder::system_message(ctx, config)
                         .content(&config.bot.close_message)
                         .to_user(user_id)
-                        .send(false)
+                        .send(true)
                         .await;
                 }
                 let _ = channel_id.delete(&ctx.http).await;

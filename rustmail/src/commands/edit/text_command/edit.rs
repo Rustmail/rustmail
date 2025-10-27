@@ -118,7 +118,7 @@ pub async fn edit(
                     .await
                     .color(hex_string_to_int(&config.thread.system_message_color) as u32)
                     .to_channel(msg.channel_id)
-                    .send(false)
+                    .send(true)
                     .await;
             };
 
@@ -154,7 +154,7 @@ pub async fn edit(
                     )
                     .await
                     .to_channel(msg.channel_id)
-                    .send(false)
+                    .send(true)
                     .await;
             }
 

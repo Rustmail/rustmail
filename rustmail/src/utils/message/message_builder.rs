@@ -481,7 +481,7 @@ impl<'a> MessageBuilder<'a> {
         };
 
         if to_be_recorded {
-            match insert_staff_message(
+            let _ = insert_staff_message(
                 &self.ctx,
                 &message,
                 dm_message_id,
@@ -492,14 +492,7 @@ impl<'a> MessageBuilder<'a> {
                 self.config,
                 None,
             )
-            .await
-            {
-                Ok(_) => (),
-                Err(e) => {
-                    println!("Failed to record sent message: {}", e);
-                    return Err(ModmailError::from(e));
-                }
-            };
+            .await;
         }
 
         Ok(message)
@@ -607,7 +600,7 @@ impl<'a> MessageBuilder<'a> {
     }
 
     pub async fn send_and_forget(self) {
-        if let Err(e) = self.send(false).await {
+        if let Err(e) = self.send(true).await {
             eprintln!("Failed to send message: {}", e);
         }
     }
@@ -651,7 +644,7 @@ impl<'a> MessageBuilder<'a> {
         Self::system_message(ctx, config)
             .content(content)
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await
     }
 
@@ -664,7 +657,7 @@ impl<'a> MessageBuilder<'a> {
         Self::system_message(ctx, config)
             .content(content)
             .to_user(user_id)
-            .send(false)
+            .send(true)
             .await
     }
 
@@ -677,7 +670,7 @@ impl<'a> MessageBuilder<'a> {
         Self::system_message(ctx, config)
             .content(content)
             .reply_to(message)
-            .send(false)
+            .send(true)
             .await
     }
 }
@@ -794,7 +787,7 @@ impl<'a> StaffReply<'a> {
                 .color(hex_string_to_int(&self.config.thread.staff_message_color) as u32)
                 .to_user(dm_user);
 
-            match dm_builder.send(false).await {
+            match dm_builder.send(true).await {
                 Ok(m) => Some(m),
                 Err(e) => {
                     eprintln!("Failed to send DM to user: {}", e);
@@ -838,7 +831,7 @@ impl<'a> StaffReply<'a> {
             .add_attachments(self.attachments.clone())
             .to_channel(thread_channel);
 
-        let thread_msg = thread_builder.send(false).await?;
+        let thread_msg = thread_builder.send(true).await?;
 
         let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
 
@@ -990,7 +983,7 @@ impl<'a> UserIncoming<'a> {
         .content(self.content)
         .add_attachments(self.attachments)
         .to_channel(thread_channel);
-        let sent = builder.send(false).await?;
+        let sent = builder.send(true).await?;
         if let Err(e) = insert_user_message_with_ids(
             self.dm_msg,
             &sent,

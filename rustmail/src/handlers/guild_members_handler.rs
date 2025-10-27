@@ -96,7 +96,7 @@ impl EventHandler for GuildMembersHandler {
             .await
             .to_channel(channel_id)
             .components(close_buttons)
-            .send(false)
+            .send(true)
             .await;
 
         if let Err(e) = update_thread_user_left(&thread.channel_id, pool).await {

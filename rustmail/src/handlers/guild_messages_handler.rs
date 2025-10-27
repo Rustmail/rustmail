@@ -290,7 +290,7 @@ impl EventHandler for GuildMessagesHandler {
                 .to_channel(ChannelId::new(
                     thread.channel_id.parse::<u64>().unwrap_or(0),
                 ))
-                .send(false)
+                .send(true)
                 .await;
         }
 
@@ -418,7 +418,7 @@ impl EventHandler for GuildMessagesHandler {
                             )
                             .await
                             .to_channel(channel_id_parse)
-                            .send(false)
+                            .send(true)
                             .await;
                     }
 

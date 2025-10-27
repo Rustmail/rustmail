@@ -7,7 +7,6 @@ use crate::errors::{common, ModmailError, ModmailResult};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::colours::branding::GREEN;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, Message};
-use serenity::futures::SinkExt;
 use std::collections::HashMap;
 
 pub async fn get_thread_user_id_from_msg(
@@ -183,7 +182,7 @@ pub async fn send_alert_message(
         )
         .await
         .to_channel(msg.channel_id)
-        .send(false)
+        .send(true)
         .await;
 }
 
