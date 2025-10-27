@@ -871,6 +871,6 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.message".to_string(),
-        DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands_** with the **__same name__**.\n\n"),
+        DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands__** with the **__same name__**.\n\n"),
     );
 }
