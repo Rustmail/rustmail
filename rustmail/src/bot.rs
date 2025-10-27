@@ -14,6 +14,7 @@ use crate::commands::recover::slash_command::recover::RecoverCommand;
 use crate::commands::remove_reminder::slash_command::remove_reminder::RemoveReminderCommand;
 use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
 use crate::commands::reply::slash_command::reply::ReplyCommand;
+use crate::commands::take::slash_command::take::TakeCommand;
 use crate::commands::CommandRegistry;
 use crate::config::load_config;
 use crate::errors::types::ConfigError;
@@ -160,6 +161,7 @@ pub async fn run_bot(
     registry.register_command(AddReminderCommand);
     registry.register_command(RemoveReminderCommand);
     registry.register_command(LogsCommand);
+    registry.register_command(TakeCommand);
 
     let registry = Arc::new(registry);
 

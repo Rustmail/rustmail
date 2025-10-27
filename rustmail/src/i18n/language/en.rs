@@ -874,9 +874,25 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands__** with the **__same name__**.\n\n"),
     );
     dict.messages.insert(
+        "help.take".to_string(),
+        DictionaryMessage::new("Allows you to take ownership of a ticket by replacing its name with yours. To take a ticket, use `!take` in the ticket."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new(
             "Incorrect format. Use : `{prefix}remind or {prefix}rem <HH:MM> [content]`",
         ),
+    );
+    dict.messages.insert(
+        "take.ticket_already_taken".to_string(),
+        DictionaryMessage::new("You have already taken this ticket."),
+    );
+    dict.messages.insert(
+        "take.confirmation".to_string(),
+        DictionaryMessage::new("The ticket is now taken by {staff}."),
+    );
+    dict.messages.insert(
+        "slash_command.help_command_description".to_string(),
+        DictionaryMessage::new("Take ownership of the current ticket."),
     );
 }

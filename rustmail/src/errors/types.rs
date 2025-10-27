@@ -79,6 +79,7 @@ pub enum CommandError {
     ReminderAlreadyExists,
     AlertDoesNotExist,
     InvalidReminderFormat,
+    TicketAlreadyTaken,
 }
 
 #[derive(Debug, Clone)]
@@ -234,6 +235,7 @@ impl fmt::Display for CommandError {
             CommandError::ReminderAlreadyExists => write!(f, "A reminder already exists"),
             CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
+            CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
         }
     }
 }
