@@ -49,15 +49,21 @@ pub fn panel() -> Html {
         });
     }
 
-    {
-        let authorized = authorized.clone();
-        use_effect_with((*authorized).clone(), move |auth| {
-            if matches!(auth, Some(false)) {
-                let _ = window().location().set_href("/");
+    let authorized = authorized.clone();
+    use_effect_with((*authorized).clone(), move |auth| {
+        if matches!(auth, Some(false)) {
+            let win = window();
+            if let Ok(pathname) = win.location().pathname() {
+                let redirect = urlencoding::encode(&pathname);
+                let _ = win
+                    .location()
+                    .set_href(&format!("/api/auth/login?redirect={}", redirect));
+            } else {
+                let _ = win.location().set_href("/api/auth/login");
             }
-            || ()
-        });
-    }
+        }
+        || ()
+    });
 
     let avatar = use_state(|| None::<String>);
     {

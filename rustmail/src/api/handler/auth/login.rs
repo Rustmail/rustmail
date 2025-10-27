@@ -1,16 +1,23 @@
-use crate::BotState;
 use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
-use axum::extract::State;
+use crate::BotState;
+use axum::extract::{Query, State};
 use axum::response::Redirect;
 use axum_extra::extract::CookieJar;
-use sqlx::{Row, query};
+use sqlx::{query, Row};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub async fn handle_login(
     jar: CookieJar,
     State(bot_state): State<Arc<Mutex<BotState>>>,
+    Query(params): Query<HashMap<String, String>>,
 ) -> Redirect {
+    let redirect_after = params
+        .get("redirect")
+        .cloned()
+        .unwrap_or_else(|| "/panel".to_string());
+
     let db_pool = {
         let state_lock = bot_state.lock().await;
 
@@ -54,9 +61,10 @@ pub async fn handle_login(
     }
 
     let url = format!(
-        "https://discord.com/oauth2/authorize?client_id={}&redirect_uri={}&response_type=code&scope=identify%20guilds",
+        "https://discord.com/oauth2/authorize?client_id={}&redirect_uri={}&response_type=code&scope=identify%20guilds&state={}",
         bot_config.bot.client_id,
-        urlencoding::encode(bot_config.bot.redirect_url.as_str())
+        urlencoding::encode(bot_config.bot.redirect_url.as_str()),
+        urlencoding::encode(&redirect_after),
     );
 
     Redirect::to(&url)

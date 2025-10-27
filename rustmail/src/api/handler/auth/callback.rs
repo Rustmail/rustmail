@@ -11,6 +11,7 @@ use uuid::Uuid;
 #[derive(serde::Deserialize)]
 pub struct AuthRequest {
     pub code: String,
+    pub state: Option<String>,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -146,5 +147,6 @@ pub async fn handle_callback(
 
     let jar = jar.add(cookie_session);
 
-    (jar, Redirect::to("/panel"))
+    let target = params.state.unwrap_or_else(|| "/panel".to_string());
+    (jar, Redirect::to(&target))
 }
