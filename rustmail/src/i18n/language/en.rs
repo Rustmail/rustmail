@@ -878,6 +878,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Allows you to take ownership of a ticket by replacing its name with yours. To take a ticket, use `!take` in the ticket."),
     );
     dict.messages.insert(
+        "help.release".to_string(),
+        DictionaryMessage::new("Releases ownership of a ticket previously taken with the `!take` command. To release a ticket, use `!release` in the ticket."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new(
             "Incorrect format. Use : `{prefix}remind or {prefix}rem <HH:MM> [content]`",
@@ -892,7 +896,23 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The ticket is now taken by {staff}."),
     );
     dict.messages.insert(
-        "slash_command.help_command_description".to_string(),
+        "slash_command.take_command_description".to_string(),
         DictionaryMessage::new("Take ownership of the current ticket."),
+    );
+    dict.messages.insert(
+        "slash_command.take_command_description".to_string(),
+        DictionaryMessage::new("Take ownership of the current ticket."),
+    );
+    dict.messages.insert(
+        "slash_command.release_command_description".to_string(),
+        DictionaryMessage::new("Release ownership of the current ticket."),
+    );
+    dict.messages.insert(
+        "release.ticket_already_taken".to_string(),
+        DictionaryMessage::new("The ticket is not taken by anyone."),
+    );
+    dict.messages.insert(
+        "release.confirmation".to_string(),
+        DictionaryMessage::new("The ticket has been released by {staff}."),
     );
 }

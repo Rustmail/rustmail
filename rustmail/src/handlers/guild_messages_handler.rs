@@ -13,6 +13,7 @@ use crate::commands::logs::text_command::logs::logs;
 use crate::commands::move_thread::text_command::move_thread::move_thread;
 use crate::commands::new_thread::text_command::new_thread::new_thread;
 use crate::commands::recover::text_command::recover::recover;
+use crate::commands::release::text_command::release::release;
 use crate::commands::remove_reminder::text_command::remove_reminder::remove_reminder;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
@@ -102,6 +103,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, ["unremind", "urem"], remove_reminder);
         wrap_command!(lock, "logs", logs);
         wrap_command!(lock, "take", take);
+        wrap_command!(lock, "release", release);
 
         drop(lock);
         h

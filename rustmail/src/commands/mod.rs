@@ -23,6 +23,7 @@ pub mod logs;
 pub mod move_thread;
 pub mod new_thread;
 pub mod recover;
+pub mod release;
 pub mod remove_reminder;
 pub mod remove_staff;
 pub mod reply;
