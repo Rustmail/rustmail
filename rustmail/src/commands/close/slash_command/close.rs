@@ -5,8 +5,8 @@ use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
 use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::category::{
     get_category_id_from_command, get_category_name_from_command,
     get_required_permissions_channel_from_command,
@@ -22,7 +22,7 @@ use serenity::all::{
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::watch::Receiver;
+use serenity::FutureExt;
 use tokio::time::sleep;
 
 pub struct CloseCommand;
@@ -33,7 +33,13 @@ impl RegistrableCommand for CloseCommand {
         "close"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.close", None, None, None, None).await
+        }.boxed()
+    }
+
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -103,9 +109,8 @@ impl RegistrableCommand for CloseCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();

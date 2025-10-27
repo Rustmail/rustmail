@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::errors::ModmailResult;
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::any::Any;
@@ -26,7 +27,7 @@ pub mod remove_reminder;
 pub mod remove_staff;
 pub mod reply;
 
-pub type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
+pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 pub trait RegistrableCommand: Any + Send + Sync {
     fn as_community(&self) -> Option<&dyn CommunityRegistrable> {
@@ -35,7 +36,9 @@ pub trait RegistrableCommand: Any + Send + Sync {
 
     fn name(&self) -> &'static str;
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>>;
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String>;
+
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>>;
 
     fn run(
         &self,
@@ -43,19 +46,18 @@ pub trait RegistrableCommand: Any + Send + Sync {
         command: &CommandInteraction,
         options: &[ResolvedOption<'_>],
         config: &Config,
-        shutdown: Arc<Receiver<bool>>,
-        pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>>;
+        handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>>;
 }
 
 pub trait CommunityRegistrable: RegistrableCommand {
-    fn register_community(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>>;
+    fn register_community(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>>;
 }
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     _shutdown: Arc<Receiver<bool>>,
-    pagination: PaginationStore,
+    _pagination: PaginationStore,
 }
 
 impl CommandRegistry {
@@ -63,7 +65,7 @@ impl CommandRegistry {
         Self {
             commands: HashMap::new(),
             _shutdown: Arc::new(shutdown),
-            pagination,
+            _pagination: pagination,
         }
     }
 

@@ -3,8 +3,8 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
-use crate::types::logs::PaginationStore;
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::message::category::{
     get_category_id_from_message, get_category_name_from_message,
     get_required_permissions_channel_from_message,
@@ -16,15 +16,13 @@ use serenity::all::{Channel, Context, GuildId, Message, PermissionOverwriteType,
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
 
 pub async fn close(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
@@ -84,7 +82,7 @@ pub async fn close(
             .await
             .unwrap_or(false);
         if existed {
-            let _ = MessageBuilder::system_message(ctx, config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "close.closure_canceled",
                     None,
@@ -96,7 +94,7 @@ pub async fn close(
                 .send(false)
                 .await;
         } else {
-            let _ = MessageBuilder::system_message(ctx, config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "close.no_scheduled_closures_to_cancel",
                     None,
@@ -119,7 +117,7 @@ pub async fn close(
             params.insert("seconds".to_string(), remaining.to_string());
 
             if remaining > 0 {
-                let _ = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(&ctx, config)
                     .translated_content(
                         "close.closure_already_scheduled",
                         Some(&params),
@@ -150,7 +148,7 @@ pub async fn close(
         params.insert("time".to_string(), human);
 
         let _ = if silent {
-            let _ = MessageBuilder::system_message(ctx, config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "close.silent_closing",
                     Some(&params),
@@ -162,7 +160,7 @@ pub async fn close(
                 .send(false)
                 .await;
         } else {
-            let _ = MessageBuilder::system_message(ctx, config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "close.closing",
                     Some(&params),
@@ -330,7 +328,7 @@ pub async fn close(
     let required_permissions = get_required_permissions_channel_from_message(&ctx, &msg).await;
 
     if user_still_member && !silent {
-        let _ = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(&ctx, config)
             .content(&config.bot.close_message)
             .to_user(user_id)
             .send(false)
@@ -339,7 +337,7 @@ pub async fn close(
         let mut params = HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());
 
-        let _ = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(&ctx, config)
             .translated_content(
                 "user.left_server_close",
                 Some(&params),

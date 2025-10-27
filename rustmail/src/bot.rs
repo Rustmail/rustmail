@@ -1,4 +1,3 @@
-use crate::commands::CommandRegistry;
 use crate::commands::add_reminder::slash_command::add_reminder::AddReminderCommand;
 use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
 use crate::commands::alert::slash_command::alert::AlertCommand;
@@ -15,9 +14,10 @@ use crate::commands::recover::slash_command::recover::RecoverCommand;
 use crate::commands::remove_reminder::slash_command::remove_reminder::RemoveReminderCommand;
 use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
 use crate::commands::reply::slash_command::reply::ReplyCommand;
+use crate::commands::CommandRegistry;
 use crate::config::load_config;
-use crate::errors::ModmailError;
 use crate::errors::types::ConfigError;
+use crate::errors::ModmailError;
 use crate::handlers::guild_handler::GuildHandler;
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::handlers::guild_members_handler::GuildMembersHandler;
@@ -28,7 +28,7 @@ use crate::handlers::ready_handler::ReadyHandler;
 use crate::handlers::typing_proxy_handler::TypingProxyHandler;
 use crate::panel_commands::user::is_member::is_member;
 use crate::types::logs::PaginationContext;
-use crate::{BotCommand, BotState, BotStatus, db};
+use crate::{db, BotCommand, BotState, BotStatus};
 use base64::Engine;
 use rand::RngCore;
 use serenity::all::{ClientBuilder, GatewayIntents};
@@ -168,13 +168,17 @@ pub async fn run_bot(
         .event_handler(ReadyHandler::new(
             &config,
             registry.clone(),
-            Arc::new(shutdown_rx.clone()),
-        ))
-        .event_handler(GuildMessagesHandler::new(
-            &config,
             shutdown_rx.clone(),
-            pagination.clone(),
         ))
+        .event_handler(
+            GuildMessagesHandler::new(
+                &config,
+                registry.clone(),
+                shutdown_rx.clone(),
+                pagination.clone(),
+            )
+            .await,
+        )
         .event_handler(TypingProxyHandler::new(&config))
         .event_handler(GuildMembersHandler::new(&config))
         .event_handler(GuildMessageReactionsHandler::new(&config))

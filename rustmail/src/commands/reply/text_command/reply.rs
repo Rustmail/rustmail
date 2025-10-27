@@ -1,23 +1,21 @@
 use crate::config::Config;
 use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
-use crate::types::logs::PaginationStore;
+use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn reply(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
@@ -47,7 +45,7 @@ pub async fn reply(
     let _ = msg.delete(&ctx.http).await;
 
     let mut sr = MessageBuilder::begin_staff_reply(
-        ctx,
+        &ctx,
         config,
         thread.id.clone(),
         msg.author.id,
@@ -84,7 +82,7 @@ pub async fn reply(
         let mut params = HashMap::new();
         params.insert("number".to_string(), next_message_number.to_string());
 
-        let _ = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(&ctx, config)
             .translated_content(
                 "success.message_sent",
                 Some(&params),

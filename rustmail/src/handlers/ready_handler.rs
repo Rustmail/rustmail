@@ -20,15 +20,11 @@ pub struct ReadyHandler {
 }
 
 impl ReadyHandler {
-    pub fn new(
-        config: &Config,
-        registry: Arc<CommandRegistry>,
-        shutdown: Arc<Receiver<bool>>,
-    ) -> Self {
+    pub fn new(config: &Config, registry: Arc<CommandRegistry>, shutdown: Receiver<bool>) -> Self {
         Self {
             config: config.clone(),
             registry,
-            shutdown,
+            shutdown: Arc::new(shutdown),
         }
     }
 }

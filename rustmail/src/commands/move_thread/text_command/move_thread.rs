@@ -6,33 +6,31 @@ use crate::config::Config;
 use crate::errors::CommandError::NotInThread;
 use crate::errors::ThreadError::CategoryNotFound;
 use crate::errors::{common, CommandError, DiscordError, ModmailError, ModmailResult};
-use crate::types::logs::PaginationStore;
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn move_thread(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    if !is_in_thread(msg, pool).await {
+    if !is_in_thread(&msg, pool).await {
         return Err(ModmailError::Command(NotInThread()));
     }
 
-    let category_name = extract_category_name(msg, config).await;
+    let category_name = extract_category_name(&msg, config).await;
     if category_name.is_empty() {
         return Err(ModmailError::Thread(CategoryNotFound));
     }
 
-    let categories = fetch_server_categories(ctx, config).await;
+    let categories = fetch_server_categories(&ctx, config).await;
     if categories.is_empty() {
         return Err(ModmailError::Discord(DiscordError::FailedToFetchCategories));
     }
@@ -41,13 +39,13 @@ pub async fn move_thread(
 
     match target_category {
         Some((category_id, category_name)) => {
-            if let Err(e) = move_channel_to_category_by_msg(ctx, msg, category_id).await {
+            if let Err(e) = move_channel_to_category_by_msg(&ctx, &msg, category_id).await {
                 return Err(ModmailError::Command(CommandError::CommandFailed(
                     e.to_string(),
                 )));
             }
 
-            send_success_message(ctx, msg, config, &category_name).await;
+            send_success_message(&ctx, &msg, config, &category_name).await;
         }
         None => {
             return Err(ModmailError::Thread(CategoryNotFound));

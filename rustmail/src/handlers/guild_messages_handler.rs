@@ -16,6 +16,7 @@ use crate::commands::recover::text_command::recover::recover;
 use crate::commands::remove_reminder::text_command::remove_reminder::remove_reminder;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
+use crate::commands::CommandRegistry;
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
 use crate::db::operations::messages::get_thread_message_by_message_id;
@@ -40,54 +41,67 @@ use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 use tokio::sync::watch::Receiver;
+use tokio::sync::Mutex as AsyncMutex;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
 
 type CommandFunc = Arc<StaticCommandFunc>;
-type StaticCommandFunc = dyn Fn(
+type StaticCommandFunc = dyn for<'a> Fn(
         Context,
         Message,
-        Config,
-        Receiver<bool>,
-        PaginationStore,
-    ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send>>
+        &'a Config,
+        Arc<GuildMessagesHandler>,
+    ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send + 'a>>
     + Send
     + Sync
     + 'static;
 
+#[derive(Clone)]
 pub struct GuildMessagesHandler {
-    pub config: Config,
-    pub commands: HashMap<String, CommandFunc>,
-    pub shutdown: Receiver<bool>,
+    pub config: Arc<Config>,
+    pub commands: Arc<AsyncMutex<HashMap<String, CommandFunc>>>,
+    pub registry: Arc<CommandRegistry>,
+    pub shutdown: Arc<Receiver<bool>>,
     pub pagination: PaginationStore,
 }
 
 impl GuildMessagesHandler {
-    pub fn new(config: &Config, shutdown: Receiver<bool>, pagination: PaginationStore) -> Self {
-        let mut h = Self {
-            config: config.clone(),
-            commands: HashMap::new(),
+    pub async fn new(
+        config: &Config,
+        registry: Arc<CommandRegistry>,
+        shutdown: Receiver<bool>,
+        pagination: PaginationStore,
+    ) -> Self {
+        let h = Self {
+            config: Arc::new(config.clone()),
+            commands: Arc::new(AsyncMutex::new(HashMap::new())),
+            registry,
+            shutdown: Arc::new(shutdown),
             pagination,
-            shutdown,
         };
-        wrap_command!(h.commands, ["reply", "r"], reply);
-        wrap_command!(h.commands, ["edit", "e"], edit);
-        wrap_command!(h.commands, ["close", "c"], close);
-        wrap_command!(h.commands, "recover", recover);
-        wrap_command!(h.commands, "alert", alert);
-        wrap_command!(h.commands, ["move", "mv"], move_thread);
-        wrap_command!(h.commands, ["nt", "new_thread"], new_thread);
-        wrap_command!(h.commands, "delete", delete);
-        wrap_command!(h.commands, ["anonreply", "ar"], anonreply);
-        wrap_command!(h.commands, ["force_close", "fc"], force_close);
-        wrap_command!(h.commands, ["addmod", "am"], add_staff);
-        wrap_command!(h.commands, ["delmod", "dm"], remove_staff);
-        wrap_command!(h.commands, "id", id);
-        wrap_command!(h.commands, "help", help);
-        wrap_command!(h.commands, ["remind", "rem"], add_reminder);
-        wrap_command!(h.commands, ["unremind", "urem"], remove_reminder);
-        wrap_command!(h.commands, "logs", logs);
+
+        let mut lock = h.commands.lock().await;
+
+        wrap_command!(lock, ["reply", "r"], reply);
+        wrap_command!(lock, ["edit", "e"], edit);
+        wrap_command!(lock, ["close", "c"], close);
+        wrap_command!(lock, "recover", recover);
+        wrap_command!(lock, "alert", alert);
+        wrap_command!(lock, ["move", "mv"], move_thread);
+        wrap_command!(lock, ["nt", "new_thread"], new_thread);
+        wrap_command!(lock, "delete", delete);
+        wrap_command!(lock, ["anonreply", "ar"], anonreply);
+        wrap_command!(lock, ["force_close", "fc"], force_close);
+        wrap_command!(lock, ["addmod", "am"], add_staff);
+        wrap_command!(lock, ["delmod", "dm"], remove_staff);
+        wrap_command!(lock, "id", id);
+        wrap_command!(lock, "help", help);
+        wrap_command!(lock, ["remind", "rem"], add_reminder);
+        wrap_command!(lock, ["unremind", "urem"], remove_reminder);
+        wrap_command!(lock, "logs", logs);
+
+        drop(lock);
         h
     }
 }
@@ -190,13 +204,14 @@ impl EventHandler for GuildMessagesHandler {
                 command_name = &message_content[self.config.command.prefix.len()..i];
             }
 
-            if let Some(command_func) = self.commands.get(command_name)
+            let commands_lock = self.commands.lock().await;
+
+            if let Some(command_func) = commands_lock.get(command_name)
                 && let Err(error) = command_func(
                     ctx.clone(),
                     msg.clone(),
-                    self.config.clone(),
-                    self.shutdown.clone(),
-                    self.pagination.clone(),
+                    &self.config.clone(),
+                    Arc::new(self.clone()),
                 )
                 .await
             {

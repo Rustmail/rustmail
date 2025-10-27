@@ -4,10 +4,10 @@ use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
+    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
 };
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::user_recap::get_user_recap;
@@ -18,7 +18,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
+use serenity::FutureExt;
 
 pub struct NewThreadCommand;
 
@@ -32,7 +32,13 @@ impl RegistrableCommand for NewThreadCommand {
         "new_thread"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.new_thread", None, None, None, None).await
+        }.boxed()
+    }
+
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -74,9 +80,8 @@ impl RegistrableCommand for NewThreadCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();
@@ -241,7 +246,7 @@ impl RegistrableCommand for NewThreadCommand {
 }
 
 impl CommunityRegistrable for NewThreadCommand {
-    fn register_community(&self, _config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn register_community(&self, _config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         Box::pin(async move { vec![CreateCommand::new("new_thread").kind(CommandType::User)] })
     }
 }

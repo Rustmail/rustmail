@@ -1,22 +1,20 @@
 use crate::config::Config;
 use crate::db::operations::allocate_next_message_number;
-use crate::errors::{ModmailResult, common};
-use crate::types::logs::PaginationStore;
+use crate::errors::{common, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
+use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
 use crate::utils::thread::fetch_thread::fetch_thread;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn anonreply(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let db_pool = config
         .db_pool
@@ -27,7 +25,7 @@ pub async fn anonreply(
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        MessageBuilder::system_message(ctx, config)
+        MessageBuilder::system_message(&ctx, config)
             .translated_content(
                 "reply.missing_content",
                 None,
@@ -52,7 +50,7 @@ pub async fn anonreply(
         let mut params = HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());
 
-        MessageBuilder::user_message(ctx, config, msg.author.id, msg.author.name.clone())
+        MessageBuilder::user_message(&ctx, config, msg.author.id, msg.author.name.clone())
             .translated_content(
                 "user.left_server",
                 Some(&params),
@@ -74,7 +72,7 @@ pub async fn anonreply(
     let _ = msg.delete(&ctx.http).await;
 
     let mut sr = MessageBuilder::begin_staff_reply(
-        ctx,
+        &ctx,
         config,
         thread.id.clone(),
         msg.author.id,
@@ -100,7 +98,7 @@ pub async fn anonreply(
     let (thread_msg, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
         Ok(tuple) => tuple,
         Err(_) => {
-            MessageBuilder::system_message(ctx, config)
+            MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "reply.send_failed_thread",
                     None,
@@ -116,7 +114,7 @@ pub async fn anonreply(
     };
 
     if dm_msg_opt.is_none() {
-        MessageBuilder::system_message(ctx, config)
+        MessageBuilder::system_message(&ctx, config)
             .translated_content(
                 "reply.send_failed_dm",
                 None,
@@ -136,7 +134,7 @@ pub async fn anonreply(
         params.insert("number".to_string(), next_message_number.to_string());
         let _ = error_handler
             .send_success_message(
-                ctx,
+                &ctx,
                 msg.channel_id,
                 "success.message_sent",
                 Some(params),

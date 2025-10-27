@@ -829,4 +829,72 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "reminder.reminder_already_exists".to_string(),
         DictionaryMessage::new("Vous avez déjà un rappel programmé à cette heure."),
     );
+    dict.messages.insert(
+        "help.add_reminder".to_string(),
+        DictionaryMessage::new("Configure un rappel à une heure spécifique. Pour ce faire, faites `!remind <HH:MM> <contenu du rappel>` ou `!rem <HH:MM> <contenu du rappel>`. Si l'heure est déjà passée aujourd'hui, le rappel sera programmé pour demain."),
+    );
+    dict.messages.insert(
+        "help.add_staff".to_string(),
+        DictionaryMessage::new("Ajoute un membre du staff à un ticket. Pour ce faire, faites `!addmod <id du staff>` ou `!am <id du staff>` dans un ticket."),
+    );
+    dict.messages.insert(
+        "help.alert".to_string(),
+        DictionaryMessage::new("Configure une alerte pour un utilisateur lorsqu'il envoie un nouveau message. Pour programmer une alerte, faites `!alert` dans un ticket. Pour annuler une alerte programmée, faites `!alert cancel` ou `!alert c`."),
+    );
+    dict.messages.insert(
+        "help.close".to_string(),
+        DictionaryMessage::new("Ferme le ticket actuel. Vous pouvez spécifier un délai avant la fermeture en faisant : `!close <durée (d, h, m ou s)>` ou `!c <durée (d, h, m ou s)>`. Vous pouvez ajouter l'option `--silent` ou `-s` pour ne pas avertir l'utilisateur que son ticket a été fermé. Vous pouvez également annuler une fermeture programmée en faisant `!close --cancel`, `!close -c` ou `!close cancel`."),
+    );
+    dict.messages.insert(
+        "help.delete".to_string(),
+        DictionaryMessage::new("Supprime un message spécifique dans un fil de discussion. Pour ce faire, faites `!delete <id du message>` dans un ticket."),
+    );
+    dict.messages.insert(
+        "help.edit".to_string(),
+        DictionaryMessage::new("Modifie le contenu d'un message précédemment envoyé dans un ticket. Pour modifier un message, faites `!edit <id du message> <nouveau contenu>` ou `!e <id du message> <nouveau contenu>` dans un ticket."),
+    );
+    dict.messages.insert(
+        "help.force_close".to_string(),
+        DictionaryMessage::new("Ferme un ticket lorsqu'une erreur empêche la fermeture normale. Cette commande disparaîtra dans les prochaines versions. Pour forcer la fermeture d'un ticket, faites `!force_close` ou `!fc` dans un ticket."),
+    );
+    dict.messages.insert(
+        "help.help".to_string(),
+        DictionaryMessage::new("Affiche une liste de toutes les commandes disponibles avec une brève description. Pour afficher le message d'aide, faites `!help`."),
+    );
+    dict.messages.insert(
+        "help.id".to_string(),
+        DictionaryMessage::new("Affiche l'identifiant Discord de l'utilisateur associé au ticket. Pour afficher l'ID de l'utilisateur, faites `!id` dans un ticket."),
+    );
+    dict.messages.insert(
+        "help.logs".to_string(),
+        DictionaryMessage::new("Récupère les logs de tous les anciens tickets d'un utilisateur. Vous pouvez soit spécifier un identifiant Discord (`!logs <discord_id>`), soit exécuter la commande dans un ticket pour obtenir les logs de ce ticket."),
+    );
+    dict.messages.insert(
+        "help.move".to_string(),
+        DictionaryMessage::new("Déplace le ticket actuel vers une autre catégorie. Pour déplacer un ticket, faites `!move <catégorie>` ou `!mv <catégorie>` dans le ticket."),
+    );
+    dict.messages.insert(
+        "help.new_thread".to_string(),
+        DictionaryMessage::new("Crée un nouveau ticket pour un utilisateur spécifié. Pour créer un ticket, faites `!new_thread <utilisateur>` ou `!nt <utilisateur>`."),
+    );
+    dict.messages.insert(
+        "help.recover".to_string(),
+        DictionaryMessage::new("Lance le processus de récupération des messages manquants dans les tickets Modmail. Ce processus est automatique, mais cette commande permet de le relancer manuellement si nécessaire. Pour cela, faites `!recover`."),
+    );
+    dict.messages.insert(
+        "help.remove_reminder".to_string(),
+        DictionaryMessage::new("Supprime un rappel que vous avez précédemment configuré. Pour supprimer un rappel, faites `!unremind <id>` ou `!urem <id>`."),
+    );
+    dict.messages.insert(
+        "help.remove_staff".to_string(),
+        DictionaryMessage::new("Retire un membre du staff du ticket actuel. Pour retirer un staff, faites `!delmod <utilisateur>` ou `!dm <utilisateur>` dans le ticket."),
+    );
+    dict.messages.insert(
+        "help.reply".to_string(),
+        DictionaryMessage::new("Répond dans un ticket. Pour répondre, faites `!reply <message> [attachment]` ou `!r <message> [attachment]` dans le ticket. Si vous souhaitez répondre anonymement, utilisez la commande `!anonreply`, `!ar`, ou spécifiez l'option dans la commande slash `reply`."),
+    );
+    dict.messages.insert(
+        "help.message".to_string(),
+        DictionaryMessage::new("## Commandes :\n\n**Toutes les commandes** disponibles sont également utilisables via des **__commandes slash__** portant le __même nom__.\n\n"),
+    );
 }

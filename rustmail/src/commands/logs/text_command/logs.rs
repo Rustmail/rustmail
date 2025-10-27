@@ -4,13 +4,13 @@ use crate::db::get_thread_by_channel_id;
 use crate::db::logs::get_logs_from_user_id;
 use crate::errors::{DatabaseError, ModmailError, ModmailResult, ThreadError};
 use crate::features::make_buttons;
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::i18n::get_translated_message;
 use crate::modules::commands::LOGS_PAGE_SIZE;
 use crate::types::logs::{PaginationContext, PaginationStore};
 use serenity::all::{ButtonStyle, ChannelId, CommandInteraction, Context, Message};
 use sqlx::SqlitePool;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 use uuid::Uuid;
 
 pub async fn handle_logs_in_thread(
@@ -106,11 +106,10 @@ pub async fn handle_logs_from_user_id(
 }
 
 pub async fn logs(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    pagination: PaginationStore,
+    handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let pool = match config.db_pool.clone() {
         Some(pool) => pool.clone(),
@@ -120,7 +119,15 @@ pub async fn logs(
     let user_id = extract_user_id(&msg, &config);
 
     if user_id.is_empty() {
-        handle_logs_in_thread(&ctx, &msg.channel_id, None, &config, &pool, pagination).await
+        handle_logs_in_thread(
+            &ctx,
+            &msg.channel_id,
+            None,
+            &config,
+            &pool,
+            handler.pagination.clone(),
+        )
+        .await
     } else {
         handle_logs_from_user_id(
             &ctx,
@@ -129,7 +136,7 @@ pub async fn logs(
             config,
             &pool,
             &user_id.to_string(),
-            pagination,
+            handler.pagination.clone(),
         )
         .await
     }

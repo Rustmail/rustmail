@@ -12,7 +12,7 @@ use tokio::sync::watch::Receiver;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
-    pub config: Config,
+    pub config: Arc<Config>,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
     pub pagination: PaginationStore,
@@ -21,13 +21,13 @@ pub struct InteractionHandler {
 impl InteractionHandler {
     pub fn new(
         config: &Config,
-        register: Arc<CommandRegistry>,
+        registry: Arc<CommandRegistry>,
         shutdown: Receiver<bool>,
         pagination: PaginationStore,
     ) -> Self {
         Self {
-            config: config.clone(),
-            registry: register,
+            config: Arc::new(config.clone()),
+            registry,
             shutdown: Arc::new(shutdown),
             pagination,
         }
@@ -72,18 +72,10 @@ impl EventHandler for InteractionHandler {
                 let command = command.clone();
                 let options = command.data.options().clone();
                 let config = self.config.clone();
-                let pagination = self.pagination.clone();
 
                 if let Some(handler) = self.registry.get(command.data.name.as_str()) {
                     let result = handler
-                        .run(
-                            &ctx,
-                            &command,
-                            &options,
-                            &config,
-                            self.shutdown.clone(),
-                            pagination,
-                        )
+                        .run(&ctx, &command, &options, &config, Arc::new(self.clone()))
                         .await;
 
                     if let Err(e) = result {
