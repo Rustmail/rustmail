@@ -897,4 +897,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "help.message".to_string(),
         DictionaryMessage::new("## Commandes :\n\n**Toutes les commandes** disponibles sont également utilisables via des **__commandes slash__** portant le __même nom__.\n\n"),
     );
+    dict.messages.insert(
+        "add_reminder.helper".to_string(),
+        DictionaryMessage::new("Format incorrect. Utilisation : `{prefix}remind ou {prefix}rem <HH:MM> [contenu du rappel]`"),
+    );
 }

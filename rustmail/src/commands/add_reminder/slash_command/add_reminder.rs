@@ -15,8 +15,8 @@ use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, ResolvedOption,
 };
-use std::sync::Arc;
 use serenity::FutureExt;
+use std::sync::Arc;
 
 pub struct AddReminderCommand;
 
@@ -126,28 +126,22 @@ impl RegistrableCommand for AddReminderCommand {
             let time = match time {
                 Some(t) => t.clone(),
                 None => {
-                    return Err(ModmailError::Command(CommandError::InvalidArguments(
-                        "Missing required arguments".to_string(),
-                    )));
+                    return Err(ModmailError::Command(CommandError::InvalidReminderFormat));
                 }
             };
 
             let content = match content {
                 Some(c) => c,
                 None => {
-                    return Err(ModmailError::Command(CommandError::InvalidArguments(
-                        "Missing required arguments".to_string(),
-                    )));
+                    return Err(ModmailError::Command(CommandError::InvalidReminderFormat));
                 }
             };
 
             let time_str = time.to_string();
             let re = Regex::new(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$").unwrap();
-            let captures = re.captures(&time_str).ok_or_else(|| {
-                return ModmailError::Command(CommandError::InvalidArguments(
-                    "duration".to_string(),
-                ));
-            })?;
+            let captures = re
+                .captures(&time_str)
+                .ok_or_else(|| ModmailError::Command(CommandError::InvalidReminderFormat))?;
 
             let hours: u32 = captures
                 .name("hour")
