@@ -873,4 +873,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "help.message".to_string(),
         DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands__** with the **__same name__**.\n\n"),
     );
+    dict.messages.insert(
+        "add_reminder.helper".to_string(),
+        DictionaryMessage::new(
+            "Incorrect format. Use : `{prefix}remind or {prefix}rem <HH:MM> [content]`",
+        ),
+    );
 }

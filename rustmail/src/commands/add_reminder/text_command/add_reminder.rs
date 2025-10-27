@@ -27,9 +27,7 @@ pub async fn add_reminder(
         match extract_reply_content(&msg.content, &config.command.prefix, &["remind", "rem"]) {
             Some(c) => c,
             None => {
-                return Err(ModmailError::Command(CommandError::InvalidArguments(
-                    "No content provided".to_string(),
-                )));
+                return Err(ModmailError::Command(CommandError::InvalidReminderFormat));
             }
         };
 
@@ -38,9 +36,9 @@ pub async fn add_reminder(
     let reminder_content = parts.next().unwrap_or("");
 
     let re = Regex::new(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$").unwrap();
-    let captures = re.captures(duration_str).ok_or_else(|| {
-        ModmailError::Command(CommandError::InvalidArguments("duration".to_string()))
-    })?;
+    let captures = re
+        .captures(&duration_str)
+        .ok_or_else(|| ModmailError::Command(CommandError::InvalidReminderFormat))?;
 
     let hours: u32 = captures
         .name("hour")
