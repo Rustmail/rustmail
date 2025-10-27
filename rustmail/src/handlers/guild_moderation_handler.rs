@@ -256,7 +256,7 @@ async fn manage_creating_ticket_via_opening_thread(
         .await
         .components(res_button)
         .to_channel(channel_id_inner)
-        .send(false)
+        .send(true)
         .await;
 }
 
@@ -299,7 +299,7 @@ impl EventHandler for GuildModerationHandler {
         let _ = MessageBuilder::user_message(&ctx, &self.config, user.id, user.name)
             .to_channel(ChannelId::new(logs_channel_id))
             .content(format_audit_log(&entry))
-            .send(false)
+            .send(true)
             .await;
     }
 }

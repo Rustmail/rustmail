@@ -193,7 +193,7 @@ async fn recover_messages_for_thread(
             )
             .await
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await;
     }
 

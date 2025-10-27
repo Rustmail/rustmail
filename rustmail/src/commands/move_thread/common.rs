@@ -89,7 +89,7 @@ pub async fn send_success_message(
     let _ = MessageBuilder::system_message(ctx, config)
         .content(confirmation_msg)
         .to_channel(msg.channel_id)
-        .send(false)
+        .send(true)
         .await;
 
     let _ = msg.delete(&ctx.http).await;

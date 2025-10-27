@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::db::reminders::{Reminder, is_reminder_active, update_reminder_status};
+use crate::db::reminders::{is_reminder_active, update_reminder_status, Reminder};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Local;
@@ -42,7 +42,7 @@ pub async fn send_register_confirmation_from_message(
             .await
             .to_channel(msg.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .send(false)
+            .send(true)
             .await;
     } else {
         let _ = MessageBuilder::system_message(&ctx, &config)
@@ -55,7 +55,7 @@ pub async fn send_register_confirmation_from_message(
             .await
             .to_channel(msg.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .send(false)
+            .send(true)
             .await;
     }
 }
@@ -177,7 +177,7 @@ pub fn spawn_reminder(
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
-                .send(false)
+                .send(true)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(&ctx, &config)
@@ -186,7 +186,7 @@ pub fn spawn_reminder(
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
-                .send(false)
+                .send(true)
                 .await;
         }
 

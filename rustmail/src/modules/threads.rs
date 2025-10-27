@@ -458,14 +458,14 @@ pub async fn handle_thread_modal_interaction(
                 )
                 .await
                 .to_channel(interaction.channel_id)
-                .send(false)
+                .send(true)
                 .await;
 
             let _ = MessageBuilder::system_message(ctx, config)
                 .translated_content("new_thread.dm_notification", None, Some(user_id), None)
                 .await
                 .to_user(user_id)
-                .send(false)
+                .send(true)
                 .await;
 
             let mut params = HashMap::new();

@@ -91,7 +91,7 @@ pub async fn reply(
             )
             .await
             .to_channel(msg.channel_id)
-            .send(false)
+            .send(true)
             .await;
     }
 

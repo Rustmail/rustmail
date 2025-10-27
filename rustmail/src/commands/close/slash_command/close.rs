@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
+use crate::errors::{common, CommandError, ModmailError, ModmailResult};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::category::{
@@ -19,10 +19,10 @@ use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, GuildId, ResolvedOption, UserId,
 };
+use serenity::FutureExt;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use serenity::FutureExt;
 use tokio::time::sleep;
 
 pub struct CloseCommand;
@@ -34,9 +34,8 @@ impl RegistrableCommand for CloseCommand {
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move {
-            get_translated_message(config, "help.close", None, None, None, None).await
-        }.boxed()
+        async move { get_translated_message(config, "help.close", None, None, None, None).await }
+            .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
@@ -304,7 +303,7 @@ impl RegistrableCommand for CloseCommand {
                                         MessageBuilder::system_message(&ctx_clone, &config_clone)
                                             .content(&config_clone.bot.close_message)
                                             .to_user(user_id_clone)
-                                            .send(false)
+                                            .send(true)
                                             .await;
                                 }
                                 let _ = channel_id.delete(&ctx_clone.http).await;
@@ -352,7 +351,7 @@ impl RegistrableCommand for CloseCommand {
                                                     )
                                                     .content(&config_clone2.bot.close_message)
                                                     .to_user(user_id_clone)
-                                                    .send(false)
+                                                    .send(true)
                                                     .await;
                                                 }
                                                 let _ = channel_id.delete(&ctx_clone2.http).await;
@@ -379,7 +378,7 @@ impl RegistrableCommand for CloseCommand {
                 let _ = MessageBuilder::system_message(&ctx, &config)
                     .content(&config.bot.close_message)
                     .to_user(user_id)
-                    .send(false)
+                    .send(true)
                     .await;
             } else if !user_still_member {
                 let mut params = HashMap::new();

@@ -101,7 +101,7 @@ pub async fn get_response(
             .content(content)
             .components(components)
             .to_channel(channel_id)
-            .send(false)
+            .send(true)
             .await
     }
 }

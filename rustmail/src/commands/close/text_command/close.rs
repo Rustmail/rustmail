@@ -91,7 +91,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send(false)
+                .send(true)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(&ctx, config)
@@ -103,7 +103,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send(false)
+                .send(true)
                 .await;
         }
         return Ok(());
@@ -126,7 +126,7 @@ pub async fn close(
                     )
                     .await
                     .to_channel(msg.channel_id)
-                    .send(false)
+                    .send(true)
                     .await;
                 return Ok(());
             }
@@ -157,7 +157,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send(false)
+                .send(true)
                 .await;
         } else {
             let _ = MessageBuilder::system_message(&ctx, config)
@@ -169,7 +169,7 @@ pub async fn close(
                 )
                 .await
                 .to_channel(msg.channel_id)
-                .send(false)
+                .send(true)
                 .await;
         };
 
@@ -263,7 +263,7 @@ pub async fn close(
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
                                 .to_user(user_id_clone)
-                                .send(false)
+                                .send(true)
                                 .await;
                         }
                         let _ = channel_id.delete(&ctx_clone.http).await;
@@ -305,7 +305,7 @@ pub async fn close(
                                             )
                                             .content(&config_clone2.bot.close_message)
                                             .to_user(user_id_clone)
-                                            .send(false)
+                                            .send(true)
                                             .await;
                                         }
                                         let _ = channel_id.delete(&ctx_clone2.http).await;
@@ -331,7 +331,7 @@ pub async fn close(
         let _ = MessageBuilder::system_message(&ctx, config)
             .content(&config.bot.close_message)
             .to_user(user_id)
-            .send(false)
+            .send(true)
             .await;
     } else if !user_still_member {
         let mut params = HashMap::new();
@@ -346,7 +346,7 @@ pub async fn close(
             )
             .await
             .to_channel(msg.channel_id)
-            .send(false)
+            .send(true)
             .await;
     }
 
