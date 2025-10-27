@@ -1,3 +1,4 @@
+use crate::utils::markdown::markdown_to_html_safe;
 use gloo_net::http::Request;
 use i18nrs::yew::use_translation;
 use js_sys::Date;
@@ -300,7 +301,7 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                                             <span class="text-white text-sm">{ &m.user_name }</span>
                                             <span class="text-xs text-gray-500">{ &m.created_at }</span>
                                         </div>
-                                        <p class="text-gray-300 text-sm">{ &m.content }</p>
+                                        <p class="text-gray-300 text-sm">{ markdown_to_html_safe(&m.content) }</p>
                                     </div>
                                 }) }
                             </div>

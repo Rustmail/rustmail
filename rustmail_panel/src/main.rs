@@ -1,10 +1,11 @@
 mod components;
 mod pages;
 mod router;
+mod utils;
 
-use crate::router::{Route, switch};
-use i18nrs::StorageType;
+use crate::router::{switch, Route};
 use i18nrs::yew::I18nProvider;
+use i18nrs::StorageType;
 use std::collections::HashMap;
 use yew::prelude::*;
 use yew_router::prelude::*;
