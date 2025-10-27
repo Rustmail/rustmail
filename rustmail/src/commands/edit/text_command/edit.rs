@@ -3,34 +3,32 @@ use crate::commands::edit::message_ops::{
     cleanup_command_message, edit_messages, format_new_message, get_message_ids,
 };
 use crate::commands::edit::validation::{
-    EditCommandInput, parse_edit_command, validate_edit_permissions,
+    parse_edit_command, validate_edit_permissions, EditCommandInput,
 };
 use crate::config::Config;
 use crate::db::get_thread_message_by_inbox_message_id;
 use crate::db::update_message_content;
 use crate::errors::common::message_not_found;
-use crate::errors::{ModmailResult, common};
-use crate::types::logs::PaginationStore;
+use crate::errors::{common, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn edit(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let pool = config
         .db_pool
         .as_ref()
         .ok_or_else(common::database_connection_failed)?;
 
-    let raw_content: String = match extract_command_content(msg, config) {
+    let raw_content: String = match extract_command_content(&msg, config) {
         Ok(content) => content,
         Err(e) => return Err(e),
     };
@@ -56,7 +54,7 @@ pub async fn edit(
         command_input.message_number,
         msg.author.id,
         pool,
-        ctx,
+        &ctx,
         msg.channel_id,
     )
     .await
@@ -76,8 +74,8 @@ pub async fn edit(
     };
 
     let edited_messages_builder = match format_new_message(
-        ctx,
-        (Some(msg), None),
+        &ctx,
+        (Some(&msg), None),
         &command_input.new_content,
         &inbox_message_id,
         command_input.message_number as u64,
@@ -97,7 +95,7 @@ pub async fn edit(
         };
 
     let edit_result = edit_messages(
-        ctx,
+        &ctx,
         msg.channel_id,
         dm_msg_id.clone(),
         inbox_message_id.clone(),
@@ -110,7 +108,7 @@ pub async fn edit(
     match edit_result {
         Ok(()) => {
             if config.notifications.show_success_on_edit {
-                let _ = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(&ctx, config)
                     .translated_content(
                         "success.message_edited",
                         None,
@@ -147,7 +145,7 @@ pub async fn edit(
                 );
                 params.insert("link".to_string(), message_link);
 
-                let _ = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(&ctx, config)
                     .translated_content(
                         "edit.modification_from_staff",
                         Some(&params),
@@ -160,7 +158,7 @@ pub async fn edit(
                     .await;
             }
 
-            cleanup_command_message(ctx, msg).await;
+            cleanup_command_message(&ctx, &msg).await;
 
             match update_message_content(&dm_msg_id, &command_input.new_content, pool).await {
                 Ok(()) => (),

@@ -1,20 +1,18 @@
 use crate::config::Config;
-use crate::errors::{ModmailResult, common};
+use crate::errors::{common, ModmailResult};
+use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
-use crate::types::logs::PaginationStore;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
 
 pub async fn recover(
-    ctx: &Context,
-    msg: &Message,
+    ctx: Context,
+    msg: Message,
     config: &Config,
-    _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    _handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
     let _ = config
         .db_pool
@@ -34,7 +32,7 @@ pub async fn recover(
     )
     .await;
 
-    let _ = MessageBuilder::system_message(ctx, config)
+    let _ = MessageBuilder::system_message(&ctx, config)
         .content(confirmation_message)
         .to_channel(msg.channel_id)
         .send(false)

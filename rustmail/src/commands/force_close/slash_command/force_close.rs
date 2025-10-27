@@ -4,12 +4,12 @@ use crate::config::Config;
 use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
-use crate::errors::{ModmailError, ModmailResult, common};
+use crate::errors::{common, ModmailError, ModmailResult};
+use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
-use tokio::sync::watch::Receiver;
+use serenity::FutureExt;
 
 pub struct ForceCloseCommand;
 
@@ -19,7 +19,13 @@ impl RegistrableCommand for ForceCloseCommand {
         "force_close"
     }
 
-    fn register(&self, config: &Config) -> BoxFuture<Vec<CreateCommand>> {
+    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
+        async move {
+            get_translated_message(config, "help.force_close", None, None, None, None).await
+        }.boxed()
+    }
+
+    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
         let config = config.clone();
 
         Box::pin(async move {
@@ -43,9 +49,8 @@ impl RegistrableCommand for ForceCloseCommand {
         command: &CommandInteraction,
         _options: &[ResolvedOption<'_>],
         config: &Config,
-        _shutdown: Arc<Receiver<bool>>,
-        _pagination: PaginationStore,
-    ) -> BoxFuture<ModmailResult<()>> {
+        _handler: Arc<InteractionHandler>,
+    ) -> BoxFuture<'_, ModmailResult<()>> {
         let ctx = ctx.clone();
         let command = command.clone();
         let config = config.clone();
