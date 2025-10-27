@@ -16,6 +16,7 @@ use crate::commands::recover::text_command::recover::recover;
 use crate::commands::remove_reminder::text_command::remove_reminder::remove_reminder;
 use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
 use crate::commands::reply::text_command::reply::reply;
+use crate::commands::take::text_command::take::take;
 use crate::commands::CommandRegistry;
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_dm_message_id;
@@ -100,6 +101,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, ["remind", "rem"], add_reminder);
         wrap_command!(lock, ["unremind", "urem"], remove_reminder);
         wrap_command!(lock, "logs", logs);
+        wrap_command!(lock, "take", take);
 
         drop(lock);
         h

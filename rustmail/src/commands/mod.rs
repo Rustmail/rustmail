@@ -26,6 +26,7 @@ pub mod recover;
 pub mod remove_reminder;
 pub mod remove_staff;
 pub mod reply;
+pub mod take;
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
