@@ -93,7 +93,7 @@ impl RegistrableCommand for TakeCommand {
                     &ctx,
                     &config,
                     thread_id,
-                    command.user.name.clone(),
+                    format!("🔵-{}", command.user.name.clone()),
                     None,
                     Some(&command),
                 )

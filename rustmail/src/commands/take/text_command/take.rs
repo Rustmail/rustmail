@@ -44,7 +44,7 @@ pub async fn take(
             &ctx,
             config,
             thread_id,
-            msg.author.name.clone(),
+            format!("🔵-{}", msg.author.name.clone()),
             Some(&msg),
             None,
         )

@@ -15,7 +15,7 @@ pub async fn rename_channel_with_timeout(
 ) -> ModmailResult<()> {
     let rename_future = channel_id.edit(
         &ctx.http,
-        EditChannel::new().name(format!("🔵-{}", new_name)),
+        EditChannel::new().name(new_name.clone()),
     );
     let timeout = sleep(Duration::from_secs(2));
 
@@ -57,7 +57,7 @@ pub async fn rename_channel_with_timeout(
                 None
             };
 
-            if let Err(e) = channel_id.edit(&ctx.http, EditChannel::new().name(format!("🔵-{}", new_name))).await {
+            if let Err(e) = channel_id.edit(&ctx.http, EditChannel::new().name(new_name)).await {
                 return Err(ModmailError::Discord(DiscordError::ApiError(e.to_string())));
             }
 
