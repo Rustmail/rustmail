@@ -835,7 +835,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.help".to_string(),
-        DictionaryMessage::new("Displays a list of all available commands with a short description. To view the help message, use `!help`."),
+        DictionaryMessage::new("Displays a list of all available commands with a short description. To view the help message, use `!help`. If you want help with a specific command, type `!help <command_name>`."),
     );
     dict.messages.insert(
         "help.id".to_string(),
@@ -871,7 +871,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.message".to_string(),
-        DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands__** with the **__same name__**.\n\n"),
+        DictionaryMessage::new("## Commands:\n\n**All commands** are also available as **__slash commands__** with the **__same name__**.\n\nIf you want help with a specific command, type `!help <command_name>`.\n\n"),
     );
     dict.messages.insert(
         "help.take".to_string(),
@@ -921,5 +921,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "release.confirmation".to_string(),
         DictionaryMessage::new("The ticket has been released by {staff}."),
+    );
+    dict.messages.insert(
+        "slash_command.help_command_argument_desc".to_string(),
+        DictionaryMessage::new("The command to get help with"),
     );
 }

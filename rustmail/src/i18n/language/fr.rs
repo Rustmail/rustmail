@@ -859,7 +859,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.help".to_string(),
-        DictionaryMessage::new("Affiche une liste de toutes les commandes disponibles avec une brève description. Pour afficher le message d'aide, faites `!help`."),
+        DictionaryMessage::new("Affiche une liste de toutes les commandes disponibles avec une brève description. Pour afficher le message d'aide, faites `!help`. Si vous souhaitez obtenir de l'aide sur une commande spécifique, faites `!help <nom_de_la_commande>`."),
     );
     dict.messages.insert(
         "help.id".to_string(),
@@ -895,7 +895,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.message".to_string(),
-        DictionaryMessage::new("## Commandes :\n\n**Toutes les commandes** disponibles sont également utilisables via des **__commandes slash__** portant le __même nom__.\n\n"),
+        DictionaryMessage::new("## Commandes :\n\n**Toutes les commandes** disponibles sont également utilisables via des **__commandes slash__** portant le __même nom__.\n\nSi vous souhaitez obtenir de l'aide sur une commande spécifique, faites `!help <nom_de_la_commande>`.\n\n")
     );
     dict.messages.insert(
         "help.take".to_string(),
@@ -936,5 +936,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "release.confirmation".to_string(),
         DictionaryMessage::new("Le ticket n'est plus pris en charge par {staff}."),
+    );
+    dict.messages.insert(
+        "slash_command.help_command_argument_desc".to_string(),
+        DictionaryMessage::new("Le nom de la commande pour laquelle vous souhaitez de l'aide"),
     );
 }

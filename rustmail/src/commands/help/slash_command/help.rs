@@ -1,15 +1,15 @@
+use crate::commands::help::common::{display_command_help, display_commands_list};
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::ModmailResult;
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, ResolvedOption,
+};
 use serenity::FutureExt;
-use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
-use serenity::futures::future::join_all;
-use std::collections::HashMap;
-use std::error::Error;
 use std::sync::Arc;
 
 pub struct HelpCommand;
@@ -38,8 +38,22 @@ impl RegistrableCommand for HelpCommand {
                 None,
             )
             .await;
+            let cmd_arg_desc = get_translated_message(
+                &config,
+                "slash_command.help_command_argument_desc",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
 
-            vec![CreateCommand::new("help").description(cmd_desc)]
+            vec![
+                CreateCommand::new("help").description(cmd_desc).add_option(
+                    CreateCommandOption::new(CommandOptionType::String, "command", cmd_arg_desc)
+                        .required(false),
+                ),
+            ]
         })
     }
 
@@ -56,33 +70,41 @@ impl RegistrableCommand for HelpCommand {
         let config = config.clone();
 
         Box::pin(async move {
-            let mut docs_message = String::new();
-
-            let welcome_msg =
-                get_translated_message(&config, "help.message", None, None, None, None).await;
-            docs_message.push_str(&welcome_msg);
-
-            let futures = handler.registry.commands.iter().map(|(name, command)| {
-                let config = config.clone();
-
-                async move {
-                    let doc = command.doc(&config).await;
-                    format!("**{}** — {}\n\n", name, doc)
-                }
-            });
-
-            let results = join_all(futures).await;
-            docs_message.push_str(&results.join(""));
-
             defer_response(&ctx, &command).await?;
 
-            let response = MessageBuilder::system_message(&ctx, &config)
-                .content(docs_message)
-                .to_channel(command.channel_id)
-                .build_interaction_message_followup()
-                .await;
+            let mut command_name: Option<String> = None;
 
-            let _ = command.create_followup(&ctx.http, response).await;
+            for option in &command.data.options {
+                match option.name.as_str() {
+                    "command" => {
+                        if let CommandDataOptionValue::String(val) = &option.value {
+                            command_name.replace(val.clone());
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            if let Some(cmd_name) = command_name {
+                display_command_help(
+                    &ctx,
+                    &config,
+                    handler.registry.clone(),
+                    None,
+                    Some(&command),
+                    &cmd_name,
+                )
+                .await?;
+            } else {
+                display_commands_list(
+                    &ctx,
+                    &config,
+                    handler.registry.clone(),
+                    None,
+                    Some(&command),
+                )
+                .await?;
+            }
 
             Ok(())
         })
