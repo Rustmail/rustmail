@@ -10,8 +10,8 @@ use crate::utils::thread::send_to_thread::send_to_thread;
 use crate::utils::thread::user_recap::get_user_recap;
 use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
 use serenity::all::{
-    ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel, GuildId,
-    Message, ModalInteraction, UserId,
+    ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel,
+    CreateInteractionResponseFollowup, GuildId, Message, ModalInteraction, UserId,
 };
 use serenity::builder::{CreateInteractionResponse, EditChannel, EditMessage};
 use std::collections::HashMap;
@@ -175,27 +175,16 @@ pub async fn handle_thread_modal_interaction(
     let parts = match parse_thread_interaction(&interaction.data.custom_id) {
         Some(parts) => parts,
         None => {
-            let response = CreateInteractionResponse::Message(
-                MessageBuilder::system_message(&ctx, &config)
-                    .translated_content(
-                        "feature.not_implemented",
-                        None,
-                        Some(interaction.user.id),
-                        interaction.guild_id.map(|g| g.get()),
-                    )
-                    .await
-                    .to_channel(interaction.channel_id)
-                    .build_interaction_message()
-                    .await
-                    .ephemeral(true),
-            );
-            let _ = interaction.create_response(&ctx.http, response).await;
             return Ok(());
         }
     };
 
     let key = interaction.channel_id.get();
     let lock = get_thread_lock(config, key);
+
+    interaction
+        .create_response(&ctx.http, CreateInteractionResponse::Acknowledge)
+        .await?;
 
     let guard = match lock.try_lock() {
         Ok(guard) => guard,
@@ -240,9 +229,9 @@ pub async fn handle_thread_modal_interaction(
                     Err(_) => {
                         eprintln!("Invalid user ID provided in modal interaction: {}", id);
                         let _ = interaction
-                            .create_response(
+                            .create_followup(
                                 &ctx.http,
-                                CreateInteractionResponse::Message(
+                                CreateInteractionResponseFollowup::from(
                                     MessageBuilder::system_message(ctx, config)
                                         .translated_content(
                                             "thread.modal_invalid_user_id",
@@ -252,7 +241,7 @@ pub async fn handle_thread_modal_interaction(
                                         )
                                         .await
                                         .to_channel(interaction.channel_id)
-                                        .build_interaction_message()
+                                        .build_interaction_message_followup()
                                         .await
                                         .ephemeral(true),
                                 ),
@@ -271,9 +260,9 @@ pub async fn handle_thread_modal_interaction(
                 Err(_) => {
                     eprintln!("Failed to fetch user by ID: {}", user_id);
                     let _ = interaction
-                        .create_response(
+                        .create_followup(
                             &ctx.http,
-                            CreateInteractionResponse::Message(
+                            CreateInteractionResponseFollowup::from(
                                 MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.modal_user_not_found",
@@ -283,7 +272,7 @@ pub async fn handle_thread_modal_interaction(
                                     )
                                     .await
                                     .to_channel(interaction.channel_id)
-                                    .build_interaction_message()
+                                    .build_interaction_message_followup()
                                     .await
                                     .ephemeral(true),
                             ),
@@ -299,14 +288,14 @@ pub async fn handle_thread_modal_interaction(
                     user_id
                 );
                 let _ = interaction
-                    .create_response(
+                    .create_followup(
                         &ctx.http,
-                        CreateInteractionResponse::Message(
+                        CreateInteractionResponseFollowup::from(
                             MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.modal_bot_user", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
-                                .build_interaction_message()
+                                .build_interaction_message_followup()
                                 .await
                                 .ephemeral(true),
                         ),
@@ -330,9 +319,9 @@ pub async fn handle_thread_modal_interaction(
                     format!("<#{}>", existing_channel_str),
                 );
                 let _ = interaction
-                    .create_response(
+                    .create_followup(
                         &ctx.http,
-                        CreateInteractionResponse::Message(
+                        CreateInteractionResponseFollowup::from(
                             MessageBuilder::system_message(ctx, config)
                                 .translated_content(
                                     "thread.already_exists",
@@ -342,7 +331,7 @@ pub async fn handle_thread_modal_interaction(
                                 )
                                 .await
                                 .to_channel(interaction.channel_id)
-                                .build_interaction_message()
+                                .build_interaction_message_followup()
                                 .await
                                 .ephemeral(true),
                         ),
@@ -356,9 +345,9 @@ pub async fn handle_thread_modal_interaction(
                 Ok(Channel::Guild(gc)) => gc,
                 _ => {
                     let _ = interaction
-                        .create_response(
+                        .create_followup(
                             &ctx.http,
-                            CreateInteractionResponse::Message(
+                            CreateInteractionResponseFollowup::from(
                                 MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.not_a_thread_channel",
@@ -368,7 +357,7 @@ pub async fn handle_thread_modal_interaction(
                                     )
                                     .await
                                     .to_channel(interaction.channel_id)
-                                    .build_interaction_message()
+                                    .build_interaction_message_followup()
                                     .await
                                     .ephemeral(true),
                             ),
@@ -382,9 +371,9 @@ pub async fn handle_thread_modal_interaction(
             if let Some(parent_id) = guild_channel.parent_id {
                 if parent_id.get() != config.thread.inbox_category_id {
                     let _ = interaction
-                        .create_response(
+                        .create_followup(
                             &ctx.http,
-                            CreateInteractionResponse::Message(
+                            CreateInteractionResponseFollowup::from(
                                 MessageBuilder::system_message(ctx, config)
                                     .translated_content(
                                         "thread.not_a_thread_channel",
@@ -394,7 +383,7 @@ pub async fn handle_thread_modal_interaction(
                                     )
                                     .await
                                     .to_channel(interaction.channel_id)
-                                    .build_interaction_message()
+                                    .build_interaction_message_followup()
                                     .await
                                     .ephemeral(true),
                             ),
@@ -405,14 +394,14 @@ pub async fn handle_thread_modal_interaction(
                 }
             } else {
                 let _ = interaction
-                    .create_response(
+                    .create_followup(
                         &ctx.http,
-                        CreateInteractionResponse::Message(
+                        CreateInteractionResponseFollowup::from(
                             MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.not_a_thread_channel", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
-                                .build_interaction_message()
+                                .build_interaction_message_followup()
                                 .await
                                 .ephemeral(true),
                         ),
@@ -429,14 +418,14 @@ pub async fn handle_thread_modal_interaction(
             {
                 eprintln!("Failed to create thread record: {}", e);
                 let _ = interaction
-                    .create_response(
+                    .create_followup(
                         &ctx.http,
-                        CreateInteractionResponse::Message(
+                        CreateInteractionResponseFollowup::from(
                             MessageBuilder::system_message(ctx, config)
                                 .translated_content("thread.creation_failed", None, None, None)
                                 .await
                                 .to_channel(interaction.channel_id)
-                                .build_interaction_message()
+                                .build_interaction_message_followup()
                                 .await
                                 .ephemeral(true),
                         ),
@@ -474,14 +463,14 @@ pub async fn handle_thread_modal_interaction(
                 format!("<#{}>", interaction.channel_id),
             );
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.created", Some(&params), None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await
                             .ephemeral(true),
                     ),
@@ -500,14 +489,14 @@ pub async fn handle_thread_modal_interaction(
         _ => {
             eprintln!("Unknown thread modal interaction action: {}", parts);
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.unknown_action", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await,
                     ),
                 )
@@ -536,14 +525,14 @@ pub async fn handle_thread_component_interaction(
         Ok(guard) => guard,
         Err(_) => {
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.action_in_progress", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await
                             .ephemeral(true),
                     ),
@@ -563,14 +552,14 @@ pub async fn handle_thread_component_interaction(
             params.insert("user".to_string(), format!("<@{}>", interaction.user.id));
 
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.thread_closing", Some(&params), None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await,
                     ),
                 )
@@ -582,14 +571,14 @@ pub async fn handle_thread_component_interaction(
         }
         "keep" => {
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.will_remain_open", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await,
                     ),
                 )
@@ -630,14 +619,14 @@ pub async fn handle_thread_component_interaction(
         _ => {
             eprintln!("Unknown thread component interaction action: {}", parts);
             let _ = interaction
-                .create_response(
+                .create_followup(
                     &ctx.http,
-                    CreateInteractionResponse::Message(
+                    CreateInteractionResponseFollowup::from(
                         MessageBuilder::system_message(ctx, config)
                             .translated_content("thread.unknown_action", None, None, None)
                             .await
                             .to_channel(interaction.channel_id)
-                            .build_interaction_message()
+                            .build_interaction_message_followup()
                             .await,
                     ),
                 )
