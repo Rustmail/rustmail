@@ -1,9 +1,14 @@
+use crate::commands::help::common::{display_command_help, display_commands_list};
 use crate::config::Config;
 use crate::errors::ModmailResult;
 use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
+
+fn extract_request_command_name(command: &str) -> &str {
+    let parts: Vec<&str> = command.trim().split_whitespace().collect();
+    if parts.len() > 1 { parts[1] } else { "" }
+}
 
 pub async fn help(
     ctx: Context,
@@ -11,19 +16,21 @@ pub async fn help(
     config: &Config,
     handler: Arc<GuildMessagesHandler>,
 ) -> ModmailResult<()> {
-    let mut docs_message = String::new();
+    let command_name = extract_request_command_name(&msg.content);
 
-    for (name, command) in &handler.registry.commands {
-        let doc = command.doc(&config).await;
-
-        docs_message.push_str(&format!("**{}** — {}\n\n", name, doc))
-    }
-
-    MessageBuilder::system_message(&ctx, config)
-        .content(docs_message)
-        .to_channel(msg.channel_id)
-        .send(true)
+    if command_name.is_empty() {
+        display_commands_list(&ctx, config, handler.registry.clone(), Some(&msg), None).await?;
+    } else {
+        display_command_help(
+            &ctx,
+            config,
+            handler.registry.clone(),
+            Some(&msg),
+            None,
+            command_name,
+        )
         .await?;
+    }
 
     Ok(())
 }
