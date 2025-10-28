@@ -14,16 +14,16 @@ use serenity::FutureExt;
 use serenity::all::{ChannelId, CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
 
-pub struct TakeCommand;
+pub struct ReleaseCommand;
 
 #[async_trait::async_trait]
-impl RegistrableCommand for TakeCommand {
+impl RegistrableCommand for ReleaseCommand {
     fn name(&self) -> &'static str {
-        "take"
+        "release"
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move { get_translated_message(config, "help.take", None, None, None, None).await }
+        async move { get_translated_message(config, "help.release", None, None, None, None).await }
             .boxed()
     }
 
@@ -33,7 +33,7 @@ impl RegistrableCommand for TakeCommand {
         Box::pin(async move {
             let cmd_desc = get_translated_message(
                 &config,
-                "slash_command.help_command_description",
+                "slash_command.release_command_description",
                 None,
                 None,
                 None,
@@ -85,15 +85,15 @@ impl RegistrableCommand for TakeCommand {
                     .await
                     .unwrap_or_else(|_| "Unknown".to_string());
 
-                if thread_name == format!("🔵-{}", command.user.name) {
-                    return Err(ModmailError::Command(CommandError::TicketAlreadyTaken));
+                if thread_name == thread.user_name {
+                    return Err(ModmailError::Command(CommandError::TicketAlreadyReleased));
                 }
 
                 rename_channel_with_timeout(
                     &ctx,
                     &config,
                     thread_id,
-                    command.user.name.clone(),
+                    thread.user_name.clone(),
                     None,
                     Some(&command),
                 )
@@ -103,7 +103,7 @@ impl RegistrableCommand for TakeCommand {
                 params.insert("staff".to_string(), format!("<@{}>", command.user.id));
 
                 let response = MessageBuilder::system_message(&ctx, &config)
-                    .translated_content("take.confirmation", Some(&params), None, None)
+                    .translated_content("release.confirmation", Some(&params), None, None)
                     .await
                     .to_channel(command.channel_id)
                     .build_interaction_message_followup()

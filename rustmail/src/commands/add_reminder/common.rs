@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::db::reminders::{is_reminder_active, update_reminder_status, Reminder};
+use crate::db::reminders::{Reminder, is_reminder_active, update_reminder_status};
 use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Local;

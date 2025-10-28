@@ -5,18 +5,18 @@ use crate::commands::delete::common::{
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::messages::get_thread_message_by_message_id;
-use crate::errors::{common, MessageError, ModmailError, ModmailResult};
+use crate::errors::{MessageError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response_ephemeral;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
     CreateCommand, CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct DeleteCommand;
 
@@ -27,9 +27,8 @@ impl RegistrableCommand for DeleteCommand {
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move {
-            get_translated_message(config, "help.delete", None, None, None, None).await
-        }.boxed()
+        async move { get_translated_message(config, "help.delete", None, None, None, None).await }
+            .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

@@ -1,13 +1,13 @@
+use crate::commands::take::common::rename_channel_with_timeout;
 use crate::config::Config;
 use crate::db::get_thread_by_channel_id;
 use crate::db::threads::is_a_ticket_channel;
-use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::ThreadError::NotAThreadChannel;
+use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::{CommandError, ModmailError, ModmailResult};
 use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ChannelId, Context, Message};
-use serenity::builder::EditChannel;
 use std::sync::Arc;
 
 pub async fn take(
@@ -40,12 +40,15 @@ pub async fn take(
             return Err(ModmailError::Command(CommandError::TicketAlreadyTaken));
         }
 
-        let _ = thread_id
-            .edit(
-                &ctx.http,
-                EditChannel::new().name(format!("🔵-{}", msg.author.name)),
-            )
-            .await;
+        rename_channel_with_timeout(
+            &ctx,
+            config,
+            thread_id,
+            msg.author.name.clone(),
+            Some(&msg),
+            None,
+        )
+        .await?;
 
         let mut params = std::collections::HashMap::new();
         params.insert("staff".to_string(), format!("<@{}>", msg.author.id));

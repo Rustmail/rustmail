@@ -248,6 +248,9 @@ impl DictionaryManager {
                 CommandError::AlertDoesNotExist => ("alert.alert_not_found".to_string(), None),
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
                 CommandError::TicketAlreadyTaken => ("take.ticket_already_taken".to_string(), None),
+                CommandError::TicketAlreadyReleased => {
+                    ("release.ticket_already_taken".to_string(), None)
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

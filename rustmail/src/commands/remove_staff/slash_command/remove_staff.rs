@@ -4,18 +4,18 @@ use crate::config::Config;
 use crate::db::thread_exists;
 use crate::errors::CommandError::InvalidFormat;
 use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
     CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct RemoveStaffCommand;
 

@@ -1,5 +1,5 @@
 use ammonia::clean;
-use pulldown_cmark::{html, Parser};
+use pulldown_cmark::{Parser, html};
 use yew::{AttrValue, Html};
 
 pub fn markdown_to_html_safe(markdown_input: &str) -> Html {

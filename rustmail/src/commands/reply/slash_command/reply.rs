@@ -2,20 +2,20 @@ use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::db::allocate_next_message_number;
 use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{extract_intent, ReplyIntent};
+use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
 use crate::utils::thread::fetch_thread::fetch_thread;
+use serenity::FutureExt;
 use serenity::all::{
     Attachment, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
     CreateCommand, CreateCommandOption, GuildId, ResolvedOption, UserId,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct ReplyCommand;
 
@@ -26,9 +26,8 @@ impl RegistrableCommand for ReplyCommand {
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move {
-            get_translated_message(config, "help.reply", None, None, None, None).await
-        }.boxed()
+        async move { get_translated_message(config, "help.reply", None, None, None, None).await }
+            .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::{
     close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
 };
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::category::{
@@ -15,11 +15,11 @@ use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::fetch_thread::fetch_thread;
 use chrono::Utc;
+use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, GuildId, ResolvedOption, UserId,
 };
-use serenity::FutureExt;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;

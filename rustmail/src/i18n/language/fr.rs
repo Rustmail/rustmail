@@ -902,6 +902,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Permet de prendre en charge un ticket en remplaçant le nom de celui-ci par le vôtre. Pour prendre en charge un ticket, faites `!take` dans le ticket."),
     );
     dict.messages.insert(
+        "help.release".to_string(),
+        DictionaryMessage::new("Permet de ne plus prendre en charge un ticket pris en charge via la commande `take`. Pour libérer un ticket, faites `!release` dans le ticket."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new("Format incorrect. Utilisation : `{prefix}remind ou {prefix}rem <HH:MM> [contenu du rappel]`"),
     );
@@ -914,7 +918,23 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}."),
     );
     dict.messages.insert(
-        "slash_command.help_command_description".to_string(),
+        "take.timeout".to_string(),
+        DictionaryMessage::new("⚠️ **L’API de Discord** impose une limite de **2** changements de salon toutes les **10 minutes**. L’action sera appliquée **__automatiquement__** dès que le délai sera écoulé."),
+    );
+    dict.messages.insert(
+        "slash_command.take_command_description".to_string(),
         DictionaryMessage::new("Prendre en charge le ticket actuel"),
+    );
+    dict.messages.insert(
+        "slash_command.release_command_description".to_string(),
+        DictionaryMessage::new("Ne plus prendre en charge le ticket actuel"),
+    );
+    dict.messages.insert(
+        "release.ticket_already_taken".to_string(),
+        DictionaryMessage::new("Le ticket n'est pris en charge par personne."),
+    );
+    dict.messages.insert(
+        "release.confirmation".to_string(),
+        DictionaryMessage::new("Le ticket n'est plus pris en charge par {staff}."),
     );
 }

@@ -4,16 +4,16 @@ use crate::commands::alert::common::{
 };
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
+use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, ResolvedOption,
 };
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct AlertCommand;
 
@@ -24,9 +24,8 @@ impl RegistrableCommand for AlertCommand {
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move {
-            get_translated_message(config, "help.alert", None, None, None, None).await
-        }.boxed()
+        async move { get_translated_message(config, "help.alert", None, None, None, None).await }
+            .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {

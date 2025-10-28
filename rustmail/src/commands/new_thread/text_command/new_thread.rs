@@ -5,7 +5,7 @@ use crate::commands::new_thread::common::{
 use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{common, DiscordError, ModmailError, ModmailResult};
+use crate::errors::{DiscordError, ModmailError, ModmailResult, common};
 use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::message::message_builder::MessageBuilder;

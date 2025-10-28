@@ -1,15 +1,15 @@
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::modules::message_recovery::recover_missing_messages;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
+use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct RecoverCommand;
 
@@ -20,9 +20,8 @@ impl RegistrableCommand for RecoverCommand {
     }
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
-        async move {
-            get_translated_message(config, "help.recover", None, None, None, None).await
-        }.boxed()
+        async move { get_translated_message(config, "help.recover", None, None, None, None).await }
+            .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
