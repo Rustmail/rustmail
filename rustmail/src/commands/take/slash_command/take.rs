@@ -1,18 +1,17 @@
+use crate::commands::take::common::rename_channel_with_timeout;
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::db::threads::is_a_ticket_channel;
 use crate::db::get_thread_by_channel_id;
-use crate::errors::common::{database_connection_failed, thread_not_found};
+use crate::db::threads::is_a_ticket_channel;
 use crate::errors::ThreadError::NotAThreadChannel;
+use crate::errors::common::{database_connection_failed, thread_not_found};
 use crate::errors::{CommandError, ModmailError, ModmailResult};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
-use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateCommand, EditChannel, ResolvedOption,
-};
 use serenity::FutureExt;
+use serenity::all::{ChannelId, CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
 
 pub struct TakeCommand;
@@ -90,12 +89,15 @@ impl RegistrableCommand for TakeCommand {
                     return Err(ModmailError::Command(CommandError::TicketAlreadyTaken));
                 }
 
-                let _ = thread_id
-                    .edit(
-                        &ctx.http,
-                        EditChannel::new().name(format!("🔵-{}", command.user.name)),
-                    )
-                    .await;
+                rename_channel_with_timeout(
+                    &ctx,
+                    &config,
+                    thread_id,
+                    command.user.name.clone(),
+                    None,
+                    Some(&command),
+                )
+                .await?;
 
                 let mut params = std::collections::HashMap::new();
                 params.insert("staff".to_string(), format!("<@{}>", command.user.id));

@@ -896,6 +896,13 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The ticket is now taken by {staff}."),
     );
     dict.messages.insert(
+        "take.timeout".to_string(),
+        DictionaryMessage::new(
+            "⚠️ **Discord’s API** enforces a limit of **2** channel updates every **10 minutes**.
+            The action will be **__automatically__** applied once the cooldown expires.",
+        ),
+    );
+    dict.messages.insert(
         "slash_command.take_command_description".to_string(),
         DictionaryMessage::new("Take ownership of the current ticket."),
     );

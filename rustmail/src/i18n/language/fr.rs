@@ -918,6 +918,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}."),
     );
     dict.messages.insert(
+        "take.timeout".to_string(),
+        DictionaryMessage::new("⚠️ **L’API de Discord** impose une limite de **2** changements de salon toutes les **10 minutes**. L’action sera appliquée **__automatiquement__** dès que le délai sera écoulé."),
+    );
+    dict.messages.insert(
         "slash_command.take_command_description".to_string(),
         DictionaryMessage::new("Prendre en charge le ticket actuel"),
     );
