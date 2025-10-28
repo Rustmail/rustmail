@@ -1,8 +1,8 @@
-use crate::BotState;
+use crate::types::bot::BotState;
 use axum::{
-    Json,
     extract::{Query, State},
     http::StatusCode,
+    Json,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

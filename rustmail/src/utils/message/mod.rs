@@ -4,6 +4,8 @@ pub mod reply_intent;
 pub mod category;
 pub mod ui_components;
 
+pub use message_builder::*;
+
 pub mod ui {
     use super::{ui_components::ButtonsBuilder, ui_components::ModalBuilder};
     pub fn modal(id: impl Into<String>, title: impl Into<String>) -> ModalBuilder {

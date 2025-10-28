@@ -1,5 +1,5 @@
-use crate::BotState;
 use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
+use crate::types::bot::BotState;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum_extra::extract::CookieJar;

@@ -1,16 +1,11 @@
 use crate::api::router::create_api_router;
 use crate::bot::{init_bot_state, start_bot_if_config_valid};
-use crate::config::Config;
 use axum::extract::Path;
 use axum::response::Response;
 use rust_embed::RustEmbed;
-use serenity::http::Http;
 use std::borrow::Cow;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use tokio::signal;
-use tokio::sync::watch::Sender;
-use tokio::task::JoinHandle;
 
 mod api;
 mod bot;
@@ -23,40 +18,9 @@ mod handlers;
 mod i18n;
 mod modules;
 mod panel_commands;
+mod prelude;
 mod types;
 mod utils;
-
-pub struct Database;
-
-pub enum BotStatus {
-    Stopped,
-    Running {
-        handle: JoinHandle<()>,
-        shutdown: Sender<bool>,
-    },
-}
-
-enum BotCommand {
-    CheckUserRole {
-        user_id: u64,
-        role_id: u64,
-        resp: tokio::sync::oneshot::Sender<bool>,
-    },
-    CheckUserIsMember {
-        user_id: u64,
-        resp: tokio::sync::oneshot::Sender<bool>,
-    },
-    Test,
-}
-
-struct BotState {
-    config: Option<Config>,
-    status: BotStatus,
-    db_pool: Option<sqlx::SqlitePool>,
-    command_tx: tokio::sync::mpsc::Sender<BotCommand>,
-    bot_http: Option<Arc<Http>>,
-    internal_token: String,
-}
 
 #[derive(RustEmbed)]
 #[folder = "static/"]

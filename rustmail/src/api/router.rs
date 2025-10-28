@@ -1,8 +1,8 @@
-use crate::BotState;
 use crate::api::routes::auth::create_auth_router;
 use crate::api::routes::bot::create_bot_router;
 use crate::api::routes::panel::create_panel_router;
 use crate::api::routes::user::create_user_router;
+use crate::types::bot::BotState;
 use axum::Router;
 use std::sync::Arc;
 use tokio::sync::Mutex;

@@ -1,7 +1,7 @@
-use crate::{BotState, BotStatus};
-use axum::Json;
+use crate::types::bot::{BotState, BotStatus};
 use axum::extract::State;
 use axum::http::StatusCode;
+use axum::Json;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

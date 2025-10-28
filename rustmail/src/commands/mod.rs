@@ -29,6 +29,26 @@ pub mod remove_staff;
 pub mod reply;
 pub mod take;
 
+pub use add_reminder::*;
+pub use add_staff::*;
+pub use alert::*;
+pub use anonreply::*;
+pub use close::*;
+pub use delete::*;
+pub use edit::*;
+pub use force_close::*;
+pub use help::*;
+pub use id::*;
+pub use logs::*;
+pub use move_thread::*;
+pub use new_thread::*;
+pub use recover::*;
+pub use release::*;
+pub use remove_reminder::*;
+pub use remove_staff::*;
+pub use reply::*;
+pub use take::*;
+
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 pub trait RegistrableCommand: Any + Send + Sync {

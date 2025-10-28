@@ -1,9 +1,9 @@
 use crate::bot::run_bot;
 use crate::config::load_config;
-use crate::{BotState, BotStatus};
-use axum::Json;
+use crate::types::bot::{BotState, BotStatus};
 use axum::extract::State;
 use axum::http::StatusCode;
+use axum::Json;
 use std::sync::Arc;
 use tokio::spawn;
 use tokio::sync::Mutex;

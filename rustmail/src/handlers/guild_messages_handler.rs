@@ -1,39 +1,11 @@
-use crate::commands::CommandRegistry;
-use crate::commands::add_reminder::text_command::add_reminder::add_reminder;
-use crate::commands::add_staff::text_command::add_staff::add_staff;
-use crate::commands::alert::text_command::alert::alert;
-use crate::commands::anonreply::text_command::anonreply::anonreply;
-use crate::commands::close::text_command::close::close;
-use crate::commands::delete::text_command::delete::delete;
-use crate::commands::edit::message_ops::edit_inbox_message;
-use crate::commands::edit::text_command::edit::edit;
-use crate::commands::force_close::text_command::force_close::force_close;
-use crate::commands::help::text_command::help::help;
-use crate::commands::id::text_command::id::id;
-use crate::commands::logs::text_command::logs::logs;
-use crate::commands::move_thread::text_command::move_thread::move_thread;
-use crate::commands::new_thread::text_command::new_thread::new_thread;
-use crate::commands::recover::text_command::recover::recover;
-use crate::commands::release::text_command::release::release;
-use crate::commands::remove_reminder::text_command::remove_reminder::remove_reminder;
-use crate::commands::remove_staff::text_command::remove_staff::remove_staff;
-use crate::commands::reply::text_command::reply::reply;
-use crate::commands::take::text_command::take::take;
 use crate::config::Config;
-use crate::db::messages::get_thread_message_by_dm_message_id;
-use crate::db::operations::messages::get_thread_message_by_message_id;
-use crate::db::operations::{
-    delete_message as db_delete_message, update_message_numbers_after_deletion,
-};
-use crate::db::operations::{get_thread_channel_by_user_id, thread_exists, update_message_content};
-use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{ModmailResult, common};
-use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::thread::get_thread_lock::get_thread_lock;
-use crate::utils::thread::send_to_thread::send_to_thread;
-use crate::{modules::threads::create_channel, utils::wrap_command};
+use crate::modules::create_channel;
+use crate::prelude::commands::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
+use crate::prelude::types::*;
+use crate::prelude::utils::*;
 use serenity::all::{GuildId, MessageId, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
@@ -42,8 +14,9 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use tokio::sync::Mutex as AsyncMutex;
 use tokio::sync::watch::Receiver;
+use tokio::sync::Mutex as AsyncMutex;
+use crate::wrap_command;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
@@ -82,6 +55,7 @@ impl GuildMessagesHandler {
             shutdown: Arc::new(shutdown),
             pagination,
         };
+        extract_reply_content()
 
         let mut lock = h.commands.lock().await;
 

@@ -1,4 +1,4 @@
-use crate::BotState;
+use crate::types::bot::BotState;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use std::sync::Arc;

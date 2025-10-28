@@ -1,8 +1,8 @@
 use crate::api::utils::ping_internal::ping_internal;
-use crate::{BotState, BotStatus};
-use axum::Json;
+use crate::types::bot::{BotState, BotStatus};
 use axum::extract::State;
 use axum::http::StatusCode;
+use axum::Json;
 use sqlx::__rt::sleep;
 use std::sync::Arc;
 use std::time::Duration;

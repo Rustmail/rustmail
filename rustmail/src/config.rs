@@ -1,5 +1,5 @@
-use crate::errors::handler::ErrorHandler;
-use crate::i18n::languages::Language;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
 use chrono_tz::Tz;
 use serde::Deserialize;
 use serenity::all::GuildId;

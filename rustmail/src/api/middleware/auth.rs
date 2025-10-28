@@ -1,5 +1,5 @@
 use crate::api::utils::get_user_id_from_session::get_user_id_from_session;
-use crate::{BotCommand, BotState, BotStatus};
+use crate::types::bot::{BotCommand, BotState, BotStatus};
 use axum::extract::State;
 use axum::extract::{ConnectInfo, Request};
 use axum::middleware::Next;
@@ -8,7 +8,7 @@ use axum_extra::extract::CookieJar;
 use chrono::Utc;
 use hyper::StatusCode;
 use serenity::all::{GuildId, UserId};
-use sqlx::{Row, query};
+use sqlx::{query, Row};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use subtle::ConstantTimeEq;

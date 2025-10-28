@@ -1,4 +1,4 @@
-use crate::BotState;
+use crate::types::bot::BotState;
 use axum::extract::{Query, State};
 use axum::response::Redirect;
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
