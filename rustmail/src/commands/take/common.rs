@@ -57,16 +57,13 @@ pub async fn rename_channel_with_timeout(
                 None
             };
 
-            if let Err(e) = channel_id.edit(&ctx.http, EditChannel::new().name(new_name)).await {
-                return Err(ModmailError::Discord(DiscordError::ApiError(e.to_string())));
-            }
+            let _ = channel_id.edit(&ctx.http, EditChannel::new().name(new_name)).await;
 
-            if let Some(msg) = message_response {
-                let _ = msg.delete(&ctx.http).await;
+            if let Some(m) = message_response {
+                let _ = m.delete(&ctx.http).await;
             }
-
-            if let Some(command) = command_response {
-                let _ = command.delete(&ctx.http).await;
+            if let Some(m) = command_response {
+                let _ = m.delete(&ctx.http).await;
             }
 
             return Ok(());

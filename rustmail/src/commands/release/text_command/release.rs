@@ -40,25 +40,29 @@ pub async fn release(
             return Err(ModmailError::Command(CommandError::TicketAlreadyReleased));
         }
 
-        rename_channel_with_timeout(
-            &ctx,
-            &config,
-            thread_id,
-            thread.user_name.clone(),
-            Some(&msg),
-            None,
-        )
-        .await?;
+        let config_clone = config.clone();
 
-        let mut params = std::collections::HashMap::new();
-        params.insert("staff".to_string(), format!("<@{}>", msg.author.id));
+        tokio::spawn(async move {
+            let _ = rename_channel_with_timeout(
+                &ctx,
+                &config_clone,
+                thread_id,
+                thread.user_name.clone(),
+                Some(&msg),
+                None,
+            )
+                .await;
 
-        let _ = MessageBuilder::system_message(&ctx, config)
-            .translated_content("release.confirmation", Some(&params), None, None)
-            .await
-            .to_channel(msg.channel_id)
-            .send(true)
-            .await?;
+            let mut params = std::collections::HashMap::new();
+            params.insert("staff".to_string(), format!("<@{}>", msg.author.id));
+
+            let _ = MessageBuilder::system_message(&ctx, &config_clone)
+                .translated_content("release.confirmation", Some(&params), None, None)
+                .await
+                .to_channel(msg.channel_id)
+                .send(true)
+                .await;
+        });
 
         Ok(())
     } else {

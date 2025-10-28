@@ -65,7 +65,6 @@ where
 }
 
 fn default_timezone() -> Tz {
-    println!("yes");
     chrono_tz::UTC
 }
 

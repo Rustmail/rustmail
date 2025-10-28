@@ -89,27 +89,29 @@ impl RegistrableCommand for TakeCommand {
                     return Err(ModmailError::Command(CommandError::TicketAlreadyTaken));
                 }
 
-                rename_channel_with_timeout(
-                    &ctx,
-                    &config,
-                    thread_id,
-                    format!("🔵-{}", command.user.name.clone()),
-                    None,
-                    Some(&command),
-                )
-                .await?;
+                tokio::spawn(async move {
+                    let _ = rename_channel_with_timeout(
+                        &ctx,
+                        &config,
+                        thread_id,
+                        format!("🔵-{}", command.user.name.clone()),
+                        None,
+                        Some(&command),
+                    )
+                        .await;
 
-                let mut params = std::collections::HashMap::new();
-                params.insert("staff".to_string(), format!("<@{}>", command.user.id));
+                    let mut params = std::collections::HashMap::new();
+                    params.insert("staff".to_string(), format!("<@{}>", command.user.id));
 
-                let response = MessageBuilder::system_message(&ctx, &config)
-                    .translated_content("take.confirmation", Some(&params), None, None)
-                    .await
-                    .to_channel(command.channel_id)
-                    .build_interaction_message_followup()
-                    .await;
+                    let response = MessageBuilder::system_message(&ctx, &config)
+                        .translated_content("take.confirmation", Some(&params), None, None)
+                        .await
+                        .to_channel(command.channel_id)
+                        .build_interaction_message_followup()
+                        .await;
 
-                let _ = command.create_followup(ctx.clone(), response).await;
+                    let _ = command.create_followup(ctx.clone(), response).await;
+                });
 
                 Ok(())
             } else {
