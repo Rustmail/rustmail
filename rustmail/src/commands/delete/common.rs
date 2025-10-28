@@ -5,7 +5,7 @@ use crate::db::{
     delete_message, get_message_ids_by_number, get_thread_by_channel_id,
     get_user_id_from_channel_id, update_message_numbers_after_deletion,
 };
-use crate::errors::{common, CommandError, ModmailError, ModmailResult};
+use crate::errors::{CommandError, ModmailError, ModmailResult, common};
 use crate::utils::message::message_builder::MessageBuilder;
 use serenity::all::{ChannelId, Context, Message, MessageId, UserId};
 use std::collections::HashMap;

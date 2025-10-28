@@ -2,9 +2,9 @@ use crate::commands::add_reminder::common::{
     send_register_confirmation_from_message, spawn_reminder,
 };
 use crate::config::Config;
-use crate::db::reminders::{insert_reminder, Reminder};
+use crate::db::reminders::{Reminder, insert_reminder};
 use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{common, CommandError, ModmailError, ModmailResult, ThreadError};
+use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
 use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use crate::utils::command::extract_reply_content::extract_reply_content;
 use chrono::{Local, NaiveTime, TimeZone};

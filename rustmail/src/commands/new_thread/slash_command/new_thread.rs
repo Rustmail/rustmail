@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::db::logs::get_logs_from_user_id;
 use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
 use crate::errors::{
-    common, CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult,
+    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
 };
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
@@ -12,13 +12,13 @@ use crate::utils::command::defer_response::defer_response;
 use crate::utils::message::message_builder::MessageBuilder;
 use crate::utils::thread::user_recap::get_user_recap;
 use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
+use serenity::FutureExt;
 use serenity::all::{
     ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
     CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, GuildId, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct NewThreadCommand;
 

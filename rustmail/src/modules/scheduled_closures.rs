@@ -6,7 +6,7 @@ use crate::db::{
 use crate::utils::message::message_builder::MessageBuilder;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, UserId};
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
     let now = Utc::now().timestamp();

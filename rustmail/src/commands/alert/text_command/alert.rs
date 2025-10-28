@@ -3,7 +3,7 @@ use crate::commands::alert::common::{
     handle_set_alert_from_msg,
 };
 use crate::config::Config;
-use crate::errors::{common, ModmailResult};
+use crate::errors::{ModmailResult, common};
 use crate::handlers::guild_messages_handler::GuildMessagesHandler;
 use serenity::all::{Context, Message};
 use std::sync::Arc;

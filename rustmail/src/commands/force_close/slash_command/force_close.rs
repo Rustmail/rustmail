@@ -4,12 +4,12 @@ use crate::config::Config;
 use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
 use crate::errors::DatabaseError::QueryFailed;
 use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
-use crate::errors::{common, ModmailError, ModmailResult};
+use crate::errors::{ModmailError, ModmailResult, common};
 use crate::handlers::guild_interaction_handler::InteractionHandler;
 use crate::i18n::get_translated_message;
+use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
-use serenity::FutureExt;
 
 pub struct ForceCloseCommand;
 
