@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::prelude::config::*;
 use serenity::all::Http;
 use std::sync::Arc;
 use tokio::sync::watch::Sender;

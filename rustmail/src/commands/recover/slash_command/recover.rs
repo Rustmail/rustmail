@@ -1,11 +1,10 @@
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::errors::{ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::modules::message_recovery::recover_missing_messages;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::modules::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;
@@ -58,7 +57,7 @@ impl RegistrableCommand for RecoverCommand {
             let _ = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response(&ctx, &command).await?;
 

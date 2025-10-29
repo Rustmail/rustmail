@@ -1,5 +1,5 @@
-use crate::config::Config;
-use crate::db::{get_thread_channel_by_user_id, get_user_id_from_channel_id};
+use crate::prelude::config::*;
+use crate::prelude::db::*;
 use serenity::all::{ChannelId, Context, EventHandler, TypingStartEvent, UserId};
 use serenity::async_trait;
 use sqlx::SqlitePool;

@@ -1,5 +1,4 @@
-use crate::errors::DiscordError::ApiError;
-use crate::errors::{ModmailError, ModmailResult};
+use crate::prelude::errors::*;
 use serenity::all::{ChannelId, Context};
 
 pub async fn delete_channel(ctx: &Context, channel_id: ChannelId) -> ModmailResult<()> {
@@ -8,6 +7,6 @@ pub async fn delete_channel(ctx: &Context, channel_id: ChannelId) -> ModmailResu
             println!("Channel {} deleted successfully", channel_id);
             Ok(())
         }
-        Err(e) => Err(ModmailError::Discord(ApiError(e.to_string()))),
+        Err(e) => Err(ModmailError::Discord(DiscordError::ApiError(e.to_string()))),
     }
 }

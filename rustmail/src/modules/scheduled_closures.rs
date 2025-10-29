@@ -3,7 +3,7 @@ use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, UserId};
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
     let now = Utc::now().timestamp();

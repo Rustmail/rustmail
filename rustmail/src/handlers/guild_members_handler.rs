@@ -1,10 +1,8 @@
-use crate::config::Config;
-use crate::db::close_thread;
-use crate::db::operations::update_thread_user_left;
-use crate::db::threads::get_thread_by_user_id;
-use crate::features::make_buttons;
-use crate::i18n::get_translated_message;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::features::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::{ButtonStyle, Channel, Member, PermissionOverwriteType, RoleId};
 use serenity::{
     all::{Context, EventHandler, GuildId, User},

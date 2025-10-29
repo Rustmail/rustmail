@@ -1,7 +1,4 @@
-use crate::errors::CommandError::ReminderAlreadyExists;
-use crate::errors::{ModmailError, ModmailResult};
-use sqlx::Error::Database;
-use sqlx::error::ErrorKind::UniqueViolation;
+use crate::prelude::errors::*;
 
 #[derive(Debug, Clone)]
 pub struct Reminder {
@@ -33,7 +30,7 @@ pub async fn insert_reminder(reminder: &Reminder, pool: &sqlx::SqlitePool) -> Mo
     .await?;
 
     if let Some(_existging_id) = existing {
-        return Err(ModmailError::Command(ReminderAlreadyExists));
+        return Err(ModmailError::Command(CommandError::ReminderAlreadyExists));
     }
 
     let result = sqlx::query!(

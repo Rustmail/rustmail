@@ -1,14 +1,10 @@
-use crate::commands::add_reminder::common::{
-    send_register_confirmation_from_command, spawn_reminder,
-};
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
-use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use chrono::{Local, NaiveTime, TimeZone};
 use regex::Regex;
 use serenity::FutureExt;
@@ -100,7 +96,7 @@ impl RegistrableCommand for AddReminderCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             let _ = defer_response(&ctx, &command).await;
 

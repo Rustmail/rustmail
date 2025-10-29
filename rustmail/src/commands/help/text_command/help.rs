@@ -1,7 +1,7 @@
-use crate::commands::help::common::{display_command_help, display_commands_list};
-use crate::config::Config;
-use crate::errors::ModmailResult;
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 

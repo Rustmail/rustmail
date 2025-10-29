@@ -1,7 +1,7 @@
-use crate::config::Config;
-use crate::errors::ModmailResult;
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::types::logs::PaginationStore;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::types::*;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::any::Any;
 use std::collections::HashMap;

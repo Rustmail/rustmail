@@ -1,8 +1,7 @@
-use crate::api::handler::panel::panel::handle_panel_check;
-use crate::api::middleware::auth::auth_middleware;
-use crate::types::bot::BotState;
-use axum::routing::get;
+use crate::prelude::api::*;
+use crate::prelude::types::*;
 use axum::Router;
+use axum::routing::get;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

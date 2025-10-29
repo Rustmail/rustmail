@@ -1,9 +1,7 @@
-use crate::commands::{CommandRegistry, CommunityRegistrable};
-use crate::config::Config;
-use crate::features::sync_features;
-use crate::modules::message_recovery::{recover_missing_messages, send_recovery_summary};
-use crate::modules::reminders::load_reminders;
-use crate::modules::scheduled_closures::hydrate_scheduled_closures;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::features::*;
+use crate::prelude::modules::*;
 use serenity::all::{ActivityData, CreateCommand, GuildId};
 use serenity::{
     all::{Context, EventHandler, Ready},

@@ -1,10 +1,8 @@
-use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
-use crate::db::operations::{insert_staff_message, insert_user_message_with_ids};
-use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{DatabaseError, ModmailError};
-use crate::i18n::get_translated_message;
-use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::{
     ChannelId, Colour, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponseFollowup, CreateMessage,

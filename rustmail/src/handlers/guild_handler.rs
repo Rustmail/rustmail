@@ -1,11 +1,6 @@
-use crate::config::Config;
-use crate::db::close_thread;
-use crate::db::operations::get_thread_by_channel_id;
-use crate::db::threads::is_an_opened_ticket_channel;
-use crate::utils::thread::category::{
-    get_category_id_from_guild_channel, get_category_name_from_guild_channel,
-    get_required_permissions_channel_from_guild_channel,
-};
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::utils::*;
 use async_trait::async_trait;
 use serenity::all::{Context, GuildChannel, Message};
 use serenity::client::EventHandler;

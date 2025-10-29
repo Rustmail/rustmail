@@ -1,16 +1,10 @@
-use crate::commands::move_thread::common::{
-    fetch_server_categories, find_best_match_category, move_channel_to_category_by_command_option,
-};
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::get_user_id_from_channel_id;
-use crate::errors::{
-    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, ThreadError,
-};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,

@@ -2,20 +2,16 @@ pub mod dictionary;
 pub mod handler;
 pub mod types;
 
-pub use types::{
-    CommandError, DatabaseError, DiscordError, MessageError, ModmailError, ModmailResult,
-    PermissionError, ThreadError, ValidationError,
-};
-
-pub use dictionary::{DictionaryMessage, ErrorDictionary};
-
-pub use crate::{
-    command_error, database_error, discord_error, message_error, permission_error, thread_error,
-    validation_error,
-};
+pub use dictionary::*;
+pub use handler::*;
+pub use types::*;
 
 pub mod common {
     use super::*;
+    use crate::{
+        command_error, database_error, discord_error, message_error, permission_error,
+        thread_error, validation_error,
+    };
 
     pub fn not_found(entity: &str) -> ModmailError {
         database_error!(NotFound, entity)
@@ -72,7 +68,7 @@ pub mod common {
 
 pub mod results {
     use super::*;
-    use crate::db::repr::Thread;
+    use crate::prelude::db::*;
     use serenity::all::{Channel, Message};
 
     pub type DatabaseResult<T> = Result<T, DatabaseError>;
@@ -92,6 +88,7 @@ pub mod results {
 
 pub mod conversions {
     use super::*;
+    use crate::{database_error, discord_error};
 
     pub fn from_serenity_with_context(err: serenity::Error, context: &str) -> ModmailError {
         match err {
@@ -117,3 +114,7 @@ pub mod conversions {
         }
     }
 }
+
+pub use common::*;
+pub use conversions::*;
+pub use results::*;

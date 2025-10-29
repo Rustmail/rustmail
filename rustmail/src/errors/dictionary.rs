@@ -1,16 +1,5 @@
-use crate::errors::types::*;
-use crate::i18n::language::cn::load_chinese_messages;
-use crate::i18n::language::dt::load_dutch_messages;
-use crate::i18n::language::en::load_english_messages;
-use crate::i18n::language::fr::load_french_messages;
-use crate::i18n::language::gr::load_german_messages;
-use crate::i18n::language::it::load_italian_messages;
-use crate::i18n::language::jp::load_japanese_messages;
-use crate::i18n::language::kr::load_korean_messages;
-use crate::i18n::language::pr::load_portuguese_messages;
-use crate::i18n::language::ru::load_russian_messages;
-use crate::i18n::language::sp::load_spanish_messages;
-use crate::i18n::languages::Language;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,6 +1,6 @@
-use crate::db;
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
+use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::panel_commands::*;
@@ -17,9 +17,7 @@ use tokio::sync::Mutex;
 use tokio::{select, spawn};
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
-    let pool = db::operations::init_database()
-        .await
-        .expect("An error occured!");
+    let pool = init_database().await.expect("An error occured!");
     println!("Database connected!");
 
     let mut bytes = [0u8; 32];

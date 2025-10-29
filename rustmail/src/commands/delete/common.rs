@@ -1,12 +1,8 @@
-use crate::config::Config;
-use crate::db::messages::MessageIds;
-use crate::db::repr::Thread;
-use crate::db::{
-    delete_message, get_message_ids_by_number, get_thread_by_channel_id,
-    get_user_id_from_channel_id, update_message_numbers_after_deletion,
-};
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::{ChannelId, Context, Message, MessageId, UserId};
 use std::collections::HashMap;
 
@@ -17,21 +13,21 @@ pub async fn get_thread_info(
     let user_id = match get_user_id_from_channel_id(&channel_id, pool).await {
         Some(uid) => uid,
         None => {
-            return Err(common::validation_failed("Not in a thread"));
+            return Err(validation_failed("Not in a thread"));
         }
     };
 
     let thread = match get_thread_by_channel_id(&channel_id, pool).await {
         Some(thread) => thread,
         None => {
-            return Err(common::validation_failed("Thread not found"));
+            return Err(validation_failed("Thread not found"));
         }
     };
 
     Ok((user_id, thread))
 }
 
-pub async fn get_message_ids(
+pub async fn get_message_ids_for_delete(
     user_id: i64,
     thread: &Thread,
     message_number: i64,
@@ -49,7 +45,7 @@ pub async fn get_message_ids(
         None => {
             let mut params = HashMap::new();
             params.insert("number".to_string(), message_number.to_string());
-            Err(common::message_not_found("Try an other message number."))
+            Err(message_not_found("Try an other message number."))
         }
     }
 }
@@ -116,7 +112,7 @@ pub async fn delete_database_message(
         && let Err(e) = delete_message(dm_msg_id, pool).await
     {
         eprintln!("Failed to delete message from database: {}", e);
-        return Err(common::database_connection_failed());
+        return Err(database_connection_failed());
     }
     Ok(())
 }

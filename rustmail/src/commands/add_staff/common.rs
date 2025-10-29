@@ -1,5 +1,5 @@
-use crate::config::Config;
-use crate::errors::ModmailResult;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
 use serenity::all::{
     ChannelId, Context, Message, PermissionOverwrite, PermissionOverwriteType, UserId,
 };
@@ -26,7 +26,7 @@ pub async fn add_user_to_channel(
     Ok(())
 }
 
-pub async fn extract_user_id(msg: &Message, config: &Config) -> String {
+pub async fn extract_staff_id(msg: &Message, config: &Config) -> String {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
     let command_names = ["addmod", "am"];

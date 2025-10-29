@@ -1,11 +1,12 @@
-use crate::config::Config;
-use crate::modules::create_channel;
 use crate::prelude::commands::*;
+use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
+use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use crate::prelude::utils::*;
+use crate::wrap_command;
 use serenity::all::{GuildId, MessageId, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
@@ -14,9 +15,8 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use tokio::sync::watch::Receiver;
 use tokio::sync::Mutex as AsyncMutex;
-use crate::wrap_command;
+use tokio::sync::watch::Receiver;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
@@ -55,7 +55,6 @@ impl GuildMessagesHandler {
             shutdown: Arc::new(shutdown),
             pagination,
         };
-        extract_reply_content()
 
         let mut lock = h.commands.lock().await;
 
@@ -96,12 +95,12 @@ async fn manage_incoming_message(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let error_handler = config
         .error_handler
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     if let Some(guild_id) = msg.guild_id {
         let community_guild_id = config.bot.get_community_guild_id();
@@ -122,7 +121,7 @@ async fn manage_incoming_message(
             )
             .await;
 
-            let error = common::validation_failed(&error_msg);
+            let error = validation_failed(&error_msg);
             let _ = error_handler
                 .reply_to_msg_with_error(ctx, msg, &error)
                 .await;
@@ -138,12 +137,12 @@ async fn manage_incoming_message(
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str
                 .parse::<u64>()
-                .map_err(|_| common::validation_failed("Invalid channel ID format"))?;
+                .map_err(|_| validation_failed("Invalid channel ID format"))?;
 
             let channel_id = ChannelId::new(channel_id_num);
 
             if let Err(e) = send_to_thread(ctx, channel_id, msg, config, false).await {
-                let error = common::validation_failed(&format!("Failed to forward message: {}", e));
+                let error = validation_failed(&format!("Failed to forward message: {}", e));
                 let _ = error_handler
                     .reply_to_msg_with_error(ctx, msg, &error)
                     .await;
@@ -276,7 +275,7 @@ impl EventHandler for GuildMessagesHandler {
             let _ = update_message_numbers_after_deletion(&thread.channel_id, num, pool).await;
         }
 
-        let _ = db_delete_message(&deleted_message_id.to_string(), pool).await;
+        let _ = delete_message(&deleted_message_id.to_string(), pool).await;
     }
 
     async fn message_delete_bulk(

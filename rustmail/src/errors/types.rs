@@ -132,7 +132,7 @@ pub enum ValidationError {
     OutOfRange(String),
     TooShort(String),
     TooLong(String),
-    InvalidFormat(String),
+    InvalidValidationFormat(String),
     RequiredFieldMissing(String),
     InvalidCharacters(String),
 }
@@ -306,7 +306,9 @@ impl fmt::Display for ValidationError {
             ValidationError::OutOfRange(range) => write!(f, "Out of range: {}", range),
             ValidationError::TooShort(field) => write!(f, "Too short: {}", field),
             ValidationError::TooLong(field) => write!(f, "Too long: {}", field),
-            ValidationError::InvalidFormat(format) => write!(f, "Invalid format: {}", format),
+            ValidationError::InvalidValidationFormat(format) => {
+                write!(f, "Invalid format: {}", format)
+            }
             ValidationError::RequiredFieldMissing(field) => {
                 write!(f, "Required field missing: {}", field)
             }

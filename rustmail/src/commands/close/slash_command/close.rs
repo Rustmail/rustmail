@@ -1,19 +1,10 @@
-use crate::commands::close::common::parse_duration_spec;
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::{
-    close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
-};
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::category::{
-    get_category_id_from_command, get_category_name_from_command,
-    get_required_permissions_channel_from_command,
-};
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::thread::fetch_thread::fetch_thread;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::FutureExt;
 use serenity::all::{
@@ -118,7 +109,7 @@ impl RegistrableCommand for CloseCommand {
             let db_pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response(&ctx, &command).await?;
 

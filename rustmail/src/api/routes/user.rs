@@ -1,8 +1,7 @@
-use crate::api::handler::user::avatar::handle_get_user_avatar;
-use crate::api::middleware::auth::auth_middleware;
-use crate::types::bot::BotState;
-use axum::routing::get;
+use crate::prelude::api::*;
+use crate::prelude::types::*;
 use axum::Router;
+use axum::routing::get;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

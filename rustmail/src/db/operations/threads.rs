@@ -1,6 +1,5 @@
-use crate::db::repr::Thread;
-use crate::errors::CommandError::AlertDoesNotExist;
-use crate::errors::{DatabaseError, ModmailError, ModmailResult};
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, GuildChannel, UserId};
 use sqlx::{Error, SqlitePool};
@@ -264,7 +263,7 @@ pub async fn cancel_alert_for_staff(
     .await?;
 
     if existing.is_none() {
-        return Err(ModmailError::Command(AlertDoesNotExist));
+        return Err(ModmailError::Command(CommandError::AlertDoesNotExist));
     }
 
     sqlx::query!(

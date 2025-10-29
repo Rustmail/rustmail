@@ -1,7 +1,6 @@
-use crate::config::Config;
-use crate::errors::ModmailResult;
-use crate::errors::common::invalid_command;
-use crate::utils::command::extract_reply_content::extract_reply_content;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::Message;
 
 pub fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<String> {
@@ -12,17 +11,13 @@ pub fn extract_command_content(msg: &Message, config: &Config) -> ModmailResult<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{
-        BotConfig, CommandConfig, Config, ErrorHandlingConfig, LanguageConfig, LogsConfig,
-        NotificationsConfig, ReminderConfig, ThreadConfig,
-    };
     use std::sync::{Arc, Mutex};
 
     fn create_test_config() -> Config {
         Config {
             bot: BotConfig {
                 token: "test".to_string(),
-                mode: crate::config::ServerMode::Dual {
+                mode: ServerMode::Dual {
                     community_guild_id: 184848,
                     staff_guild_id: 64456,
                 },

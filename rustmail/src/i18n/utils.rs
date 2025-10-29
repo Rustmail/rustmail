@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::prelude::config::*;
 use serenity::all::UserId;
 use std::collections::HashMap;
 

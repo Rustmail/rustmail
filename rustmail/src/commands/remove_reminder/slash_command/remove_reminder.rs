@@ -1,11 +1,10 @@
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::reminders::{get_reminder_by_id, update_reminder_status};
-use crate::errors::{CommandError, DatabaseError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
@@ -74,7 +73,7 @@ impl RegistrableCommand for RemoveReminderCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             let _ = defer_response(&ctx, &command).await;
 

@@ -1,11 +1,8 @@
-use crate::config::Config;
-use crate::db::operations::allocate_next_message_number;
-use crate::errors::{ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::command::extract_reply_content::extract_reply_content;
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
-use crate::utils::thread::fetch_thread::fetch_thread;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -19,7 +16,7 @@ pub async fn anonreply(
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let content = extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
     let intent = extract_intent(content, &msg.attachments).await;
@@ -38,7 +35,7 @@ pub async fn anonreply(
             .send_and_forget()
             .await;
 
-        return Err(common::validation_failed("Missing content"));
+        return Err(validation_failed("Missing content"));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
@@ -67,7 +64,7 @@ pub async fn anonreply(
 
     let next_message_number = allocate_next_message_number(&thread.id, db_pool)
         .await
-        .map_err(|_| common::validation_failed("Failed to allocate message number"))?;
+        .map_err(|_| validation_failed("Failed to allocate message number"))?;
 
     let _ = msg.delete(&ctx.http).await;
 
@@ -109,7 +106,7 @@ pub async fn anonreply(
                 .to_channel(msg.channel_id)
                 .send_and_forget()
                 .await;
-            return Err(common::validation_failed("Failed to send to thread"));
+            return Err(validation_failed("Failed to send to thread"));
         }
     };
 

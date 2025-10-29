@@ -1,12 +1,9 @@
-use crate::commands::force_close::common::delete_channel;
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::threads::{is_a_ticket_channel, is_orphaned_thread_channel};
-use crate::errors::DatabaseError::QueryFailed;
-use crate::errors::ThreadError::{NotAThreadChannel, UserStillInServer};
-use crate::errors::{ModmailError, ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
@@ -59,7 +56,7 @@ impl RegistrableCommand for ForceCloseCommand {
             let db_pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             if !is_a_ticket_channel(command.channel_id, db_pool).await {
                 match command.channel_id.to_channel(&ctx.http).await {
@@ -67,7 +64,7 @@ impl RegistrableCommand for ForceCloseCommand {
                         let guild_channel = match channel.guild() {
                             Some(guild_channel) => guild_channel,
                             None => {
-                                return Err(ModmailError::Thread(NotAThreadChannel));
+                                return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
                             }
                         };
 
@@ -75,12 +72,12 @@ impl RegistrableCommand for ForceCloseCommand {
                             if category_id == config.thread.inbox_category_id {
                                 delete_channel(&ctx, command.channel_id).await?;
                             } else {
-                                return Err(ModmailError::Thread(NotAThreadChannel));
+                                return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
                             }
                         }
                     }
                     Err(_) => {
-                        return Err(ModmailError::Thread(NotAThreadChannel));
+                        return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
                     }
                 }
             }
@@ -88,11 +85,11 @@ impl RegistrableCommand for ForceCloseCommand {
             match is_orphaned_thread_channel(command.channel_id, db_pool).await {
                 Ok(res) => {
                     if !res {
-                        return Err(ModmailError::Thread(UserStillInServer));
+                        return Err(ModmailError::Thread(ThreadError::UserStillInServer));
                     }
                     delete_channel(&ctx, command.channel_id).await
                 }
-                Err(..) => Err(ModmailError::Database(QueryFailed(
+                Err(..) => Err(ModmailError::Database(DatabaseError::QueryFailed(
                     "Failed to check if thread channel is orphaned".to_string(),
                 ))),
             }

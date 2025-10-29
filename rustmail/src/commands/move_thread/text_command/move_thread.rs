@@ -1,13 +1,11 @@
-use crate::commands::move_thread::common::{
-    extract_category_name, fetch_server_categories, find_best_match_category, is_in_thread,
-    move_channel_to_category_by_msg, send_success_message,
-};
-use crate::config::Config;
-use crate::errors::CommandError::NotInThread;
-use crate::errors::ThreadError::CategoryNotFound;
-use crate::errors::{CommandError, DiscordError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, Message};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub async fn move_thread(
@@ -19,15 +17,15 @@ pub async fn move_thread(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     if !is_in_thread(&msg, pool).await {
-        return Err(ModmailError::Command(NotInThread()));
+        return Err(ModmailError::Command(CommandError::NotInThread()));
     }
 
     let category_name = extract_category_name(&msg, config).await;
     if category_name.is_empty() {
-        return Err(ModmailError::Thread(CategoryNotFound));
+        return Err(ModmailError::Thread(ThreadError::CategoryNotFound));
     }
 
     let categories = fetch_server_categories(&ctx, config).await;
@@ -45,10 +43,30 @@ pub async fn move_thread(
                 )));
             }
 
-            send_success_message(&ctx, &msg, config, &category_name).await;
+            let mut params = HashMap::new();
+            params.insert("category".to_string(), category_name.to_string());
+            params.insert("staff".to_string(), msg.author.name.clone());
+
+            let confirmation_msg = get_translated_message(
+                config,
+                "move_thread.success",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None,
+            )
+            .await;
+
+            let _ = MessageBuilder::system_message(&ctx.clone(), config)
+                .content(confirmation_msg)
+                .to_channel(msg.channel_id)
+                .send(true)
+                .await;
+
+            let _ = msg.delete(&ctx.http).await;
         }
         None => {
-            return Err(ModmailError::Thread(CategoryNotFound));
+            return Err(ModmailError::Thread(ThreadError::CategoryNotFound));
         }
     }
 

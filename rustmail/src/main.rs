@@ -1,5 +1,5 @@
-use crate::api::router::create_api_router;
 use crate::bot::{init_bot_state, start_bot_if_config_valid};
+use crate::prelude::api::*;
 use axum::extract::Path;
 use axum::response::Response;
 use rust_embed::RustEmbed;

@@ -1,7 +1,5 @@
-use crate::errors::DiscordError;
-use crate::errors::dictionary::DictionaryManager;
-use crate::errors::types::{ModmailError, ModmailResult};
-use crate::i18n::languages::{Language, LanguageDetector, LanguagePreferences};
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
 use serenity::all::{
     ChannelId, Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateMessage, Message, UserId,
