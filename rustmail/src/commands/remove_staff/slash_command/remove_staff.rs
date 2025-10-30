@@ -1,14 +1,10 @@
-use crate::commands::remove_staff::common::remove_user_from_channel;
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::thread_exists;
-use crate::errors::CommandError::InvalidFormat;
-use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
@@ -82,7 +78,7 @@ impl RegistrableCommand for RemoveStaffCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response(&ctx, &command).await?;
 
@@ -138,10 +134,10 @@ impl RegistrableCommand for RemoveStaffCommand {
 
                         Ok(())
                     }
-                    Err(..) => Err(ModmailError::Command(InvalidFormat)),
+                    Err(..) => Err(ModmailError::Command(CommandError::InvalidFormat)),
                 }
             } else {
-                Err(ModmailError::Thread(NotAThreadChannel))
+                Err(ModmailError::Thread(ThreadError::NotAThreadChannel))
             }
         })
     }

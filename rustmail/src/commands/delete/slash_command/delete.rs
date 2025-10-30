@@ -1,15 +1,10 @@
-use crate::commands::delete::common::{
-    delete_database_message, delete_discord_messages, get_message_ids, get_thread_info,
-    update_message_numbers,
-};
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::messages::get_thread_message_by_message_id;
-use crate::errors::{MessageError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response_ephemeral;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
@@ -86,7 +81,7 @@ impl RegistrableCommand for DeleteCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response_ephemeral(&ctx, &command).await?;
 
@@ -134,7 +129,8 @@ impl RegistrableCommand for DeleteCommand {
                 }
             }
 
-            let message_ids = get_message_ids(user_id, &thread, message_number, pool).await?;
+            let message_ids =
+                get_message_ids_for_delete(user_id, &thread, message_number, pool).await?;
 
             delete_discord_messages(&ctx, &command.channel_id, user_id, &message_ids).await?;
             delete_database_message(&message_ids, pool).await?;

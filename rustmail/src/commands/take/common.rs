@@ -1,6 +1,6 @@
-use crate::config::Config;
-use crate::errors::{DiscordError, ModmailError, ModmailResult};
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, Message};
 use std::time::Duration;
 use tokio::time::sleep;

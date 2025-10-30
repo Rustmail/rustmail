@@ -1,17 +1,10 @@
-use crate::commands::new_thread::common::send_welcome_message;
-use crate::commands::{BoxFuture, CommunityRegistrable, RegistrableCommand};
-use crate::config::Config;
-use crate::db::logs::get_logs_from_user_id;
-use crate::db::{create_thread_for_user, get_thread_channel_by_user_id, thread_exists};
-use crate::errors::{
-    CommandError, DatabaseError, DiscordError, ModmailError, ModmailResult, common,
-};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::thread::user_recap::get_user_recap;
-use crate::utils::time::get_member_join_date::get_member_join_date_for_user;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
@@ -90,7 +83,7 @@ impl RegistrableCommand for NewThreadCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response(&ctx, &command).await?;
 

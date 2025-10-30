@@ -1,6 +1,6 @@
-use crate::config::Config;
-use crate::errors::ModmailResult;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, GuildChannel, Message, User, UserId};
 use std::collections::HashMap;
 

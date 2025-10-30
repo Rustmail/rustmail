@@ -1,36 +1,10 @@
-use crate::commands::CommandRegistry;
-use crate::commands::add_reminder::slash_command::add_reminder::AddReminderCommand;
-use crate::commands::add_staff::slash_command::add_staff::AddStaffCommand;
-use crate::commands::alert::slash_command::alert::AlertCommand;
-use crate::commands::close::slash_command::close::CloseCommand;
-use crate::commands::delete::slash_command::delete::DeleteCommand;
-use crate::commands::edit::slash_command::edit::EditCommand;
-use crate::commands::force_close::slash_command::force_close::ForceCloseCommand;
-use crate::commands::help::slash_command::help::HelpCommand;
-use crate::commands::id::slash_command::id::IdCommand;
-use crate::commands::logs::slash_command::logs::LogsCommand;
-use crate::commands::move_thread::slash_command::move_thread::MoveCommand;
-use crate::commands::new_thread::slash_command::new_thread::NewThreadCommand;
-use crate::commands::recover::slash_command::recover::RecoverCommand;
-use crate::commands::release::slash_command::release::ReleaseCommand;
-use crate::commands::remove_reminder::slash_command::remove_reminder::RemoveReminderCommand;
-use crate::commands::remove_staff::slash_command::remove_staff::RemoveStaffCommand;
-use crate::commands::reply::slash_command::reply::ReplyCommand;
-use crate::commands::take::slash_command::take::TakeCommand;
-use crate::config::load_config;
-use crate::errors::ModmailError;
-use crate::errors::types::ConfigError;
-use crate::handlers::guild_handler::GuildHandler;
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::handlers::guild_members_handler::GuildMembersHandler;
-use crate::handlers::guild_message_reactions_handler::GuildMessageReactionsHandler;
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::handlers::guild_moderation_handler::GuildModerationHandler;
-use crate::handlers::ready_handler::ReadyHandler;
-use crate::handlers::typing_proxy_handler::TypingProxyHandler;
-use crate::panel_commands::user::is_member::is_member;
-use crate::types::logs::PaginationContext;
-use crate::{BotCommand, BotState, BotStatus, db};
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::panel_commands::*;
+use crate::prelude::types::*;
 use base64::Engine;
 use rand::RngCore;
 use serenity::all::{ClientBuilder, GatewayIntents};
@@ -43,9 +17,7 @@ use tokio::sync::Mutex;
 use tokio::{select, spawn};
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
-    let pool = db::operations::init_database()
-        .await
-        .expect("An error occured!");
+    let pool = init_database().await.expect("An error occured!");
     println!("Database connected!");
 
     let mut bytes = [0u8; 32];

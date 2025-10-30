@@ -1,16 +1,9 @@
-use crate::commands::close::common::parse_duration_spec;
-use crate::config::Config;
-use crate::db::{
-    close_thread, delete_scheduled_closure, get_scheduled_closure, upsert_scheduled_closure,
-};
-use crate::errors::{CommandError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::message::category::{
-    get_category_id_from_message, get_category_name_from_message,
-    get_required_permissions_channel_from_message,
-};
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::thread::fetch_thread::fetch_thread;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::all::{Channel, Context, GuildId, Message, PermissionOverwriteType, RoleId, UserId};
 use std::collections::HashMap;
@@ -27,7 +20,7 @@ pub async fn close(
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let content = msg.content.trim();
     let prefix = &config.command.prefix;

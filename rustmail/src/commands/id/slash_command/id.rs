@@ -1,13 +1,10 @@
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
-use crate::db::threads::is_a_ticket_channel;
-use crate::errors::ThreadError::{NotAThreadChannel, ThreadNotFound};
-use crate::errors::{DatabaseError, ModmailError, ModmailResult};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, ResolvedOption};
 use serenity::builder::CreateCommand;
@@ -67,14 +64,14 @@ impl RegistrableCommand for IdCommand {
             defer_response(&ctx, &command).await?;
 
             if !is_a_ticket_channel(command.channel_id, pool).await {
-                return Err(ModmailError::Thread(NotAThreadChannel));
+                return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
             }
 
             let thread = match get_thread_by_channel_id(&command.channel_id.to_string(), pool).await
             {
                 Some(thread) => thread,
                 None => {
-                    return Err(ModmailError::Thread(ThreadNotFound));
+                    return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
                 }
             };
 

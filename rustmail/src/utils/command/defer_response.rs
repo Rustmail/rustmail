@@ -1,4 +1,4 @@
-use crate::errors::ModmailResult;
+use crate::prelude::errors::*;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };

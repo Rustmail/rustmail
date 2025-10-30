@@ -1,11 +1,8 @@
-use crate::commands::CommandRegistry;
-use crate::config::Config;
-use crate::features::handle_feature_component_interaction;
-use crate::modules::commands::handle_command_component_interaction;
-use crate::modules::threads::{
-    handle_thread_component_interaction, handle_thread_modal_interaction,
-};
-use crate::types::logs::PaginationStore;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::features::*;
+use crate::prelude::modules::*;
+use crate::prelude::types::*;
 use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
 use tokio::sync::watch::Receiver;

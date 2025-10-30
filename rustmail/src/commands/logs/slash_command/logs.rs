@@ -1,10 +1,9 @@
-use crate::commands::logs::text_command::logs::{handle_logs_from_user_id, handle_logs_in_thread};
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::errors::{DatabaseError, ModmailError, ModmailResult};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,

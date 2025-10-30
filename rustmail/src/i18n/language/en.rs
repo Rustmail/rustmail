@@ -1,5 +1,4 @@
-use crate::errors::dictionary::DictionaryMessage;
-use crate::errors::dictionary::ErrorDictionary;
+use crate::prelude::errors::*;
 
 pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(

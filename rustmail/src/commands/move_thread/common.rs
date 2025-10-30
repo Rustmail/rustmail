@@ -1,7 +1,7 @@
-use crate::config::Config;
-use crate::db::get_user_id_from_channel_id;
-use crate::i18n::get_translated_message;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, GuildId, Message};
 use std::collections::HashMap;
 
@@ -64,35 +64,6 @@ pub async fn move_channel_to_category_by_command_option(
         .channel_id
         .edit(&ctx.http, EditChannel::new().category(category_id))
         .await
-}
-
-pub async fn send_success_message(
-    ctx: &Context,
-    msg: &Message,
-    config: &Config,
-    category_name: &str,
-) {
-    let mut params = HashMap::new();
-    params.insert("category".to_string(), category_name.to_string());
-    params.insert("staff".to_string(), msg.author.name.clone());
-
-    let confirmation_msg = get_translated_message(
-        config,
-        "move_thread.success",
-        Some(&params),
-        Some(msg.author.id),
-        msg.guild_id.map(|g| g.get()),
-        None,
-    )
-    .await;
-
-    let _ = MessageBuilder::system_message(ctx, config)
-        .content(confirmation_msg)
-        .to_channel(msg.channel_id)
-        .send(true)
-        .await;
-
-    let _ = msg.delete(&ctx.http).await;
 }
 
 pub fn find_best_match_category(

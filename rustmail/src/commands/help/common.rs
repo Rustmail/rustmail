@@ -1,8 +1,8 @@
-use crate::commands::CommandRegistry;
-use crate::config::Config;
-use crate::errors::{CommandError, ModmailError, ModmailResult};
-use crate::i18n::get_translated_message;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::{CommandInteraction, Context, Message};
 use std::sync::Arc;
 

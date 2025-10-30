@@ -1,5 +1,5 @@
-use crate::errors::{DatabaseError, ModmailError, ModmailResult};
-use crate::types::logs::TicketLog;
+use crate::prelude::errors::*;
+use crate::prelude::types::*;
 use sqlx::SqlitePool;
 
 pub async fn get_logs_from_user_id(

@@ -1,13 +1,8 @@
-use crate::config::Config;
-use crate::db::messages::{MessageIds, get_thread_message_by_inbox_message_id};
-use crate::db::operations::{
-    get_message_ids_by_number, get_thread_by_channel_id, get_user_id_from_channel_id,
-};
-use crate::errors::MessageError::{DmAccessFailed, EditFailed};
-use crate::errors::common::{incorrect_message_id, not_found, permission_denied, thread_not_found};
-use crate::errors::{ModmailError, ModmailResult};
-use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::{
     ChannelId, CommandInteraction, Context, EditMessage, GuildId, Message, MessageId, User, UserId,
 };
@@ -137,7 +132,9 @@ pub async fn edit_inbox_message(
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => Err(ModmailError::Message(EditFailed(e.to_string()))),
+        Err(e) => Err(ModmailError::Message(MessageError::EditFailed(
+            e.to_string(),
+        ))),
     }
 }
 
@@ -173,10 +170,12 @@ pub async fn edit_dm_message<'a>(
     let dm_channel = match user_id.create_dm_channel(&ctx.http).await {
         Ok(channel) => channel,
         Err(e) => {
-            return Err(ModmailError::Message(DmAccessFailed(format!(
-                "Unable to access user DM (Maybe the user doesn't allow private messages from bots) : {}",
-                e
-            ))));
+            return Err(ModmailError::Message(MessageError::DmAccessFailed(
+                format!(
+                    "Unable to access user DM (Maybe the user doesn't allow private messages from bots) : {}",
+                    e
+                ),
+            )));
         }
     };
 
@@ -185,7 +184,11 @@ pub async fn edit_dm_message<'a>(
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => return Err(ModmailError::Message(EditFailed(e.to_string()))),
+        Err(e) => {
+            return Err(ModmailError::Message(MessageError::EditFailed(
+                e.to_string(),
+            )));
+        }
     };
 
     edit_result

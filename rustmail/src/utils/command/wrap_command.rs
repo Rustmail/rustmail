@@ -5,7 +5,7 @@ macro_rules! wrap_command {
             dyn for<'a> Fn(
                 serenity::prelude::Context,
                 serenity::model::prelude::Message,
-                &'a $crate::config::Config,
+                &'a $crate::prelude::config::Config,
                 Arc<GuildMessagesHandler>,
             ) -> std::pin::Pin<
                 Box<

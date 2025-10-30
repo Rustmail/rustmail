@@ -1,6 +1,6 @@
-use super::{Feature, make_buttons};
-use crate::config::Config;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::features::*;
+use crate::prelude::utils::*;
 use async_trait::async_trait;
 use serenity::all::{
     ButtonStyle, ComponentInteraction, Context, CreateInteractionResponse, CreateMessage,

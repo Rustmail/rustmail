@@ -1,4 +1,4 @@
-use crate::errors::{ModmailResult, common};
+use crate::prelude::errors::*;
 use sqlx::{Row, SqlitePool};
 
 #[derive(Debug, Clone)]

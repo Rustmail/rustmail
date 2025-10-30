@@ -1,12 +1,8 @@
-use crate::config::Config;
-use crate::db::allocate_next_message_number;
-use crate::errors::MessageError::MessageEmpty;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::command::extract_reply_content::extract_reply_content;
-use crate::utils::message::message_builder::MessageBuilder;
-use crate::utils::message::reply_intent::{ReplyIntent, extract_intent};
-use crate::utils::thread::fetch_thread::fetch_thread;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -20,13 +16,13 @@ pub async fn reply(
     let db_pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let content = extract_reply_content(&msg.content, &config.command.prefix, &["reply", "r"]);
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        return Err(ModmailError::Message(MessageEmpty));
+        return Err(ModmailError::Message(MessageError::MessageEmpty));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;
@@ -40,7 +36,7 @@ pub async fn reply(
 
     let next_message_number = allocate_next_message_number(&thread.id, db_pool)
         .await
-        .map_err(|_| common::validation_failed("Failed to allocate message number"))?;
+        .map_err(|_| validation_failed("Failed to allocate message number"))?;
 
     let _ = msg.delete(&ctx.http).await;
 
@@ -70,7 +66,7 @@ pub async fn reply(
     let (_, dm_msg_opt) = match sr.send_msg_and_record(db_pool).await {
         Ok(tuple) => tuple,
         Err(_) => {
-            return Err(common::validation_failed("Failed to send to thread"));
+            return Err(validation_failed("Failed to send to thread"));
         }
     };
 

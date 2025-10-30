@@ -1,9 +1,9 @@
-use crate::commands::logs::common::render_logs_page;
-use crate::config::Config;
-use crate::features::make_buttons;
-use crate::i18n::get_translated_message;
-use crate::types::logs::PaginationStore;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::features::*;
+use crate::prelude::i18n::*;
+use crate::prelude::types::*;
+use crate::prelude::utils::*;
 use serenity::all::{ButtonStyle, ComponentInteraction, Context};
 use serenity::builder::CreateInteractionResponse;
 

@@ -1,4 +1,4 @@
-use crate::BotState;
+use crate::prelude::types::*;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -10,11 +10,11 @@ pub async fn handle_status_bot(State(bot_state): State<Arc<Mutex<BotState>>>) ->
     let state_lock = bot_state.lock().await;
 
     match state_lock.status {
-        crate::BotStatus::Running { .. } => (
+        BotStatus::Running { .. } => (
             StatusCode::OK,
             Json(serde_json::json!({"status": "running"})),
         ),
-        crate::BotStatus::Stopped => (
+        BotStatus::Stopped => (
             StatusCode::OK,
             Json(serde_json::json!({"status": "stopped"})),
         ),

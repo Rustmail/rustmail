@@ -1,10 +1,7 @@
-use crate::config::Config;
-use crate::db::{cancel_alert_for_staff, get_user_id_from_channel_id, set_alert_for_staff};
-use crate::errors::CommandError::AlertDoesNotExist;
-use crate::errors::DatabaseError::QueryFailed;
-use crate::errors::DiscordError::ApiError;
-use crate::errors::{ModmailError, ModmailResult, common};
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::utils::*;
 use serenity::all::colours::branding::GREEN;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, Message};
 use std::collections::HashMap;
@@ -39,7 +36,7 @@ pub async fn get_thread_user_id_from_command(
         None => {
             let bot_user = match ctx.http.get_current_user().await {
                 Ok(user) => user,
-                Err(e) => return Err(ModmailError::Discord(ApiError(e.to_string()))),
+                Err(e) => return Err(ModmailError::Discord(DiscordError::ApiError(e.to_string()))),
             };
 
             let bot_user_id = ctx.cache.current_user().id;
@@ -93,7 +90,7 @@ pub async fn handle_cancel_alert_from_command(
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
     if let Err(_) = cancel_alert_for_staff(command.user.id, user_id, pool).await {
-        Err(ModmailError::Command(AlertDoesNotExist))
+        Err(ModmailError::Command(CommandError::AlertDoesNotExist))
     } else {
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", user_id));
@@ -143,7 +140,9 @@ pub async fn handle_set_alert_from_command(
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
     if let Err(e) = set_alert_for_staff(command.user.id, user_id, pool).await {
-        Err(ModmailError::Database(QueryFailed(e.to_string())))
+        Err(ModmailError::Database(DatabaseError::QueryFailed(
+            e.to_string(),
+        )))
     } else {
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", user_id));

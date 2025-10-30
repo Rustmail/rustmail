@@ -1,9 +1,8 @@
-use crate::config::Config;
-use crate::db::reminders::{get_reminder_by_id, update_reminder_status};
-use crate::errors::{CommandError, DatabaseError, ModmailError, ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::command::extract_reply_content::extract_reply_content;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,7 +16,7 @@ pub async fn remove_reminder(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let content =
         match extract_reply_content(&msg.content, &config.command.prefix, &["unremind", "urem"]) {

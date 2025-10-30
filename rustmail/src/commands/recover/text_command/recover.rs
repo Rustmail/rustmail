@@ -1,9 +1,9 @@
-use crate::config::Config;
-use crate::errors::{ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::i18n::get_translated_message;
-use crate::modules::message_recovery::recover_missing_messages;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::modules::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,7 +17,7 @@ pub async fn recover(
     let _ = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), msg.author.name.clone());

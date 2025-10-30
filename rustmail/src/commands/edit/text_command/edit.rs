@@ -1,18 +1,9 @@
-use crate::commands::edit::common::extract_command_content;
-use crate::commands::edit::message_ops::{
-    cleanup_command_message, edit_messages, format_new_message, get_message_ids,
-};
-use crate::commands::edit::validation::{
-    EditCommandInput, parse_edit_command, validate_edit_permissions,
-};
-use crate::config::Config;
-use crate::db::get_thread_message_by_inbox_message_id;
-use crate::db::update_message_content;
-use crate::errors::common::message_not_found;
-use crate::errors::{ModmailResult, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -26,7 +17,7 @@ pub async fn edit(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let raw_content: String = match extract_command_content(&msg, config) {
         Ok(content) => content,

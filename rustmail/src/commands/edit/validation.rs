@@ -1,11 +1,9 @@
-use crate::db::messages::get_thread_message_by_inbox_message_id;
-use crate::db::{get_message_ids_by_number, get_thread_by_channel_id};
-use crate::errors::common::{not_found, permission_denied, thread_not_found};
-use crate::errors::{
-    CommandError, ModmailError, ModmailResult, ValidationError as ErrorValidationError,
-    command_error,
-};
-use crate::i18n::get_translated_message;
+use crate::command_error;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::ValidationError as ErrorValidationError;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
 use serenity::all::{ChannelId, Context, Message, UserId};
 
 #[derive(Debug)]
@@ -40,7 +38,7 @@ impl From<ValidationError> for ModmailError {
 }
 
 impl ValidationError {
-    pub async fn _error_message(&self, config: &crate::config::Config, msg: &Message) -> String {
+    pub async fn _error_message(&self, config: &Config, msg: &Message) -> String {
         let key = match self {
             ValidationError::InvalidFormat => "edit.validation.invalid_format",
             ValidationError::MissingMessageNumber => "edit.validation.missing_number",
@@ -59,7 +57,7 @@ impl ValidationError {
         .await
     }
 
-    pub async fn _send_error(&self, ctx: &Context, msg: &Message, config: &crate::config::Config) {
+    pub async fn _send_error(&self, ctx: &Context, msg: &Message, config: &Config) {
         let error_msg = self._error_message(config, msg).await;
         let _ = msg.reply(ctx, error_msg).await;
     }

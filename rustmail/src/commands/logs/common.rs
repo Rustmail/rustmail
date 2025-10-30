@@ -1,13 +1,13 @@
-use crate::config::Config;
-use crate::errors::ModmailError;
-use crate::i18n::get_translated_message;
-use crate::types::logs::TicketLog;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::errors::*;
+use crate::prelude::i18n::*;
+use crate::prelude::types::*;
+use crate::prelude::utils::*;
 use serenity::all::{ChannelId, CommandInteraction, Message};
 use serenity::builder::CreateActionRow;
 use serenity::client::Context;
 
-pub fn extract_user_id(msg: &Message, config: &Config) -> String {
+pub fn extract_user_id_for_logs(msg: &Message, config: &Config) -> String {
     let content = msg.content.trim();
     let prefix = &config.command.prefix;
     let command_name = "logs";

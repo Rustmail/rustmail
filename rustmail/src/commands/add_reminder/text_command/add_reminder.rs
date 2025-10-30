@@ -1,12 +1,9 @@
-use crate::commands::add_reminder::common::{
-    send_register_confirmation_from_message, spawn_reminder,
-};
-use crate::config::Config;
-use crate::db::reminders::{Reminder, insert_reminder};
-use crate::db::threads::get_thread_by_user_id;
-use crate::errors::{CommandError, ModmailError, ModmailResult, ThreadError, common};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::command::extract_reply_content::extract_reply_content;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use chrono::{Local, NaiveTime, TimeZone};
 use regex::Regex;
 use serenity::all::{Context, Message};
@@ -21,7 +18,7 @@ pub async fn add_reminder(
     let pool = config
         .db_pool
         .as_ref()
-        .ok_or_else(common::database_connection_failed)?;
+        .ok_or_else(database_connection_failed)?;
 
     let content =
         match extract_reply_content(&msg.content, &config.command.prefix, &["remind", "rem"]) {

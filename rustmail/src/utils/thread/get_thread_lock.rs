@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::prelude::config::*;
 use std::sync::Arc;
 
 pub fn get_thread_lock(config: &Config, key: u64) -> Arc<tokio::sync::Mutex<()>> {

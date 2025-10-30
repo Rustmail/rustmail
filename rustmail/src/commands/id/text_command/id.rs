@@ -1,11 +1,8 @@
-use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
-use crate::db::threads::is_a_ticket_channel;
-use crate::errors::ThreadError::NotAThreadChannel;
-use crate::errors::common::{database_connection_failed, thread_not_found};
-use crate::errors::{ModmailError, ModmailResult};
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::utils::*;
 use serenity::all::{Context, Message};
 use std::sync::Arc;
 
@@ -42,6 +39,6 @@ pub async fn id(
 
         Ok(())
     } else {
-        Err(ModmailError::Thread(NotAThreadChannel))
+        Err(ModmailError::Thread(ThreadError::NotAThreadChannel))
     }
 }

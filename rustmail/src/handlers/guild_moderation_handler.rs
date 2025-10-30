@@ -1,8 +1,8 @@
-use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
-use crate::features::make_buttons;
-use crate::i18n::get_translated_message;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::features::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::all::audit_log::Action;
 use serenity::all::{
     AutoModAction, ButtonStyle, ChannelAction, ChannelOverwriteAction, CreatorMonetizationAction,

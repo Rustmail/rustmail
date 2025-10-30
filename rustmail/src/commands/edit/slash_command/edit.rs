@@ -1,15 +1,10 @@
-use crate::commands::edit::message_ops::{edit_messages, format_new_message, get_message_ids};
-use crate::commands::edit::validation::validate_edit_permissions;
-use crate::commands::{BoxFuture, RegistrableCommand};
-use crate::config::Config;
-use crate::db::{get_thread_message_by_inbox_message_id, update_message_content};
-use crate::errors::common::message_not_found;
-use crate::errors::{ModmailResult, common};
-use crate::handlers::guild_interaction_handler::InteractionHandler;
-use crate::i18n::get_translated_message;
-use crate::utils::command::defer_response::defer_response;
-use crate::utils::conversion::hex_string_to_int::hex_string_to_int;
-use crate::utils::message::message_builder::MessageBuilder;
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
@@ -102,7 +97,7 @@ impl RegistrableCommand for EditCommand {
             let pool = config
                 .db_pool
                 .as_ref()
-                .ok_or_else(common::database_connection_failed)?;
+                .ok_or_else(database_connection_failed)?;
 
             defer_response(&ctx, &command).await?;
 

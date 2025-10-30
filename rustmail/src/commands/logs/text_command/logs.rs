@@ -1,13 +1,12 @@
-use crate::commands::logs::common::{extract_user_id, get_response, render_logs_page};
-use crate::config::Config;
-use crate::db::get_thread_by_channel_id;
-use crate::db::logs::get_logs_from_user_id;
-use crate::errors::{DatabaseError, ModmailError, ModmailResult, ThreadError};
-use crate::features::make_buttons;
-use crate::handlers::guild_messages_handler::GuildMessagesHandler;
-use crate::i18n::get_translated_message;
-use crate::modules::commands::LOGS_PAGE_SIZE;
-use crate::types::logs::{PaginationContext, PaginationStore};
+use crate::prelude::commands::*;
+use crate::prelude::config::*;
+use crate::prelude::db::*;
+use crate::prelude::errors::*;
+use crate::prelude::features::*;
+use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
+use crate::prelude::modules::*;
+use crate::prelude::types::*;
 use serenity::all::{ButtonStyle, ChannelId, CommandInteraction, Context, Message};
 use sqlx::SqlitePool;
 use std::sync::Arc;
@@ -116,7 +115,7 @@ pub async fn logs(
         None => return Err(ModmailError::Database(DatabaseError::ConnectionFailed)),
     };
 
-    let user_id = extract_user_id(&msg, &config);
+    let user_id = extract_user_id_for_logs(&msg, &config);
 
     if user_id.is_empty() {
         handle_logs_in_thread(
