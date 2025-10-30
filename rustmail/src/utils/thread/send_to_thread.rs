@@ -3,6 +3,8 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
+use crate::types::TicketAuthor;
+use chrono::Utc;
 use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message, UserId};
 use std::collections::HashMap;
 
@@ -125,6 +127,17 @@ pub async fn send_to_thread(
             return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
         }
     };
+
+    let mut ticket_status = match get_thread_status(&thread_id.clone(), &pool).await {
+        Some(status) => status,
+        None => {
+            return Err(validation_failed("Failed to get thread status"));
+        }
+    };
+
+    ticket_status.last_message_by = TicketAuthor::User;
+    ticket_status.last_message_at = Utc::now().timestamp();
+    update_thread_status(&thread_id.clone(), &ticket_status, &pool.clone()).await?;
 
     let builder = MessageBuilder::begin_user_incoming(ctx, config, thread_id.clone(), msg)
         .to_thread(channel_id)

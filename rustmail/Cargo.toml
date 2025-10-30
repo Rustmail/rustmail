@@ -25,6 +25,7 @@ rand = "0.8.5"
 base64 = "0.22.1"
 subtle = "2.6.1"
 chrono-tz = "0.10.4"
+console-subscriber = "0.4.1"
 
 [dependencies.uuid]
 version = "1.18.1"

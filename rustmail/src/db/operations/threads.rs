@@ -1,5 +1,6 @@
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
+use crate::prelude::types::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, GuildChannel, UserId};
 use sqlx::{Error, SqlitePool};
@@ -116,17 +117,17 @@ pub async fn create_thread_for_user(
     let channel_id = channel.id.to_string();
     let thread_id = Uuid::new_v4().to_string();
 
-    match sqlx::query!(
+    let res = match sqlx::query!(
         "INSERT INTO threads (id, user_id, user_name, channel_id) VALUES (?, ?, ?, ?)",
         thread_id,
         user_id,
         user_name,
         channel_id
     )
-    .execute(pool)
+    .execute(&pool.clone())
     .await
     {
-        Ok(_) => Ok(thread_id),
+        Ok(_) => Ok(thread_id.clone()),
         Err(Error::Database(db_err))
             if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
         {
@@ -142,7 +143,43 @@ pub async fn create_thread_for_user(
             }
         }
         Err(e) => Err(e),
-    }
+    };
+
+    let channel_id = channel.id.get() as i64;
+    let user_id_str = user_id.to_string();
+    let timestamp = Utc::now().timestamp();
+
+    let _ = match sqlx::query!(
+        "INSERT INTO thread_status (thread_id, channel_id, owner_id, taken_by, last_message_by, last_message_at) VALUES (?, ?, ?, ?, ?, ?)",
+        thread_id,
+        channel_id,
+        user_id_str,
+        None::<String>,
+        "user",
+        timestamp
+    )
+        .execute(&pool.clone())
+        .await
+    {
+        Ok(_) => Ok(thread_id),
+        Err(Error::Database(db_err))
+        if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
+            {
+                if let Some(existing_thread_id) =
+                    sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                        .bind(user_id)
+                        .fetch_optional(pool)
+                        .await?
+                {
+                    Ok(existing_thread_id)
+                } else {
+                    Err(Error::Database(db_err))
+                }
+            }
+        Err(e) => Err(e),
+    };
+
+    res
 }
 
 pub async fn close_thread(
@@ -378,4 +415,98 @@ pub async fn is_orphaned_thread_channel(
         .await?;
 
     Ok(exists)
+}
+
+pub async fn get_all_thread_status(pool: &SqlitePool) -> Vec<TicketState> {
+    match sqlx::query!(
+        r#"
+        SELECT channel_id, owner_id, taken_by, last_message_by, last_message_at
+        FROM thread_status
+        "#
+    )
+    .fetch_all(pool)
+    .await
+    {
+        Ok(rows) => rows
+            .into_iter()
+            .map(|r| TicketState {
+                channel_id: r.channel_id,
+                owner_id: r.owner_id,
+                taken_by: r.taken_by,
+                last_message_by: TicketAuthor::from_str(&r.last_message_by),
+                last_message_at: r.last_message_at,
+            })
+            .collect(),
+        Err(e) => {
+            eprintln!("Database error getting thread statuses: {:?}", e);
+            vec![]
+        }
+    }
+}
+
+pub async fn get_thread_status(thread_id: &str, pool: &SqlitePool) -> Option<TicketState> {
+    match sqlx::query!(
+        r#"
+        SELECT
+            channel_id,
+            owner_id,
+            taken_by,
+            last_message_by,
+            last_message_at
+        FROM thread_status
+        WHERE thread_id = ?
+        "#,
+        thread_id
+    )
+    .fetch_optional(pool)
+    .await
+    {
+        Ok(Some(row)) => Some(TicketState {
+            channel_id: row.channel_id,
+            owner_id: row.owner_id,
+            taken_by: row.taken_by,
+            last_message_by: TicketAuthor::from_str(&row.last_message_by),
+            last_message_at: row.last_message_at,
+        }),
+        Ok(None) => None,
+        Err(e) => {
+            eprintln!(
+                "⚠️ Database error getting thread status for id {}: {:?}",
+                thread_id, e
+            );
+            None
+        }
+    }
+}
+
+pub async fn update_thread_status(
+    thread_id: &str,
+    ticket: &TicketState,
+    pool: &SqlitePool,
+) -> ModmailResult<()> {
+    let last_message_by = format!("{:?}", ticket.last_message_by).to_lowercase();
+
+    println!(
+        "Updating thread status for thread_id {}: taken_by={:?}, last_message_by={}, last_message_at={}",
+        thread_id, ticket.taken_by, last_message_by, ticket.last_message_at
+    );
+
+    sqlx::query!(
+        r#"
+        UPDATE thread_status
+        SET
+            taken_by = ?,
+            last_message_by = ?,
+            last_message_at = ?
+        WHERE thread_id = ?
+        "#,
+        ticket.taken_by,
+        last_message_by,
+        ticket.last_message_at,
+        thread_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
