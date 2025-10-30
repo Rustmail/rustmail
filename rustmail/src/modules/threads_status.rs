@@ -1,11 +1,13 @@
+use std::time::Duration;
 use crate::prelude::errors::*;
 use crate::prelude::types::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, UserId};
 use serenity::builder::EditChannel;
 use serenity::client::Context;
+use tokio::time::timeout;
 
-pub async fn update_thread_status(ctx: &Context, ticket: &TicketState) -> ModmailResult<()> {
+pub async fn update_thread_status_ui(ctx: &Context, ticket: &TicketState) -> ModmailResult<()> {
     let channel = ChannelId::new(ticket.channel_id as u64);
 
     let color = match ticket.last_message_by {
@@ -47,14 +49,28 @@ pub async fn update_thread_status(ctx: &Context, ticket: &TicketState) -> Modmai
 
     name.push_str(&format!("・{}", time_str));
 
-    tokio::spawn({
-        let ctx = ctx.clone();
-        async move {
-            let _ = channel
-                .edit(&ctx.http, EditChannel::new().name(&name))
-                .await;
-        }
-    });
+    let result = timeout(
+        Duration::from_secs(2),
+        channel.edit(&ctx.http, EditChannel::new().name(&name))
+    ).await;
 
-    Ok(())
+    match result {
+        Ok(Ok(_)) => Ok(()),
+
+        Ok(Err(e)) => {
+            eprintln!(
+                "Failed to edit channel {}: {:?}",
+                ticket.channel_id, e
+            );
+            Err(e.into())
+        }
+
+        Err(_) => {
+            eprintln!(
+                "Timeout editing channel {} (skipping)",
+                ticket.channel_id
+            );
+            Ok(())
+        }
+    }
 }

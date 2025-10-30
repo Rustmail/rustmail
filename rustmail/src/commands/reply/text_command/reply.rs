@@ -8,6 +8,7 @@ use chrono::Utc;
 use serenity::all::{Context, GuildId, Message, UserId};
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::modules::update_thread_status_ui;
 
 pub async fn reply(
     ctx: Context,
@@ -49,7 +50,8 @@ pub async fn reply(
 
     ticket_status.last_message_by = TicketAuthor::Staff;
     ticket_status.last_message_at = Utc::now().timestamp();
-    update_thread_status(&thread.id, &ticket_status, db_pool).await?;
+    update_thread_status_db(&thread.id, &ticket_status, db_pool).await?;
+    update_thread_status_ui(&ctx, &ticket_status).await?;
 
     let _ = msg.delete(&ctx.http).await;
 

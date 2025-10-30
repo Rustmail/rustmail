@@ -479,7 +479,7 @@ pub async fn get_thread_status(thread_id: &str, pool: &SqlitePool) -> Option<Tic
     }
 }
 
-pub async fn update_thread_status(
+pub async fn update_thread_status_db(
     thread_id: &str,
     ticket: &TicketState,
     pool: &SqlitePool,

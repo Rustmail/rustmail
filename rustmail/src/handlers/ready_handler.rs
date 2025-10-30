@@ -101,6 +101,8 @@ fn update_threads_status(ctx: &Context, pool: &SqlitePool) {
         async move {
             let mut interval = interval(Duration::from_secs(60 * 10));
 
+            interval.tick().await;
+
             loop {
                 let tickets_status = get_all_thread_status(&pool).await;
 
@@ -110,7 +112,7 @@ fn update_threads_status(ctx: &Context, pool: &SqlitePool) {
                     let ticket = ticket.clone();
                     let handle = tokio::spawn(async move {
                         println!("Update");
-                        if let Err(e) = update_thread_status(&ctx, &ticket).await {
+                        if let Err(e) = update_thread_status_ui(&ctx, &ticket).await {
                             eprintln!(
                                 "Failed to update thread status for channel {}: {:?}",
                                 ticket.channel_id, e

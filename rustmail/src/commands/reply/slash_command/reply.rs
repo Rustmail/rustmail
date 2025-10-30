@@ -14,6 +14,7 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::modules::update_thread_status_ui;
 
 pub struct ReplyCommand;
 
@@ -166,7 +167,8 @@ impl RegistrableCommand for ReplyCommand {
 
             ticket_status.last_message_by = TicketAuthor::Staff;
             ticket_status.last_message_at = Utc::now().timestamp();
-            update_thread_status(&thread.id, &ticket_status, db_pool).await?;
+            update_thread_status_db(&thread.id, &ticket_status, db_pool).await?;
+            update_thread_status_ui(&ctx, &ticket_status).await?;
 
             let mut sr = MessageBuilder::begin_staff_reply(
                 &ctx,

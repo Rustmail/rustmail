@@ -7,6 +7,7 @@ use crate::types::TicketAuthor;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message, UserId};
 use std::collections::HashMap;
+use crate::modules::update_thread_status_ui;
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
     let content = msg.content.clone();
@@ -137,7 +138,8 @@ pub async fn send_to_thread(
 
     ticket_status.last_message_by = TicketAuthor::User;
     ticket_status.last_message_at = Utc::now().timestamp();
-    update_thread_status(&thread_id.clone(), &ticket_status, &pool.clone()).await?;
+    update_thread_status_db(&thread_id.clone(), &ticket_status, &pool.clone()).await?;
+    update_thread_status_ui(&ctx, &ticket_status).await?;
 
     let builder = MessageBuilder::begin_user_incoming(ctx, config, thread_id.clone(), msg)
         .to_thread(channel_id)
