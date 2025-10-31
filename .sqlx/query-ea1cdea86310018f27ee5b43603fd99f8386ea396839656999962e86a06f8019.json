@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT channel_id, owner_id, taken_by, last_message_by, last_message_at\n        FROM thread_status\n        ",
+  "query": "\n        SELECT ts.channel_id,\n               ts.owner_id,\n               ts.taken_by,\n               ts.last_message_by,\n               ts.last_message_at\n        FROM thread_status ts\n        JOIN threads t ON ts.thread_id = t.id\n        WHERE t.status = 1\n        ",
   "describe": {
     "columns": [
       {
@@ -40,5 +40,5 @@
       false
     ]
   },
-  "hash": "a830a59ecc2c2280bb668e4fb8ede58070b22eabdc4cd28ad1ddfd453746f7b5"
+  "hash": "ea1cdea86310018f27ee5b43603fd99f8386ea396839656999962e86a06f8019"
 }
