@@ -1,10 +1,10 @@
-use std::time::Duration;
 use crate::prelude::errors::*;
 use crate::prelude::types::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, UserId};
 use serenity::builder::EditChannel;
 use serenity::client::Context;
+use std::time::Duration;
 use tokio::time::timeout;
 
 pub async fn update_thread_status_ui(ctx: &Context, ticket: &TicketState) -> ModmailResult<()> {
@@ -24,14 +24,7 @@ pub async fn update_thread_status_ui(ctx: &Context, ticket: &TicketState) -> Mod
     };
 
     let owner_id = ticket.owner_id.parse().unwrap_or(0);
-    let owner_name = if owner_id != 0 {
-        ctx.cache
-            .user(UserId::new(owner_id))
-            .map(|u| u.name.clone())
-            .unwrap_or_else(|| format!("User-{}", owner_id))
-    } else {
-        "Unknown".to_string()
-    };
+    let owner_name = UserId::new(owner_id).to_user(&ctx.http).await?.name;
 
     let mut name = format!("{color}・{}", owner_name);
 
@@ -51,25 +44,20 @@ pub async fn update_thread_status_ui(ctx: &Context, ticket: &TicketState) -> Mod
 
     let result = timeout(
         Duration::from_secs(2),
-        channel.edit(&ctx.http, EditChannel::new().name(&name))
-    ).await;
+        channel.edit(&ctx.http, EditChannel::new().name(&name)),
+    )
+    .await;
 
     match result {
         Ok(Ok(_)) => Ok(()),
 
         Ok(Err(e)) => {
-            eprintln!(
-                "Failed to edit channel {}: {:?}",
-                ticket.channel_id, e
-            );
+            eprintln!("Failed to edit channel {}: {:?}", ticket.channel_id, e);
             Err(e.into())
         }
 
         Err(_) => {
-            eprintln!(
-                "Timeout editing channel {} (skipping)",
-                ticket.channel_id
-            );
+            eprintln!("Timeout editing channel {} (skipping)", ticket.channel_id);
             Ok(())
         }
     }

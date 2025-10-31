@@ -420,8 +420,14 @@ pub async fn is_orphaned_thread_channel(
 pub async fn get_all_thread_status(pool: &SqlitePool) -> Vec<TicketState> {
     match sqlx::query!(
         r#"
-        SELECT channel_id, owner_id, taken_by, last_message_by, last_message_at
-        FROM thread_status
+        SELECT ts.channel_id,
+               ts.owner_id,
+               ts.taken_by,
+               ts.last_message_by,
+               ts.last_message_at
+        FROM thread_status ts
+        JOIN threads t ON ts.thread_id = t.id
+        WHERE t.status = 1
         "#
     )
     .fetch_all(pool)
