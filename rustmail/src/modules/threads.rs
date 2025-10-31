@@ -3,6 +3,8 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
+use crate::types::TicketAuthor;
+use chrono::Utc;
 use serenity::all::{
     ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel,
     CreateInteractionResponseFollowup, GuildId, Message, ModalInteraction, UserId,
@@ -31,9 +33,11 @@ async fn create_or_get_thread_for_user(
         Err(_) => user_id.get().to_string(),
     };
 
+    let thread_name = format!("🔴・{}・0m", username);
+
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
     let channel_builder =
-        CreateChannel::new(&username).category(ChannelId::new(config.thread.inbox_category_id));
+        CreateChannel::new(&thread_name).category(ChannelId::new(config.thread.inbox_category_id));
 
     let channel = staff_guild_id
         .create_channel(&ctx.http, channel_builder)

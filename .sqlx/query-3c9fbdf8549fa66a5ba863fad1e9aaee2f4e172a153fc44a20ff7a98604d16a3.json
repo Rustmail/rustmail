@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE thread_status\n        SET\n            taken_by = ?,\n            last_message_by = ?,\n            last_message_at = ?\n        WHERE thread_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "3c9fbdf8549fa66a5ba863fad1e9aaee2f4e172a153fc44a20ff7a98604d16a3"
+}

@@ -914,7 +914,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "take.confirmation".to_string(),
-        DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}."),
+        DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
     );
     dict.messages.insert(
         "take.timeout".to_string(),
@@ -934,7 +934,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "release.confirmation".to_string(),
-        DictionaryMessage::new("Le ticket n'est plus pris en charge par {staff}."),
+        DictionaryMessage::new("Le ticket n'est plus pris en charge par {staff}.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
     );
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),

@@ -1,3 +1,4 @@
+use crate::modules::update_thread_status_ui;
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
@@ -84,28 +85,40 @@ impl RegistrableCommand for TakeCommand {
                     return Err(ModmailError::Command(CommandError::TicketAlreadyTaken));
                 }
 
-                tokio::spawn(async move {
-                    let _ = rename_channel_with_timeout(
-                        &ctx,
-                        &config,
-                        thread_id,
-                        format!("🔵-{}", command.user.name.clone()),
-                        None,
-                        Some(&command),
-                    )
-                        .await;
+                tokio::spawn({
+                    let config = config.clone();
+                    let db_pool = db_pool.clone();
 
-                    let mut params = std::collections::HashMap::new();
-                    params.insert("staff".to_string(), format!("<@{}>", command.user.id));
+                    async move {
+                        let mut ticket_status = match get_thread_status(&thread.id, &db_pool).await
+                        {
+                            Some(status) => status,
+                            None => {
+                                return;
+                            }
+                        };
+                        ticket_status.taken_by = Some(command.user.id.to_string());
+                        let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
 
-                    let response = MessageBuilder::system_message(&ctx, &config)
-                        .translated_content("take.confirmation", Some(&params), None, None)
-                        .await
-                        .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
-                        .await;
+                        tokio::spawn({
+                            let ctx = ctx.clone();
+                            async move {
+                                let _ = update_thread_status_ui(&ctx, &ticket_status).await;
+                            }
+                        });
 
-                    let _ = command.create_followup(ctx.clone(), response).await;
+                        let mut params = std::collections::HashMap::new();
+                        params.insert("staff".to_string(), format!("<@{}>", command.user.id));
+
+                        let response = MessageBuilder::system_message(&ctx, &config)
+                            .translated_content("take.confirmation", Some(&params), None, None)
+                            .await
+                            .to_channel(command.channel_id)
+                            .build_interaction_message_followup()
+                            .await;
+
+                        let _ = command.create_followup(ctx.clone(), response).await;
+                    }
                 });
 
                 Ok(())

@@ -1,10 +1,13 @@
+use crate::modules::update_thread_status_ui;
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::i18n::*;
+use crate::prelude::types::*;
 use crate::prelude::utils::*;
+use chrono::Utc;
 use serenity::FutureExt;
 use serenity::all::{
     Attachment, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
@@ -154,6 +157,24 @@ impl RegistrableCommand for ReplyCommand {
             let next_message_number = allocate_next_message_number(&thread.id, db_pool)
                 .await
                 .map_err(|_| validation_failed("Failed to allocate message number"))?;
+
+            let mut ticket_status = match get_thread_status(&thread.id, db_pool).await {
+                Some(status) => status,
+                None => {
+                    return Err(validation_failed("Failed to get thread status"));
+                }
+            };
+
+            ticket_status.last_message_by = TicketAuthor::Staff;
+            ticket_status.last_message_at = Utc::now().timestamp();
+            update_thread_status_db(&thread.id, &ticket_status, db_pool).await?;
+
+            tokio::spawn({
+                let ctx = ctx.clone();
+                async move {
+                    let _ = update_thread_status_ui(&ctx, &ticket_status).await;
+                }
+            });
 
             let mut sr = MessageBuilder::begin_staff_reply(
                 &ctx,

@@ -137,7 +137,7 @@ impl RegistrableCommand for NewThreadCommand {
             }
 
             let inbox_category_id = ChannelId::new(config.thread.inbox_category_id);
-            let channel_name = user.name.to_lowercase().replace(" ", "-").to_string();
+            let channel_name = format!("🔴・{}・0m", user.name);
             let mut channel_builder = serenity::all::CreateChannel::new(&channel_name);
             channel_builder = channel_builder
                 .kind(serenity::model::channel::ChannelType::Text)

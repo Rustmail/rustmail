@@ -1,3 +1,4 @@
+use crate::modules::update_thread_status_ui;
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
@@ -39,26 +40,36 @@ pub async fn release(
 
         let config_clone = config.clone();
 
-        tokio::spawn(async move {
-            let _ = rename_channel_with_timeout(
-                &ctx,
-                &config_clone,
-                thread_id,
-                thread.user_name.clone(),
-                Some(&msg),
-                None,
-            )
-                .await;
+        tokio::spawn({
+            let db_pool = db_pool.clone();
 
-            let mut params = std::collections::HashMap::new();
-            params.insert("staff".to_string(), format!("<@{}>", msg.author.id));
+            async move {
+                let mut ticket_status = match get_thread_status(&thread.id, &db_pool).await {
+                    Some(status) => status,
+                    None => {
+                        return;
+                    }
+                };
+                ticket_status.taken_by = None;
+                let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
 
-            let _ = MessageBuilder::system_message(&ctx, &config_clone)
-                .translated_content("release.confirmation", Some(&params), None, None)
-                .await
-                .to_channel(msg.channel_id)
-                .send(true)
-                .await;
+                tokio::spawn({
+                    let ctx = ctx.clone();
+                    async move {
+                        let _ = update_thread_status_ui(&ctx, &ticket_status).await;
+                    }
+                });
+
+                let mut params = std::collections::HashMap::new();
+                params.insert("staff".to_string(), format!("<@{}>", msg.author.id));
+
+                let _ = MessageBuilder::system_message(&ctx, &config_clone)
+                    .translated_content("release.confirmation", Some(&params), None, None)
+                    .await
+                    .to_channel(msg.channel_id)
+                    .send(true)
+                    .await;
+            }
         });
 
         Ok(())
