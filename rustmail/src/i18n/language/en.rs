@@ -1,4 +1,7 @@
+use crate::commands::help;
+use crate::errors::ModmailError::Discord;
 use crate::prelude::errors::*;
+use std::thread::current;
 
 pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
@@ -892,7 +895,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "take.confirmation".to_string(),
-        DictionaryMessage::new("The ticket is now taken by {staff}."),
+        DictionaryMessage::new("The ticket is now taken by {staff}.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
     );
     dict.messages.insert(
         "take.timeout".to_string(),
@@ -919,7 +922,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "release.confirmation".to_string(),
-        DictionaryMessage::new("The ticket has been released by {staff}."),
+        DictionaryMessage::new("The ticket has been released by {staff}.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
     );
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
