@@ -49,6 +49,8 @@ mod tests {
                 block_quote: false,
                 time_to_close_thread: 5,
                 create_ticket_by_create_channel: false,
+                close_on_leave: false,
+                auto_archive_duration: 0,
             },
             notifications: NotificationsConfig::default(),
             logs: LogsConfig::default(),

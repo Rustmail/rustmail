@@ -1,9 +1,11 @@
+pub mod config;
 pub mod restart;
 pub mod start;
 pub mod status;
 pub mod stop;
 pub mod tickets;
 
+pub use config::*;
 pub use restart::*;
 pub use start::*;
 pub use status::*;
