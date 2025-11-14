@@ -1,5 +1,6 @@
 /target
 config.toml
+config.toml.backup
 node_modules
 .env
 db/db.sqlite
