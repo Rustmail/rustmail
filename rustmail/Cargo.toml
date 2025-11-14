@@ -5,6 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
+rustmail_types = { path = "../rustmail_types" }
 serde = { version = "*", features = ["derive"] }
 serenity = "0.12.4"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
@@ -24,8 +25,6 @@ serde_json = "1.0.145"
 rand = "0.8.5"
 base64 = "0.22.1"
 subtle = "2.6.1"
-chrono-tz = "0.10.4"
-console-subscriber = "0.4.1"
 
 [dependencies.uuid]
 version = "1.18.1"
