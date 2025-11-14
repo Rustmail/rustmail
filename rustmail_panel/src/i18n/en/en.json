@@ -29,7 +29,97 @@
       "online": "Online",
       "offline": "Offline",
       "config_file": {
-        "title": "Rustmail Settings (not implemented yet)"
+        "title": "Rustmail Settings"
+      },
+      "sections": {
+        "bot": "Bot Configuration",
+        "server_mode": "Server Mode",
+        "commands": "Commands",
+        "threads": "Tickets/Threads",
+        "languages": "Languages",
+        "notifications": "Notifications",
+        "error_handling": "Error Handling",
+        "logs_reminders": "Logs & Reminders"
+      },
+      "bot": {
+        "token": "Bot Token",
+        "token_help": "Token displayed partially for security",
+        "status": "Bot Status",
+        "welcome_message": "Welcome Message",
+        "close_message": "Close Message",
+        "typing_proxy_user": "Typing proxy (user)",
+        "typing_proxy_staff": "Typing proxy (staff)",
+        "enable_logs": "Enable logs",
+        "enable_features": "Enable features",
+        "enable_panel": "Enable panel",
+        "client_id": "Client ID",
+        "client_secret": "Client Secret",
+        "client_secret_help": "Secret displayed partially for security",
+        "redirect_url": "Redirect URL",
+        "timezone": "Timezone",
+        "logs_channel_id": "Logs Channel ID (optional)",
+        "features_channel_id": "Features Channel ID (optional)"
+      },
+      "server_mode": {
+        "type": "Mode Type",
+        "single": "Single (One server only)",
+        "dual": "Dual (Staff + Community server)",
+        "guild_id": "Guild ID",
+        "community_guild_id": "Community Guild ID",
+        "staff_guild_id": "Staff Guild ID"
+      },
+      "commands": {
+        "prefix": "Command Prefix"
+      },
+      "threads": {
+        "inbox_category_id": "Inbox Category ID",
+        "embedded_message": "Embedded Messages",
+        "user_message_color": "User Message Color",
+        "staff_message_color": "Staff Message Color",
+        "system_message_color": "System Message Color",
+        "block_quote": "Block Quote",
+        "time_to_close": "Time Before Auto-Close (hours)",
+        "create_by_channel": "Create Ticket by Channel Creation"
+      },
+      "languages": {
+        "default": "Default Language",
+        "fallback": "Fallback Language",
+        "supported": "Supported Languages (comma-separated)",
+        "supported_placeholder": "en, fr, es, de"
+      },
+      "notifications": {
+        "success_edit": "Success on Edit",
+        "partial_success_edit": "Partial Success on Edit",
+        "failure_edit": "Failure on Edit",
+        "success_reply": "Success on Reply",
+        "success_delete": "Success on Delete"
+      },
+      "error_handling": {
+        "show_detailed": "Show Detailed Errors",
+        "log_errors": "Log Errors",
+        "send_embeds": "Send Error Embeds",
+        "auto_delete": "Auto-Delete Error Messages",
+        "ttl": "Error Message TTL (seconds, optional)"
+      },
+      "logs": {
+        "title": "Logs",
+        "show_edit": "Show Log on Edit",
+        "show_delete": "Show Log on Delete"
+      },
+      "reminders": {
+        "title": "Reminders",
+        "embed_color": "Reminder Embed Color"
+      },
+      "save": "Save Configuration",
+      "save_help": "A backup will be automatically created before saving",
+      "save_success": "Configuration saved!",
+      "loading": "Loading...",
+      "load_error": "Unable to load configuration",
+      "restart_modal": {
+        "title": "Configuration Saved",
+        "message": "The changes have been saved. Would you like to restart the bot now to apply the changes?",
+        "yes": "Yes, restart",
+        "later": "Later"
       }
     },
     "tickets": {

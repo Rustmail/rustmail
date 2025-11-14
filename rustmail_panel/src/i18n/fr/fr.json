@@ -29,7 +29,97 @@
       "online": "En ligne",
       "offline": "Hors ligne",
       "config_file": {
-        "title": "Paramètres de Rustmail (pas encore implémenté)"
+        "title": "Paramètres de Rustmail"
+      },
+      "sections": {
+        "bot": "Configuration du Bot",
+        "server_mode": "Mode Serveur",
+        "commands": "Commandes",
+        "threads": "Tickets/Threads",
+        "languages": "Langues",
+        "notifications": "Notifications",
+        "error_handling": "Gestion d'Erreurs",
+        "logs_reminders": "Logs & Rappels"
+      },
+      "bot": {
+        "token": "Token du Bot",
+        "token_help": "Token affiché partiellement pour sécurité",
+        "status": "Statut du Bot",
+        "welcome_message": "Message de bienvenue",
+        "close_message": "Message de fermeture",
+        "typing_proxy_user": "Proxy de frappe (utilisateur)",
+        "typing_proxy_staff": "Proxy de frappe (staff)",
+        "enable_logs": "Activer les logs",
+        "enable_features": "Activer les features",
+        "enable_panel": "Activer le panel",
+        "client_id": "Client ID",
+        "client_secret": "Client Secret",
+        "client_secret_help": "Secret affiché partiellement pour sécurité",
+        "redirect_url": "URL de redirection",
+        "timezone": "Fuseau horaire",
+        "logs_channel_id": "ID du canal de logs (optionnel)",
+        "features_channel_id": "ID du canal de features (optionnel)"
+      },
+      "server_mode": {
+        "type": "Type de mode",
+        "single": "Single (Un seul serveur)",
+        "dual": "Dual (Serveur staff + communauté)",
+        "guild_id": "Guild ID",
+        "community_guild_id": "Community Guild ID",
+        "staff_guild_id": "Staff Guild ID"
+      },
+      "commands": {
+        "prefix": "Préfixe des commandes"
+      },
+      "threads": {
+        "inbox_category_id": "ID de la catégorie Inbox",
+        "embedded_message": "Messages embarqués",
+        "user_message_color": "Couleur msg utilisateur",
+        "staff_message_color": "Couleur msg staff",
+        "system_message_color": "Couleur msg système",
+        "block_quote": "Citations en bloc",
+        "time_to_close": "Temps avant fermeture auto (heures)",
+        "create_by_channel": "Créer ticket par création de canal"
+      },
+      "languages": {
+        "default": "Langue par défaut",
+        "fallback": "Langue de secours",
+        "supported": "Langues supportées (séparées par des virgules)",
+        "supported_placeholder": "en, fr, es, de"
+      },
+      "notifications": {
+        "success_edit": "Succès sur édition",
+        "partial_success_edit": "Succès partiel sur édition",
+        "failure_edit": "Échec sur édition",
+        "success_reply": "Succès sur réponse",
+        "success_delete": "Succès sur suppression"
+      },
+      "error_handling": {
+        "show_detailed": "Afficher les erreurs détaillées",
+        "log_errors": "Logger les erreurs",
+        "send_embeds": "Envoyer les embeds d'erreur",
+        "auto_delete": "Supprimer auto les messages d'erreur",
+        "ttl": "TTL messages d'erreur (secondes, optionnel)"
+      },
+      "logs": {
+        "title": "Logs",
+        "show_edit": "Afficher log sur édition",
+        "show_delete": "Afficher log sur suppression"
+      },
+      "reminders": {
+        "title": "Rappels",
+        "embed_color": "Couleur embed rappel"
+      },
+      "save": "Sauvegarder la Configuration",
+      "save_help": "Un backup sera automatiquement créé avant la sauvegarde",
+      "save_success": "Configuration sauvegardée !",
+      "loading": "Chargement...",
+      "load_error": "Impossible de charger la configuration",
+      "restart_modal": {
+        "title": "Configuration sauvegardée",
+        "message": "Les modifications ont été sauvegardées. Voulez-vous redémarrer le bot maintenant pour appliquer les changements ?",
+        "yes": "Oui, redémarrer",
+        "later": "Plus tard"
       }
     },
     "tickets": {
