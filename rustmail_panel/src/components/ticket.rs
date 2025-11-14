@@ -22,6 +22,25 @@ pub struct ThreadMessage {
     pub content: String,
 }
 
+impl ThreadMessage {
+    fn message_type(&self) -> MessageType {
+        if self.user_name.starts_with("System") || self.user_name == "System" {
+            MessageType::System
+        } else if self.user_id == 0 || self.is_anonymous {
+            MessageType::User
+        } else {
+            MessageType::Staff
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MessageType {
+    User,
+    Staff,
+    System,
+}
+
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct CompleteThread {
     pub id: String,
@@ -38,6 +57,15 @@ pub struct CompleteThread {
     pub category_name: Option<String>,
     pub required_permissions: Option<String>,
     pub messages: Vec<ThreadMessage>,
+}
+
+impl CompleteThread {
+    fn last_message_time(&self) -> String {
+        self.messages
+            .last()
+            .map(|m| m.created_at.clone())
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Clone, Routable, PartialEq)]
@@ -81,6 +109,7 @@ pub fn tickets_list() -> Html {
     let tickets = use_state(|| Vec::<CompleteThread>::new());
     let loading = use_state(|| true);
     let selected_category = use_state(|| "all".to_string());
+    let search_query = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
 
     {
@@ -120,15 +149,25 @@ pub fn tickets_list() -> Html {
         cats
     };
 
-    let filtered_tickets: Vec<CompleteThread> = if *selected_category == "all" {
-        (*tickets).clone()
-    } else {
-        tickets
-            .iter()
-            .filter(|t| t.category_name.as_deref() == Some(&*selected_category))
-            .cloned()
-            .collect()
-    };
+    let filtered_tickets: Vec<CompleteThread> = tickets
+        .iter()
+        .filter(|t| {
+            let category_match = *selected_category == "all"
+                || t.category_name.as_deref() == Some(&*selected_category);
+
+            let search_match = if search_query.is_empty() {
+                true
+            } else {
+                let query = search_query.to_lowercase();
+                t.id.to_lowercase().contains(&query)
+                    || t.user_name.to_lowercase().contains(&query)
+                    || t.messages.iter().any(|m| m.content.to_lowercase().contains(&query))
+            };
+
+            category_match && search_match
+        })
+        .cloned()
+        .collect();
 
     let format_date = |timestamp: i64| -> String {
         let d = Date::new_0();
@@ -136,12 +175,6 @@ pub fn tickets_list() -> Html {
         d.to_locale_string("fr-FR", &JsValue::UNDEFINED)
             .as_string()
             .unwrap_or_else(|| i18n.t("panel.tickets.unknown_date").into())
-    };
-
-    let status_color = |status: i64| match status {
-        1 => "bg-green-500",
-        0 => "bg-gray-500",
-        _ => "bg-yellow-500",
     };
 
     html! {
@@ -152,63 +185,147 @@ pub fn tickets_list() -> Html {
             </div>
 
             <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
-                <div class="p-4 border-b border-slate-700">
-                    <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.tickets.sort_by")}</label>
-                    <select
-                        value={(*selected_category).clone()}
-                        onchange={{
-                            let selected_category = selected_category.clone();
-                            move |e: Event| {
-                                let value = e.target_unchecked_into::<web_sys::HtmlSelectElement>().value();
-                                selected_category.set(value);
-                            }
-                        }}
-                        class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        { for categories.iter().map(|c| html! {
-                            <option value={c.clone()}>{ if c == "all" { i18n.t("panel.tickets.all") } else { c.clone() } }</option>
-                        }) }
-                    </select>
+                <div class="p-4 border-b border-slate-700 space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">
+                            <i class="bi bi-search mr-2"></i>
+                            {i18n.t("panel.tickets.search")}
+                        </label>
+                        <input
+                            type="text"
+                            value={(*search_query).clone()}
+                            oninput={{
+                                let search_query = search_query.clone();
+                                move |e: InputEvent| {
+                                    let input = e.target_dyn_into::<web_sys::HtmlInputElement>();
+                                    if let Some(input) = input {
+                                        search_query.set(input.value());
+                                    }
+                                }
+                            }}
+                            placeholder={i18n.t("panel.tickets.search_placeholder")}
+                            class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">
+                            <i class="bi bi-funnel mr-2"></i>
+                            {i18n.t("panel.tickets.filter_category")}
+                        </label>
+                        <select
+                            value={(*selected_category).clone()}
+                            onchange={{
+                                let selected_category = selected_category.clone();
+                                move |e: Event| {
+                                    let value = e.target_unchecked_into::<web_sys::HtmlSelectElement>().value();
+                                    selected_category.set(value);
+                                }
+                            }}
+                            class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            { for categories.iter().map(|c| html! {
+                                <option value={c.clone()}>
+                                    { if c == "all" { i18n.t("panel.tickets.all_categories") } else { c.clone() } }
+                                </option>
+                            }) }
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i class="bi bi-info-circle"></i>
+                        <span>
+                            {format!("{} {} {}",
+                                filtered_tickets.len(),
+                                if filtered_tickets.len() <= 1 { i18n.t("panel.tickets.ticket_singular") } else { i18n.t("panel.tickets.ticket_plural") },
+                                i18n.t("panel.tickets.found")
+                            )}
+                        </span>
+                    </div>
                 </div>
 
                 {
                     if *loading {
                         html! {
-                            <div class="p-8 text-center text-gray-400">
-                                { i18n.t("panel.tickets.loading") }
+                            <div class="p-8 text-center">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+                                <p class="mt-4 text-gray-400">{ i18n.t("panel.tickets.loading") }</p>
                             </div>
                         }
                     } else if filtered_tickets.is_empty() {
                         html! {
-                            <div class="p-8 text-center text-gray-400">{ i18n.t("panel.tickets.none") }</div>
+                            <div class="p-8 text-center text-gray-400">
+                                <i class="bi bi-inbox text-4xl mb-2"></i>
+                                <p>{ i18n.t("panel.tickets.none") }</p>
+                            </div>
                         }
                     } else {
                         html! {
                             <div class="divide-y divide-slate-700">
                                 { for filtered_tickets.iter().map(|ticket| {
                                     let id = ticket.id.clone();
+                                    let message_count = ticket.messages.len();
                                     html! {
                                         <button
-                                            class="w-full p-4 text-left hover:bg-slate-700/30 transition"
+                                            class="w-full p-4 text-left hover:bg-slate-700/30 transition-colors"
                                             onclick={{
                                                 let navigator = navigator.clone();
                                                 move |_| navigator.push(&TicketsRoute::TicketDetails { id: id.clone() })
                                             }}
                                         >
-                                            <div class="flex items-start gap-3">
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-center justify-between mb-1">
-                                                        <h3 class="text-white text-sm truncate">{ format!("Ticket #{}", &ticket.id) }</h3>
-                                                        <div class={classes!("w-2","h-2","rounded-full",status_color(ticket.status))}></div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <h3 class="text-white font-medium">{ format!("Ticket #{}", &ticket.id) }</h3>
+                                                    <span class="text-xs text-gray-500">
+                                                        { format_date(ticket.created_at) }
+                                                    </span>
+                                                </div>
+
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                        <i class="bi bi-person text-gray-400 text-sm"></i>
+                                                        <span class="text-sm text-gray-300">{ &ticket.user_name }</span>
+                                                        {
+                                                            if let Some(cat) = &ticket.category_name {
+                                                                html! {
+                                                                    <>
+                                                                        <span class="text-gray-600">{"•"}</span>
+                                                                        <i class="bi bi-folder text-gray-400 text-sm"></i>
+                                                                        <span class="text-sm text-gray-300">{ cat }</span>
+                                                                    </>
+                                                                }
+                                                            } else {
+                                                                html! {}
+                                                            }
+                                                        }
                                                     </div>
-                                                    <p class="text-xs text-gray-400 mb-1">{ &ticket.user_name }</p>
-                                                    <div class="flex items-center gap-2 text-xs text-gray-500">
-                                                        <span>{ ticket.category_name.clone().unwrap_or_else(|| i18n.t("panel.tickets.none_category").into()) }</span>
-                                                        <span>{"•"}</span>
-                                                        <span>{ format_date(ticket.created_at) }</span>
+
+                                                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                                                        <span class="flex items-center gap-1">
+                                                            <i class="bi bi-chat-dots"></i>
+                                                            {format!("{} {}", message_count,
+                                                                if message_count <= 1 { i18n.t("panel.tickets.message_singular") }
+                                                                else { i18n.t("panel.tickets.message_plural") }
+                                                            )}
+                                                        </span>
+                                                        {
+                                                            if let Some(closed) = ticket.closed_at {
+                                                                html! {
+                                                                    <span class="flex items-center gap-1">
+                                                                        <i class="bi bi-lock"></i>
+                                                                        {format!("{} {}", i18n.t("panel.tickets.closed_at"), format_date(closed))}
+                                                                    </span>
+                                                                }
+                                                            } else {
+                                                                html! {
+                                                                    <span class="flex items-center gap-1">
+                                                                        <i class="bi bi-clock-history"></i>
+                                                                        {format!("{} {}", i18n.t("panel.tickets.last_message"), &ticket.last_message_time())}
+                                                                    </span>
+                                                                }
+                                                            }
+                                                        }
                                                     </div>
                                                 </div>
-                                            </div>
                                         </button>
                                     }
                                 }) }
@@ -233,6 +350,10 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
 
     let ticket = use_state(|| None::<CompleteThread>);
     let loading = use_state(|| true);
+    let show_user = use_state(|| true);
+    let show_staff = use_state(|| true);
+    let show_system = use_state(|| true);
+    let search_query = use_state(|| String::new());
 
     {
         let id = props.id.clone();
@@ -263,52 +384,252 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
     };
 
     html! {
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-white">
+        <div>
             <button
                 onclick={{
                     let on_back = props.on_back.clone();
                     move |_| on_back.emit(())
                 }}
-                class="text-blue-400 hover:underline mb-6"
+                class="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition mb-6"
             >
+                <i class="bi bi-arrow-left"></i>
                 {i18n.t("panel.tickets.back_to_tickets")}
             </button>
 
             {
                 if *loading {
-                    html! { <p class="text-gray-400">{i18n.t("panel.tickets.loading_ticket")}</p> }
+                    html! {
+                        <div class="text-center py-12">
+                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                            <p class="mt-4 text-gray-400">{i18n.t("panel.tickets.loading_ticket")}</p>
+                        </div>
+                    }
                 } else if let Some(ticket) = &*ticket {
+                    let filtered_messages: Vec<&ThreadMessage> = ticket.messages.iter()
+                        .filter(|m| {
+                            let type_match = match m.message_type() {
+                                MessageType::User => *show_user,
+                                MessageType::Staff => *show_staff,
+                                MessageType::System => *show_system,
+                            };
+
+                            let search_match = if search_query.is_empty() {
+                                true
+                            } else {
+                                let query = search_query.to_lowercase();
+                                m.content.to_lowercase().contains(&query)
+                                    || m.user_name.to_lowercase().contains(&query)
+                            };
+
+                            type_match && search_match
+                        })
+                        .collect();
+
                     html! {
                         <div>
-                            <h2 class="text-2xl text-white mb-2">{ format!("Ticket #{}", ticket.id) }</h2>
-                            <p class="text-gray-400 text-sm mb-4">
-                                { format!("{} : {} • {} : {} • {} : {}", i18n.t("panel.tickets.user"), ticket.user_name, i18n.t("panel.tickets.category"), ticket.category_name.clone().unwrap_or_default(), i18n.t("panel.tickets.opened"), format_date(ticket.created_at)) }
+                            <div class="bg-gradient-to-r from-slate-800/80 to-slate-900/80 border border-slate-700 rounded-lg p-6 mb-6">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h1 class="text-3xl font-bold text-white mb-2">
+                                            { format!("Ticket #{}", ticket.id) }
+                                        </h1>
+                                        {
+                                            if let Some(cat) = &ticket.category_name {
+                                                html! {
+                                                    <span class="px-3 py-1 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full">
+                                                        <i class="bi bi-folder mr-1"></i>
+                                                        { cat }
+                                                    </span>
+                                                }
+                                            } else {
+                                                html! {}
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    <div class="flex items-center gap-2 text-gray-300">
+                                        <i class="bi bi-person-circle text-blue-400"></i>
+                                        <span class="text-gray-400">{i18n.t("panel.tickets.user")}{" :"}</span>
+                                        <span class="font-medium">{ &ticket.user_name }</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-gray-300">
+                                        <i class="bi bi-calendar-event text-blue-400"></i>
+                                        <span class="text-gray-400">{i18n.t("panel.tickets.opened")}{" :"}</span>
+                                        <span class="font-medium">{ format_date(ticket.created_at) }</span>
+                                    </div>
+                                    {
+                                        if let Some(closed) = ticket.closed_at {
+                                            html! {
+                                                <div class="flex items-center gap-2 text-gray-300">
+                                                    <i class="bi bi-calendar-x text-blue-400"></i>
+                                                    <span class="text-gray-400">{i18n.t("panel.tickets.closed")}{" :"}</span>
+                                                    <span class="font-medium">{ format_date(closed) }</span>
+                                                </div>
+                                            }
+                                        } else {
+                                            html! {}
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 mb-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                        <i class="bi bi-funnel"></i>
+                                        {i18n.t("panel.tickets.filters")}
+                                    </h2>
+                                    <span class="text-sm text-gray-400">
+                                        {format!("{} / {} {}", filtered_messages.len(), ticket.messages.len(),
+                                            i18n.t("panel.tickets.message_plural")
+                                        )}
+                                    </span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <input
+                                        type="text"
+                                        value={(*search_query).clone()}
+                                        oninput={{
+                                            let search_query = search_query.clone();
+                                            move |e: InputEvent| {
+                                                let input = e.target_dyn_into::<web_sys::HtmlInputElement>();
+                                                if let Some(input) = input {
+                                                    search_query.set(input.value());
+                                                }
+                                            }
+                                        }}
+                                        placeholder={i18n.t("panel.tickets.search_placeholder")}
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        onclick={{
+                                            let show_user = show_user.clone();
+                                            move |_| show_user.set(!*show_user)
+                                        }}
+                                        class={classes!(
+                                            "px-4", "py-2", "rounded-lg", "border", "transition-all", "text-sm", "font-medium",
+                                            "flex", "items-center", "gap-2",
+                                            if *show_user {
+                                                "bg-blue-500/20 text-blue-400 border-blue-500/50"
+                                            } else {
+                                                "bg-slate-700/30 text-gray-400 border-slate-600"
+                                            }
+                                        )}
+                                    >
+                                        <i class="bi bi-person"></i>
+                                        {i18n.t("panel.tickets.filter_user")}
+                                    </button>
+
+                                    <button
+                                        onclick={{
+                                            let show_staff = show_staff.clone();
+                                            move |_| show_staff.set(!*show_staff)
+                                        }}
+                                        class={classes!(
+                                            "px-4", "py-2", "rounded-lg", "border", "transition-all", "text-sm", "font-medium",
+                                            "flex", "items-center", "gap-2",
+                                            if *show_staff {
+                                                "bg-green-500/20 text-green-400 border-green-500/50"
+                                            } else {
+                                                "bg-slate-700/30 text-gray-400 border-slate-600"
+                                            }
+                                        )}
+                                    >
+                                        <i class="bi bi-shield-check"></i>
+                                        {i18n.t("panel.tickets.filter_staff")}
+                                    </button>
+
+                                    <button
+                                        onclick={{
+                                            let show_system = show_system.clone();
+                                            move |_| show_system.set(!*show_system)
+                                        }}
+                                        class={classes!(
+                                            "px-4", "py-2", "rounded-lg", "border", "transition-all", "text-sm", "font-medium",
+                                            "flex", "items-center", "gap-2",
+                                            if *show_system {
+                                                "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
+                                            } else {
+                                                "bg-slate-700/30 text-gray-400 border-slate-600"
+                                            }
+                                        )}
+                                    >
+                                        <i class="bi bi-gear"></i>
+                                        {i18n.t("panel.tickets.filter_system")}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-6 max-h-[calc(100vh-450px)] overflow-y-auto">
                                 {
-                                    if let Some(closed) = ticket.closed_at {
+                                    if filtered_messages.is_empty() {
                                         html! {
-                                            <span>{ format!(" • {} : {}", i18n.t("panel.tickets.closed"), format_date(closed)) }</span>
+                                            <div class="text-center py-8 text-gray-400">
+                                                <i class="bi bi-chat-dots text-4xl mb-2"></i>
+                                                <p>{i18n.t("panel.tickets.no_messages")}</p>
+                                            </div>
                                         }
                                     } else {
-                                        html! {}
+                                        html! {
+                                            <div class="space-y-4">
+                                                { for filtered_messages.iter().map(|m| {
+                                                    let msg_type = m.message_type();
+                                                    let (bg_class, border_class, text_class) = match msg_type {
+                                                        MessageType::User => (
+                                                            "bg-blue-500/10",
+                                                            "border-blue-500/30",
+                                                            "text-blue-400"
+                                                        ),
+                                                        MessageType::Staff => (
+                                                            "bg-green-500/10",
+                                                            "border-green-500/30",
+                                                            "text-green-400"
+                                                        ),
+                                                        MessageType::System => (
+                                                            "bg-yellow-500/10",
+                                                            "border-yellow-500/30",
+                                                            "text-yellow-400"
+                                                        ),
+                                                    };
+
+                                                    html! {
+                                                        <div class={classes!("border", "rounded-lg", "p-4", bg_class, border_class)}>
+                                                            <div class="flex items-baseline gap-2 mb-2">
+                                                                <span class={classes!("font-medium", "text-sm", text_class)}>
+                                                                    { &m.user_name }
+                                                                </span>
+                                                                <span class="text-xs text-gray-500">
+                                                                    { &m.created_at }
+                                                                </span>
+                                                            </div>
+                                                            <div class="prose prose-sm prose-invert max-w-none">
+                                                                <div class="text-gray-200 break-words">
+                                                                    { markdown_to_html_safe(&m.content) }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }) }
+                                            </div>
+                                        }
                                     }
                                 }
-                            </p>
-
-                            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto">
-                                { for ticket.messages.iter().map(|m| html! {
-                                    <div class="flex flex-col gap-1 border-b border-slate-700 pb-3">
-                                        <div class="flex items-baseline gap-2">
-                                            <span class="text-white text-sm">{ &m.user_name }</span>
-                                            <span class="text-xs text-gray-500">{ &m.created_at }</span>
-                                        </div>
-                                        <p class="text-gray-300 text-sm">{ markdown_to_html_safe(&m.content) }</p>
-                                    </div>
-                                }) }
                             </div>
                         </div>
                     }
                 } else {
-                    html! { <p class="text-gray-400">{i18n.t("panel.tickets.ticket_not_found")}</p> }
+                    html! {
+                        <div class="text-center py-12">
+                            <i class="bi bi-exclamation-triangle text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-400">{i18n.t("panel.tickets.ticket_not_found")}</p>
+                        </div>
+                    }
                 }
             }
         </div>
