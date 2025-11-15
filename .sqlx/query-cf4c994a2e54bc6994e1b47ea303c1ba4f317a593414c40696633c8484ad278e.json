@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            SELECT\n                id,\n                user_id,\n                user_name,\n                channel_id,\n                created_at as \"created_at: String\",\n                next_message_number as new_message_number,\n                status,\n                user_left,\n                closed_at as \"closed_at: Option<String>\",\n                closed_by,\n                category_id,\n                category_name,\n                required_permissions\n            FROM threads\n            WHERE id = ?\n            ",
+  "query": "\n        SELECT\n            id,\n            user_id,\n            user_name,\n            channel_id,\n            strftime('%s', created_at) as \"created_at: Option<String>\",\n            next_message_number as new_message_number,\n            status,\n            user_left,\n            strftime('%s', closed_at) as \"closed_at: Option<String>\",\n            closed_by,\n            category_id,\n            category_name,\n            required_permissions\n        FROM threads\n        WHERE status = 0\n        ORDER BY closed_at DESC\n        ",
   "describe": {
     "columns": [
       {
@@ -24,9 +24,9 @@
         "type_info": "Text"
       },
       {
-        "name": "created_at: String",
+        "name": "created_at: Option<String>",
         "ordinal": 4,
-        "type_info": "Datetime"
+        "type_info": "Text"
       },
       {
         "name": "new_message_number",
@@ -46,7 +46,7 @@
       {
         "name": "closed_at: Option<String>",
         "ordinal": 8,
-        "type_info": "Datetime"
+        "type_info": "Text"
       },
       {
         "name": "closed_by",
@@ -70,14 +70,14 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       false,
       false,
       false,
       false,
-      false,
+      true,
       true,
       false,
       false,
@@ -88,5 +88,5 @@
       true
     ]
   },
-  "hash": "40ac76471ce84e90822cd6585fbeb7da682d9f1a150ddcfe682f8eca468158e3"
+  "hash": "cf4c994a2e54bc6994e1b47ea303c1ba4f317a593414c40696633c8484ad278e"
 }

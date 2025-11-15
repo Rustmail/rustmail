@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT\n            id,\n            user_id,\n            user_name,\n            channel_id,\n            created_at as \"created_at: String\",\n            next_message_number as new_message_number,\n            status,\n            user_left,\n            closed_at as \"closed_at: Option<String>\",\n            closed_by,\n            category_id,\n            category_name,\n            required_permissions\n        FROM threads\n        WHERE status = 0\n        ORDER BY closed_at DESC\n        ",
+  "query": "\n            SELECT\n                id,\n                user_id,\n                user_name,\n                channel_id,\n                strftime('%s', created_at) as \"created_at: Option<String>\",\n                next_message_number as new_message_number,\n                status,\n                user_left,\n                strftime('%s', closed_at) as \"closed_at: Option<String>\",\n                closed_by,\n                category_id,\n                category_name,\n                required_permissions\n            FROM threads\n            WHERE id = ?\n            ",
   "describe": {
     "columns": [
       {
@@ -24,9 +24,9 @@
         "type_info": "Text"
       },
       {
-        "name": "created_at: String",
+        "name": "created_at: Option<String>",
         "ordinal": 4,
-        "type_info": "Datetime"
+        "type_info": "Null"
       },
       {
         "name": "new_message_number",
@@ -46,7 +46,7 @@
       {
         "name": "closed_at: Option<String>",
         "ordinal": 8,
-        "type_info": "Datetime"
+        "type_info": "Null"
       },
       {
         "name": "closed_by",
@@ -70,23 +70,23 @@
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
       false,
       false,
       false,
       false,
-      false,
+      null,
       true,
       false,
       false,
-      true,
+      null,
       true,
       true,
       true,
       true
     ]
   },
-  "hash": "140d108e6307585f146a559bed69614f407b0ceb5a82f218a8451ddc43b897a2"
+  "hash": "ad9ce85578ae082fba6ee4378e0539f9a196910408b8fd2106de9587090ab9ff"
 }
