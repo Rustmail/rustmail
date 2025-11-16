@@ -16,7 +16,7 @@ async-trait = "0.1.89"
 chrono = { version = "0.4.42", features = ["serde"] }
 regex = "1.11.3"
 axum = "0.8.6"
-axum-extra = { version = "0.10.3", features = ["cookie"] }
+axum-extra = { version = "0.12.2", features = ["cookie"] }
 hyper = "1.7.0"
 rust-embed = "8.7.2"
 mime_guess = "2.0.5"
