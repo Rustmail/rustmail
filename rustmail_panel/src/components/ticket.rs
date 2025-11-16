@@ -7,6 +7,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
+use web_sys::UrlSearchParams;
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct ThreadMessage {
@@ -57,6 +58,15 @@ pub struct CompleteThread {
     pub category_name: Option<String>,
     pub required_permissions: Option<String>,
     pub messages: Vec<ThreadMessage>,
+}
+
+#[derive(Clone, PartialEq, Deserialize, Debug)]
+pub struct PaginatedThreadsResponse {
+    pub threads: Vec<CompleteThread>,
+    pub total: i64,
+    pub page: i64,
+    pub page_size: i64,
+    pub total_pages: i64,
 }
 
 impl CompleteThread {
@@ -111,60 +121,126 @@ pub fn tickets_list() -> Html {
     let selected_category = use_state(|| "all".to_string());
     let search_query = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
+    let location = use_location().unwrap();
+
+    let current_page = use_state(|| 1i64);
+    let page_size = use_state(|| 50i64);
+    let total_pages = use_state(|| 1i64);
+    let total_tickets = use_state(|| 0i64);
 
     {
-        let tickets = tickets.clone();
-        let loading = loading.clone();
+        let current_page = current_page.clone();
+        let page_size = page_size.clone();
+        let query_string = location.query_str().to_string();
 
-        use_effect_with((), move |_| {
-            let tickets_clone = tickets.clone();
-            let loading_clone = loading.clone();
-
-            spawn_local(async move {
-                loading_clone.set(true);
-                if let Ok(resp) = Request::get("/api/bot/tickets").send().await {
-                    if let Ok(data) = resp.json::<Vec<CompleteThread>>().await {
-                        tickets_clone.set(data);
-                    } else {
-                        tickets_clone.set(Vec::new());
-                    }
+        use_effect_with(query_string.clone(), move |query_str| {
+            let url_params = {
+                if let Some(query) = query_str.strip_prefix('?') {
+                    UrlSearchParams::new_with_str(query).ok()
                 } else {
-                    tickets_clone.set(Vec::new());
+                    None
                 }
-                loading_clone.set(false);
-            });
+            };
+
+            let page_from_url = url_params
+                .as_ref()
+                .and_then(|p| p.get("page"))
+                .and_then(|s| s.parse::<i64>().ok())
+                .unwrap_or(1);
+
+            let page_size_from_url = url_params
+                .as_ref()
+                .and_then(|p| p.get("page_size"))
+                .and_then(|s| s.parse::<i64>().ok())
+                .unwrap_or(50);
+
+            if *current_page != page_from_url {
+                current_page.set(page_from_url);
+            }
+            if *page_size != page_size_from_url {
+                page_size.set(page_size_from_url);
+            }
+
             || ()
         });
     }
 
-    let categories = {
-        let mut cats: Vec<String> = tickets
-            .iter()
-            .filter_map(|t| t.category_name.clone())
-            .collect::<std::collections::HashSet<_>>()
-            .into_iter()
-            .collect();
-        cats.sort();
-        cats.insert(0, "all".into());
-        cats
+    let update_url = {
+        let navigator = navigator.clone();
+        let current_page = current_page.clone();
+        let page_size = page_size.clone();
+
+        Callback::from(move |_| {
+            let url = format!("/panel/tickets?page={}&page_size={}", *current_page, *page_size);
+            navigator.replace(&TicketsRoute::TicketsList);
+            if let Some(window) = web_sys::window() {
+                if let Some(history) = window.history().ok() {
+                    let _ = history.replace_state_with_url(&JsValue::NULL, "", Some(&url));
+                }
+            }
+        })
     };
+
+    {
+        let tickets = tickets.clone();
+        let loading = loading.clone();
+        let current_page = current_page.clone();
+        let page_size = page_size.clone();
+        let total_pages = total_pages.clone();
+        let total_tickets = total_tickets.clone();
+        let selected_category = selected_category.clone();
+        let update_url = update_url.clone();
+
+        use_effect_with(
+            (*current_page, *page_size, (*selected_category).clone()),
+            move |_| {
+                let tickets_clone = tickets.clone();
+                let loading_clone = loading.clone();
+                let total_pages_clone = total_pages.clone();
+                let total_tickets_clone = total_tickets.clone();
+                let page = *current_page;
+                let size = *page_size;
+                let category = (*selected_category).clone();
+
+                update_url.emit(());
+
+                spawn_local(async move {
+                    loading_clone.set(true);
+
+                    let mut url = format!("/api/bot/tickets?page={}&page_size={}", page, size);
+                    if category != "all" {
+                        url.push_str(&format!("&category_id={}", urlencoding::encode(&category)));
+                    }
+
+                    if let Ok(resp) = Request::get(&url).send().await {
+                        if let Ok(data) = resp.json::<PaginatedThreadsResponse>().await {
+                            tickets_clone.set(data.threads);
+                            total_pages_clone.set(data.total_pages);
+                            total_tickets_clone.set(data.total);
+                        } else {
+                            tickets_clone.set(Vec::new());
+                        }
+                    } else {
+                        tickets_clone.set(Vec::new());
+                    }
+                    loading_clone.set(false);
+                });
+                || ()
+            },
+        );
+    }
 
     let filtered_tickets: Vec<CompleteThread> = tickets
         .iter()
         .filter(|t| {
-            let category_match = *selected_category == "all"
-                || t.category_name.as_deref() == Some(&*selected_category);
-
-            let search_match = if search_query.is_empty() {
+            if search_query.is_empty() {
                 true
             } else {
                 let query = search_query.to_lowercase();
                 t.id.to_lowercase().contains(&query)
                     || t.user_name.to_lowercase().contains(&query)
                     || t.messages.iter().any(|m| m.content.to_lowercase().contains(&query))
-            };
-
-            category_match && search_match
+            }
         })
         .cloned()
         .collect();
@@ -210,37 +286,79 @@ pub fn tickets_list() -> Html {
 
                     <div>
                         <label class="block text-sm text-gray-300 mb-2">
-                            <i class="bi bi-funnel mr-2"></i>
-                            {i18n.t("panel.tickets.filter_category")}
+                            <i class="bi bi-sliders mr-2"></i>
+                            {i18n.t("panel.tickets.tickets_per_page")}
                         </label>
                         <select
-                            value={(*selected_category).clone()}
+                            value={(*page_size).to_string()}
                             onchange={{
-                                let selected_category = selected_category.clone();
+                                let page_size = page_size.clone();
+                                let current_page = current_page.clone();
                                 move |e: Event| {
                                     let value = e.target_unchecked_into::<web_sys::HtmlSelectElement>().value();
-                                    selected_category.set(value);
+                                    if let Ok(size) = value.parse::<i64>() {
+                                        page_size.set(size);
+                                        current_page.set(1);
+                                    }
                                 }
                             }}
                             class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            { for categories.iter().map(|c| html! {
-                                <option value={c.clone()}>
-                                    { if c == "all" { i18n.t("panel.tickets.all_categories") } else { c.clone() } }
-                                </option>
-                            }) }
+                            <option value="25">{"25"}</option>
+                            <option value="50">{"50"}</option>
+                            <option value="100">{"100"}</option>
+                            <option value="200">{"200"}</option>
                         </select>
                     </div>
 
-                    <div class="flex items-center gap-2 text-sm text-gray-400">
-                        <i class="bi bi-info-circle"></i>
-                        <span>
-                            {format!("{} {} {}",
-                                filtered_tickets.len(),
-                                if filtered_tickets.len() <= 1 { i18n.t("panel.tickets.ticket_singular") } else { i18n.t("panel.tickets.ticket_plural") },
-                                i18n.t("panel.tickets.found")
-                            )}
-                        </span>
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i class="bi bi-info-circle"></i>
+                            <span>
+                                {format!("{} total {} | Page {} / {}",
+                                    *total_tickets,
+                                    if *total_tickets <= 1 { i18n.t("panel.tickets.ticket_singular") } else { i18n.t("panel.tickets.ticket_plural") },
+                                    *current_page,
+                                    *total_pages
+                                )}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button
+                                disabled={*current_page <= 1}
+                                onclick={{
+                                    let current_page = current_page.clone();
+                                    move |_| {
+                                        let page = *current_page;
+                                        if page > 1 {
+                                            current_page.set(page - 1);
+                                        }
+                                    }
+                                }}
+                                class="px-3 py-1 bg-slate-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition"
+                            >
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <span class="text-gray-300">
+                                {format!("{} / {}", *current_page, *total_pages)}
+                            </span>
+                            <button
+                                disabled={*current_page >= *total_pages}
+                                onclick={{
+                                    let current_page = current_page.clone();
+                                    let total_pages_val = *total_pages;
+                                    move |_| {
+                                        let page = *current_page;
+                                        if page < total_pages_val {
+                                            current_page.set(page + 1);
+                                        }
+                                    }
+                                }}
+                                class="px-3 py-1 bg-slate-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition"
+                            >
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

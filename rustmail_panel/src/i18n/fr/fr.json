@@ -157,7 +157,8 @@
       "filter_user": "Utilisateurs",
       "filter_staff": "Staff",
       "filter_system": "Système",
-      "no_messages": "Aucun message à afficher avec les filtres sélectionnés"
+      "no_messages": "Aucun message à afficher avec les filtres sélectionnés",
+      "tickets_per_page": "Tickets par page"
     }
   }
 }
