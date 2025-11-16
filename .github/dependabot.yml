@@ -1,13 +1,13 @@
 version: 2
 updates:
-  # Enable version updates for Cargo (Rust)
+  # Enable version updates for Cargo (Rust) - Workspace
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 50
     reviewers:
       - "@Akinator31"
     assignees:
@@ -19,25 +19,59 @@ updates:
       prefix: "cargo"
       include: "scope"
 
-  # Enable version updates for npm (Node.js)
-  - package-ecosystem: "npm"
-    directory: "/"
+  # Enable version updates for rustmail crate
+  - package-ecosystem: "cargo"
+    directory: "/rustmail"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 50
     reviewers:
       - "@Akinator31"
     assignees:
       - "@Akinator31"
     labels:
       - "dependencies"
-      - "javascript"
+      - "rust"
     commit-message:
-      prefix: "npm"
+      prefix: "cargo"
       include: "scope"
-    ignore:
-      # Ignore major version updates for critical packages
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for rustmail_panel crate
+  - package-ecosystem: "cargo"
+    directory: "/rustmail_panel"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 50
+    reviewers:
+      - "@Akinator31"
+    assignees:
+      - "@Akinator31"
+    labels:
+      - "dependencies"
+      - "rust"
+    commit-message:
+      prefix: "cargo"
+      include: "scope"
+
+  # Enable version updates for rustmail_types crate
+  - package-ecosystem: "cargo"
+    directory: "/rustmail_types"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 50
+    reviewers:
+      - "@Akinator31"
+    assignees:
+      - "@Akinator31"
+    labels:
+      - "dependencies"
+      - "rust"
+    commit-message:
+      prefix: "cargo"
+      include: "scope"
