@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id FROM staff_alerts\n        WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e8ad51199ceccfec9e6bbde94356a9e8feaa686c309ede399b64287fb77f2f69"
+}

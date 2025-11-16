@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO thread_status (thread_id, channel_id, owner_id, taken_by, last_message_by, last_message_at) VALUES (?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "a6bb2fb861c5e46306f8c370816639f55f82370b28eeb6272d5ee01c283611da"
+}

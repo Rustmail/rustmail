@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT ts.channel_id,\n               ts.owner_id,\n               ts.taken_by,\n               ts.last_message_by,\n               ts.last_message_at\n        FROM thread_status ts\n        JOIN threads t ON ts.thread_id = t.id\n        WHERE t.status = 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "channel_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "owner_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "taken_by",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_message_by",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_message_at",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "ea1cdea86310018f27ee5b43603fd99f8386ea396839656999962e86a06f8019"
+}
