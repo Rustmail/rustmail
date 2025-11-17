@@ -7,14 +7,21 @@ use crate::prelude::panel_commands::*;
 use crate::prelude::types::*;
 use base64::Engine;
 use rand::RngCore;
-use serenity::all::{ClientBuilder, GatewayIntents};
+use serenity::all::{ClientBuilder, GatewayIntents, ShardManager};
 use serenity::cache::Settings as CacheSettings;
+use serenity::prelude::TypeMapKey;
 use std::collections::HashMap;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::{select, spawn};
+
+pub struct ShardManagerKey;
+
+impl TypeMapKey for ShardManagerKey {
+    type Value = Arc<ShardManager>;
+}
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
     let pool = init_database().await.expect("An error occured!");
@@ -136,6 +143,7 @@ pub async fn run_bot(
     registry.register_command(LogsCommand);
     registry.register_command(TakeCommand);
     registry.register_command(ReleaseCommand);
+    registry.register_command(PingCommand);
 
     let registry = Arc::new(registry);
 
@@ -172,6 +180,12 @@ pub async fn run_bot(
     {
         let mut state_lock = bot_state.lock().await;
         state_lock.bot_http = Some(client.http.clone());
+    }
+
+    {
+        let mut data = client.data.write().await;
+
+        data.insert::<ShardManagerKey>(client.shard_manager.clone());
     }
 
     if let Err(e) = config.validate_servers(&client.http).await {

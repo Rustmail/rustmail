@@ -21,7 +21,8 @@ pub struct Config {
 
     pub db_pool: Option<SqlitePool>,
     pub error_handler: Option<Arc<ErrorHandler>>,
-    pub thread_locks: Arc<std::sync::Mutex<std::collections::HashMap<u64, Arc<tokio::sync::Mutex<()>>>>>,
+    pub thread_locks:
+        Arc<std::sync::Mutex<std::collections::HashMap<u64, Arc<tokio::sync::Mutex<()>>>>>,
 }
 
 fn get_local_ip() -> Option<String> {
@@ -50,21 +51,30 @@ pub fn load_config(path: &str) -> Option<Config> {
     }
 
     if u64::from_str_radix(&config_response.thread.user_message_color, 16).is_err() {
-        eprintln!("Incorrect user message color in the config.toml! Please put a color in hex format!");
+        eprintln!(
+            "Incorrect user message color in the config.toml! Please put a color in hex format!"
+        );
         return None;
     }
 
     if u64::from_str_radix(&config_response.thread.staff_message_color, 16).is_err() {
-        eprintln!("Incorrect staff message color in the config.toml! Please put a color in hex format!");
+        eprintln!(
+            "Incorrect staff message color in the config.toml! Please put a color in hex format!"
+        );
         return None;
     }
 
     if u64::from_str_radix(&config_response.reminders.embed_color, 16).is_err() {
-        eprintln!("Incorrect reminder embed color in the config.toml! Please put a color in hex format!");
+        eprintln!(
+            "Incorrect reminder embed color in the config.toml! Please put a color in hex format!"
+        );
         return None;
     }
 
-    if !config_response.language.is_language_supported(config_response.language.get_default_language()) {
+    if !config_response
+        .language
+        .is_language_supported(config_response.language.get_default_language())
+    {
         eprintln!(
             "Warning: Default language '{}' is not in supported languages list",
             config_response.language.default_language
