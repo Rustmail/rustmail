@@ -184,7 +184,6 @@ pub async fn run_bot(
 
     {
         let mut data = client.data.write().await;
-
         data.insert::<ShardManagerKey>(client.shard_manager.clone());
     }
 

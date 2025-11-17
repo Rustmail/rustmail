@@ -885,7 +885,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.ping".to_string(),
-        DictionaryMessage::new("Show the actual latency of the Discord API."),
+        DictionaryMessage::new("Show the actual latency of the bot."),
     );
     dict.messages.insert(
         "add_reminder.helper".to_string(),
@@ -934,6 +934,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "slash_command.ping_command_desc".to_string(),
-        DictionaryMessage::new("Check the discord API latency"),
+        DictionaryMessage::new("Check the discord bot latency."),
+    );
+    dict.messages.insert(
+        "slash_command.ping_command".to_string(),
+        DictionaryMessage::new("The Discord bot latency is **{latency}** ms."),
     );
 }

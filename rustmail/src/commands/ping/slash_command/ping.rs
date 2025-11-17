@@ -1,12 +1,15 @@
+use std::collections::HashMap;
 use crate::bot::ShardManagerKey;
 use crate::commands::{BoxFuture, CommunityRegistrable, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::ModmailResult;
+use crate::errors::{DiscordError, ModmailError, ModmailResult};
 use crate::handlers::InteractionHandler;
 use crate::i18n::get_translated_message;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
+use std::time::Duration;
+use crate::utils::{defer_response, MessageBuilder};
 
 pub struct PingCommand;
 
@@ -56,6 +59,8 @@ impl RegistrableCommand for PingCommand {
         let config = config.clone();
 
         Box::pin(async move {
+            defer_response(&ctx, &command).await?;
+
             let shard_manager = ctx
                 .data
                 .read()
@@ -69,7 +74,16 @@ impl RegistrableCommand for PingCommand {
                 runners.get(&ctx.shard_id).and_then(|runner| runner.latency)
             };
 
-            println!("Latency for shard {}: {:?}", ctx.shard_id, latency);
+            let mut params = HashMap::new();
+            params.insert("latency".to_string(), format!("{:?}", latency.unwrap_or(Duration::default()).as_millis()));
+
+            let response = MessageBuilder::system_message(&ctx, &config)
+                .translated_content("slash_command.ping_command", Some(&params), None, None).await
+                .to_channel(command.channel_id)
+                .build_interaction_message_followup().await;
+
+            command.create_followup(&ctx.http, response).await
+                .map_err(|e| ModmailError::Discord(DiscordError::ApiError(e.to_string())))?;
 
             Ok(())
         })
