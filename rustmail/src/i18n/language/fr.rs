@@ -905,6 +905,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Permet de ne plus prendre en charge un ticket pris en charge via la commande `take`. Pour libérer un ticket, faites `!release` dans le ticket."),
     );
     dict.messages.insert(
+        "help.ping".to_string(),
+        DictionaryMessage::new("Permet d'afficher la latence actuelle de l'API Discord."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new("Format incorrect. Utilisation : `{prefix}remind ou {prefix}rem <HH:MM> [contenu du rappel]`"),
     );
@@ -939,5 +943,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
         DictionaryMessage::new("Le nom de la commande pour laquelle vous souhaitez de l'aide"),
+    );
+    dict.messages.insert(
+        "slash_command.ping_command_desc".to_string(),
+        DictionaryMessage::new("Afficher la latence actuelle de l'API Discord"),
     );
 }

@@ -884,6 +884,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Releases ownership of a ticket previously taken with the `!take` command. To release a ticket, use `!release` in the ticket."),
     );
     dict.messages.insert(
+        "help.ping".to_string(),
+        DictionaryMessage::new("Show the actual latency of the Discord API."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new(
             "Incorrect format. Use : `{prefix}remind or {prefix}rem <HH:MM> [content]`",
@@ -927,5 +931,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
         DictionaryMessage::new("The command to get help with"),
+    );
+    dict.messages.insert(
+        "slash_command.ping_command_desc".to_string(),
+        DictionaryMessage::new("Check the discord API latency"),
     );
 }
