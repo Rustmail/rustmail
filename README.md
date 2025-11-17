@@ -37,3 +37,7 @@ Project documentation is currently being written.
 ## Support
 
 If you need help, join the [Discord server][discord-invite] and ask for assistance in the #support channel.
+
+## License
+
+This project is licensed under the [AGPLv3 License](https://github.com/Rustmail/rustmail/blob/main/LICENSE).
