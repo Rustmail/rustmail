@@ -28,7 +28,7 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
     println!("Database connected!");
 
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     let token = base64::engine::general_purpose::STANDARD.encode(&bytes);
 
     let config = load_config("config.toml");
