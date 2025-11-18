@@ -1,12 +1,14 @@
-use std::collections::HashMap;
 use crate::bot::ShardManagerKey;
 use crate::prelude::config::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
+use crate::utils::MessageBuilder;
+use chrono::Utc;
 use serenity::all::{Context, Message};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use crate::utils::MessageBuilder;
+use tokio::time::Instant;
 
 pub async fn ping(
     ctx: Context,
@@ -19,22 +21,47 @@ pub async fn ping(
         .read()
         .await
         .get::<ShardManagerKey>()
-        .unwrap()
-        .clone();
+        .cloned()
+        .ok_or(ModmailError::Discord(DiscordError::ShardManagerNotFound))?;
 
-    let latency = {
+    let time_before = Instant::now();
+    let mut res = msg.reply(&ctx.http, "...").await?;
+    let msg_send_ping = time_before.elapsed().as_millis();
+
+    let gateway_ping = {
         let runners = shard_manager.runners.lock().await;
         runners.get(&ctx.shard_id).and_then(|runner| runner.latency)
     };
 
-    let mut params = HashMap::new();
-    params.insert("latency".to_string(), format!("{:?}", latency.unwrap_or(Duration::default()).as_millis()));
+    let start = Instant::now();
+    ctx.http.get_gateway().await?;
+    let api_ping = start.elapsed();
 
-    let _ = MessageBuilder::system_message(&ctx, &config)
-        .translated_content("slash_command.ping_command", Some(&params), None, None).await
+    let mut params = HashMap::new();
+    params.insert(
+        "gateway_latency".to_string(),
+        format!(
+            "{:?}",
+            gateway_ping.unwrap_or(Duration::default()).as_millis()
+        ),
+    );
+    params.insert(
+        "api_latency".to_string(),
+        format!("{:?}", api_ping.as_millis()),
+    );
+    params.insert(
+        "message_latency".to_string(),
+        format!("{:?}", msg_send_ping),
+    );
+
+    let edited_msg = MessageBuilder::system_message(&ctx, &config)
+        .translated_content("slash_command.ping_command", Some(&params), None, None)
+        .await
         .to_channel(msg.channel_id)
-        .send(true).await
-        .map_err(|e| ModmailError::Discord(DiscordError::ApiError(e.to_string())))?;
+        .build_edit_message()
+        .await;
+
+    res.edit(&ctx.http, edited_msg).await?;
 
     Ok(())
 }

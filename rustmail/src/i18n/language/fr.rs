@@ -46,6 +46,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("L'utilisateur spécifié est un rustmail"),
     );
     dict.messages.insert(
+        "discord.shard_manager_not_found".to_string(),
+        DictionaryMessage::new("Shard manager non trouvé."),
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Format de commande invalide")
             .with_description("La syntaxe de la commande est incorrecte")
@@ -950,6 +954,6 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "slash_command.ping_command".to_string(),
-        DictionaryMessage::new("La latence actuelle du bot est de **{latency}** ms."),
+        DictionaryMessage::new("## Latence\n\nLatence Gateway : **{gateway_latency}** ms.\nLatence REST minimale (GET /gateway) : **{api_latency}** ms.\nLatence REST (envoi d'un message) : **{message_latency}** ms."),
     );
 }

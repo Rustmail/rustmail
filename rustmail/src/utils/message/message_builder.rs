@@ -531,6 +531,7 @@ impl<'a> MessageBuilder<'a> {
 
         if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
+            message = message.content("");
         } else {
             let content = self.build_plain_message();
             if !content.is_empty() {
@@ -550,6 +551,7 @@ impl<'a> MessageBuilder<'a> {
 
         if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
+            message = message.content("");
         } else {
             let content = self.build_plain_message();
             if !content.is_empty() {
@@ -571,6 +573,7 @@ impl<'a> MessageBuilder<'a> {
 
         if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
+            message = message.content("");
         } else {
             let content = self.build_plain_message();
             if !content.is_empty() {
