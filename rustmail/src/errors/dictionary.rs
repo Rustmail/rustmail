@@ -183,11 +183,8 @@ impl DictionaryManager {
                 _ => ("database.query_failed".to_string(), None),
             },
             ModmailError::Discord(discord_err) => match discord_err {
-                DiscordError::ChannelNotFound => ("discord.channel_not_found".to_string(), None),
                 DiscordError::UserNotFound => ("discord.user_not_found".to_string(), None),
                 DiscordError::UserIsABot => ("discord.user_is_a_bot".to_string(), None),
-                DiscordError::PermissionDenied => ("discord.permission_denied".to_string(), None),
-                DiscordError::DmCreationFailed => ("discord.dm_creation_failed".to_string(), None),
                 DiscordError::ShardManagerNotFound => {
                     ("discord.shard_manager_not_found".to_string(), None)
                 }
@@ -205,14 +202,6 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("command".to_string(), cmd.clone());
                     ("command.unknown_command".to_string(), Some(params))
-                }
-                CommandError::UnknownSlashCommand(cmd) => {
-                    let mut params = HashMap::new();
-                    params.insert("command".to_string(), cmd.clone());
-                    ("command.unknown_slash_command".to_string(), Some(params))
-                }
-                CommandError::InsufficientPermissions => {
-                    ("command.insufficient_permissions".to_string(), None)
                 }
                 CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => {
                     let mut params = HashMap::new();
@@ -243,12 +232,11 @@ impl DictionaryManager {
                 CommandError::TicketAlreadyReleased => {
                     ("release.ticket_already_taken".to_string(), None)
                 }
+                CommandError::AlertSetFailed => ("alert.alert_set_failed".to_string(), None),
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
                 ThreadError::ThreadNotFound => ("thread.not_found".to_string(), None),
-                ThreadError::ThreadAlreadyExists => ("thread.already_exists".to_string(), None),
-                ThreadError::ThreadCreationFailed => ("thread.creation_failed".to_string(), None),
                 ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
                 ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
                 ThreadError::CategoryNotFound => ("thread.category_not_found".to_string(), None),
@@ -260,14 +248,7 @@ impl DictionaryManager {
                     params.insert("message".to_string(), msg.to_string());
                     ("message.not_found".to_string(), Some(params))
                 }
-                MessageError::MessageNumberNotFound(num) => {
-                    let mut params = HashMap::new();
-                    params.insert("number".to_string(), num.to_string());
-                    ("message.number_not_found".to_string(), Some(params))
-                }
                 MessageError::EditFailed(_) => ("message.edit_failed".to_string(), None),
-                MessageError::SendFailed(_) => ("message.send_failed".to_string(), None),
-                MessageError::MessageTooLong => ("message.too_long".to_string(), None),
                 MessageError::MessageEmpty => ("message.empty".to_string(), None),
                 _ => ("message.not_found".to_string(), None),
             },
@@ -277,11 +258,6 @@ impl DictionaryManager {
                     params.insert("input".to_string(), input.clone());
                     ("validation.invalid_input".to_string(), Some(params))
                 }
-                ValidationError::OutOfRange(range) => {
-                    let mut params = HashMap::new();
-                    params.insert("range".to_string(), range.clone());
-                    ("validation.out_of_range".to_string(), Some(params))
-                }
                 ValidationError::RequiredFieldMissing(field) => {
                     let mut params = HashMap::new();
                     params.insert("field".to_string(), field.clone());
@@ -290,15 +266,10 @@ impl DictionaryManager {
                         Some(params),
                     )
                 }
-                _ => ("validation.invalid_input".to_string(), None),
             },
-            ModmailError::Permission(perm_err) => match perm_err {
-                PermissionError::NotStaffMember => {
-                    ("permission.not_staff_member".to_string(), None)
-                }
-                PermissionError::UserBlocked => ("permission.user_blocked".to_string(), None),
-                _ => ("permission.insufficient_permissions".to_string(), None),
-            },
+            ModmailError::Permission(_) => {
+                ("permission.insufficient_permissions".to_string(), None)
+            }
             ModmailError::Config(_) => ("config.invalid_configuration".to_string(), None),
             ModmailError::Generic(msg) => {
                 let mut params = HashMap::new();

@@ -51,14 +51,7 @@ impl ErrorHandler {
         self.default_language
     }
 
-    pub async fn set_user_language(&self, user_id: UserId, preferences: LanguagePreferences) {
-        self.user_languages
-            .write()
-            .await
-            .insert(user_id, preferences);
-    }
-
-    pub async fn set_guild_language(&self, guild_id: u64, language: Language) {
+    pub async fn _set_guild_language(&self, guild_id: u64, language: Language) {
         self.guild_languages
             .write()
             .await
@@ -66,22 +59,6 @@ impl ErrorHandler {
 
         let mut dict_manager = self.dictionary_manager.write().await;
         dict_manager.load_language(language);
-    }
-
-    pub async fn detect_language_from_interaction(
-        &self,
-        user_id: UserId,
-        locale: Option<&str>,
-    ) -> Language {
-        if let Some(locale) = locale
-            && let Some(detected) = LanguageDetector::from_discord_locale(locale)
-        {
-            let prefs = LanguagePreferences::new(detected);
-            self.set_user_language(user_id, prefs).await;
-            return detected;
-        }
-
-        self.default_language
     }
 
     pub async fn handle_error(
@@ -104,12 +81,12 @@ impl ErrorHandler {
             language,
             error_type: self.get_error_type(error),
             severity: self.get_error_severity(error),
-            should_log: self.should_log_error(error),
-            user_facing: true,
+            _should_log: self.should_log_error(error),
+            _user_facing: true,
         }
     }
 
-    pub async fn send_error_message(
+    pub async fn _send_error_message(
         &self,
         ctx: &Context,
         channel_id: ChannelId,
@@ -189,7 +166,7 @@ impl ErrorHandler {
         FormattedMessage {
             message,
             language,
-            message_type: MessageType::Success,
+            _message_type: MessageType::Success,
         }
     }
 
@@ -214,14 +191,12 @@ impl ErrorHandler {
 
     async fn create_error_embed(&self, formatted_error: &FormattedError) -> CreateEmbed {
         let color = match formatted_error.severity {
-            ErrorSeverity::Critical => Colour::DARK_RED,
             ErrorSeverity::High => Colour::RED,
             ErrorSeverity::Medium => Colour::ORANGE,
             ErrorSeverity::Low => Colour::GOLD,
         };
 
         let emoji = match formatted_error.severity {
-            ErrorSeverity::Critical => "🚨",
             ErrorSeverity::High => "❌",
             ErrorSeverity::Medium => "⚠️",
             ErrorSeverity::Low => "ℹ️",
@@ -268,12 +243,7 @@ impl ErrorHandler {
     pub fn get_error_severity(&self, error: &ModmailError) -> ErrorSeverity {
         match error {
             ModmailError::Database(_) => ErrorSeverity::High,
-            ModmailError::Discord(discord_err) => match discord_err {
-                DiscordError::InvalidToken => ErrorSeverity::Critical,
-                DiscordError::PermissionDenied => ErrorSeverity::Medium,
-                DiscordError::RateLimited => ErrorSeverity::Medium,
-                _ => ErrorSeverity::Low,
-            },
+            ModmailError::Discord(_) => ErrorSeverity::Low,
             ModmailError::Command(_) => ErrorSeverity::Low,
             ModmailError::Thread(_) => ErrorSeverity::Medium,
             ModmailError::Message(_) => ErrorSeverity::Low,
@@ -286,13 +256,13 @@ impl ErrorHandler {
 
     pub fn should_log_error(&self, error: &ModmailError) -> bool {
         match self.get_error_severity(error) {
-            ErrorSeverity::Critical | ErrorSeverity::High => true,
+            ErrorSeverity::High => true,
             ErrorSeverity::Medium => true,
             ErrorSeverity::Low => false,
         }
     }
 
-    pub async fn get_help_text(
+    pub async fn _get_help_text(
         &self,
         command: &str,
         user_id: Option<UserId>,
@@ -309,7 +279,7 @@ impl ErrorHandler {
         dict_manager.get_message(language, &key, None, None)
     }
 
-    pub async fn load_custom_dictionary(
+    pub async fn _load_custom_dictionary(
         &self,
         language: Language,
         _file_path: &str,
@@ -319,19 +289,11 @@ impl ErrorHandler {
         Ok(())
     }
 
-    pub fn get_supported_languages(&self) -> Vec<Language> {
-        Language::all()
-    }
-
-    pub fn is_language_supported(&self, language: Language) -> bool {
-        self.get_supported_languages().contains(&language)
-    }
-
     pub async fn get_dictionary_message(
         &self,
         language: Language,
         key: &str,
-        params: Option<&std::collections::HashMap<String, String>>,
+        params: Option<&HashMap<String, String>>,
         count: Option<i64>,
     ) -> String {
         let dict_manager = self.dictionary_manager.read().await;
@@ -351,20 +313,19 @@ pub struct FormattedError {
     pub language: Language,
     pub error_type: String,
     pub severity: ErrorSeverity,
-    pub should_log: bool,
-    pub user_facing: bool,
+    pub _should_log: bool,
+    pub _user_facing: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct FormattedMessage {
     pub message: String,
     pub language: Language,
-    pub message_type: MessageType,
+    pub _message_type: MessageType,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorSeverity {
-    Critical,
     High,
     Medium,
     Low,
@@ -373,13 +334,13 @@ pub enum ErrorSeverity {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MessageType {
     Success,
-    Info,
-    Warning,
-    Error,
+    _Info,
+    _Warning,
+    _Error,
 }
 
 #[async_trait::async_trait]
-pub trait ErrorHandling {
+pub trait _ErrorHandling {
     async fn handle_error_with_reply(
         &self,
         ctx: &Context,
@@ -398,7 +359,7 @@ pub trait ErrorHandling {
 }
 
 #[async_trait::async_trait]
-impl ErrorHandling for Message {
+impl _ErrorHandling for Message {
     async fn handle_error_with_reply(
         &self,
         ctx: &Context,
@@ -468,7 +429,7 @@ macro_rules! translate_error {
 }
 
 #[derive(Debug, Clone)]
-pub struct ErrorContext {
+pub struct _ErrorContext {
     pub command: Option<String>,
     pub user_id: Option<UserId>,
     pub channel_id: Option<ChannelId>,
@@ -476,8 +437,8 @@ pub struct ErrorContext {
     pub additional_info: HashMap<String, String>,
 }
 
-impl ErrorContext {
-    pub fn new() -> Self {
+impl _ErrorContext {
+    pub fn _new() -> Self {
         Self {
             command: None,
             user_id: None,
@@ -487,34 +448,34 @@ impl ErrorContext {
         }
     }
 
-    pub fn with_command(mut self, command: String) -> Self {
+    pub fn _with_command(mut self, command: String) -> Self {
         self.command = Some(command);
         self
     }
 
-    pub fn with_user(mut self, user_id: UserId) -> Self {
+    pub fn _with_user(mut self, user_id: UserId) -> Self {
         self.user_id = Some(user_id);
         self
     }
 
-    pub fn with_channel(mut self, channel_id: ChannelId) -> Self {
+    pub fn _with_channel(mut self, channel_id: ChannelId) -> Self {
         self.channel_id = Some(channel_id);
         self
     }
 
-    pub fn with_guild(mut self, guild_id: u64) -> Self {
+    pub fn _with_guild(mut self, guild_id: u64) -> Self {
         self.guild_id = Some(guild_id);
         self
     }
 
-    pub fn with_info(mut self, key: String, value: String) -> Self {
+    pub fn _with_info(mut self, key: String, value: String) -> Self {
         self.additional_info.insert(key, value);
         self
     }
 }
 
-impl Default for ErrorContext {
+impl Default for _ErrorContext {
     fn default() -> Self {
-        Self::new()
+        Self::_new()
     }
 }

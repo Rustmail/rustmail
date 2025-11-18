@@ -235,7 +235,6 @@ pub async fn run_bot(
 
                         let _ = resp.send(is_member);
                     }
-                    _ => {}
                 }
             }
 

@@ -80,14 +80,6 @@ impl<'a> MessageBuilder<'a> {
         self
     }
 
-    pub fn append_content<S: AsRef<str>>(mut self, content: S) -> Self {
-        if !self.content.is_empty() {
-            self.content.push('\n');
-        }
-        self.content.push_str(content.as_ref());
-        self
-    }
-
     pub fn components(mut self, components: Vec<CreateActionRow>) -> Self {
         self.components = Some(components);
         self
@@ -171,18 +163,8 @@ impl<'a> MessageBuilder<'a> {
         self
     }
 
-    pub fn add_attachment(mut self, attachment: CreateAttachment) -> Self {
-        self.attachments.push(attachment);
-        self
-    }
-
     pub fn add_attachments(mut self, attachments: Vec<CreateAttachment>) -> Self {
         self.attachments.extend(attachments);
-        self
-    }
-
-    pub fn force_embed(mut self, force: bool) -> Self {
-        self.force_embed = Some(force);
         self
     }
 
@@ -634,45 +616,6 @@ impl<'a> MessageBuilder<'a> {
         let bot_id = ctx.cache.current_user().id;
         let bot_name = ctx.cache.current_user().name.clone();
         Self::new(ctx, config).as_system(bot_id, bot_name)
-    }
-
-    pub async fn send_to_channel(
-        ctx: &'a Context,
-        config: &'a Config,
-        channel_id: ChannelId,
-        content: String,
-    ) -> Result<Message, ModmailError> {
-        Self::system_message(ctx, config)
-            .content(content)
-            .to_channel(channel_id)
-            .send(true)
-            .await
-    }
-
-    pub async fn send_to_user(
-        ctx: &'a Context,
-        config: &'a Config,
-        user_id: UserId,
-        content: String,
-    ) -> Result<Message, ModmailError> {
-        Self::system_message(ctx, config)
-            .content(content)
-            .to_user(user_id)
-            .send(true)
-            .await
-    }
-
-    pub async fn reply_to_message(
-        ctx: &'a Context,
-        config: &'a Config,
-        message: Message,
-        content: String,
-    ) -> Result<Message, ModmailError> {
-        Self::system_message(ctx, config)
-            .content(content)
-            .reply_to(message)
-            .send(true)
-            .await
     }
 }
 

@@ -29,31 +29,16 @@ pub enum ModmailError {
 pub enum DatabaseError {
     ConnectionFailed,
     QueryFailed(String),
-    TransactionFailed,
-    MigrationFailed,
-    InvalidData(String),
     NotFound(String),
     InsertFailed(String),
-    UpdateFailed(String),
-    DeleteFailed(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum DiscordError {
     ApiError(String),
-    ChannelNotFound,
     UserNotFound,
     UserIsABot,
-    GuildNotFound,
-    MessageNotFound,
-    PermissionDenied,
-    RateLimited,
-    InvalidToken,
-    WebhookError(String),
-    EmbedTooLarge,
-    MessageTooLong,
     ChannelCreationFailed,
-    DmCreationFailed,
     FailedToFetchCategories,
     FailedToMoveChannel,
     ShardManagerNotFound,
@@ -65,11 +50,7 @@ pub enum CommandError {
     MissingArguments,
     InvalidArguments(String),
     UnknownCommand(String),
-    UnknownSlashCommand(String),
     CommandFailed(String),
-    InsufficientPermissions,
-    CommandNotAvailable,
-    CooldownActive(u64),
     NotInThread(),
     UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
@@ -82,18 +63,12 @@ pub enum CommandError {
     InvalidReminderFormat,
     TicketAlreadyTaken,
     TicketAlreadyReleased,
+    AlertSetFailed,
 }
 
 #[derive(Debug, Clone)]
 pub enum ThreadError {
     ThreadNotFound,
-    ThreadAlreadyExists,
-    ThreadCreationFailed,
-    ThreadClosingFailed,
-    InvalidThreadState,
-    UserNotInThread,
-    ChannelNotThread,
-    ThreadExpired,
     UserNotInTheServer,
     UserStillInServer,
     NotAThreadChannel,
@@ -103,16 +78,8 @@ pub enum ThreadError {
 #[derive(Debug, Clone)]
 pub enum MessageError {
     MessageNotFound(String),
-    MessageTooLong,
     MessageEmpty,
-    AttachmentTooLarge,
-    AttachmentDownloadFailed,
     EditFailed(String),
-    DeleteFailed(String),
-    SendFailed(String),
-    InvalidMessageFormat,
-    MessageNumberNotFound(i64),
-    DuplicateMessageNumber,
     DmAccessFailed(String),
 }
 
@@ -120,32 +87,17 @@ pub enum MessageError {
 pub enum ConfigError {
     FileNotFound,
     ParseError(String),
-    MissingField(String),
-    InvalidValue(String),
-    InvalidColor(String),
-    InvalidChannelId,
-    InvalidGuildId,
 }
 
 #[derive(Debug, Clone)]
 pub enum ValidationError {
     InvalidInput(String),
-    OutOfRange(String),
-    TooShort(String),
-    TooLong(String),
-    InvalidValidationFormat(String),
     RequiredFieldMissing(String),
-    InvalidCharacters(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum PermissionError {
     InsufficientPermissions,
-    NotStaffMember,
-    NotThreadOwner,
-    BotMissingPermissions(String),
-    UserBlocked,
-    ChannelNotAccessible,
 }
 
 impl fmt::Display for ModmailError {
@@ -169,13 +121,8 @@ impl fmt::Display for DatabaseError {
         match self {
             DatabaseError::ConnectionFailed => write!(f, "Failed to connect to database"),
             DatabaseError::QueryFailed(query) => write!(f, "Query failed: {}", query),
-            DatabaseError::TransactionFailed => write!(f, "Transaction failed"),
-            DatabaseError::MigrationFailed => write!(f, "Database migration failed"),
-            DatabaseError::InvalidData(data) => write!(f, "Invalid data: {}", data),
             DatabaseError::NotFound(item) => write!(f, "Not found: {}", item),
             DatabaseError::InsertFailed(item) => write!(f, "Failed to insert: {}", item),
-            DatabaseError::UpdateFailed(item) => write!(f, "Failed to update: {}", item),
-            DatabaseError::DeleteFailed(item) => write!(f, "Failed to delete: {}", item),
         }
     }
 }
@@ -184,19 +131,9 @@ impl fmt::Display for DiscordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DiscordError::ApiError(msg) => write!(f, "Discord API error: {}", msg),
-            DiscordError::ChannelNotFound => write!(f, "Channel not found"),
             DiscordError::UserNotFound => write!(f, "User not found"),
             DiscordError::UserIsABot => write!(f, "User is a rustmail"),
-            DiscordError::GuildNotFound => write!(f, "Guild not found"),
-            DiscordError::MessageNotFound => write!(f, "Message not found"),
-            DiscordError::PermissionDenied => write!(f, "Permission denied"),
-            DiscordError::RateLimited => write!(f, "Rate limited"),
-            DiscordError::InvalidToken => write!(f, "Invalid rustmail token"),
-            DiscordError::WebhookError(msg) => write!(f, "Webhook error: {}", msg),
-            DiscordError::EmbedTooLarge => write!(f, "Embed too large"),
-            DiscordError::MessageTooLong => write!(f, "Message too long"),
             DiscordError::ChannelCreationFailed => write!(f, "Failed to create channel"),
-            DiscordError::DmCreationFailed => write!(f, "Failed to create DM channel"),
             DiscordError::FailedToFetchCategories => write!(f, "Failed to fetch categories"),
             DiscordError::FailedToMoveChannel => write!(f, "Failed to move_thread channel"),
             DiscordError::ShardManagerNotFound => write!(f, "Shard manager not found"),
@@ -211,13 +148,7 @@ impl fmt::Display for CommandError {
             CommandError::MissingArguments => write!(f, "Missing arguments"),
             CommandError::InvalidArguments(arg) => write!(f, "Invalid arguments: {}", arg),
             CommandError::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
-            CommandError::UnknownSlashCommand(cmd) => write!(f, "Unknown slash command: {}", cmd),
             CommandError::CommandFailed(msg) => write!(f, "Command failed: {}", msg),
-            CommandError::InsufficientPermissions => write!(f, "Insufficient permissions"),
-            CommandError::CommandNotAvailable => write!(f, "Command not available"),
-            CommandError::CooldownActive(seconds) => {
-                write!(f, "Cooldown active: {} seconds", seconds)
-            }
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
             CommandError::UserHasAlreadyAThread() => {
                 write!(f, "The user already has an open thread")
@@ -240,6 +171,7 @@ impl fmt::Display for CommandError {
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
             CommandError::TicketAlreadyReleased => write!(f, "Ticket already released"),
+            CommandError::AlertSetFailed => write!(f, "Alert set failed"),
         }
     }
 }
@@ -248,13 +180,6 @@ impl fmt::Display for ThreadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ThreadError::ThreadNotFound => write!(f, "Thread not found"),
-            ThreadError::ThreadAlreadyExists => write!(f, "Thread already exists"),
-            ThreadError::ThreadCreationFailed => write!(f, "Failed to create thread"),
-            ThreadError::ThreadClosingFailed => write!(f, "Failed to close thread"),
-            ThreadError::InvalidThreadState => write!(f, "Invalid thread state"),
-            ThreadError::UserNotInThread => write!(f, "User not in thread"),
-            ThreadError::ChannelNotThread => write!(f, "Channel is not a thread"),
-            ThreadError::ThreadExpired => write!(f, "Thread has expired"),
             ThreadError::UserNotInTheServer => write!(f, "User has left the server"),
             ThreadError::UserStillInServer => write!(
                 f,
@@ -270,18 +195,8 @@ impl fmt::Display for MessageError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             MessageError::MessageNotFound(msg) => write!(f, "Message not found: {}", msg),
-            MessageError::MessageTooLong => write!(f, "Message too long"),
             MessageError::MessageEmpty => write!(f, "Message is empty"),
-            MessageError::AttachmentTooLarge => write!(f, "Attachment too large"),
-            MessageError::AttachmentDownloadFailed => write!(f, "Failed to download attachment"),
             MessageError::EditFailed(msg) => write!(f, "Failed to edit message: {}", msg),
-            MessageError::DeleteFailed(msg) => write!(f, "Failed to delete message: {}", msg),
-            MessageError::SendFailed(msg) => write!(f, "Failed to send message: {}", msg),
-            MessageError::InvalidMessageFormat => write!(f, "Invalid message format"),
-            MessageError::MessageNumberNotFound(num) => {
-                write!(f, "Message number {} not found", num)
-            }
-            MessageError::DuplicateMessageNumber => write!(f, "Duplicate message number"),
             MessageError::DmAccessFailed(msg) => write!(f, "Dm access failed: {}", msg),
         }
     }
@@ -292,11 +207,6 @@ impl fmt::Display for ConfigError {
         match self {
             ConfigError::FileNotFound => write!(f, "Configuration file not found"),
             ConfigError::ParseError(msg) => write!(f, "Parse error: {}", msg),
-            ConfigError::MissingField(field) => write!(f, "Missing field: {}", field),
-            ConfigError::InvalidValue(value) => write!(f, "Invalid value: {}", value),
-            ConfigError::InvalidColor(color) => write!(f, "Invalid color: {}", color),
-            ConfigError::InvalidChannelId => write!(f, "Invalid channel ID"),
-            ConfigError::InvalidGuildId => write!(f, "Invalid guild ID"),
         }
     }
 }
@@ -305,16 +215,9 @@ impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ValidationError::InvalidInput(input) => write!(f, "Invalid input: {}", input),
-            ValidationError::OutOfRange(range) => write!(f, "Out of range: {}", range),
-            ValidationError::TooShort(field) => write!(f, "Too short: {}", field),
-            ValidationError::TooLong(field) => write!(f, "Too long: {}", field),
-            ValidationError::InvalidValidationFormat(format) => {
-                write!(f, "Invalid format: {}", format)
-            }
             ValidationError::RequiredFieldMissing(field) => {
                 write!(f, "Required field missing: {}", field)
             }
-            ValidationError::InvalidCharacters(chars) => write!(f, "Invalid characters: {}", chars),
         }
     }
 }
@@ -323,13 +226,6 @@ impl fmt::Display for PermissionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PermissionError::InsufficientPermissions => write!(f, "Insufficient permissions"),
-            PermissionError::NotStaffMember => write!(f, "Not a staff member"),
-            PermissionError::NotThreadOwner => write!(f, "Not the thread owner"),
-            PermissionError::BotMissingPermissions(perm) => {
-                write!(f, "Bot missing permissions: {}", perm)
-            }
-            PermissionError::UserBlocked => write!(f, "User is blocked"),
-            PermissionError::ChannelNotAccessible => write!(f, "Channel not accessible"),
         }
     }
 }

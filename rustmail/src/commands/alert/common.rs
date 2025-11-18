@@ -7,19 +7,14 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, Mess
 use std::collections::HashMap;
 
 pub async fn get_thread_user_id_from_msg(
-    ctx: &Context,
     msg: &Message,
-    config: &Config,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<i64> {
     let channel_id = msg.channel_id.to_string();
 
     match get_user_id_from_channel_id(&channel_id, pool).await {
         Some(uid) => Ok(uid),
-        None => {
-            send_alert_message(ctx, msg, config, "alert.not_in_thread", None).await;
-            Err(common::validation_failed("Not in a thread"))
-        }
+        None => Err(ModmailError::Command(CommandError::NotInThread())),
     }
 }
 
@@ -78,7 +73,18 @@ pub async fn handle_cancel_alert_from_msg(
     let mut params = HashMap::new();
     params.insert("user".to_string(), format!("<@{}>", user_id));
 
-    send_alert_message(ctx, msg, config, "alert.cancel_confirmation", Some(&params)).await;
+    let _ = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "alert.cancel_confirmation",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
+        .to_channel(msg.channel_id)
+        .send(true)
+        .await;
+
     Ok(())
 }
 
@@ -120,15 +126,25 @@ pub async fn handle_set_alert_from_msg(
     user_id: i64,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
-    if let Err(e) = set_alert_for_staff(msg.author.id, user_id, pool).await {
-        send_alert_message(ctx, msg, config, "alert.set_failed", None).await;
-        return Ok(());
+    if let Err(..) = set_alert_for_staff(msg.author.id, user_id, pool).await {
+        return Err(ModmailError::Command(CommandError::AlertSetFailed));
     }
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), format!("<@{}>", user_id));
 
-    send_alert_message(ctx, msg, config, "alert.confirmation", Some(&params)).await;
+    let _ = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "alert.confirmation",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
+        .to_channel(msg.channel_id)
+        .send(true)
+        .await;
+
     Ok(())
 }
 
@@ -163,26 +179,6 @@ pub async fn handle_set_alert_from_command(
 
         Ok(())
     }
-}
-
-pub async fn send_alert_message(
-    ctx: &Context,
-    msg: &Message,
-    config: &Config,
-    message_key: &str,
-    params: Option<&HashMap<String, String>>,
-) {
-    let _ = MessageBuilder::system_message(ctx, config)
-        .translated_content(
-            message_key,
-            params,
-            Some(msg.author.id),
-            msg.guild_id.map(|g| g.get()),
-        )
-        .await
-        .to_channel(msg.channel_id)
-        .send(true)
-        .await;
 }
 
 pub async fn extract_alert_action(msg: &Message, config: &Config) -> bool {

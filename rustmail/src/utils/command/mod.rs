@@ -6,4 +6,3 @@ pub mod wrap_command;
 pub use category::*;
 pub use defer_response::*;
 pub use extract_reply_content::*;
-pub use wrap_command::*;

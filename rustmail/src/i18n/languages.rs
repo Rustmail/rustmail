@@ -19,7 +19,7 @@ pub enum Language {
 }
 
 impl Language {
-    pub fn all() -> Vec<Language> {
+    pub fn _all() -> Vec<Language> {
         vec![
             Language::English,
             Language::French,
@@ -67,7 +67,7 @@ impl Language {
         }
     }
 
-    pub fn english_name(&self) -> &'static str {
+    pub fn _english_name(&self) -> &'static str {
         match self {
             Language::English => "English",
             Language::French => "French",
@@ -98,54 +98,6 @@ impl Language {
             "ko" | "korean" | "한국어" => Some(Language::Korean),
             "zh" | "chinese" | "中文" => Some(Language::Chinese),
             _ => None,
-        }
-    }
-
-    pub fn direction(&self) -> TextDirection {
-        match self {
-            Language::English
-            | Language::French
-            | Language::Spanish
-            | Language::German
-            | Language::Italian
-            | Language::Portuguese
-            | Language::Dutch
-            | Language::Russian
-            | Language::Japanese
-            | Language::Korean
-            | Language::Chinese => TextDirection::LeftToRight,
-        }
-    }
-
-    pub fn date_format(&self) -> &'static str {
-        match self {
-            Language::English => "%m/%d/%Y",
-            Language::French => "%d/%m/%Y",
-            Language::Spanish => "%d/%m/%Y",
-            Language::German => "%d.%m.%Y",
-            Language::Italian => "%d/%m/%Y",
-            Language::Portuguese => "%d/%m/%Y",
-            Language::Dutch => "%d-%m-%Y",
-            Language::Russian => "%d.%m.%Y",
-            Language::Japanese => "%Y/%m/%d",
-            Language::Korean => "%Y.%m.%d",
-            Language::Chinese => "%Y-%m-%d",
-        }
-    }
-
-    pub fn time_format(&self) -> &'static str {
-        match self {
-            Language::English => "%I:%M %p",
-            Language::French => "%H:%M",
-            Language::Spanish => "%H:%M",
-            Language::German => "%H:%M",
-            Language::Italian => "%H:%M",
-            Language::Portuguese => "%H:%M",
-            Language::Dutch => "%H:%M",
-            Language::Russian => "%H:%M",
-            Language::Japanese => "%H:%M",
-            Language::Korean => "%H:%M",
-            Language::Chinese => "%H:%M",
         }
     }
 
@@ -215,22 +167,6 @@ impl Language {
             Language::Chinese => PluralForm::Other,
         }
     }
-
-    pub fn flag_emoji(&self) -> &'static str {
-        match self {
-            Language::English => "🇺🇸",
-            Language::French => "🇫🇷",
-            Language::Spanish => "🇪🇸",
-            Language::German => "🇩🇪",
-            Language::Italian => "🇮🇹",
-            Language::Portuguese => "🇵🇹",
-            Language::Dutch => "🇳🇱",
-            Language::Russian => "🇷🇺",
-            Language::Japanese => "🇯🇵",
-            Language::Korean => "🇰🇷",
-            Language::Chinese => "🇨🇳",
-        }
-    }
 }
 
 impl fmt::Display for Language {
@@ -247,17 +183,9 @@ impl str::FromStr for Language {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TextDirection {
-    LeftToRight,
-    RightToLeft,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PluralForm {
-    Zero,
     One,
-    Two,
     Few,
     Many,
     Other,
@@ -266,9 +194,7 @@ pub enum PluralForm {
 impl PluralForm {
     pub fn as_str(&self) -> &'static str {
         match self {
-            PluralForm::Zero => "zero",
             PluralForm::One => "one",
-            PluralForm::Two => "two",
             PluralForm::Few => "few",
             PluralForm::Many => "many",
             PluralForm::Other => "other",
@@ -298,7 +224,7 @@ impl Default for LanguagePreferences {
 }
 
 impl LanguagePreferences {
-    pub fn new(language: Language) -> Self {
+    pub fn _new(language: Language) -> Self {
         Self {
             primary: language,
             fallback: Language::English,
@@ -307,83 +233,18 @@ impl LanguagePreferences {
             time_format: None,
         }
     }
-
-    pub fn with_fallback(language: Language, fallback: Language) -> Self {
-        Self {
-            primary: language,
-            fallback,
-            timezone: None,
-            date_format: None,
-            time_format: None,
-        }
-    }
-
-    pub fn get_date_format(&self) -> &str {
-        self.date_format
-            .as_deref()
-            .unwrap_or_else(|| self.primary.date_format())
-    }
-
-    pub fn get_time_format(&self) -> &str {
-        self.time_format
-            .as_deref()
-            .unwrap_or_else(|| self.primary.time_format())
-    }
-}
-
-pub struct LanguageDetector;
-
-impl LanguageDetector {
-    pub fn from_discord_locale(locale: &str) -> Option<Language> {
-        match locale {
-            "en-US" | "en-GB" => Some(Language::English),
-            "fr" => Some(Language::French),
-            "es-ES" => Some(Language::Spanish),
-            "de" => Some(Language::German),
-            "it" => Some(Language::Italian),
-            "pt-BR" => Some(Language::Portuguese),
-            "nl" => Some(Language::Dutch),
-            "ru" => Some(Language::Russian),
-            "ja" => Some(Language::Japanese),
-            "ko" => Some(Language::Korean),
-            "zh-CN" | "zh-TW" => Some(Language::Chinese),
-            _ => None,
-        }
-    }
-
-    pub fn get_preferred_language(
-        user_preference: Option<Language>,
-        discord_locale: Option<&str>,
-        guild_default: Option<Language>,
-    ) -> Language {
-        if let Some(lang) = user_preference {
-            return lang;
-        }
-
-        if let Some(locale) = discord_locale
-            && let Some(lang) = Self::from_discord_locale(locale)
-        {
-            return lang;
-        }
-
-        if let Some(lang) = guild_default {
-            return lang;
-        }
-
-        Language::English
-    }
 }
 
 pub mod codes {
-    pub const ENGLISH: &str = "en";
-    pub const FRENCH: &str = "fr";
-    pub const SPANISH: &str = "es";
-    pub const GERMAN: &str = "de";
-    pub const ITALIAN: &str = "it";
-    pub const PORTUGUESE: &str = "pt";
-    pub const DUTCH: &str = "nl";
-    pub const RUSSIAN: &str = "ru";
-    pub const JAPANESE: &str = "ja";
-    pub const KOREAN: &str = "ko";
-    pub const CHINESE: &str = "zh";
+    pub const _ENGLISH: &str = "en";
+    pub const _FRENCH: &str = "fr";
+    pub const _SPANISH: &str = "es";
+    pub const _GERMAN: &str = "de";
+    pub const _ITALIAN: &str = "it";
+    pub const _PORTUGUESE: &str = "pt";
+    pub const _DUTCH: &str = "nl";
+    pub const _RUSSIAN: &str = "ru";
+    pub const _JAPANESE: &str = "ja";
+    pub const _KOREAN: &str = "ko";
+    pub const _CHINESE: &str = "zh";
 }

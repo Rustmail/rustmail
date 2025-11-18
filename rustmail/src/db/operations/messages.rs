@@ -178,15 +178,15 @@ pub async fn get_latest_thread_message(
     .await?;
 
     let latest = row.map(|row| ThreadMessage {
-        id: row.id,
-        thread_id: row.thread_id,
+        _id: row.id,
+        _thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
         dm_message_id: row.dm_message_id,
         inbox_message_id: row.inbox_message_id,
         message_number: row.message_number,
-        created_at: row.created_at,
+        _created_at: row.created_at,
         content: row.content,
     });
 
@@ -279,15 +279,15 @@ pub async fn get_thread_message_by_inbox_message_id(
     .await?;
 
     let latest: ThreadMessage = match row.map(|row| ThreadMessage {
-        id: row.id,
-        thread_id: row.thread_id,
+        _id: row.id,
+        _thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
         dm_message_id: row.dm_message_id,
         inbox_message_id: row.inbox_message_id,
         message_number: row.message_number,
-        created_at: row.created_at,
+        _created_at: row.created_at,
         content: row.content,
     }) {
         Some(row) => row,
@@ -322,15 +322,15 @@ pub async fn get_thread_message_by_message_id(
     .await?;
 
     let message: ThreadMessage = match row.map(|row| ThreadMessage {
-        id: row.id,
-        thread_id: row.thread_id,
+        _id: row.id,
+        _thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
         dm_message_id: row.dm_message_id,
         inbox_message_id: row.inbox_message_id,
         message_number: row.message_number,
-        created_at: row.created_at,
+        _created_at: row.created_at,
         content: row.content,
     }) {
         Some(row) => row,
@@ -367,15 +367,15 @@ pub async fn get_thread_message_by_dm_message_id(
     .await?;
 
     let message: ThreadMessage = match row.map(|row| ThreadMessage {
-        id: row.id,
-        thread_id: row.thread_id,
+        _id: row.id,
+        _thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
         dm_message_id: row.dm_message_id,
         inbox_message_id: row.inbox_message_id,
         message_number: row.message_number,
-        created_at: row.created_at,
+        _created_at: row.created_at,
         content: row.content,
     }) {
         Some(row) => row,
@@ -391,14 +391,14 @@ pub async fn get_thread_message_by_dm_message_id(
 
 #[derive(Debug, Clone)]
 pub struct ThreadMessage {
-    pub id: i64,
-    pub thread_id: String,
+    pub _id: i64,
+    pub _thread_id: String,
     pub user_id: i64,
     pub user_name: String,
     pub is_anonymous: bool,
     pub dm_message_id: Option<String>,
     pub inbox_message_id: Option<String>,
     pub message_number: Option<i64>,
-    pub created_at: String,
+    pub _created_at: String,
     pub content: String,
 }

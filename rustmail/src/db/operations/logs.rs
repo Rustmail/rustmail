@@ -13,7 +13,6 @@ pub async fn get_logs_from_user_id(
             (COUNT(*) OVER ())
               - ROW_NUMBER() OVER (ORDER BY created_at DESC) + 1 AS id,
             id AS ticket_id,
-            user_id AS "user_id: String",
             created_at AS "created_at: String"
         FROM threads
         WHERE user_id = ? AND status = 0

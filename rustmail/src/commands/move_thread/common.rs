@@ -1,9 +1,6 @@
 use crate::prelude::config::*;
 use crate::prelude::db::*;
-use crate::prelude::i18n::*;
-use crate::prelude::utils::*;
 use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, GuildId, Message};
-use std::collections::HashMap;
 
 pub async fn is_in_thread(msg: &Message, pool: &sqlx::SqlitePool) -> bool {
     let channel_id = msg.channel_id.to_string();

@@ -3,8 +3,6 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
-use crate::types::TicketAuthor;
-use chrono::Utc;
 use serenity::all::{
     ActionRowComponent, Channel, ChannelId, ComponentInteraction, Context, CreateChannel,
     CreateInteractionResponseFollowup, GuildId, Message, ModalInteraction, UserId,
@@ -590,7 +588,7 @@ pub async fn handle_thread_component_interaction(
             interaction.message.delete(&ctx.http).await?;
         }
         "wants_to_create" => {
-            let modal = ui::modal(
+            let modal = modal(
                 "thread:create",
                 get_translated_message(
                     config,

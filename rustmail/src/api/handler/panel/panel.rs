@@ -4,8 +4,6 @@ use axum::response::IntoResponse;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-pub async fn handle_panel_check(
-    State(bot_state): State<Arc<Mutex<BotState>>>,
-) -> impl IntoResponse {
+pub async fn handle_panel_check(State(..): State<Arc<Mutex<BotState>>>) -> impl IntoResponse {
     axum::response::Json(serde_json::json!({ "authorized": true }))
 }

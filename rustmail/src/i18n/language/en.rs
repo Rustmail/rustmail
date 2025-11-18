@@ -1,7 +1,4 @@
-use crate::commands::help;
-use crate::errors::ModmailError::Discord;
 use crate::prelude::errors::*;
-use std::thread::current;
 
 pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(

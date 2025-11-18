@@ -32,7 +32,7 @@ impl ModalBuilder {
         self
     }
 
-    pub fn paragraph_input(
+    pub fn _paragraph_input(
         mut self,
         custom_id: impl Into<String>,
         label: impl Into<String>,
@@ -53,20 +53,20 @@ impl ModalBuilder {
     }
 }
 
-pub struct ButtonsBuilder {
+pub struct _ButtonsBuilder {
     rows: Vec<CreateActionRow>,
     current: Vec<CreateButton>,
 }
 
-impl ButtonsBuilder {
-    pub fn new() -> Self {
+impl _ButtonsBuilder {
+    pub fn _new() -> Self {
         Self {
             rows: Vec::new(),
             current: Vec::new(),
         }
     }
 
-    pub fn primary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn _primary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
         self.current.push(
             CreateButton::new(custom_id)
                 .label(label)
@@ -75,7 +75,7 @@ impl ButtonsBuilder {
         self
     }
 
-    pub fn secondary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn _secondary(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
         self.current.push(
             CreateButton::new(custom_id)
                 .label(label)
@@ -84,7 +84,7 @@ impl ButtonsBuilder {
         self
     }
 
-    pub fn success(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn _success(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
         self.current.push(
             CreateButton::new(custom_id)
                 .label(label)
@@ -93,7 +93,7 @@ impl ButtonsBuilder {
         self
     }
 
-    pub fn danger(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn _danger(mut self, custom_id: impl Into<String>, label: impl Into<String>) -> Self {
         self.current.push(
             CreateButton::new(custom_id)
                 .label(label)
@@ -102,12 +102,12 @@ impl ButtonsBuilder {
         self
     }
 
-    pub fn link(mut self, url: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn _link(mut self, url: impl Into<String>, label: impl Into<String>) -> Self {
         self.current.push(CreateButton::new_link(url).label(label));
         self
     }
 
-    pub fn row(mut self) -> Self {
+    pub fn _row(mut self) -> Self {
         if !self.current.is_empty() {
             let buttons = std::mem::take(&mut self.current);
             self.rows.push(CreateActionRow::Buttons(buttons));
@@ -115,9 +115,9 @@ impl ButtonsBuilder {
         self
     }
 
-    pub fn build(mut self) -> Vec<CreateActionRow> {
+    pub fn _build(mut self) -> Vec<CreateActionRow> {
         if !self.current.is_empty() {
-            self = self.row();
+            self = self._row();
         }
         self.rows
     }

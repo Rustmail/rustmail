@@ -13,16 +13,10 @@ pub enum BotStatus {
 }
 
 pub enum BotCommand {
-    CheckUserRole {
-        user_id: u64,
-        role_id: u64,
-        resp: tokio::sync::oneshot::Sender<bool>,
-    },
     CheckUserIsMember {
         user_id: u64,
         resp: tokio::sync::oneshot::Sender<bool>,
     },
-    Test,
 }
 
 pub struct BotState {

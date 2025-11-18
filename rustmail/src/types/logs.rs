@@ -7,13 +7,11 @@ use tokio::sync::Mutex;
 pub struct TicketLog {
     pub id: i64,
     pub ticket_id: String,
-    pub user_id: String,
     pub created_at: String,
 }
 
 #[derive(Clone)]
 pub struct PaginationContext {
-    pub user_id: String,
     pub logs: Vec<TicketLog>,
     pub current_page: usize,
     pub message_id: MessageId,

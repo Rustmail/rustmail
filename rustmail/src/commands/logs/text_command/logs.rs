@@ -93,7 +93,6 @@ pub async fn handle_logs_from_user_id(
     pagination_store.lock().await.insert(
         session_id.clone(),
         PaginationContext {
-            user_id: user_id.to_string(),
             logs,
             current_page: page,
             message_id: response.id,

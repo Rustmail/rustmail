@@ -5,7 +5,6 @@ use crate::errors::{DiscordError, ModmailError, ModmailResult};
 use crate::handlers::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::{MessageBuilder, defer_response};
-use chrono::Utc;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::collections::HashMap;

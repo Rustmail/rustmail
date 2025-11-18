@@ -3,7 +3,6 @@ use crate::prelude::config::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::utils::MessageBuilder;
-use chrono::Utc;
 use serenity::all::{Context, Message};
 use std::collections::HashMap;
 use std::sync::Arc;

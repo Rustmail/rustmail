@@ -16,7 +16,7 @@ pub async fn alert(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    let user_id = get_thread_user_id_from_msg(&ctx, &msg, config, pool).await?;
+    let user_id = get_thread_user_id_from_msg(&msg, pool).await?;
     let is_cancel = extract_alert_action(&msg, config).await;
 
     if is_cancel {
