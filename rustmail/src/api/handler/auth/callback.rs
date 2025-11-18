@@ -17,7 +17,9 @@ pub struct AuthRequest {
 #[derive(serde::Deserialize, Debug)]
 struct DiscordUser {
     id: String,
+    #[serde(rename = "username")]
     _username: String,
+    #[serde(rename = "discriminator")]
     _discriminator: String,
     avatar: Option<String>,
 }
