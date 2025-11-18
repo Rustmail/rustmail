@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            (COUNT(*) OVER ())\n              - ROW_NUMBER() OVER (ORDER BY created_at DESC) + 1 AS id,\n            id AS ticket_id,\n            created_at AS \"created_at: String\"\n        FROM threads\n        WHERE user_id = ? AND status = 0\n        ORDER BY created_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "ticket_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at: String",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "81566de7dad8f2698bc3f655bee0735b2ca0193bde55914f49289f06d5b8b19a"
+}
