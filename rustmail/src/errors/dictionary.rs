@@ -188,6 +188,9 @@ impl DictionaryManager {
                 DiscordError::UserIsABot => ("discord.user_is_a_bot".to_string(), None),
                 DiscordError::PermissionDenied => ("discord.permission_denied".to_string(), None),
                 DiscordError::DmCreationFailed => ("discord.dm_creation_failed".to_string(), None),
+                DiscordError::ShardManagerNotFound => {
+                    ("discord.shard_manager_not_found".to_string(), None)
+                }
                 _ => ("discord.api_error".to_string(), None),
             },
             ModmailError::Command(cmd_err) => match cmd_err {

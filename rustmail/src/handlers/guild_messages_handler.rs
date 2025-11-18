@@ -77,6 +77,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, "logs", logs);
         wrap_command!(lock, "take", take);
         wrap_command!(lock, "release", release);
+        wrap_command!(lock, "ping", ping);
 
         drop(lock);
         h

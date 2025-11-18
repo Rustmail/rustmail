@@ -51,6 +51,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The specified user is a rustmail."),
     );
     dict.messages.insert(
+        "discord.shard_manager_not_found".to_string(),
+        DictionaryMessage::new("Shard manager not found."),
+    );
+    dict.messages.insert(
         "command.invalid_format".to_string(),
         DictionaryMessage::new("Invalid command format")
             .with_description("The command syntax is incorrect")
@@ -884,6 +888,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Releases ownership of a ticket previously taken with the `!take` command. To release a ticket, use `!release` in the ticket."),
     );
     dict.messages.insert(
+        "help.ping".to_string(),
+        DictionaryMessage::new("Shows the actual latency of the bot."),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new(
             "Incorrect format. Use : `{prefix}remind or {prefix}rem <HH:MM> [content]`",
@@ -927,5 +935,13 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
         DictionaryMessage::new("The command to get help with"),
+    );
+    dict.messages.insert(
+        "slash_command.ping_command_desc".to_string(),
+        DictionaryMessage::new("Check the Discord bot latency."),
+    );
+    dict.messages.insert(
+        "slash_command.ping_command".to_string(),
+        DictionaryMessage::new("## Latency\n\nGateway latency: **{gateway_latency}** ms\nMinimal REST latency (GET /gateway): **{api_latency}** ms\nREST latency (message send): **{message_latency}** ms"),
     );
 }

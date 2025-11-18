@@ -56,6 +56,7 @@ pub enum DiscordError {
     DmCreationFailed,
     FailedToFetchCategories,
     FailedToMoveChannel,
+    ShardManagerNotFound,
 }
 
 #[derive(Debug, Clone)]
@@ -198,6 +199,7 @@ impl fmt::Display for DiscordError {
             DiscordError::DmCreationFailed => write!(f, "Failed to create DM channel"),
             DiscordError::FailedToFetchCategories => write!(f, "Failed to fetch categories"),
             DiscordError::FailedToMoveChannel => write!(f, "Failed to move_thread channel"),
+            DiscordError::ShardManagerNotFound => write!(f, "Shard manager not found"),
         }
     }
 }
