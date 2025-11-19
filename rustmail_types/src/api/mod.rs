@@ -12,3 +12,9 @@ pub struct ConfigResponse {
     pub reminders: ReminderConfig,
     pub logs: LogsConfig,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct CreateTicket {
+    pub discord_id: String,
+    pub api_key: String,
+}
