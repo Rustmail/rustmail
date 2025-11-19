@@ -87,7 +87,9 @@ async fn main() {
                     .route("/", axum::routing::get(static_handler))
                     .route("/{*path}", axum::routing::get(static_handler));
 
-                let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
+                let api_address = config.bot.ip.unwrap_or_else(|| "0.0.0.0".to_string());
+
+                let listener = tokio::net::TcpListener::bind(format!("{}:{}", api_address, 3002)).await.unwrap();
                 println!("listening on {}", listener.local_addr().unwrap());
 
                 axum::serve(
