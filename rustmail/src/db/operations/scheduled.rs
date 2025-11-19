@@ -74,12 +74,12 @@ pub async fn get_scheduled_closure(
     pool: &SqlitePool,
 ) -> ModmailResult<Option<ScheduledClosure>> {
     let row_opt = sqlx::query(
-        "SELECT thread_id, close_at, silent FROM scheduled_closures WHERE thread_id = ?",
+        "SELECT thread_id, close_at, silent, closed_by, category_id, category_name, required_permissions FROM scheduled_closures WHERE thread_id = ?",
     )
     .bind(thread_id)
     .fetch_optional(pool)
     .await
-    .map_err(|_| common::validation_failed("Failed to fetch scheduled closure"))?;
+    .map_err(|_| validation_failed("Failed to fetch scheduled closure"))?;
 
     Ok(row_opt.map(|row| ScheduledClosure {
         thread_id: row.get::<String, _>(0),
