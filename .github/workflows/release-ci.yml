@@ -2,6 +2,7 @@ name: Release
 
 permissions:
   contents: write
+  packages: write
 
 on:
   push:
@@ -59,7 +60,7 @@ jobs:
           else
               prerelease=""
           fi
-          
+
           gh release create "$tag" \
           --repo="$GITHUB_REPOSITORY" \
           --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
@@ -115,3 +116,60 @@ jobs:
           zip: windows
 
           token: ${{ secrets.GT_TOKEN }}
+
+  docker-build-push:
+    name: Build and push Docker Image
+    needs: upload-assets
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Linux binary from release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -rf rustmail
+          
+          gh release download ${{ github.ref_name }} \
+            --repo ${{ github.repository }} \
+            --pattern 'rustmail-x86_64-unknown-linux-gnu.tar.gz'
+
+          tar -xzf rustmail-x86_64-unknown-linux-gnu.tar.gz
+          chmod +x rustmail
+          ls -lh rustmail
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
