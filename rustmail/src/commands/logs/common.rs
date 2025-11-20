@@ -53,7 +53,7 @@ pub async fn render_logs_page(
             log.id,
             log.ticket_id,
             format!(
-                "http://{}:3002/panel/tickets/{}",
+                "{}/panel/tickets/{}",
                 &config.bot.ip.clone().unwrap(),
                 log.ticket_id
             ),
