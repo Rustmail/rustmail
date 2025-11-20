@@ -31,6 +31,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
 
     let home_active = current_path == "/panel";
     let config_active = current_path == "/panel/configuration";
+    let apikeys_active = current_path == "/panel/apikeys";
     let tickets_active = current_path.starts_with("/panel/tickets");
 
     html! {
@@ -85,6 +86,25 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                 )}
                             >
                                 {i18n.t("navbar.config")}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    move |_| if let Some(nav) = &navigator {
+                                        nav.push(&PanelRoute::ApiKeys);
+                                    }
+                                }}
+                                class={classes!(
+                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if apikeys_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.apikeys")}
                             </button>
 
                             <button
@@ -191,6 +211,29 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                         )}
                     >
                         {i18n.t("navbar.config")}
+                    </button>
+
+                    <button
+                        onclick={{
+                            let navigator = navigator.clone();
+                            let mobile_menu_open = mobile_menu_open.clone();
+                            move |_| {
+                                if let Some(nav) = &navigator {
+                                    nav.push(&PanelRoute::ApiKeys);
+                                }
+                                mobile_menu_open.set(false);
+                            }
+                        }}
+                        class={classes!(
+                            "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                            if apikeys_active {
+                                "bg-white/10 text-white"
+                            } else {
+                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                            }
+                        )}
+                    >
+                        {i18n.t("navbar.apikeys")}
                     </button>
 
                     <button

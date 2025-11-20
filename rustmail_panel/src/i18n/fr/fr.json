@@ -10,6 +10,7 @@
   "navbar": {
     "home": "Accueil",
     "config": "Configuration",
+    "apikeys": "Clés API",
     "tickets": "Tickets",
     "logout": "Se déconnecter"
   },
