@@ -1,3 +1,4 @@
+use crate::db::operations::{get_api_key_by_hash, hash_api_key, update_last_used};
 use crate::prelude::api::*;
 use crate::prelude::types::*;
 use axum::extract::State;
@@ -86,7 +87,7 @@ pub async fn auth_middleware(
     State(bot_state): State<Arc<Mutex<BotState>>>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     jar: CookieJar,
-    req: Request,
+    mut req: Request,
     next: Next,
 ) -> Response {
     if addr.ip().is_loopback() {
@@ -103,12 +104,6 @@ pub async fn auth_middleware(
         }
     }
 
-    let session_cookie = jar.get("session_id");
-
-    if session_cookie.is_none() {
-        return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
-    }
-
     let db_pool = {
         let state_lock = bot_state.lock().await;
         match &state_lock.db_pool {
@@ -122,6 +117,44 @@ pub async fn auth_middleware(
             }
         }
     };
+
+    if let Some(api_key_header) = req.headers().get("x-api-key") {
+        if let Ok(api_key_str) = api_key_header.to_str() {
+            let key_hash = hash_api_key(api_key_str);
+
+            match get_api_key_by_hash(&db_pool, &key_hash).await {
+                Ok(Some(api_key)) => {
+                    if api_key.is_valid() {
+                        let pool_clone = db_pool.clone();
+                        let key_id = api_key.id;
+                        tokio::spawn(async move {
+                            let _ = update_last_used(&pool_clone, key_id).await;
+                        });
+
+                        req.extensions_mut().insert(api_key);
+                        return next.run(req).await;
+                    } else {
+                        return (StatusCode::UNAUTHORIZED, "API key expired or inactive")
+                            .into_response();
+                    }
+                }
+                Ok(None) => {
+                    return (StatusCode::UNAUTHORIZED, "Invalid API key").into_response();
+                }
+                Err(e) => {
+                    eprintln!("Error fetching API key: {}", e);
+                    return (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+                        .into_response();
+                }
+            }
+        }
+    }
+
+    let session_cookie = jar.get("session_id");
+
+    if session_cookie.is_none() {
+        return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
+    }
 
     let session_id = session_cookie.unwrap().value().to_string();
     let user_id = get_user_id_from_session(&session_id, &db_pool).await;
