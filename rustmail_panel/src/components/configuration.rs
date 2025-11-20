@@ -833,6 +833,21 @@ fn bot_section(props: &BotSectionProps) -> Html {
                     })
                 }}
             />
+
+            <TextInput
+                label={i18n.t("panel.configuration.bot.ip")}
+                value={config.bot.ip.clone().unwrap_or_default()}
+                help={Some(i18n.t("panel.configuration.bot.ip_help"))}
+                placeholder={Some("0.0.0.0".to_string())}
+                on_change={{
+                    let config = config.clone();
+                    Callback::from(move |val: String| {
+                        let mut cfg = (*config).clone();
+                        cfg.bot.ip = if val.is_empty() { None } else { Some(val) };
+                        config.set(cfg);
+                    })
+                }}
+            />
         </div>
     }
 }
