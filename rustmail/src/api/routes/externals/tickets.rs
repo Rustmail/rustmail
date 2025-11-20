@@ -1,7 +1,7 @@
 use crate::api::{auth_middleware, handle_external_ticket_create};
 use crate::types::BotState;
 use axum::Router;
-use axum::routing::{get, post};
+use axum::routing::post;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
