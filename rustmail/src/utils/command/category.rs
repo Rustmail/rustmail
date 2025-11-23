@@ -1,5 +1,6 @@
-use serenity::all::CommandInteraction;
+use serenity::all::{ChannelId, CommandInteraction, PermissionOverwrite};
 use serenity::all::{Channel, Context, PermissionOverwriteType, RoleId};
+use crate::errors::{CommandError, ModmailError, ModmailResult};
 
 pub async fn get_category_id_from_command(ctx: &Context, command: &CommandInteraction) -> String {
     match command.channel_id.to_channel(&ctx.http).await {
@@ -57,4 +58,25 @@ pub async fn get_required_permissions_channel_from_command(
         }
         _ => 0u64,
     }
+}
+
+pub async fn get_category_permissions_overwrites(
+    ctx: &Context,
+    category_id: ChannelId,
+) -> ModmailResult<Vec<PermissionOverwrite>> {
+    let category = match category_id.to_channel(&ctx.http).await {
+        Ok(channel) => {
+            channel.category()
+        }
+        Err(..) => {
+            return Err(ModmailError::Command(CommandError::NotInThread()));
+        }
+    };
+
+    let permissions = match category {
+        Some(category) => category.permission_overwrites.clone(),
+        None => return Err(ModmailError::Command(CommandError::NotInThread())),
+    };
+
+    Ok(permissions)
 }

@@ -1,6 +1,8 @@
 use crate::prelude::config::*;
 use crate::prelude::db::*;
-use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, GuildId, Message};
+use crate::prelude::utils::*;
+use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, GuildChannel, GuildId, Message};
+use crate::errors::{ModmailError, ModmailResult};
 
 pub async fn is_in_thread(msg: &Message, pool: &sqlx::SqlitePool) -> bool {
     let channel_id = msg.channel_id.to_string();
@@ -46,21 +48,27 @@ pub async fn move_channel_to_category_by_msg(
     ctx: &Context,
     msg: &Message,
     category_id: ChannelId,
-) -> Result<serenity::model::channel::GuildChannel, serenity::Error> {
+) -> ModmailResult<GuildChannel> {
+    let permissions = get_category_permissions_overwrites(ctx, category_id).await?;
+
     msg.channel_id
-        .edit(&ctx.http, EditChannel::new().category(category_id))
+        .edit(&ctx.http, EditChannel::new().category(category_id).permissions(permissions))
         .await
+        .map_err(ModmailError::from)
 }
 
 pub async fn move_channel_to_category_by_command_option(
     ctx: &Context,
     command: &CommandInteraction,
     category_id: ChannelId,
-) -> Result<serenity::model::channel::GuildChannel, serenity::Error> {
+) -> ModmailResult<GuildChannel> {
+    let permissions = get_category_permissions_overwrites(ctx, category_id).await?;
+
     command
         .channel_id
-        .edit(&ctx.http, EditChannel::new().category(category_id))
+        .edit(&ctx.http, EditChannel::new().category(category_id).permissions(permissions))
         .await
+        .map_err(ModmailError::from)
 }
 
 pub fn find_best_match_category(
