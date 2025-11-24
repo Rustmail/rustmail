@@ -43,7 +43,10 @@ jobs:
 
       - name: Build frontend
         working-directory: rustmail_panel
-        run: trunk build --release --dist ../rustmail/static --config Trunk.toml
+        run: |
+          rm -rf dist .trunk
+          trunk clean
+          trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Build Rust backend
         run: cargo build --verbose -p rustmail
@@ -114,7 +117,10 @@ jobs:
 
       - name: Build frontend
         working-directory: rustmail_panel
-        run: trunk build --release --dist ../rustmail/static --config Trunk.toml
+        run: |
+          rm -rf dist .trunk
+          trunk clean
+          trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Verify static files were created
         run: ls rustmail/static
