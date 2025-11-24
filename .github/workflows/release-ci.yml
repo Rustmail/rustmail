@@ -33,6 +33,7 @@ jobs:
       - name: Install trunk and wasm target
         run: |
           rustup target add wasm32-unknown-unknown
+          cargo install wasm-bindgen-cli --version 0.2.105 --locked --force
           cargo install trunk --locked --force
 
       - name: Clean cargo cache and target directory
@@ -100,6 +101,7 @@ jobs:
 
       - name: Install trunk
         run: |
+          cargo install wasm-bindgen-cli --version 0.2.105 --locked --force
           cargo install trunk --locked --force
 
       - name: Create static directory
@@ -121,6 +123,7 @@ jobs:
           rm -rf dist .trunk
           trunk clean
           trunk build --release --dist ../rustmail/static --config Trunk.toml
+        shell: bash
 
       - name: Verify static files were created
         run: ls rustmail/static
