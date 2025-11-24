@@ -1,9 +1,11 @@
+use crate::prelude::api::*;
 use crate::prelude::types::*;
 use axum::{
     Json,
     extract::{Query, State},
     http::StatusCode,
 };
+use axum_extra::extract::CookieJar;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -62,6 +64,7 @@ pub struct PaginatedThreadsResponse {
 
 pub async fn handle_tickets_bot(
     State(bot_state): State<Arc<Mutex<BotState>>>,
+    jar: CookieJar,
     Query(params): Query<TicketQuery>,
 ) -> (StatusCode, Json<serde_json::Value>) {
     let db_pool = {
@@ -78,6 +81,47 @@ pub async fn handle_tickets_bot(
             }
         }
     };
+
+    let session_cookie = jar.get("session_id");
+    let user_id = if let Some(cookie) = session_cookie {
+        get_user_id_from_session(cookie.value(), &db_pool).await
+    } else {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "error": "No session found"
+            })),
+        );
+    };
+
+    let (guild_id, bot_http) = {
+        let state_lock = bot_state.lock().await;
+        let guild_id = match &state_lock.config {
+            Some(config) => config.bot.get_staff_guild_id(),
+            None => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": "Config not initialized"
+                    })),
+                );
+            }
+        };
+        let bot_http = match &state_lock.bot_http {
+            Some(http) => http.clone(),
+            None => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": "Bot HTTP not initialized"
+                    })),
+                );
+            }
+        };
+        (guild_id, bot_http)
+    };
+
+    let is_admin = is_admin_or_owner(&user_id, guild_id, bot_http.clone()).await;
 
     if let Some(id) = params.id {
         let thread = match sqlx::query!(
@@ -174,20 +218,58 @@ pub async fn handle_tickets_bot(
             user_id: thread.user_id,
             user_name: thread.user_name,
             channel_id: thread.channel_id,
-            created_at: thread.created_at
+            created_at: thread
+                .created_at
                 .flatten()
                 .and_then(|ts: String| ts.parse::<i64>().ok())
                 .unwrap_or_default(),
             new_message_number: thread.new_message_number.unwrap_or_default(),
             status: thread.status,
             user_left: thread.user_left,
-            closed_at: thread.closed_at.flatten().and_then(|ts: String| ts.parse::<i64>().ok()),
+            closed_at: thread
+                .closed_at
+                .flatten()
+                .and_then(|ts: String| ts.parse::<i64>().ok()),
             closed_by: thread.closed_by,
             category_id: thread.category_id,
             category_name: thread.category_name,
-            required_permissions: thread.required_permissions,
+            required_permissions: thread.required_permissions.clone(),
             messages,
         };
+
+        if !is_admin {
+            if let Some(ref category_id) = complete.category_id {
+                if !category_id.is_empty() {
+                    match get_user_permissions_in_category(
+                        &user_id,
+                        guild_id,
+                        category_id,
+                        bot_http.clone(),
+                    )
+                    .await
+                    {
+                        Some(perms) => {
+                            if !can_view_channel(perms) {
+                                return (
+                                    StatusCode::FORBIDDEN,
+                                    Json(serde_json::json!({
+                                        "error": "You don't have permission to view this ticket"
+                                    })),
+                                );
+                            }
+                        }
+                        None => {
+                            return (
+                                StatusCode::FORBIDDEN,
+                                Json(serde_json::json!({
+                                    "error": "Failed to check permissions"
+                                })),
+                            );
+                        }
+                    }
+                }
+            }
+        }
 
         return (StatusCode::OK, Json(serde_json::json!(complete)));
     }
@@ -218,11 +300,11 @@ pub async fn handle_tickets_bot(
         _ => "DESC",
     };
 
-    let count_query = format!("SELECT COUNT(*) as count FROM threads WHERE {}", where_clause);
-    let total: i64 = match sqlx::query_scalar(&count_query)
-        .fetch_one(&db_pool)
-        .await
-    {
+    let count_query = format!(
+        "SELECT COUNT(*) as count FROM threads WHERE {}",
+        where_clause
+    );
+    let _total: i64 = match sqlx::query_scalar(&count_query).fetch_one(&db_pool).await {
         Ok(count) => count,
         Err(err) => {
             eprintln!("Erreur SQL count: {:?}", err);
@@ -234,8 +316,6 @@ pub async fn handle_tickets_bot(
             );
         }
     };
-
-    let total_pages = (total as f64 / page_size as f64).ceil() as i64;
 
     let query_str = format!(
         r#"
@@ -261,21 +341,24 @@ pub async fn handle_tickets_bot(
         where_clause, sort_column, sort_order, page_size, offset
     );
 
-    let threads_query = match sqlx::query_as::<_, (
-        String,
-        i64,
-        String,
-        String,
-        Option<String>,
-        Option<i64>,
-        i64,
-        bool,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    )>(&query_str)
+    let threads_query = match sqlx::query_as::<
+        _,
+        (
+            String,
+            i64,
+            String,
+            String,
+            Option<String>,
+            Option<i64>,
+            i64,
+            bool,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+        ),
+    >(&query_str)
     .fetch_all(&db_pool)
     .await
     {
@@ -316,55 +399,68 @@ pub async fn handle_tickets_bot(
         placeholders
     );
 
-    let mut messages_query = sqlx::query_as::<_, (
-        i64,
-        String,
-        i64,
-        String,
-        bool,
-        Option<String>,
-        Option<String>,
-        Option<i64>,
-        String,
-        String,
-    )>(&messages_query_str);
+    let mut messages_query = sqlx::query_as::<
+        _,
+        (
+            i64,
+            String,
+            i64,
+            String,
+            bool,
+            Option<String>,
+            Option<String>,
+            Option<i64>,
+            String,
+            String,
+        ),
+    >(&messages_query_str);
 
     for thread_id in &thread_ids {
         messages_query = messages_query.bind(thread_id);
     }
 
-    let all_messages = messages_query.fetch_all(&db_pool).await.unwrap_or_else(|err| {
-        eprintln!("Erreur SQL messages batch: {:?}", err);
-        Vec::new()
-    });
+    let all_messages = messages_query
+        .fetch_all(&db_pool)
+        .await
+        .unwrap_or_else(|err| {
+            eprintln!("Erreur SQL messages batch: {:?}", err);
+            Vec::new()
+        });
 
     let mut messages_by_thread: std::collections::HashMap<String, Vec<ThreadMessage>> =
         std::collections::HashMap::new();
 
     for msg in all_messages {
-        messages_by_thread.entry(msg.1.clone()).or_insert_with(Vec::new).push(ThreadMessage {
-            id: msg.0,
-            thread_id: msg.1.clone(),
-            user_id: msg.2,
-            user_name: msg.3,
-            is_anonymous: msg.4,
-            dm_message_id: msg.5,
-            inbox_message_id: msg.6,
-            message_number: msg.7,
-            created_at: msg.8,
-            content: msg.9,
-        });
+        messages_by_thread
+            .entry(msg.1.clone())
+            .or_insert_with(Vec::new)
+            .push(ThreadMessage {
+                id: msg.0,
+                thread_id: msg.1.clone(),
+                user_id: msg.2,
+                user_name: msg.3,
+                is_anonymous: msg.4,
+                dm_message_id: msg.5,
+                inbox_message_id: msg.6,
+                message_number: msg.7,
+                created_at: msg.8,
+                content: msg.9,
+            });
     }
 
     for thread in threads_query {
-        let messages = messages_by_thread.get(&thread.0).cloned().unwrap_or_default();
+        let messages = messages_by_thread
+            .get(&thread.0)
+            .cloned()
+            .unwrap_or_default();
 
         threads.push(CompleteThread {
             id: thread.0.clone(),
             user_id: thread.1,
             user_name: thread.2,
             channel_id: thread.3,
-            created_at: thread.4
+            created_at: thread
+                .4
                 .and_then(|ts: String| ts.parse::<i64>().ok())
                 .unwrap_or_default(),
             new_message_number: thread.5.unwrap_or_default(),
@@ -379,12 +475,47 @@ pub async fn handle_tickets_bot(
         });
     }
 
+    let filtered_threads = if is_admin {
+        threads
+    } else {
+        let mut filtered = Vec::new();
+        for thread in threads {
+            let can_view = if let Some(ref category_id) = thread.category_id {
+                if category_id.is_empty() {
+                    true
+                } else {
+                    match get_user_permissions_in_category(
+                        &user_id,
+                        guild_id,
+                        category_id,
+                        bot_http.clone(),
+                    )
+                    .await
+                    {
+                        Some(perms) => can_view_channel(perms),
+                        None => false,
+                    }
+                }
+            } else {
+                true
+            };
+
+            if can_view {
+                filtered.push(thread);
+            }
+        }
+        filtered
+    };
+
+    let filtered_total = filtered_threads.len() as i64;
+    let filtered_total_pages = (filtered_total as f64 / page_size as f64).ceil() as i64;
+
     let response = PaginatedThreadsResponse {
-        threads,
-        total,
+        threads: filtered_threads,
+        total: filtered_total,
         page,
         page_size,
-        total_pages,
+        total_pages: filtered_total_pages,
     };
 
     (StatusCode::OK, Json(serde_json::json!(response)))
