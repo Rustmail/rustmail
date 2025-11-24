@@ -603,6 +603,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Closure canceled."),
     );
     dict.messages.insert(
+        "close.auto_canceled_on_message".to_string(),
+        DictionaryMessage::new("Scheduled closure has been automatically canceled because a message was received."),
+    );
+    dict.messages.insert(
+        "close.replacing_existing_closure".to_string(),
+        DictionaryMessage::new("⚠️ Warning: A closure was already scheduled in {old_time}. It will be replaced by the new one."),
+    );
+    dict.messages.insert(
         "close.no_scheduled_closures_to_cancel".to_string(),
         DictionaryMessage::new("No scheduled closures to cancel."),
     );

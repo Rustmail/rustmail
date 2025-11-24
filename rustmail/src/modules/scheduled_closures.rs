@@ -5,7 +5,7 @@ use chrono::Utc;
 use serenity::all::{ChannelId, Context, UserId};
 use tokio::time::{Duration, sleep};
 
-fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
+pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
     let now = Utc::now().timestamp();
     let delay_secs = (close_at - now).max(0) as u64;
     let ctx_clone = ctx.clone();
@@ -61,6 +61,7 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
     let Some(pool) = config.db_pool.as_ref() else {
         return;
     };
+
     let list = match get_all_scheduled_closures(pool).await {
         Ok(l) => l,
         Err(e) => {
@@ -68,6 +69,7 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
             return;
         }
     };
+
     for sc in list {
         if let Some(thread) = get_thread_by_id(&sc.thread_id, pool).await {
             if sc.close_at <= Utc::now().timestamp() {

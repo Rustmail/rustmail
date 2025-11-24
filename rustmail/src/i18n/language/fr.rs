@@ -631,6 +631,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Fermeture programmée annulée."),
     );
     dict.messages.insert(
+        "close.auto_canceled_on_message".to_string(),
+        DictionaryMessage::new("La fermeture programmée a été automatiquement annulée car un message a été reçu."),
+    );
+    dict.messages.insert(
+        "close.replacing_existing_closure".to_string(),
+        DictionaryMessage::new("⚠️ Attention : Une fermeture était déjà programmée dans {old_time}. Elle sera remplacée par la nouvelle."),
+    );
+    dict.messages.insert(
         "close.no_scheduled_closures_to_cancel".to_string(),
         DictionaryMessage::new("Aucune fermeture programmée à annuler."),
     );
