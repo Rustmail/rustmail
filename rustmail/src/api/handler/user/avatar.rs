@@ -47,15 +47,25 @@ pub async fn handle_get_user_avatar(
         .await
     {
         Ok(record) => {
-            let avatar_hash: String = record.get::<String, _>("avatar_hash");
+            let avatar_hash: Option<String> = record.get::<Option<String>, _>("avatar_hash");
 
-            if !avatar_hash.is_empty() {
-                let avatar_url = format!(
-                    "https://cdn.discordapp.com/avatars/{}/{}.png",
-                    user_id_str, avatar_hash
-                );
-                UserAvatar {
-                    avatar_url: Some(avatar_url),
+            if let Some(hash) = avatar_hash {
+                if !hash.is_empty() {
+                    let avatar_url = format!(
+                        "https://cdn.discordapp.com/avatars/{}/{}.png",
+                        user_id_str, hash
+                    );
+                    UserAvatar {
+                        avatar_url: Some(avatar_url),
+                    }
+                } else {
+                    let avatar_url = format!(
+                        "https://cdn.discordapp.com/embed/avatars/{}.png",
+                        (user_id >> 22) % 6
+                    );
+                    UserAvatar {
+                        avatar_url: Some(avatar_url),
+                    }
                 }
             } else {
                 let avatar_url = format!(
