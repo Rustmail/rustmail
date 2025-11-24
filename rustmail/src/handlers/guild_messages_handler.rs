@@ -149,6 +149,24 @@ async fn manage_incoming_message(
                     .await;
                 return Err(error);
             }
+
+            if let Ok(thread) = fetch_thread(pool, &channel_id_str).await {
+                if let Ok(existed) = delete_scheduled_closure(&thread.id, pool).await {
+                    if existed {
+                        let _ = MessageBuilder::system_message(ctx, config)
+                            .translated_content(
+                                "close.auto_canceled_on_message",
+                                None,
+                                Some(msg.author.id),
+                                None,
+                            )
+                            .await
+                            .to_channel(channel_id)
+                            .send(true)
+                            .await;
+                    }
+                }
+            }
         }
     } else {
         create_channel(ctx, msg, config).await;
