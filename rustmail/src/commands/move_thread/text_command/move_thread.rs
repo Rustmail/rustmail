@@ -45,7 +45,7 @@ pub async fn move_thread(
 
             let mut params = HashMap::new();
             params.insert("category".to_string(), category_name.to_string());
-            params.insert("staff".to_string(), msg.author.name.clone());
+            params.insert("staff".to_string(), msg.author.id.to_string());
 
             let confirmation_msg = get_translated_message(
                 config,

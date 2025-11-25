@@ -474,7 +474,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "move_thread.success".to_string(),
-        DictionaryMessage::new("✅ Thread moved to category '{category}' by {staff}")
+        DictionaryMessage::new("✅ Thread moved to category **{category}** by <@{staff}>")
             .with_description("The thread has been successfully moved to the new category"),
     );
     dict.messages.insert(
@@ -604,7 +604,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "close.auto_canceled_on_message".to_string(),
-        DictionaryMessage::new("Scheduled closure has been automatically canceled because a message was received."),
+        DictionaryMessage::new(
+            "Scheduled closure has been automatically canceled because a message was received.",
+        ),
     );
     dict.messages.insert(
         "close.replacing_existing_closure".to_string(),

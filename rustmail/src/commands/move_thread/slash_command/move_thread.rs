@@ -131,7 +131,7 @@ impl RegistrableCommand for MoveCommand {
 
                     let mut params = HashMap::new();
                     params.insert("category".to_string(), category_name.to_string());
-                    params.insert("staff".to_string(), command.user.name.clone());
+                    params.insert("staff".to_string(), command.user.id.to_string());
 
                     let response = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(

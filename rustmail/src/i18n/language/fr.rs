@@ -502,7 +502,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "move_thread.success".to_string(),
-        DictionaryMessage::new("✅ Thread déplacé vers la catégorie '{category}' par {staff}")
+        DictionaryMessage::new("✅ Thread déplacé vers la catégorie **{category}** par <@{staff}>")
             .with_description("Le thread a été déplacé avec succès vers la nouvelle catégorie"),
     );
     dict.messages.insert(
@@ -632,7 +632,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "close.auto_canceled_on_message".to_string(),
-        DictionaryMessage::new("La fermeture programmée a été automatiquement annulée car un message a été reçu."),
+        DictionaryMessage::new(
+            "La fermeture programmée a été automatiquement annulée car un message a été reçu.",
+        ),
     );
     dict.messages.insert(
         "close.replacing_existing_closure".to_string(),
