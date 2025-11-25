@@ -37,6 +37,8 @@ jobs:
 
       - name: Build frontend
         working-directory: rustmail_panel
+        env:
+          RUSTFLAGS: '-Csymbol-mangling-version=legacy -Zunstable-options'
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Build Rust backend
@@ -98,6 +100,8 @@ jobs:
 
       - name: Build frontend
         working-directory: rustmail_panel
+        env:
+          RUSTFLAGS: '-Csymbol-mangling-version=legacy -Zunstable-options'
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Verify static files were created
