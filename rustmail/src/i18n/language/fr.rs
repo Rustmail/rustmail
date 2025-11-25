@@ -966,4 +966,131 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.ping_command".to_string(),
         DictionaryMessage::new("## Latence\n\nLatence Gateway : **{gateway_latency}** ms.\nLatence REST minimale (GET /gateway) : **{api_latency}** ms.\nLatence REST (envoi d'un message) : **{message_latency}** ms."),
     );
+
+    // Commandes snippet
+    dict.messages.insert(
+        "slash_command.snippet_command_description".to_string(),
+        DictionaryMessage::new("Gérer les snippets/modèles de messages"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_create_description".to_string(),
+        DictionaryMessage::new("Créer un nouveau snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_list_description".to_string(),
+        DictionaryMessage::new("Lister tous les snippets"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_show_description".to_string(),
+        DictionaryMessage::new("Afficher un snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_edit_description".to_string(),
+        DictionaryMessage::new("Modifier un snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_delete_description".to_string(),
+        DictionaryMessage::new("Supprimer un snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_key_argument".to_string(),
+        DictionaryMessage::new("Clé du snippet (alphanumériques, tirets, underscores)"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_content_argument".to_string(),
+        DictionaryMessage::new("Contenu du snippet (max 4000 caractères)"),
+    );
+    dict.messages.insert(
+        "slash_command.reply_snippet_argument".to_string(),
+        DictionaryMessage::new("Utiliser un snippet au lieu de taper un message"),
+    );
+
+    dict.messages.insert(
+        "snippet.invalid_key_format".to_string(),
+        DictionaryMessage::new("La clé du snippet doit contenir uniquement des caractères alphanumériques, des tirets et des underscores."),
+    );
+    dict.messages.insert(
+        "snippet.content_too_long".to_string(),
+        DictionaryMessage::new("Le contenu du snippet doit faire 4000 caractères ou moins."),
+    );
+    dict.messages.insert(
+        "snippet.created".to_string(),
+        DictionaryMessage::new("Snippet `{key}` créé avec succès !"),
+    );
+    dict.messages.insert(
+        "snippet.creation_failed".to_string(),
+        DictionaryMessage::new("Échec de la création du snippet : {error}"),
+    );
+    dict.messages.insert(
+        "snippet.updated".to_string(),
+        DictionaryMessage::new("Snippet `{key}` modifié avec succès !"),
+    );
+    dict.messages.insert(
+        "snippet.update_failed".to_string(),
+        DictionaryMessage::new("Échec de la modification du snippet : {error}"),
+    );
+    dict.messages.insert(
+        "snippet.deleted".to_string(),
+        DictionaryMessage::new("Snippet `{key}` supprimé avec succès !"),
+    );
+    dict.messages.insert(
+        "snippet.deletion_failed".to_string(),
+        DictionaryMessage::new("Échec de la suppression du snippet : {error}"),
+    );
+    dict.messages.insert(
+        "snippet.not_found".to_string(),
+        DictionaryMessage::new("Snippet `{key}` introuvable."),
+    );
+    dict.messages.insert(
+        "snippet.list_empty".to_string(),
+        DictionaryMessage::new("Aucun snippet trouvé."),
+    );
+    dict.messages.insert(
+        "snippet.list_title".to_string(),
+        DictionaryMessage::new("📝 Snippets disponibles"),
+    );
+    dict.messages.insert(
+        "snippet.list_more".to_string(),
+        DictionaryMessage::new("...et {count} de plus"),
+    );
+    dict.messages.insert(
+        "snippet.show_title".to_string(),
+        DictionaryMessage::new("📝 Snippet : {key}"),
+    );
+    dict.messages.insert(
+        "snippet.created_by".to_string(),
+        DictionaryMessage::new("Créé par"),
+    );
+    dict.messages.insert(
+        "snippet.created_at".to_string(),
+        DictionaryMessage::new("Créé le"),
+    );
+    dict.messages.insert(
+        "snippet.unknown_subcommand".to_string(),
+        DictionaryMessage::new("Sous-commande inconnue"),
+    );
+    dict.messages.insert(
+        "snippet.text_usage".to_string(),
+        DictionaryMessage::new("Usage : `!snippet <create|list|show|edit|delete> [args]`"),
+    );
+    dict.messages.insert(
+        "snippet.text_create_usage".to_string(),
+        DictionaryMessage::new("Usage : `!snippet create <clé> <contenu>`"),
+    );
+    dict.messages.insert(
+        "snippet.text_show_usage".to_string(),
+        DictionaryMessage::new("Usage : `!snippet show <clé>`"),
+    );
+    dict.messages.insert(
+        "snippet.text_edit_usage".to_string(),
+        DictionaryMessage::new("Usage : `!snippet edit <clé> <contenu>`"),
+    );
+    dict.messages.insert(
+        "snippet.text_delete_usage".to_string(),
+        DictionaryMessage::new("Usage : `!snippet delete <clé>`"),
+    );
+    dict.messages.insert(
+        "snippet.unknown_text_subcommand".to_string(),
+        DictionaryMessage::new("Sous-commande inconnue. Utilisez : `create`, `list`, `show`, `edit`, ou `delete`"),
+    );
 }

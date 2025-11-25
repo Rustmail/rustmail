@@ -28,6 +28,7 @@ pub mod release;
 pub mod remove_reminder;
 pub mod remove_staff;
 pub mod reply;
+pub mod snippet;
 pub mod take;
 
 pub use add_reminder::*;
@@ -49,6 +50,7 @@ pub use release::*;
 pub use remove_reminder::*;
 pub use remove_staff::*;
 pub use reply::*;
+pub use snippet::*;
 pub use take::*;
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;

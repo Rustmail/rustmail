@@ -79,7 +79,15 @@ impl RegistrableCommand for ReplyCommand {
                             "message",
                             message_desc,
                         )
-                        .required(true),
+                        .required(false),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(
+                            CommandOptionType::String,
+                            "snippet",
+                            "Use a snippet instead of typing a message",
+                        )
+                        .required(false),
                     )
                     .add_option(
                         CreateCommandOption::new(
@@ -119,6 +127,7 @@ impl RegistrableCommand for ReplyCommand {
             defer_response(&ctx, &command).await?;
 
             let mut content: Option<String> = None;
+            let mut snippet_key: Option<String> = None;
             let mut attachments: Vec<Attachment> = Vec::new();
             let mut anonymous: bool = false;
 
@@ -126,6 +135,9 @@ impl RegistrableCommand for ReplyCommand {
                 match &option.value {
                     CommandDataOptionValue::String(val) if option.name == "message" => {
                         content = Some(val.clone());
+                    }
+                    CommandDataOptionValue::String(val) if option.name == "snippet" => {
+                        snippet_key = Some(val.clone());
                     }
                     CommandDataOptionValue::Attachment(att_id) if option.name == "attachment" => {
                         if let Some(att) = command.data.resolved.attachments.get(att_id) {
@@ -136,6 +148,19 @@ impl RegistrableCommand for ReplyCommand {
                         anonymous = *anonym;
                     }
                     _ => {}
+                }
+            }
+            
+            if let Some(key) = snippet_key {
+                match get_snippet_by_key(&key, db_pool).await? {
+                    Some(snippet) => {
+                        content = Some(snippet.content);
+                    }
+                    None => {
+                        return Err(ModmailError::Command(CommandError::CommandFailed(
+                            format!("Snippet '{}' not found", key),
+                        )));
+                    }
                 }
             }
 
