@@ -1,43 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/rustmail"
+    directory: "/"
     schedule:
-      interval: "daily"
-      time: "07:00"
-    open-pull-requests-limit: 50
-    reviewers:
-      - "Akinator31"
-    assignees:
-      - "Akinator31"
-    labels:
-      - "dependencies"
-      - "rust"
-    commit-message:
-      prefix: "cargo"
-      include: "scope"
-
-  - package-ecosystem: "cargo"
-    directory: "/rustmail_panel"
-    schedule:
-      interval: "daily"
-      time: "07:00"
-    open-pull-requests-limit: 50
-    reviewers:
-      - "Akinator31"
-    assignees:
-      - "Akinator31"
-    labels:
-      - "dependencies"
-      - "rust"
-    commit-message:
-      prefix: "cargo"
-      include: "scope"
-
-  - package-ecosystem: "cargo"
-    directory: "/rustmail_types"
-    schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "07:00"
     open-pull-requests-limit: 50
     reviewers:
