@@ -5,13 +5,12 @@ use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
 use regex::Regex;
-use std::collections::HashMap;
+use serenity::FutureExt;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
-    CreateCommand, CreateCommandOption, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, ResolvedOption,
+    CreateCommand, CreateCommandOption, ResolvedOption,
 };
-use serenity::FutureExt;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct SnippetCommand;
@@ -24,8 +23,17 @@ impl RegistrableCommand for SnippetCommand {
 
     fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String> {
         async move {
-            get_translated_message(config, "slash_command.snippet_command_description", None, None, None, None).await
-        }.boxed()
+            get_translated_message(
+                config,
+                "slash_command.snippet_command_help",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+        }
+        .boxed()
     }
 
     fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>> {
@@ -106,91 +114,79 @@ impl RegistrableCommand for SnippetCommand {
             )
             .await;
 
-            vec![CreateCommand::new(name)
-                .description(cmd_desc)
-                .add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::SubCommand,
-                        "create",
-                        create_desc.clone(),
-                    )
-                    .add_sub_option(
+            vec![
+                CreateCommand::new(name)
+                    .description(cmd_desc)
+                    .add_option(
                         CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "key",
-                            key_desc.clone(),
+                            CommandOptionType::SubCommand,
+                            "create",
+                            create_desc.clone(),
                         )
-                        .required(true),
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::String,
+                                "key",
+                                key_desc.clone(),
+                            )
+                            .required(true),
+                        )
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::String,
+                                "content",
+                                content_desc.clone(),
+                            )
+                            .required(true),
+                        ),
                     )
-                    .add_sub_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "content",
-                            content_desc.clone(),
-                        )
-                        .required(true),
-                    ),
-                )
-                .add_option(
-                    CreateCommandOption::new(
+                    .add_option(CreateCommandOption::new(
                         CommandOptionType::SubCommand,
                         "list",
                         list_desc,
-                    ),
-                )
-                .add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::SubCommand,
-                        "show",
-                        show_desc,
+                    ))
+                    .add_option(
+                        CreateCommandOption::new(CommandOptionType::SubCommand, "show", show_desc)
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "key",
+                                    key_desc.clone(),
+                                )
+                                .required(true),
+                            ),
                     )
-                    .add_sub_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "key",
-                            key_desc.clone(),
-                        )
-                        .required(true),
-                    ),
-                )
-                .add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::SubCommand,
-                        "edit",
-                        edit_desc,
+                    .add_option(
+                        CreateCommandOption::new(CommandOptionType::SubCommand, "edit", edit_desc)
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "key",
+                                    key_desc.clone(),
+                                )
+                                .required(true),
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "content",
+                                    content_desc,
+                                )
+                                .required(true),
+                            ),
                     )
-                    .add_sub_option(
+                    .add_option(
                         CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "key",
-                            key_desc.clone(),
+                            CommandOptionType::SubCommand,
+                            "delete",
+                            delete_desc,
                         )
-                        .required(true),
-                    )
-                    .add_sub_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "content",
-                            content_desc,
-                        )
-                        .required(true),
+                        .add_sub_option(
+                            CreateCommandOption::new(CommandOptionType::String, "key", key_desc)
+                                .required(true),
+                        ),
                     ),
-                )
-                .add_option(
-                    CreateCommandOption::new(
-                        CommandOptionType::SubCommand,
-                        "delete",
-                        delete_desc,
-                    )
-                    .add_sub_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::String,
-                            "key",
-                            key_desc,
-                        )
-                        .required(true),
-                    ),
-                )]
+            ]
         })
     }
 
@@ -212,35 +208,36 @@ impl RegistrableCommand for SnippetCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
+            defer_response(&ctx, &command).await?;
+
             let subcommand = &command.data.options[0];
             let subcommand_name = &subcommand.name;
 
             match subcommand_name.as_str() {
-                "create" => handle_create(&ctx, &command, &command.data.options, pool, &config).await,
+                "create" => {
+                    handle_create(&ctx, &command, &command.data.options, pool, &config).await
+                }
                 "list" => handle_list(&ctx, &command, pool, &config).await,
                 "show" => handle_show(&ctx, &command, &command.data.options, pool, &config).await,
                 "edit" => handle_edit(&ctx, &command, &command.data.options, pool, &config).await,
-                "delete" => handle_delete(&ctx, &command, &command.data.options, pool, &config).await,
+                "delete" => {
+                    handle_delete(&ctx, &command, &command.data.options, pool, &config).await
+                }
                 _ => {
-                    let error_msg = get_translated_message(
-                        &config,
-                        "snippet.unknown_subcommand",
-                        None,
-                        Some(command.user.id),
-                        command.guild_id.map(|g| g.get()),
-                    )
-                    .await;
-
-                    command
-                        .create_response(
-                            &ctx.http,
-                            CreateInteractionResponse::Message(
-                                CreateInteractionResponseMessage::new()
-                                    .content(format!("❌ {}", error_msg))
-                                    .ephemeral(true),
-                            ),
+                    let response = MessageBuilder::system_message(&ctx, &config)
+                        .translated_content(
+                            "snippet.unknown_subcommand",
+                            None,
+                            Some(command.user.id),
+                            command.guild_id.map(|g| g.get()),
                         )
-                        .await?;
+                        .await
+                        .to_channel(command.channel_id)
+                        .build_interaction_message_followup()
+                        .await;
+
+                    command.create_followup(&ctx.http, response).await?;
+
                     Ok(())
                 }
             }
@@ -280,82 +277,39 @@ async fn handle_create(
 
     let key_regex = Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap();
     if !key_regex.is_match(&key) {
-        let response = MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "snippet.invalid_key_format",
-                None,
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-            )
-            .await
-            .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await
-            .ephemeral(true);
-
-        command.create_response(&ctx.http, response).await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::InvalidSnippetKeyFormat));
     }
 
     if content.len() > 4000 {
-        let response = MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "snippet.content_too_long",
-                None,
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-            )
-            .await
-            .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await
-            .ephemeral(true);
-
-        command.create_response(&ctx.http, response).await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::SnippetContentTooLong));
     }
 
     let created_by = command.user.id.to_string();
     match create_snippet(&key, &content, &created_by, pool).await {
-        Ok(_) => {
-            let mut params = HashMap::new();
-            params.insert("key".to_string(), key.clone());
-
-            let response = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "snippet.created",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
-
-            command.create_response(&ctx.http, response).await?;
-        }
-        Err(e) => {
-            let mut params = HashMap::new();
-            params.insert("error".to_string(), e.to_string());
-
-            let response = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "snippet.creation_failed",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
-
-            command.create_response(&ctx.http, response).await?;
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetAlreadyExists(
+                key.to_string(),
+            )));
         }
     }
+
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.clone());
+
+    let response = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.created",
+            Some(&params),
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+        )
+        .await
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -378,26 +332,11 @@ async fn handle_list(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await
-            .ephemeral(true);
+            .build_interaction_message_followup()
+            .await;
 
-        command.create_response(&ctx.http, response).await?;
+        command.create_followup(&ctx.http, response).await?;
         return Ok(());
-    }
-
-    let mut description = String::new();
-    for snippet in snippets.iter().take(25) {
-        let preview = if snippet.content.len() > 50 {
-            format!("{}...", &snippet.content[..50])
-        } else {
-            snippet.content.clone()
-        };
-        description.push_str(&format!("**`{}`** - {}\n", snippet.key, preview));
-    }
-
-    if snippets.len() > 25 {
-        description.push_str(&format!("\n*...and {} more*", snippets.len() - 25));
     }
 
     let title = get_translated_message(
@@ -406,24 +345,22 @@ async fn handle_list(
         None,
         Some(command.user.id),
         command.guild_id.map(|g| g.get()),
+        None,
     )
     .await;
 
-    let embed = CreateEmbed::new()
-        .title(title)
-        .description(description)
-        .color(0x5865F2);
+    let mut content = format!("**{}**\n\n", title);
+    for (index, snippet) in snippets.iter().enumerate() {
+        content.push_str(&format!("`{}` - {}\n\n", index + 1, snippet.key));
+    }
 
-    command
-        .create_response(
-            &ctx.http,
-            CreateInteractionResponse::Message(
-                CreateInteractionResponseMessage::new()
-                    .embed(embed)
-                    .ephemeral(true),
-            ),
-        )
-        .await?;
+    let response = MessageBuilder::system_message(ctx, config)
+        .content(content)
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -457,6 +394,7 @@ async fn handle_show(
                 Some(&HashMap::from([("key".to_string(), snippet.key.clone())])),
                 Some(command.user.id),
                 command.guild_id.map(|g| g.get()),
+                None,
             )
             .await;
 
@@ -466,6 +404,7 @@ async fn handle_show(
                 None,
                 Some(command.user.id),
                 command.guild_id.map(|g| g.get()),
+                None,
             )
             .await;
 
@@ -475,45 +414,32 @@ async fn handle_show(
                 None,
                 Some(command.user.id),
                 command.guild_id.map(|g| g.get()),
+                None,
             )
             .await;
 
-            let embed = CreateEmbed::new()
-                .title(title)
-                .description(&snippet.content)
-                .field(created_by_label, format!("<@{}>", snippet.created_by), true)
-                .field(created_at_label, &snippet.created_at, true)
-                .color(0x5865F2);
+            let content = format!(
+                "**{}**\n\n{}\n\n*{}: <@{}> | {}: {}*",
+                title,
+                snippet.content,
+                created_by_label,
+                snippet.created_by,
+                created_at_label,
+                snippet.created_at
+            );
 
-            command
-                .create_response(
-                    &ctx.http,
-                    CreateInteractionResponse::Message(
-                        CreateInteractionResponseMessage::new()
-                            .embed(embed)
-                            .ephemeral(true),
-                    ),
-                )
-                .await?;
+            let response = MessageBuilder::system_message(ctx, config)
+                .content(content)
+                .to_channel(command.channel_id)
+                .build_interaction_message_followup()
+                .await;
+
+            command.create_followup(&ctx.http, response).await?;
         }
         None => {
-            let mut params = HashMap::new();
-            params.insert("key".to_string(), key.clone());
-
-            let response = MessageBuilder::error_message(ctx, config)
-                .translated_content(
-                    "snippet.not_found",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
-
-            command.create_response(&ctx.http, response).await?;
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
     }
 
@@ -551,63 +477,34 @@ async fn handle_edit(
     }
 
     if content.len() > 4000 {
-        let response = MessageBuilder::error_message(ctx, config)
-            .translated_content(
-                "snippet.content_too_long",
-                None,
-                Some(command.user.id),
-                command.guild_id.map(|g| g.get()),
-            )
-            .await
-            .to_channel(command.channel_id)
-            .build_interaction_message()
-            .await
-            .ephemeral(true);
-
-        command.create_response(&ctx.http, response).await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::SnippetContentTooLong));
     }
 
     match update_snippet(&key, &content, pool).await {
-        Ok(_) => {
-            let mut params = HashMap::new();
-            params.insert("key".to_string(), key.clone());
-
-            let response = MessageBuilder::success_message(ctx, config)
-                .translated_content(
-                    "snippet.updated",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
-
-            command.create_response(&ctx.http, response).await?;
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
-        Err(e) => {
-            let mut params = HashMap::new();
-            params.insert("error".to_string(), e.to_string());
+    };
 
-            let response = MessageBuilder::error_message(ctx, config)
-                .translated_content(
-                    "snippet.update_failed",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.clone());
 
-            command.create_response(&ctx.http, response).await?;
-        }
-    }
+    let response = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.updated",
+            Some(&params),
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+        )
+        .await
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -634,45 +531,30 @@ async fn handle_delete(
     }
 
     match delete_snippet(&key, pool).await {
-        Ok(_) => {
-            let mut params = HashMap::new();
-            params.insert("key".to_string(), key.clone());
-
-            let response = MessageBuilder::success_message(ctx, config)
-                .translated_content(
-                    "snippet.deleted",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
-
-            command.create_response(&ctx.http, response).await?;
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
-        Err(e) => {
-            let mut params = HashMap::new();
-            params.insert("error".to_string(), e.to_string());
+    };
 
-            let response = MessageBuilder::error_message(ctx, config)
-                .translated_content(
-                    "snippet.deletion_failed",
-                    Some(&params),
-                    Some(command.user.id),
-                    command.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(command.channel_id)
-                .build_interaction_message()
-                .await
-                .ephemeral(true);
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.clone());
 
-            command.create_response(&ctx.http, response).await?;
-        }
-    }
+    let response = MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.deleted",
+            Some(&params),
+            Some(command.user.id),
+            command.guild_id.map(|g| g.get()),
+        )
+        .await
+        .to_channel(command.channel_id)
+        .build_interaction_message_followup()
+        .await;
+
+    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }

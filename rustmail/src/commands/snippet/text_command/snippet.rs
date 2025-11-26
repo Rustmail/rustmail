@@ -2,9 +2,11 @@ use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
+use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
 use regex::Regex;
 use serenity::all::{Context, Message};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub async fn snippet_command(
@@ -21,11 +23,17 @@ pub async fn snippet_command(
     let content = match extract_reply_content(&msg.content, &config.command.prefix, &["snippet"]) {
         Some(c) => c,
         None => {
-            msg.reply(
-                &ctx.http,
-                "❌ Usage: `!snippet <create|list|show|edit|delete> [args]`",
-            )
-            .await?;
+            MessageBuilder::system_message(&ctx, config)
+                .translated_content(
+                    "snippet.text_usage",
+                    None,
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
+                .reply_to(msg)
+                .send(true)
+                .await?;
             return Ok(());
         }
     };
@@ -35,17 +43,23 @@ pub async fn snippet_command(
     let args = parts.next().unwrap_or("").trim();
 
     match subcommand {
-        "create" => handle_create(&ctx, &msg, args, pool).await,
-        "list" => handle_list(&ctx, &msg, pool).await,
-        "show" => handle_show(&ctx, &msg, args, pool).await,
-        "edit" => handle_edit(&ctx, &msg, args, pool).await,
-        "delete" => handle_delete(&ctx, &msg, args, pool).await,
+        "create" => handle_create(&ctx, &msg, args, pool, config).await,
+        "list" => handle_list(&ctx, &msg, pool, config).await,
+        "show" => handle_show(&ctx, &msg, args, pool, config).await,
+        "edit" => handle_edit(&ctx, &msg, args, pool, config).await,
+        "delete" => handle_delete(&ctx, &msg, args, pool, config).await,
         _ => {
-            msg.reply(
-                &ctx.http,
-                "❌ Unknown subcommand. Use: `create`, `list`, `show`, `edit`, or `delete`",
-            )
-            .await?;
+            MessageBuilder::system_message(&ctx, config)
+                .translated_content(
+                    "snippet.unknown_text_subcommand",
+                    None,
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
+                .reply_to(msg)
+                .send(true)
+                .await?;
             Ok(())
         }
     }
@@ -56,50 +70,60 @@ async fn handle_create(
     msg: &Message,
     args: &str,
     pool: &sqlx::SqlitePool,
+    config: &Config,
 ) -> ModmailResult<()> {
     let mut parts = args.splitn(2, ' ');
     let key = parts.next().unwrap_or("").trim();
     let content = parts.next().unwrap_or("").trim();
 
     if key.is_empty() || content.is_empty() {
-        msg.reply(
-            &ctx.http,
-            "❌ Usage: `!snippet create <key> <content>`",
-        )
-        .await?;
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.text_create_usage",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
+            .await?;
         return Ok(());
     }
 
     let key_regex = Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap();
     if !key_regex.is_match(key) {
-        msg.reply(
-            &ctx.http,
-            "❌ Snippet key must contain only alphanumeric characters, dashes, and underscores.",
-        )
-        .await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::InvalidSnippetKeyFormat));
     }
 
     if content.len() > 4000 {
-        msg.reply(
-            &ctx.http,
-            "❌ Snippet content must be 4000 characters or less.",
-        )
-        .await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::SnippetContentTooLong));
     }
 
     let created_by = msg.author.id.to_string();
     match create_snippet(key, content, &created_by, pool).await {
-        Ok(_) => {
-            msg.reply(&ctx.http, format!("✅ Snippet `{}` created successfully!", key))
-                .await?;
-        }
-        Err(e) => {
-            msg.reply(&ctx.http, format!("❌ Failed to create snippet: {}", e))
-                .await?;
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetAlreadyExists(
+                key.to_string(),
+            )));
         }
     }
+
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.to_string());
+
+    MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.created",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
+        .reply_to(msg.clone())
+        .send(true)
+        .await?;
 
     Ok(())
 }
@@ -108,29 +132,46 @@ async fn handle_list(
     ctx: &Context,
     msg: &Message,
     pool: &sqlx::SqlitePool,
+    config: &Config,
 ) -> ModmailResult<()> {
     let snippets = get_all_snippets(pool).await?;
 
     if snippets.is_empty() {
-        msg.reply(&ctx.http, "📝 No snippets found.").await?;
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.list_empty",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
+            .await?;
         return Ok(());
     }
 
-    let mut response = String::from("📝 **Available Snippets:**\n\n");
-    for snippet in snippets.iter().take(25) {
-        let preview = if snippet.content.len() > 50 {
-            format!("{}...", &snippet.content[..50])
-        } else {
-            snippet.content.clone()
-        };
-        response.push_str(&format!("**`{}`** - {}\n", snippet.key, preview));
+    let title = get_translated_message(
+        config,
+        "snippet.list_title",
+        None,
+        Some(msg.author.id),
+        msg.guild_id.map(|g| g.get()),
+        None,
+    )
+    .await;
+
+    let mut response = format!("{}\n\n", title);
+    for (index, snippet) in snippets.iter().enumerate() {
+        response.push_str(&format!("`{}` {}\n\n", index + 1, snippet.key));
     }
 
-    if snippets.len() > 25 {
-        response.push_str(&format!("\n*...and {} more*", snippets.len() - 25));
-    }
+    MessageBuilder::system_message(ctx, config)
+        .content(response)
+        .reply_to(msg.clone())
+        .send(true)
+        .await?;
 
-    msg.reply(&ctx.http, response).await?;
     Ok(())
 }
 
@@ -139,26 +180,80 @@ async fn handle_show(
     msg: &Message,
     args: &str,
     pool: &sqlx::SqlitePool,
+    config: &Config,
 ) -> ModmailResult<()> {
     let key = args.trim();
 
     if key.is_empty() {
-        msg.reply(&ctx.http, "❌ Usage: `!snippet show <key>`")
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.text_show_usage",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
             .await?;
         return Ok(());
     }
 
     match get_snippet_by_key(key, pool).await? {
         Some(snippet) => {
+            let mut params = HashMap::new();
+            params.insert("key".to_string(), snippet.key.clone());
+
+            let title = get_translated_message(
+                config,
+                "snippet.show_title",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None,
+            )
+            .await;
+
+            let created_by_label = get_translated_message(
+                config,
+                "snippet.created_by",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None,
+            )
+            .await;
+
+            let created_at_label = get_translated_message(
+                config,
+                "snippet.created_at",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+                None,
+            )
+            .await;
+
             let response = format!(
-                "📝 **Snippet: {}**\n\n{}\n\n*Created by <@{}> at {}*",
-                snippet.key, snippet.content, snippet.created_by, snippet.created_at
+                "{}\n\n{}\n\n*{}: <@{}> | {}: {}*",
+                title,
+                snippet.content,
+                created_by_label,
+                snippet.created_by,
+                created_at_label,
+                snippet.created_at
             );
-            msg.reply(&ctx.http, response).await?;
+
+            MessageBuilder::system_message(ctx, config)
+                .content(response)
+                .reply_to(msg.clone())
+                .send(true)
+                .await?;
         }
         None => {
-            msg.reply(&ctx.http, format!("❌ Snippet `{}` not found.", key))
-                .await?;
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
     }
 
@@ -170,36 +265,54 @@ async fn handle_edit(
     msg: &Message,
     args: &str,
     pool: &sqlx::SqlitePool,
+    config: &Config,
 ) -> ModmailResult<()> {
     let mut parts = args.splitn(2, ' ');
     let key = parts.next().unwrap_or("").trim();
     let content = parts.next().unwrap_or("").trim();
 
     if key.is_empty() || content.is_empty() {
-        msg.reply(&ctx.http, "❌ Usage: `!snippet edit <key> <content>`")
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.text_edit_usage",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
             .await?;
         return Ok(());
     }
 
     if content.len() > 4000 {
-        msg.reply(
-            &ctx.http,
-            "❌ Snippet content must be 4000 characters or less.",
-        )
-        .await?;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::SnippetContentTooLong));
     }
 
     match update_snippet(key, content, pool).await {
-        Ok(_) => {
-            msg.reply(&ctx.http, format!("✅ Snippet `{}` updated successfully!", key))
-                .await?;
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
-        Err(e) => {
-            msg.reply(&ctx.http, format!("❌ Failed to update snippet: {}", e))
-                .await?;
-        }
-    }
+    };
+
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.to_string());
+
+    MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.updated",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
+        .reply_to(msg.clone())
+        .send(true)
+        .await?;
 
     Ok(())
 }
@@ -209,25 +322,48 @@ async fn handle_delete(
     msg: &Message,
     args: &str,
     pool: &sqlx::SqlitePool,
+    config: &Config,
 ) -> ModmailResult<()> {
     let key = args.trim();
 
     if key.is_empty() {
-        msg.reply(&ctx.http, "❌ Usage: `!snippet delete <key>`")
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.text_delete_usage",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
             .await?;
         return Ok(());
     }
 
-    match delete_snippet(key, pool).await {
-        Ok(_) => {
-            msg.reply(&ctx.http, format!("✅ Snippet `{}` deleted successfully!", key))
-                .await?;
+    match delete_snippet(&key, pool).await {
+        Ok(_) => {}
+        Err(_) => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
         }
-        Err(e) => {
-            msg.reply(&ctx.http, format!("❌ Failed to delete snippet: {}", e))
-                .await?;
-        }
-    }
+    };
+
+    let mut params = HashMap::new();
+    params.insert("key".to_string(), key.to_string());
+
+    MessageBuilder::system_message(ctx, config)
+        .translated_content(
+            "snippet.deleted",
+            Some(&params),
+            Some(msg.author.id),
+            msg.guild_id.map(|g| g.get()),
+        )
+        .await
+        .reply_to(msg.clone())
+        .send(true)
+        .await?;
 
     Ok(())
 }
