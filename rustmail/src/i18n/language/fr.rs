@@ -749,6 +749,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le message à envoyer à l'utilisateur"),
     );
     dict.messages.insert(
+        "slash_command.reply_snippet_argument_description".to_string(),
+        DictionaryMessage::new("Utiliser un snippet au lieu d'écrire un message"),
+    );
+    dict.messages.insert(
         "slash_command.reply_attachment_argument_description".to_string(),
         DictionaryMessage::new("Une pièce jointe à envoyer avec le message"),
     );
@@ -967,10 +971,24 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("## Latence\n\nLatence Gateway : **{gateway_latency}** ms.\nLatence REST minimale (GET /gateway) : **{api_latency}** ms.\nLatence REST (envoi d'un message) : **{message_latency}** ms."),
     );
 
-    // Commandes snippet
     dict.messages.insert(
         "slash_command.snippet_command_description".to_string(),
         DictionaryMessage::new("Gérer les snippets/modèles de messages"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_command_help".to_string(),
+        DictionaryMessage::new(
+            "Gérer les snippets/modèles de messages\n\n\
+            **Sous-commandes :**\n\
+            • `/snippet create <clé> <contenu>` - Créer un nouveau snippet\n\
+            • `/snippet list` - Lister tous les snippets disponibles\n\
+            • `/snippet show <clé>` - Afficher le contenu d'un snippet spécifique\n\
+            • `/snippet edit <clé> <contenu>` - Modifier un snippet existant\n\
+            • `/snippet delete <clé>` - Supprimer un snippet\n\n\
+            **Utilisation :**\n\
+            • Commande slash : `/reply snippet:<clé>`\n\
+            • Commande texte : `!reply {{clé}}`",
+        ),
     );
     dict.messages.insert(
         "slash_command.snippet_create_description".to_string(),
@@ -1022,6 +1040,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Échec de la création du snippet : {error}"),
     );
     dict.messages.insert(
+        "snippet.already_exist".to_string(),
+        DictionaryMessage::new("Le snippet `{key}` existe déjà."),
+    );
+    dict.messages.insert(
         "snippet.updated".to_string(),
         DictionaryMessage::new("Snippet `{key}` modifié avec succès !"),
     );
@@ -1043,6 +1065,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "snippet.list_empty".to_string(),
+        DictionaryMessage::new("Aucun snippet trouvé."),
+    );
+    dict.messages.insert(
+        "snippet.no_snippets_found".to_string(),
         DictionaryMessage::new("Aucun snippet trouvé."),
     );
     dict.messages.insert(
@@ -1091,6 +1117,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "snippet.unknown_text_subcommand".to_string(),
-        DictionaryMessage::new("Sous-commande inconnue. Utilisez : `create`, `list`, `show`, `edit`, ou `delete`"),
+        DictionaryMessage::new(
+            "Sous-commande inconnue. Utilisez : `create`, `list`, `show`, `edit`, ou `delete`",
+        ),
     );
 }
