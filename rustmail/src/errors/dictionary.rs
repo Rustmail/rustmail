@@ -233,6 +233,22 @@ impl DictionaryManager {
                     ("release.ticket_already_taken".to_string(), None)
                 }
                 CommandError::AlertSetFailed => ("alert.alert_set_failed".to_string(), None),
+                CommandError::SnippetNotFound(snippet) => {
+                    let mut params = HashMap::new();
+                    params.insert("key".to_string(), snippet.clone());
+                    ("snippet.not_found".to_string(), Some(params))
+                }
+                CommandError::InvalidSnippetKeyFormat => {
+                    ("snippet.invalid_key_format".to_string(), None)
+                }
+                CommandError::SnippetContentTooLong => {
+                    ("snippet.content_too_long".to_string(), None)
+                }
+                CommandError::SnippetAlreadyExists(snippet) => {
+                    let mut params = HashMap::new();
+                    params.insert("key".to_string(), snippet.clone());
+                    ("snippet.already_exist".to_string(), Some(params))
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

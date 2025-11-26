@@ -64,6 +64,10 @@ pub enum CommandError {
     TicketAlreadyTaken,
     TicketAlreadyReleased,
     AlertSetFailed,
+    SnippetNotFound(String),
+    SnippetAlreadyExists(String),
+    InvalidSnippetKeyFormat,
+    SnippetContentTooLong,
 }
 
 #[derive(Debug, Clone)]
@@ -172,6 +176,12 @@ impl fmt::Display for CommandError {
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
             CommandError::TicketAlreadyReleased => write!(f, "Ticket already released"),
             CommandError::AlertSetFailed => write!(f, "Alert set failed"),
+            CommandError::SnippetNotFound(name) => write!(f, "Snippet not found: {}", name),
+            CommandError::InvalidSnippetKeyFormat => write!(f, "Invalid snippet key format"),
+            CommandError::SnippetContentTooLong => write!(f, "Snippet content is too long"),
+            CommandError::SnippetAlreadyExists(name) => {
+                write!(f, "Snippet already exists: {}", name)
+            }
         }
     }
 }
