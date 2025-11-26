@@ -60,6 +60,15 @@ impl RegistrableCommand for ReplyCommand {
                 None,
             )
             .await;
+            let snippet_desc = get_translated_message(
+                &config,
+                "slash_command.reply_snippet_argument_description",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
             let anonymous_desc = get_translated_message(
                 &config,
                 "slash_command.reply_anonymous_argument_description",
@@ -85,7 +94,7 @@ impl RegistrableCommand for ReplyCommand {
                         CreateCommandOption::new(
                             CommandOptionType::String,
                             "snippet",
-                            "Use a snippet instead of typing a message",
+                            snippet_desc,
                         )
                         .required(false),
                     )
@@ -157,8 +166,8 @@ impl RegistrableCommand for ReplyCommand {
                         content = Some(snippet.content);
                     }
                     None => {
-                        return Err(ModmailError::Command(CommandError::CommandFailed(
-                            format!("Snippet '{}' not found", key),
+                        return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                            key.to_string(),
                         )));
                     }
                 }

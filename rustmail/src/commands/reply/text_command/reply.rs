@@ -31,9 +31,9 @@ pub async fn reply(
                     content = Some(snippet.content);
                 }
                 None => {
-                    msg.reply(&ctx.http, format!("❌ Snippet `{}` not found.", snippet_key))
-                        .await?;
-                    return Ok(());
+                    return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                        snippet_key.to_string(),
+                    )));
                 }
             }
         }
