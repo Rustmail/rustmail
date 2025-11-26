@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE snippets\n        SET content = ?, updated_at = CURRENT_TIMESTAMP\n        WHERE key = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "8b8bfcba2e57300a0f448095a1739a46668ffc4cda6d9bec0fa1965317123c4e"
+}
