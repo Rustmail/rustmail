@@ -12,3 +12,13 @@ pub struct ConfigResponse {
     pub reminders: ReminderConfig,
     pub logs: LogsConfig,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Snippet {
+    pub id: i64,
+    pub key: String,
+    pub content: String,
+    pub created_by: String,
+    pub created_at: String,
+    pub updated_at: String,
+}

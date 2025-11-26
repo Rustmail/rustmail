@@ -60,6 +60,15 @@ impl RegistrableCommand for ReplyCommand {
                 None,
             )
             .await;
+            let snippet_desc = get_translated_message(
+                &config,
+                "slash_command.reply_snippet_argument_description",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
             let anonymous_desc = get_translated_message(
                 &config,
                 "slash_command.reply_anonymous_argument_description",
@@ -79,7 +88,15 @@ impl RegistrableCommand for ReplyCommand {
                             "message",
                             message_desc,
                         )
-                        .required(true),
+                        .required(false),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(
+                            CommandOptionType::String,
+                            "snippet",
+                            snippet_desc,
+                        )
+                        .required(false),
                     )
                     .add_option(
                         CreateCommandOption::new(
@@ -119,6 +136,7 @@ impl RegistrableCommand for ReplyCommand {
             defer_response(&ctx, &command).await?;
 
             let mut content: Option<String> = None;
+            let mut snippet_key: Option<String> = None;
             let mut attachments: Vec<Attachment> = Vec::new();
             let mut anonymous: bool = false;
 
@@ -126,6 +144,9 @@ impl RegistrableCommand for ReplyCommand {
                 match &option.value {
                     CommandDataOptionValue::String(val) if option.name == "message" => {
                         content = Some(val.clone());
+                    }
+                    CommandDataOptionValue::String(val) if option.name == "snippet" => {
+                        snippet_key = Some(val.clone());
                     }
                     CommandDataOptionValue::Attachment(att_id) if option.name == "attachment" => {
                         if let Some(att) = command.data.resolved.attachments.get(att_id) {
@@ -136,6 +157,19 @@ impl RegistrableCommand for ReplyCommand {
                         anonymous = *anonym;
                     }
                     _ => {}
+                }
+            }
+            
+            if let Some(key) = snippet_key {
+                match get_snippet_by_key(&key, db_pool).await? {
+                    Some(snippet) => {
+                        content = Some(snippet.content);
+                    }
+                    None => {
+                        return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                            key.to_string(),
+                        )));
+                    }
                 }
             }
 
