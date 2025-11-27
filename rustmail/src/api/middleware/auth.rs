@@ -1,7 +1,7 @@
 use crate::prelude::api::*;
 use crate::prelude::types::*;
 use axum::extract::State;
-use axum::extract::{ConnectInfo, Request};
+use axum::extract::Request;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
@@ -9,9 +9,7 @@ use chrono::Utc;
 use hyper::StatusCode;
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, query};
-use std::net::SocketAddr;
 use std::sync::Arc;
-use subtle::ConstantTimeEq;
 use tokio::sync::Mutex;
 
 async fn check_user_with_bot(bot_state: Arc<Mutex<BotState>>, user_id: &str) -> bool {
@@ -84,25 +82,10 @@ async fn verify_user(user_id: &str, guild_id: u64, bot_state: Arc<Mutex<BotState
 
 pub async fn auth_middleware(
     State(bot_state): State<Arc<Mutex<BotState>>>,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     jar: CookieJar,
     req: Request,
     next: Next,
 ) -> Response {
-    if addr.ip().is_loopback() {
-        if let Some(h) = req.headers().get("x-internal-call") {
-            if let Ok(s) = h.to_str() {
-                let state_lock = bot_state.lock().await;
-                let expected = state_lock.internal_token.as_bytes();
-
-                if expected.ct_eq(s.as_bytes()).unwrap_u8() == 1 {
-                    drop(state_lock);
-                    return next.run(req).await;
-                }
-            }
-        }
-    }
-
     let session_cookie = jar.get("session_id");
 
     if session_cookie.is_none() {
