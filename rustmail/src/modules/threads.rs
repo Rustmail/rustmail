@@ -140,6 +140,25 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
         return;
     }
 
+    const MAX_ATTACHMENT_SIZE: u32 = 8 * 1024 * 1024;
+    for attachment in &msg.attachments {
+        if attachment.size > MAX_ATTACHMENT_SIZE {
+            let _ = MessageBuilder::system_message(ctx, config)
+                .translated_content(
+                    "discord.attachment_too_large",
+                    None,
+                    Some(msg.author.id),
+                    None,
+                )
+                .await
+                .to_user(msg.author.id)
+                .send(true)
+                .await;
+
+            return;
+        }
+    }
+
     let (target_channel_id, _is_new_thread) =
         match create_or_get_thread_for_user(ctx, config, msg.author.id).await {
             Ok(res) => res,
