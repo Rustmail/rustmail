@@ -42,6 +42,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
+        "discord.attachment_too_large".to_string(),
+        DictionaryMessage::new("Votre pièce jointe est trop volumineuse ! Discord a une limite de taille de fichier de 8 Mo pour les pièces jointes. Veuillez réduire la taille du fichier ou envoyer un lien."),
+    );
+    dict.messages.insert(
         "discord.user_is_a_bot".to_string(),
         DictionaryMessage::new("L'utilisateur spécifié est un rustmail"),
     );

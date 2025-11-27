@@ -44,6 +44,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
+        "discord.attachment_too_large".to_string(),
+        DictionaryMessage::new("Your attachment is too large! Discord has a file size limit of 8 MB for attachments. Please reduce the file size or send a link."),
+    );
+    dict.messages.insert(
         "discord.user_is_a_bot".to_string(),
         DictionaryMessage::new("The specified user is a rustmail."),
     );
