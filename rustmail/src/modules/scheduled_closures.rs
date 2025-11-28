@@ -33,6 +33,36 @@ pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at:
                         )
                         .await;
                         let _ = delete_scheduled_closure(&thread_id, pool).await;
+
+                        if config_clone.bot.enable_logs {
+                            if let Some(logs_channel_id) = config_clone.bot.logs_channel_id {
+                                let base_url = config_clone
+                                    .bot
+                                    .redirect_url
+                                    .trim_end_matches("/api/auth/callback")
+                                    .trim_end_matches('/');
+
+                                let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+
+                                let mut params = std::collections::HashMap::new();
+                                params.insert("username".to_string(), thread.user_name.clone());
+                                params.insert("user_id".to_string(), thread.user_id.to_string());
+                                params.insert("panel_url".to_string(), panel_url);
+
+                                let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
+                                    .translated_content(
+                                        "logs.ticket_closed",
+                                        Some(&params),
+                                        None,
+                                        None,
+                                    )
+                                    .await
+                                    .to_channel(ChannelId::new(logs_channel_id))
+                                    .send(true)
+                                    .await;
+                            }
+                        }
+
                         if !current.silent {
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
@@ -85,6 +115,31 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
                 )
                 .await;
                 let _ = delete_scheduled_closure(&thread.id, pool).await;
+
+                if config.bot.enable_logs {
+                    if let Some(logs_channel_id) = config.bot.logs_channel_id {
+                        let base_url = config
+                            .bot
+                            .redirect_url
+                            .trim_end_matches("/api/auth/callback")
+                            .trim_end_matches('/');
+
+                        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+
+                        let mut params = std::collections::HashMap::new();
+                        params.insert("username".to_string(), thread.user_name.clone());
+                        params.insert("user_id".to_string(), thread.user_id.to_string());
+                        params.insert("panel_url".to_string(), panel_url);
+
+                        let _ = MessageBuilder::system_message(ctx, config)
+                            .translated_content("logs.ticket_closed", Some(&params), None, None)
+                            .await
+                            .to_channel(ChannelId::new(logs_channel_id))
+                            .send(true)
+                            .await;
+                    }
+                }
+
                 if !sc.silent {
                     let _ = MessageBuilder::system_message(ctx, config)
                         .content(&config.bot.close_message)
