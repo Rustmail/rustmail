@@ -1,3 +1,4 @@
+pub mod api_keys;
 pub mod configuration;
 pub mod home;
 pub mod language_switcher;
