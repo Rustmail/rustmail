@@ -2814,7 +2814,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail"
-version = "1.0.3"
+version = "1.0.7"
 dependencies = [
  "async-trait",
  "axum",
