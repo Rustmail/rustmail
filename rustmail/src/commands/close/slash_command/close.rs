@@ -4,17 +4,17 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::i18n::*;
+use crate::prelude::modules::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::FutureExt;
 use serenity::all::{
-    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, GuildId, ResolvedOption, UserId,
+    Channel, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, GuildId, PermissionOverwriteType, ResolvedOption, RoleId, UserId,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::sleep;
 
 pub struct CloseCommand;
 
@@ -191,16 +191,32 @@ impl RegistrableCommand for CloseCommand {
             }
 
             if let Some(delay) = duration {
+                if let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await {
+                    let remaining = existing.close_at - Utc::now().timestamp();
+                    if remaining > 0 {
+                        let old_human = format_duration(remaining as u64);
+
+                        let mut warn_params = HashMap::new();
+                        warn_params.insert("old_time".to_string(), old_human);
+
+                        let response = MessageBuilder::system_message(&ctx, &config)
+                            .translated_content(
+                                "close.replacing_existing_closure",
+                                Some(&warn_params),
+                                Some(command.user.id),
+                                command.guild_id.map(|g| g.get()),
+                            )
+                            .await
+                            .to_channel(command.channel_id)
+                            .build_interaction_message_followup()
+                            .await;
+
+                        let _ = command.create_followup(&ctx.http, response).await;
+                    }
+                }
+
                 let delay_secs = delay.as_secs();
-                let human = if delay_secs < 60 {
-                    format!("{}s", delay_secs)
-                } else if delay_secs < 3600 {
-                    format!("{}m", delay_secs / 60)
-                } else if delay_secs < 86400 {
-                    format!("{}h{}m", delay_secs / 3600, (delay_secs % 3600) / 60)
-                } else {
-                    format!("{}d{}h", delay_secs / 86400, (delay_secs % 86400) / 3600)
-                };
+                let human = format_duration(delay_secs);
                 let mut params = HashMap::new();
                 params.insert("time".to_string(), human);
 
@@ -217,7 +233,7 @@ impl RegistrableCommand for CloseCommand {
                         .build_interaction_message_followup()
                         .await;
 
-                    let _ = command.create_followup(&ctx.http, response).await;
+                    command.create_followup(&ctx.http, response).await
                 } else {
                     let response = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
@@ -231,17 +247,57 @@ impl RegistrableCommand for CloseCommand {
                         .build_interaction_message_followup()
                         .await;
 
-                    let _ = command.create_followup(&ctx.http, response).await;
+                    command.create_followup(&ctx.http, response).await
                 };
+
+                let closed_by = command.user.id.to_string();
+
+                let (category_id, category_name, required_permissions) =
+                    match command.channel_id.to_channel(&ctx.http).await {
+                        Ok(Channel::Guild(guild_channel)) => {
+                            let guild_id = guild_channel.guild_id;
+                            let parent_id = guild_channel.parent_id;
+
+                            let category_id =
+                                parent_id.map(|id| id.to_string()).unwrap_or_default();
+
+                            let category_name = if let Some(parent_id) = parent_id {
+                                guild_id
+                                    .channels(&ctx.http)
+                                    .await
+                                    .ok()
+                                    .and_then(|channels| {
+                                        channels.get(&parent_id).map(|c| c.name.clone())
+                                    })
+                                    .unwrap_or_default()
+                            } else {
+                                String::new()
+                            };
+
+                            let guild = guild_id.to_partial_guild(&ctx.http).await.ok();
+                            let everyone_role_id = RoleId::new(guild_id.get());
+
+                            let mut perms = guild
+                                .and_then(|g| {
+                                    g.roles.get(&everyone_role_id).map(|r| r.permissions.bits())
+                                })
+                                .unwrap_or(0u64);
+
+                            for overwrite in &guild_channel.permission_overwrites {
+                                if let PermissionOverwriteType::Role(_) = overwrite.kind {
+                                    let allow = overwrite.allow.bits();
+                                    let deny = overwrite.deny.bits();
+                                    perms = (perms & !deny) | allow;
+                                }
+                            }
+
+                            (category_id, category_name, perms)
+                        }
+                        _ => (String::new(), String::new(), 0u64),
+                    };
 
                 let thread_id = thread.id.clone();
                 let close_at = Utc::now().timestamp() + delay.as_secs() as i64;
-
-                let closed_by = command.user.id.to_string();
-                let category_id = get_category_id_from_command(&ctx, &command).await;
-                let category_name = get_category_name_from_command(&ctx, &command).await;
-                let required_permissions =
-                    get_required_permissions_channel_from_command(&ctx, &command).await;
 
                 if let Err(e) = upsert_scheduled_closure(
                     &thread_id,
@@ -257,103 +313,8 @@ impl RegistrableCommand for CloseCommand {
                 {
                     eprintln!("Failed to persist scheduled closure: {e:?}");
                 }
-                let channel_id = command.channel_id;
-                let config_clone = config.clone();
-                let ctx_clone = ctx.clone();
-                let user_id_clone = user_id;
-                let thread_id_for_task = thread_id.clone();
 
-                tokio::spawn(async move {
-                    sleep(delay).await;
-                    if let Some(pool) = config_clone.db_pool.as_ref() {
-                        if let Ok(Some(record)) =
-                            get_scheduled_closure(&thread_id_for_task, pool).await
-                        {
-                            if record.close_at <= Utc::now().timestamp() {
-                                let _ = close_thread(
-                                    &thread_id_for_task,
-                                    &record.closed_by,
-                                    &record.category_id,
-                                    &record.category_name,
-                                    record.required_permissions.parse::<u64>().unwrap_or(0),
-                                    pool,
-                                )
-                                .await;
-                                let _ = delete_scheduled_closure(&thread_id_for_task, pool).await;
-
-                                let community_guild_id =
-                                    GuildId::new(config_clone.bot.get_community_guild_id());
-
-                                let user_still_member = community_guild_id
-                                    .member(&ctx_clone.http, user_id_clone)
-                                    .await
-                                    .is_ok();
-
-                                if !record.silent && user_still_member {
-                                    let _ =
-                                        MessageBuilder::system_message(&ctx_clone, &config_clone)
-                                            .content(&config_clone.bot.close_message)
-                                            .to_user(user_id_clone)
-                                            .send(true)
-                                            .await;
-                                }
-                                let _ = channel_id.delete(&ctx_clone.http).await;
-                            } else {
-                                let delay2 =
-                                    (record.close_at - Utc::now().timestamp()).max(1) as u64;
-                                let config_clone2 = config_clone.clone();
-                                let ctx_clone2 = ctx_clone.clone();
-                                let thread_id_again = thread_id_for_task.clone();
-
-                                tokio::spawn(async move {
-                                    sleep(Duration::from_secs(delay2)).await;
-                                    if let Some(pool2) = config_clone2.db_pool.as_ref() {
-                                        if let Ok(Some(r2)) =
-                                            get_scheduled_closure(&thread_id_again, pool2).await
-                                        {
-                                            if r2.close_at <= Utc::now().timestamp() {
-                                                let _ = close_thread(
-                                                    &thread_id_again,
-                                                    &r2.closed_by,
-                                                    &r2.category_id,
-                                                    &r2.category_name,
-                                                    r2.required_permissions
-                                                        .parse::<u64>()
-                                                        .unwrap_or(0),
-                                                    pool2,
-                                                )
-                                                .await;
-                                                let _ = delete_scheduled_closure(
-                                                    &thread_id_again,
-                                                    pool2,
-                                                )
-                                                .await;
-                                                let community_guild_id = GuildId::new(
-                                                    config_clone2.bot.get_community_guild_id(),
-                                                );
-                                                let user_still_member = community_guild_id
-                                                    .member(&ctx_clone2.http, user_id_clone)
-                                                    .await
-                                                    .is_ok();
-                                                if !r2.silent && user_still_member {
-                                                    let _ = MessageBuilder::system_message(
-                                                        &ctx_clone2,
-                                                        &config_clone2,
-                                                    )
-                                                    .content(&config_clone2.bot.close_message)
-                                                    .to_user(user_id_clone)
-                                                    .send(true)
-                                                    .await;
-                                                }
-                                                let _ = channel_id.delete(&ctx_clone2.http).await;
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
+                schedule_one(&ctx, &config, thread_id, close_at);
                 return Ok(());
             }
 

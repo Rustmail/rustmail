@@ -21,24 +21,29 @@ pub async fn anonreply(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    let content = extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
+    let mut content =
+        extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
+
+    if let Some(text) = &content {
+        if let Some(stripped) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
+            let snippet_key = stripped.trim();
+            match get_snippet_by_key(snippet_key, db_pool).await? {
+                Some(snippet) => {
+                    content = Some(snippet.content);
+                }
+                None => {
+                    return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                        snippet_key.to_string(),
+                    )));
+                }
+            }
+        }
+    }
+
     let intent = extract_intent(content, &msg.attachments).await;
 
     let Some(intent) = intent else {
-        MessageBuilder::system_message(&ctx, config)
-            .translated_content(
-                "reply.missing_content",
-                None,
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            )
-            .await
-            .color(0xFF0000)
-            .reply_to(msg.clone())
-            .send_and_forget()
-            .await;
-
-        return Err(validation_failed("Missing content"));
+        return Err(ModmailError::Message(MessageError::MessageEmpty));
     };
 
     let thread = fetch_thread(db_pool, &msg.channel_id.to_string()).await?;

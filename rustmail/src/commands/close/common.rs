@@ -1,12 +1,26 @@
 use std::time::Duration;
 
+pub fn format_duration(seconds: u64) -> String {
+    if seconds < 60 {
+        format!("{}s", seconds)
+    } else if seconds < 3600 {
+        format!("{}m", seconds / 60)
+    } else if seconds < 86400 {
+        format!("{}h{}m", seconds / 3600, (seconds % 3600) / 60)
+    } else {
+        format!("{}d{}h", seconds / 86400, (seconds % 86400) / 3600)
+    }
+}
+
 pub fn parse_duration_spec(spec: &str) -> Option<Duration> {
     if spec.is_empty() {
         return None;
     }
+
     let mut total: u64 = 0;
     let mut num: u64 = 0;
     let mut has_unit_segment = false;
+
     for ch in spec.chars() {
         if ch.is_ascii_digit() {
             let digit = ch.to_digit(10)? as u64;
@@ -24,13 +38,15 @@ pub fn parse_duration_spec(spec: &str) -> Option<Duration> {
             has_unit_segment = true;
         }
     }
+
     if num > 0 {
         if has_unit_segment {
             total = total.saturating_add(num);
         } else {
-            total = total.saturating_add(num * 60);
+            total = total.saturating_add(num);
         }
     }
+
     if total == 0 {
         None
     } else {

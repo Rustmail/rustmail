@@ -78,6 +78,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, "take", take);
         wrap_command!(lock, "release", release);
         wrap_command!(lock, "ping", ping);
+        wrap_command!(lock, "snippet", snippet_command);
 
         drop(lock);
         h
@@ -142,12 +143,50 @@ async fn manage_incoming_message(
 
             let channel_id = ChannelId::new(channel_id_num);
 
+            const MAX_ATTACHMENT_SIZE: u32 = 8 * 1024 * 1024;
+            for attachment in &msg.attachments {
+                if attachment.size > MAX_ATTACHMENT_SIZE {
+                    let _ = MessageBuilder::system_message(ctx, config)
+                        .translated_content(
+                            "discord.attachment_too_large",
+                            None,
+                            Some(msg.author.id),
+                            None,
+                        )
+                        .await
+                        .to_user(msg.author.id)
+                        .send(true)
+                        .await;
+
+                    drop(guard);
+                    return Ok(());
+                }
+            }
+
             if let Err(e) = send_to_thread(ctx, channel_id, msg, config, false).await {
                 let error = validation_failed(&format!("Failed to forward message: {}", e));
                 let _ = error_handler
                     .reply_to_msg_with_error(ctx, msg, &error)
                     .await;
                 return Err(error);
+            }
+
+            if let Ok(thread) = fetch_thread(pool, &channel_id_str).await {
+                if let Ok(existed) = delete_scheduled_closure(&thread.id, pool).await {
+                    if existed {
+                        let _ = MessageBuilder::system_message(ctx, config)
+                            .translated_content(
+                                "close.auto_canceled_on_message",
+                                None,
+                                Some(msg.author.id),
+                                None,
+                            )
+                            .await
+                            .to_channel(channel_id)
+                            .send(true)
+                            .await;
+                    }
+                }
             }
         }
     } else {

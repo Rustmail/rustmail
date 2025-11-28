@@ -59,7 +59,9 @@
         "redirect_url": "Redirect URL",
         "timezone": "Timezone",
         "logs_channel_id": "Logs Channel ID (optional)",
-        "features_channel_id": "Features Channel ID (optional)"
+        "features_channel_id": "Features Channel ID (optional)",
+        "ip": "Server IP Address",
+        "ip_help": "IP address for the API server (optional)"
       },
       "server_mode": {
         "type": "Mode Type",

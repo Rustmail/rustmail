@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id as \"id!\", key, content, created_by, created_at as \"created_at: String\", updated_at as \"updated_at: String\"\n        FROM snippets\n        WHERE key = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "key",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "content",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_by",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at: String",
+        "ordinal": 4,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "updated_at: String",
+        "ordinal": 5,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "68cdb069424b9fdd6468b28d8cdf9b5c2aa49cc2bb3ac886496adb0e220bf431"
+}

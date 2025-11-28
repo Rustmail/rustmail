@@ -25,5 +25,4 @@ pub struct BotState {
     pub db_pool: Option<sqlx::SqlitePool>,
     pub command_tx: tokio::sync::mpsc::Sender<BotCommand>,
     pub bot_http: Option<Arc<Http>>,
-    pub internal_token: String,
 }

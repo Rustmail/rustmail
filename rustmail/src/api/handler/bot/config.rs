@@ -75,8 +75,6 @@ pub async fn handle_update_config(
         new_bot_config.client_secret = current_config.bot.client_secret.clone();
     }
 
-    new_bot_config.ip = current_config.bot.ip.clone();
-
     let new_config = Config {
         bot: new_bot_config,
         command: update.command,

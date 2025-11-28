@@ -59,7 +59,9 @@
         "redirect_url": "URL de redirection",
         "timezone": "Fuseau horaire",
         "logs_channel_id": "ID du canal de logs (optionnel)",
-        "features_channel_id": "ID du canal de features (optionnel)"
+        "features_channel_id": "ID du canal de features (optionnel)",
+        "ip": "Adresse IP du serveur",
+        "ip_help": "Adresse IP pour le serveur API (optionnel)"
       },
       "server_mode": {
         "type": "Type de mode",

@@ -18,3 +18,13 @@ pub struct CreateTicket {
     pub discord_id: String,
     pub api_key: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Snippet {
+    pub id: i64,
+    pub key: String,
+    pub content: String,
+    pub created_by: String,
+    pub created_at: String,
+    pub updated_at: String,
+}

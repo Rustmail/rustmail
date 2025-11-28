@@ -5,8 +5,6 @@ use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::panel_commands::*;
 use crate::prelude::types::*;
-use base64::Engine;
-use rand::RngCore;
 use serenity::all::{ClientBuilder, GatewayIntents, ShardManager};
 use serenity::cache::Settings as CacheSettings;
 use serenity::prelude::TypeMapKey;
@@ -24,12 +22,8 @@ impl TypeMapKey for ShardManagerKey {
 }
 
 pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
-    let pool = init_database().await.expect("An error occured!");
+    let pool = init_database().await.expect("An error occurred!");
     println!("Database connected!");
-
-    let mut bytes = [0u8; 32];
-    rand::rng().fill_bytes(&mut bytes);
-    let token = base64::engine::general_purpose::STANDARD.encode(&bytes);
 
     let config = load_config("config.toml");
 
@@ -41,7 +35,6 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         db_pool: Some(pool),
         command_tx: command_tx.clone(),
         bot_http: None,
-        internal_token: token,
     };
 
     Arc::new(Mutex::new(bot_state))
@@ -144,6 +137,7 @@ pub async fn run_bot(
     registry.register_command(TakeCommand);
     registry.register_command(ReleaseCommand);
     registry.register_command(PingCommand);
+    registry.register_command(SnippetCommand);
 
     let registry = Arc::new(registry);
 
