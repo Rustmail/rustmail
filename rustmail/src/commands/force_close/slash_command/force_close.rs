@@ -4,6 +4,7 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::i18n::*;
+use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
@@ -82,11 +83,48 @@ impl RegistrableCommand for ForceCloseCommand {
                 }
             }
 
+            let thread = get_thread_by_channel_id(&command.channel_id.to_string(), db_pool).await;
+
             match is_orphaned_thread_channel(command.channel_id, db_pool).await {
                 Ok(res) => {
                     if !res {
                         return Err(ModmailError::Thread(ThreadError::UserStillInServer));
                     }
+
+                    if let Some(thread_info) = thread {
+                        if config.bot.enable_logs {
+                            if let Some(logs_channel_id) = config.bot.logs_channel_id {
+                                let base_url = config
+                                    .bot
+                                    .redirect_url
+                                    .trim_end_matches("/api/auth/callback")
+                                    .trim_end_matches('/');
+
+                                let panel_url =
+                                    format!("{}/panel/tickets/{}", base_url, thread_info.id);
+
+                                let mut params = std::collections::HashMap::new();
+                                params
+                                    .insert("username".to_string(), thread_info.user_name.clone());
+                                params
+                                    .insert("user_id".to_string(), thread_info.user_id.to_string());
+                                params.insert("panel_url".to_string(), panel_url);
+
+                                let _ = MessageBuilder::system_message(&ctx, &config)
+                                    .translated_content(
+                                        "logs.ticket_closed",
+                                        Some(&params),
+                                        Some(command.user.id),
+                                        command.guild_id.map(|g| g.get()),
+                                    )
+                                    .await
+                                    .to_channel(serenity::all::ChannelId::new(logs_channel_id))
+                                    .send(true)
+                                    .await;
+                            }
+                        }
+                    }
+
                     delete_channel(&ctx, command.channel_id).await
                 }
                 Err(..) => Err(ModmailError::Database(DatabaseError::QueryFailed(

@@ -661,6 +661,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Ce ticket sera fermé silencieusement dans {time}."),
     );
     dict.messages.insert(
+        "logs.ticket_closed".to_string(),
+        DictionaryMessage::new("Ticket fermé pour l'utilisateur **{username}** (ID: {user_id})\n[Voir le log sur le panel]({panel_url})"),
+    );
+    dict.messages.insert(
         "feature.not_implemented".to_string(),
         DictionaryMessage::new("Cette feature n'est pas encore implémentée."),
     );

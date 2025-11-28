@@ -362,6 +362,35 @@ impl RegistrableCommand for CloseCommand {
             .await?;
             let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
+            if config.bot.enable_logs {
+                if let Some(logs_channel_id) = config.bot.logs_channel_id {
+                    let base_url = config
+                        .bot
+                        .redirect_url
+                        .trim_end_matches("/api/auth/callback")
+                        .trim_end_matches('/');
+
+                    let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+
+                    let mut params = HashMap::new();
+                    params.insert("username".to_string(), thread.user_name.clone());
+                    params.insert("user_id".to_string(), thread.user_id.to_string());
+                    params.insert("panel_url".to_string(), panel_url);
+
+                    let _ = MessageBuilder::system_message(&ctx, &config)
+                        .translated_content(
+                            "logs.ticket_closed",
+                            Some(&params),
+                            Some(command.user.id),
+                            command.guild_id.map(|g| g.get()),
+                        )
+                        .await
+                        .to_channel(serenity::all::ChannelId::new(logs_channel_id))
+                        .send(true)
+                        .await;
+                }
+            }
+
             let _ = command.channel_id.delete(&ctx.http).await?;
 
             Ok(())
