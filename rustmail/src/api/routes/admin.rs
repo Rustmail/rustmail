@@ -6,12 +6,13 @@ use rustmail_types::api::panel_permissions::PanelPermission;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-pub fn create_apikeys_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<BotState>>> {
-    let apikeys_router = Router::new()
-        .route("/", post(create_api_key_handler))
-        .route("/", get(list_api_keys_handler))
-        .route("/{id}/revoke", post(revoke_api_key_handler))
-        .route("/{id}", delete(delete_api_key_handler))
+pub fn create_admin_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<BotState>>> {
+    let admin_router = Router::new()
+        .route("/members", get(handle_list_members))
+        .route("/roles", get(handle_list_roles))
+        .route("/permissions", get(handle_list_permissions))
+        .route("/permissions", post(handle_grant_permission))
+        .route("/permissions/{id}", delete(handle_revoke_permission))
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {
@@ -20,7 +21,7 @@ pub fn create_apikeys_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mute
                     jar,
                     req,
                     next,
-                    PanelPermission::ManageApiKeys,
+                    PanelPermission::ManagePermissions,
                 )
             },
         ))
@@ -29,5 +30,5 @@ pub fn create_apikeys_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mute
             auth_middleware,
         ));
 
-    apikeys_router
+    admin_router
 }

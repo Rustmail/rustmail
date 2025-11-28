@@ -1,5 +1,9 @@
+pub mod panel_permissions;
+
 use crate::config::*;
 use serde::{Deserialize, Serialize};
+
+pub use panel_permissions::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ConfigResponse {

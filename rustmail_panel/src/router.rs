@@ -1,3 +1,4 @@
+use crate::pages::administration::Administration;
 use crate::pages::error::Error;
 use crate::pages::home::Home;
 use crate::pages::panel::Panel;
@@ -12,6 +13,8 @@ pub enum Route {
     PanelRoot,
     #[at("/panel/*")]
     Panel,
+    #[at("/admin")]
+    Administration,
     #[at("/error")]
     Error,
     #[not_found]
@@ -23,6 +26,7 @@ pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
         Route::PanelRoot | Route::Panel => html! { <Panel /> },
+        Route::Administration => html! { <Administration /> },
         Route::Error => html! { <Error /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
     }

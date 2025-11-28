@@ -1,11 +1,13 @@
 use crate::components::language_switcher::LanguageSwitcher;
 use crate::pages::panel::PanelRoute;
+use crate::types::PanelPermission;
 use yew::{Callback, Html, Properties, classes, function_component, html, use_state};
 use yew_router::hooks::{use_location, use_navigator};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct RustmailNavbarProps {
     pub avatar_url: String,
+    pub permissions: Vec<PanelPermission>,
 }
 
 #[function_component(RustmailNavbar)]
@@ -33,6 +35,13 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
     let config_active = current_path == "/panel/configuration";
     let apikeys_active = current_path == "/panel/apikeys";
     let tickets_active = current_path.starts_with("/panel/tickets");
+    let admin_active = current_path == "/admin";
+
+    let has_view_panel = props.permissions.contains(&PanelPermission::ViewPanel);
+    let has_manage_config = props.permissions.contains(&PanelPermission::ManageConfig);
+    let has_manage_apikeys = props.permissions.contains(&PanelPermission::ManageApiKeys);
+    let has_manage_tickets = props.permissions.contains(&PanelPermission::ManageTickets);
+    let has_manage_permissions = props.permissions.contains(&PanelPermission::ManagePermissions);
 
     html! {
         <nav class="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-slate-900 to-black border-b border-slate-800">
@@ -50,81 +59,125 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                         </button>
 
                         <div class="hidden sm:flex space-x-4">
-                            <button
-                                onclick={{
-                                    let navigator = navigator.clone();
-                                    move |_| if let Some(nav) = &navigator {
-                                        nav.push(&PanelRoute::Home);
-                                    }
-                                }}
-                                class={classes!(
-                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                                    if home_active {
-                                        "bg-white/10 text-white"
-                                    } else {
-                                        "text-gray-300 hover:bg-white/10 hover:text-white"
-                                    }
-                                )}
-                            >
-                                {i18n.t("navbar.home")}
-                            </button>
+                            { if has_view_panel {
+                                html! {
+                                    <button
+                                        onclick={{
+                                            let navigator = navigator.clone();
+                                            move |_| if let Some(nav) = &navigator {
+                                                nav.push(&PanelRoute::Home);
+                                            }
+                                        }}
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if home_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {i18n.t("navbar.home")}
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }}
 
-                            <button
-                                onclick={{
-                                    let navigator = navigator.clone();
-                                    move |_| if let Some(nav) = &navigator {
-                                        nav.push(&PanelRoute::Configuration);
-                                    }
-                                }}
-                                class={classes!(
-                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                                    if config_active {
-                                        "bg-white/10 text-white"
-                                    } else {
-                                        "text-gray-300 hover:bg-white/10 hover:text-white"
-                                    }
-                                )}
-                            >
-                                {i18n.t("navbar.config")}
-                            </button>
+                            { if has_manage_config {
+                                html! {
+                                    <button
+                                        onclick={{
+                                            let navigator = navigator.clone();
+                                            move |_| if let Some(nav) = &navigator {
+                                                nav.push(&PanelRoute::Configuration);
+                                            }
+                                        }}
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if config_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {i18n.t("navbar.config")}
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }}
 
-                            <button
-                                onclick={{
-                                    let navigator = navigator.clone();
-                                    move |_| if let Some(nav) = &navigator {
-                                        nav.push(&PanelRoute::ApiKeys);
-                                    }
-                                }}
-                                class={classes!(
-                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                                    if apikeys_active {
-                                        "bg-white/10 text-white"
-                                    } else {
-                                        "text-gray-300 hover:bg-white/10 hover:text-white"
-                                    }
-                                )}
-                            >
-                                {i18n.t("navbar.apikeys")}
-                            </button>
+                            { if has_manage_apikeys {
+                                html! {
+                                    <button
+                                        onclick={{
+                                            let navigator = navigator.clone();
+                                            move |_| if let Some(nav) = &navigator {
+                                                nav.push(&PanelRoute::ApiKeys);
+                                            }
+                                        }}
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if apikeys_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {i18n.t("navbar.apikeys")}
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }}
 
-                            <button
-                                onclick={{
-                                    let navigator = navigator.clone();
-                                    move |_| if let Some(nav) = &navigator {
-                                        nav.push(&PanelRoute::TicketsList);
-                                    }
-                                }}
-                                class={classes!(
-                                    "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                                    if tickets_active {
-                                        "bg-white/10 text-white"
-                                    } else {
-                                        "text-gray-300 hover:bg-white/10 hover:text-white"
-                                    }
-                                )}
-                            >
-                                {i18n.t("navbar.tickets")}
-                            </button>
+                            { if has_manage_tickets {
+                                html! {
+                                    <button
+                                        onclick={{
+                                            let navigator = navigator.clone();
+                                            move |_| if let Some(nav) = &navigator {
+                                                nav.push(&PanelRoute::TicketsList);
+                                            }
+                                        }}
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if tickets_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {i18n.t("navbar.tickets")}
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }}
+
+                            { if has_manage_permissions {
+                                html! {
+                                    <a
+                                        href="/admin"
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if admin_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {"Administration"}
+                                    </a>
+                                }
+                            } else {
+                                html! {}
+                            }}
                         </div>
                     </div>
 
@@ -167,97 +220,141 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                 if *mobile_menu_open { "max-h-64 opacity-100" } else { "max-h-0 opacity-0" }
             )}>
                 <div class="px-2 pt-2 pb-3 space-y-1">
-                    <button
-                        onclick={{
-                            let navigator = navigator.clone();
-                            let mobile_menu_open = mobile_menu_open.clone();
-                            move |_| {
-                                if let Some(nav) = &navigator {
-                                    nav.push(&PanelRoute::Home);
-                                }
-                                mobile_menu_open.set(false);
-                            }
-                        }}
-                        class={classes!(
-                            "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                            if home_active {
-                                "bg-white/10 text-white"
-                            } else {
-                                "text-gray-300 hover:bg-white/10 hover:text-white"
-                            }
-                        )}
-                    >
-                        {i18n.t("navbar.home")}
-                    </button>
+                    { if has_view_panel {
+                        html! {
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        if let Some(nav) = &navigator {
+                                            nav.push(&PanelRoute::Home);
+                                        }
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if home_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.home")}
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
 
-                    <button
-                        onclick={{
-                            let navigator = navigator.clone();
-                            let mobile_menu_open = mobile_menu_open.clone();
-                            move |_| {
-                                if let Some(nav) = &navigator {
-                                    nav.push(&PanelRoute::Configuration);
-                                }
-                                mobile_menu_open.set(false);
-                            }
-                        }}
-                        class={classes!(
-                            "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                            if config_active {
-                                "bg-white/10 text-white"
-                            } else {
-                                "text-gray-300 hover:bg-white/10 hover:text-white"
-                            }
-                        )}
-                    >
-                        {i18n.t("navbar.config")}
-                    </button>
+                    { if has_manage_config {
+                        html! {
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        if let Some(nav) = &navigator {
+                                            nav.push(&PanelRoute::Configuration);
+                                        }
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if config_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.config")}
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
 
-                    <button
-                        onclick={{
-                            let navigator = navigator.clone();
-                            let mobile_menu_open = mobile_menu_open.clone();
-                            move |_| {
-                                if let Some(nav) = &navigator {
-                                    nav.push(&PanelRoute::ApiKeys);
-                                }
-                                mobile_menu_open.set(false);
-                            }
-                        }}
-                        class={classes!(
-                            "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                            if apikeys_active {
-                                "bg-white/10 text-white"
-                            } else {
-                                "text-gray-300 hover:bg-white/10 hover:text-white"
-                            }
-                        )}
-                    >
-                        {i18n.t("navbar.apikeys")}
-                    </button>
+                    { if has_manage_apikeys {
+                        html! {
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        if let Some(nav) = &navigator {
+                                            nav.push(&PanelRoute::ApiKeys);
+                                        }
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if apikeys_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.apikeys")}
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
 
-                    <button
-                        onclick={{
-                            let navigator = navigator.clone();
-                            let mobile_menu_open = mobile_menu_open.clone();
-                            move |_| {
-                                if let Some(nav) = &navigator {
-                                    nav.push(&PanelRoute::TicketsList);
-                                }
-                                mobile_menu_open.set(false);
-                            }
-                        }}
-                        class={classes!(
-                            "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
-                            if tickets_active {
-                                "bg-white/10 text-white"
-                            } else {
-                                "text-gray-300 hover:bg-white/10 hover:text-white"
-                            }
-                        )}
-                    >
-                        {i18n.t("navbar.tickets")}
-                    </button>
+                    { if has_manage_tickets {
+                        html! {
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        if let Some(nav) = &navigator {
+                                            nav.push(&PanelRoute::TicketsList);
+                                        }
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if tickets_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.tickets")}
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
+
+                    { if has_manage_permissions {
+                        html! {
+                            <a
+                                href="/admin"
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if admin_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {"Administration"}
+                            </a>
+                        }
+                    } else {
+                        html! {}
+                    }}
                 </div>
             </div>
         </nav>
