@@ -1,3 +1,5 @@
+use crate::components::forbidden::Forbidden403;
+use crate::types::PanelPermission;
 use gloo_net::http::Request;
 use i18nrs::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
@@ -17,6 +19,35 @@ pub fn configuration_page() -> Html {
     let save_message = use_state(|| None::<(bool, String)>);
 
     let expanded_sections = use_state(|| vec![true, false, false, false, false, false, false, false]);
+
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageConfig) {
+            return html! {
+                <Forbidden403 required_permission="Gérer la configuration" />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+            </div>
+        };
+    }
 
     {
         let bot_status = bot_status.clone();

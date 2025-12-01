@@ -1,3 +1,5 @@
+use crate::components::forbidden::Forbidden403;
+use crate::types::PanelPermission;
 use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
@@ -78,6 +80,35 @@ pub fn api_keys_page() -> Html {
     let error = use_state(|| None::<String>);
     let show_create_modal = use_state(|| false);
     let created_key = use_state(|| None::<String>);
+
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageApiKeys) {
+            return html! {
+                <Forbidden403 required_permission="Gérer les clés API" />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+            </div>
+        };
+    }
 
     {
         let api_keys = api_keys.clone();

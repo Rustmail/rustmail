@@ -1,3 +1,5 @@
+use crate::components::forbidden::Forbidden403;
+use crate::types::PanelPermission;
 use crate::utils::markdown::markdown_to_html_safe;
 use gloo_net::http::Request;
 use i18nrs::yew::use_translation;
@@ -127,6 +129,35 @@ pub fn tickets_list() -> Html {
     let page_size = use_state(|| 50i64);
     let total_pages = use_state(|| 1i64);
     let total_tickets = use_state(|| 0i64);
+
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageTickets) {
+            return html! {
+                <Forbidden403 required_permission="Gérer les tickets" />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+            </div>
+        };
+    }
 
     {
         let current_page = current_page.clone();
@@ -472,6 +503,35 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
     let show_staff = use_state(|| true);
     let show_system = use_state(|| true);
     let search_query = use_state(|| String::new());
+
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageTickets) {
+            return html! {
+                <Forbidden403 required_permission="Gérer les tickets" />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+            </div>
+        };
+    }
 
     {
         let id = props.id.clone();

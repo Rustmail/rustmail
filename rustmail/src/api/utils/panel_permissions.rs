@@ -4,8 +4,7 @@ use serenity::all::{GuildId, Http, UserId};
 use sqlx::{Pool, Row, Sqlite, query};
 use std::sync::Arc;
 
-pub fn get_panel_permissions_cache(
-) -> Arc<moka::future::Cache<String, Vec<PanelPermission>>> {
+pub fn get_panel_permissions_cache() -> Arc<moka::future::Cache<String, Vec<PanelPermission>>> {
     use std::sync::OnceLock;
     static CACHE: OnceLock<Arc<moka::future::Cache<String, Vec<PanelPermission>>>> =
         OnceLock::new();
@@ -41,11 +40,7 @@ pub async fn is_super_admin(
 
         if let Ok(member) = guild_id_obj.member(bot_http, user_id_obj).await {
             for role_id in &member.roles {
-                if config
-                    .bot
-                    .panel_super_admin_roles
-                    .contains(&role_id.get())
-                {
+                if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
                     return true;
                 }
             }
@@ -78,9 +73,7 @@ pub async fn get_user_panel_permissions(
             PanelPermission::ManageApiKeys,
             PanelPermission::ManagePermissions,
         ];
-        cache
-            .insert(user_id.to_string(), permissions.clone())
-            .await;
+        cache.insert(user_id.to_string(), permissions.clone()).await;
         return permissions;
     }
 
@@ -90,6 +83,8 @@ pub async fn get_user_panel_permissions(
             PanelPermission::ManageBot,
             PanelPermission::ManageConfig,
             PanelPermission::ManageTickets,
+            PanelPermission::ManageApiKeys,
+            PanelPermission::ManagePermissions,
         ];
     }
 
@@ -114,15 +109,32 @@ pub async fn get_user_panel_permissions(
     let user_id_num = match user_id.parse::<u64>() {
         Ok(id) => id,
         Err(_) => {
-            cache
-                .insert(user_id.to_string(), permissions.clone())
-                .await;
+            cache.insert(user_id.to_string(), permissions.clone()).await;
             return permissions;
         }
     };
 
     let guild_id_obj = GuildId::new(guild_id);
     let user_id_obj = UserId::new(user_id_num);
+
+    let everyone_role_id = guild_id.to_string();
+    if let Ok(rows) = query(
+        "SELECT permission FROM panel_permissions WHERE subject_type = 'role' AND subject_id = ?",
+    )
+    .bind(&everyone_role_id)
+    .fetch_all(db_pool)
+    .await
+    {
+        for row in rows {
+            if let Ok(perm_str) = row.try_get::<String, _>("permission") {
+                if let Some(perm) = PanelPermission::from_str(&perm_str) {
+                    if !permissions.contains(&perm) {
+                        permissions.push(perm);
+                    }
+                }
+            }
+        }
+    }
 
     if let Ok(member) = guild_id_obj.member(bot_http, user_id_obj).await {
         for role_id in &member.roles {
@@ -147,9 +159,7 @@ pub async fn get_user_panel_permissions(
         }
     }
 
-    cache
-        .insert(user_id.to_string(), permissions.clone())
-        .await;
+    cache.insert(user_id.to_string(), permissions.clone()).await;
     permissions
 }
 
