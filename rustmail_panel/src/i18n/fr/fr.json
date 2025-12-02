@@ -121,6 +121,9 @@
       "save": "Sauvegarder la Configuration",
       "save_help": "Un backup sera automatiquement créé avant la sauvegarde",
       "save_success": "Configuration sauvegardée !",
+      "reset": "Réinitialiser",
+      "unsaved_changes": "Modifications non sauvegardées",
+      "save_button": "Sauvegarder",
       "loading": "Chargement...",
       "load_error": "Impossible de charger la configuration",
       "restart_modal": {

@@ -121,6 +121,9 @@
       "save": "Save Configuration",
       "save_help": "A backup will be automatically created before saving",
       "save_success": "Configuration saved!",
+      "reset": "Reset",
+      "unsaved_changes": "Unsaved changes",
+      "save_button": "Save",
       "loading": "Loading...",
       "load_error": "Unable to load configuration",
       "restart_modal": {
