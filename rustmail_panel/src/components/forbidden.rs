@@ -1,4 +1,5 @@
 use crate::pages::panel::PanelRoute;
+use i18nrs::yew::use_translation;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -9,6 +10,7 @@ pub struct Forbidden403Props {
 
 #[function_component(Forbidden403)]
 pub fn forbidden_403(props: &Forbidden403Props) -> Html {
+    let (i18n, _set_language) = use_translation();
     let navigator = use_navigator().unwrap();
 
     let go_home = {
@@ -29,19 +31,19 @@ pub fn forbidden_403(props: &Forbidden403Props) -> Html {
                     </div>
                 </div>
 
-                <h1 class="text-3xl font-bold text-white mb-3">{"Accès refusé"}</h1>
+                <h1 class="text-3xl font-bold text-white mb-3">{i18n.t("panel.forbidden.title")}</h1>
 
                 <p class="text-gray-400 mb-2">
-                    {"Vous n'avez pas la permission nécessaire pour accéder à cette page."}
+                    {i18n.t("panel.forbidden.message")}
                 </p>
 
                 <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 mb-6">
-                    <p class="text-sm text-gray-500 mb-1">{"Permission requise :"}</p>
+                    <p class="text-sm text-gray-500 mb-1">{i18n.t("panel.forbidden.required_permission")}</p>
                     <p class="text-lg font-semibold text-red-400">{&props.required_permission}</p>
                 </div>
 
                 <p class="text-sm text-gray-500 mb-6">
-                    {"Contactez un administrateur si vous pensez que vous devriez avoir accès à cette section."}
+                    {i18n.t("panel.forbidden.help")}
                 </p>
 
                 <button
@@ -51,7 +53,7 @@ pub fn forbidden_403(props: &Forbidden403Props) -> Html {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    <span>{"Retour à l'accueil"}</span>
+                    <span>{i18n.t("panel.forbidden.back_home")}</span>
                 </button>
             </div>
         </div>

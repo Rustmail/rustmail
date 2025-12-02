@@ -2,6 +2,7 @@ use crate::components::forbidden::Forbidden403;
 use crate::components::navbar::RustmailNavbar;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
+use i18nrs::yew::use_translation;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -40,6 +41,7 @@ pub struct UserAvatar {
 
 #[function_component(Administration)]
 pub fn administration() -> Html {
+    let (i18n, _set_language) = use_translation();
     let members = use_state(|| Vec::<Member>::new());
     let roles = use_state(|| Vec::<Role>::new());
     let permissions = use_state(|| Vec::<PermissionEntry>::new());
@@ -92,7 +94,7 @@ pub fn administration() -> Html {
                 <RustmailNavbar avatar_url={avatar_url.clone()} permissions={vec![]} />
                 <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
                     <div class="flex items-center justify-center min-h-[70vh]">
-                        <div class="text-gray-400 text-lg animate-pulse">{"Vérification des permissions..."}</div>
+                        <div class="text-gray-400 text-lg animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
                     </div>
                 </section>
             </>
@@ -104,7 +106,7 @@ pub fn administration() -> Html {
             <>
                 <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.as_ref().unwrap().clone()} />
                 <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                    <Forbidden403 required_permission="Gérer les permissions" />
+                    <Forbidden403 required_permission={i18n.t("navbar.administration")} />
                 </section>
             </>
         };
@@ -181,7 +183,7 @@ pub fn administration() -> Html {
                                 <div class="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
                                 <div class="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
                             </div>
-                            <p class="mt-6 text-gray-400 text-lg font-medium animate-pulse">{"Chargement des données..."}</p>
+                            <p class="mt-6 text-gray-400 text-lg font-medium animate-pulse">{i18n.t("panel.administration.loading")}</p>
                             <div class="mt-4 flex space-x-2">
                                 <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
                                 <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
@@ -193,8 +195,8 @@ pub fn administration() -> Html {
                     html! {
                         <div class="container mx-auto p-6 max-w-7xl">
                             <div class="mb-8">
-                                <h1 class="text-4xl font-bold text-white mb-2">{"Administration du Panel"}</h1>
-                                <p class="text-gray-400">{"Gérez les permissions d'accès au panel pour les membres et les rôles de votre serveur"}</p>
+                                <h1 class="text-4xl font-bold text-white mb-2">{i18n.t("panel.administration.title")}</h1>
+                                <p class="text-gray-400">{i18n.t("panel.administration.description")}</p>
                             </div>
 
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl p-8 border border-slate-700 mb-8">
@@ -215,10 +217,10 @@ pub fn administration() -> Html {
                         </div>
                         <div>
                             <h2 class="text-2xl font-bold text-white">
-                                {if editing_id.is_some() { "Modifier la permission" } else { "Accorder une permission" }}
+                                {i18n.t("panel.administration.grant_permission")}
                             </h2>
                             <p class="text-gray-400 text-sm">
-                                {if editing_id.is_some() { "Modifiez la permission sélectionnée" } else { "Ajoutez une nouvelle permission à un utilisateur ou un rôle" }}
+                                {i18n.t("panel.administration.description")}
                             </p>
                         </div>
                     </div>
@@ -239,7 +241,7 @@ pub fn administration() -> Html {
                                 }}
                                 class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
                             >
-                                {"Annuler"}
+                                {i18n.t("panel.administration.cancel")}
                             </button>
                         }
                     } else {
@@ -249,7 +251,7 @@ pub fn administration() -> Html {
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-2">{"Type de sujet"}</label>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">{i18n.t("panel.administration.subject_type")}</label>
                         <select
                             class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                             value={(*selected_subject_type).clone()}
@@ -265,14 +267,14 @@ pub fn administration() -> Html {
                                 })
                             }}
                         >
-                            <option value="user">{"👤 Utilisateur"}</option>
-                            <option value="role">{"🏷️ Rôle"}</option>
+                            <option value="user">{format!("👤 {}", i18n.t("panel.administration.user"))}</option>
+                            <option value="role">{format!("🏷️ {}", i18n.t("panel.administration.role"))}</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-300 mb-2">
-                            {if *selected_subject_type == "user" { "Membre" } else { "Rôle" }}
+                            {if *selected_subject_type == "user" { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
                         </label>
                         <select
                             class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -287,7 +289,7 @@ pub fn administration() -> Html {
                                 })
                             }}
                         >
-                            <option value="">{"Sélectionner..."}</option>
+                            <option value="">{if *selected_subject_type == "user" { i18n.t("panel.administration.select_user") } else { i18n.t("panel.administration.select_role") }}</option>
                             {if *selected_subject_type == "user" {
                                 members.iter().map(|member| html! {
                                     <option key={member.user_id.clone()} value={member.user_id.clone()}>
@@ -306,16 +308,17 @@ pub fn administration() -> Html {
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-3">{"Permissions à accorder"}</label>
+                        <label class="block text-sm font-semibold text-gray-300 mb-3">{i18n.t("panel.administration.select_permissions")}</label>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {[
-                                ("view_panel", "Voir le Panel"),
-                                ("manage_bot", "Gérer le Bot"),
-                                ("manage_config", "Gérer la Config"),
-                                ("manage_tickets", "Gérer les Tickets"),
-                                ("manage_api_keys", "Gérer les API Keys"),
-                                ("manage_permissions", "Gérer les Permissions"),
-                            ].iter().map(|(value, label)| {
+                            {
+                                vec![
+                                    ("view_panel", i18n.t("panel.administration.permissions.view_panel")),
+                                    ("manage_bot", i18n.t("panel.administration.permissions.manage_bot")),
+                                    ("manage_config", i18n.t("panel.administration.permissions.manage_config")),
+                                    ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
+                                    ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
+                                    ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
+                                ].iter().map(|(value, label)| {
                                 let is_checked = selected_permissions.contains(&value.to_string());
                                 let selected_permissions_clone = selected_permissions.clone();
                                 let value_str = value.to_string();
@@ -355,7 +358,8 @@ pub fn administration() -> Html {
                                         <span class="ml-2 text-sm font-medium text-gray-200">{label}</span>
                                     </label>
                                 }
-                            }).collect::<Html>()}
+                            }).collect::<Html>()
+                            }
                         </div>
                     </div>
 
@@ -455,17 +459,10 @@ pub fn administration() -> Html {
                             </svg>
                             <span>
                                 {
-                                    if editing_id.is_some() {
-                                        "Enregistrer".to_string()
+                                    if (*selected_permissions).is_empty() {
+                                        i18n.t("panel.administration.grant_button")
                                     } else {
-                                        let count = (*selected_permissions).len();
-                                        if count == 0 {
-                                            "Accorder".to_string()
-                                        } else if count == 1 {
-                                            "Accorder 1 permission".to_string()
-                                        } else {
-                                            format!("Accorder {} permissions", count)
-                                        }
+                                        i18n.t("panel.administration.grant_button_count").replace("{count}", &(*selected_permissions).len().to_string())
                                     }
                                 }
                             </span>
@@ -483,8 +480,8 @@ pub fn administration() -> Html {
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-white">{"Permissions actives"}</h2>
-                            <p class="text-gray-400 text-sm">{format!("{} permission(s) configurée(s)", permissions.len())}</p>
+                            <h2 class="text-2xl font-bold text-white">{i18n.t("panel.administration.active_permissions")}</h2>
+                            <p class="text-gray-400 text-sm">{format!("{} permission(s)", permissions.len())}</p>
                         </div>
                     </div>
                 </div>
@@ -495,8 +492,8 @@ pub fn administration() -> Html {
                                 <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                 </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-300">{"Aucune permission"}</h3>
-                                <p class="mt-1 text-sm text-gray-500">{"Commencez par accorder une permission à un utilisateur ou un rôle"}</p>
+                                <h3 class="mt-2 text-sm font-medium text-gray-300">{i18n.t("panel.administration.no_permissions")}</h3>
+                                <p class="mt-1 text-sm text-gray-500">{i18n.t("panel.administration.description")}</p>
                             </div>
                         }
                     } else {
@@ -515,12 +512,12 @@ pub fn administration() -> Html {
                                         false
                                     };
                                     let all_perms = vec![
-                                        ("view_panel", "📊 Voir le Panel"),
-                                        ("manage_bot", "🤖 Gérer le Bot"),
-                                        ("manage_config", "⚙️ Gérer la Config"),
-                                        ("manage_tickets", "🎫 Gérer les Tickets"),
-                                        ("manage_api_keys", "🔑 Gérer les API Keys"),
-                                        ("manage_permissions", "🔐 Gérer les Permissions"),
+                                        ("view_panel", i18n.t("panel.administration.permissions.view_panel")),
+                                        ("manage_bot", i18n.t("panel.administration.permissions.manage_bot")),
+                                        ("manage_config", i18n.t("panel.administration.permissions.manage_config")),
+                                        ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
+                                        ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
+                                        ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
                                     ];
                                     let current_perms: Vec<String> = perms_list.iter().map(|(_, p)| {
                                         match p {
@@ -555,7 +552,7 @@ pub fn administration() -> Html {
                                                     <div class="flex items-center space-x-2 mb-3">
                                                         <span class="font-bold text-white text-lg">{subject_display}</span>
                                                         <span class="px-2 py-0.5 text-xs rounded-full bg-slate-700 text-gray-300">
-                                                            {if is_user { "Utilisateur" } else { "Rôle" }}
+                                                            {if is_user { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
                                                         </span>
                                                     </div>
                                                     <div class="flex flex-wrap gap-2">
@@ -596,7 +593,7 @@ pub fn administration() -> Html {
                                                                         html! {
                                                                             <div class="w-full mt-2 p-3 bg-slate-900/80 rounded-lg border border-slate-600">
                                                                                 <div class="flex items-center justify-between mb-2">
-                                                                                    <span class="text-sm font-semibold text-gray-300">{"Ajouter des permissions"}</span>
+                                                                                    <span class="text-sm font-semibold text-gray-300">{i18n.t("panel.administration.available_permissions")}</span>
                                                                                     <button
                                                                                         onclick={{
                                                                                             let adding_to_subject = adding_to_subject.clone();
@@ -679,7 +676,7 @@ pub fn administration() -> Html {
                                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                                                 </svg>
-                                                                                <span>{"Ajouter"}</span>
+                                                                                <span>{i18n.t("panel.administration.add")}</span>
                                                                             </button>
                                                                         }
                                                                     }}
@@ -717,7 +714,7 @@ pub fn administration() -> Html {
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                             </svg>
-                                                            <span>{"Tout retirer"}</span>
+                                                            <span>{i18n.t("panel.administration.remove_all")}</span>
                                                         </button>
                                                     </div>
                                                 </div>

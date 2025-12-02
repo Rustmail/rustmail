@@ -148,13 +148,13 @@ pub fn tickets_list() -> Html {
     if let Some(perms) = (*permissions).as_ref() {
         if !perms.contains(&PanelPermission::ManageTickets) {
             return html! {
-                <Forbidden403 required_permission="Gérer les tickets" />
+                <Forbidden403 required_permission={i18n.t("navbar.tickets")} />
             };
         }
     } else {
         return html! {
             <div class="flex items-center justify-center min-h-[70vh]">
-                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+                <div class="text-gray-400 animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
             </div>
         };
     }
@@ -522,13 +522,13 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
     if let Some(perms) = (*permissions).as_ref() {
         if !perms.contains(&PanelPermission::ManageTickets) {
             return html! {
-                <Forbidden403 required_permission="Gérer les tickets" />
+                <Forbidden403 required_permission={i18n.t("navbar.tickets")} />
             };
         }
     } else {
         return html! {
             <div class="flex items-center justify-center min-h-[70vh]">
-                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+                <div class="text-gray-400 animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
             </div>
         };
     }

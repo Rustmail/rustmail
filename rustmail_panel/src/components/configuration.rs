@@ -38,13 +38,13 @@ pub fn configuration_page() -> Html {
     if let Some(perms) = (*permissions).as_ref() {
         if !perms.contains(&PanelPermission::ManageConfig) {
             return html! {
-                <Forbidden403 required_permission="Gérer la configuration" />
+                <Forbidden403 required_permission={i18n.t("panel.configuration.title")} />
             };
         }
     } else {
         return html! {
             <div class="flex items-center justify-center min-h-[70vh]">
-                <div class="text-gray-400 animate-pulse">{"Vérification des permissions..."}</div>
+                <div class="text-gray-400 animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
             </div>
         };
     }
@@ -879,6 +879,58 @@ fn bot_section(props: &BotSectionProps) -> Html {
                     })
                 }}
             />
+
+            <div>
+                <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.bot.super_admin_users")}</label>
+                <input
+                    type="text"
+                    value={config.bot.panel_super_admin_users.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(", ")}
+                    placeholder="123456789, 987654321"
+                    oninput={{
+                        let config = config.clone();
+                        move |e: InputEvent| {
+                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                let mut cfg = (*config).clone();
+                                cfg.bot.panel_super_admin_users = input.value()
+                                    .split(',')
+                                    .map(|s| s.trim())
+                                    .filter(|s| !s.is_empty())
+                                    .filter_map(|s| s.parse::<u64>().ok())
+                                    .collect();
+                                config.set(cfg);
+                            }
+                        }
+                    }}
+                    class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.bot.super_admin_users_help")}</p>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.bot.super_admin_roles")}</label>
+                <input
+                    type="text"
+                    value={config.bot.panel_super_admin_roles.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(", ")}
+                    placeholder="123456789, 987654321"
+                    oninput={{
+                        let config = config.clone();
+                        move |e: InputEvent| {
+                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                let mut cfg = (*config).clone();
+                                cfg.bot.panel_super_admin_roles = input.value()
+                                    .split(',')
+                                    .map(|s| s.trim())
+                                    .filter(|s| !s.is_empty())
+                                    .filter_map(|s| s.parse::<u64>().ok())
+                                    .collect();
+                                config.set(cfg);
+                            }
+                        }
+                    }}
+                    class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.bot.super_admin_roles_help")}</p>
+            </div>
         </div>
     }
 }
