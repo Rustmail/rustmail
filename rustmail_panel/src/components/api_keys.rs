@@ -1,4 +1,7 @@
+use crate::components::forbidden::Forbidden403;
+use crate::types::PanelPermission;
 use gloo_net::http::Request;
+use i18nrs::yew::use_translation;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
@@ -73,16 +76,47 @@ pub struct CreateApiKeyResponse {
 
 #[function_component(ApiKeysPage)]
 pub fn api_keys_page() -> Html {
+    let (i18n, _set_language) = use_translation();
     let api_keys = use_state(|| Vec::<ApiKeyListItem>::new());
     let loading = use_state(|| true);
     let error = use_state(|| None::<String>);
     let show_create_modal = use_state(|| false);
     let created_key = use_state(|| None::<String>);
 
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageApiKeys) {
+            return html! {
+                <Forbidden403 required_permission={i18n.t("navbar.apikeys")} />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
+            </div>
+        };
+    }
+
     {
         let api_keys = api_keys.clone();
         let loading = loading.clone();
         let error = error.clone();
+        let i18n_clone = i18n.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
@@ -94,14 +128,14 @@ pub fn api_keys_page() -> Html {
                                 api_keys.set(keys);
                                 error.set(None);
                             } else {
-                                error.set(Some("Failed to parse API keys".to_string()));
+                                error.set(Some(i18n_clone.t("panel.apikeys.error_parse")));
                             }
                         } else {
-                            error.set(Some(format!("Failed to load API keys: {}", resp.status())));
+                            error.set(Some(format!("{}: {}", i18n_clone.t("panel.apikeys.error_load"), resp.status())));
                         }
                     }
                     Err(e) => {
-                        error.set(Some(format!("Network error: {:?}", e)));
+                        error.set(Some(format!("{}: {:?}", i18n_clone.t("panel.apikeys.error_network"), e)));
                     }
                 }
                 loading.set(false);
@@ -168,12 +202,12 @@ pub fn api_keys_page() -> Html {
     html! {
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h1 class="text-3xl font-bold text-white">{"API Keys"}</h1>
+                <h1 class="text-3xl font-bold text-white">{i18n.t("panel.apikeys.title")}</h1>
                 <button
                     onclick={on_create_click}
                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
                 >
-                    {"+ Create API Key"}
+                    {i18n.t("panel.apikeys.create")}
                 </button>
             </div>
 
@@ -181,7 +215,7 @@ pub fn api_keys_page() -> Html {
                 if *loading {
                     html! {
                         <div class="text-center text-gray-400 py-8">
-                            <p class="animate-pulse">{"Loading..."}</p>
+                            <p class="animate-pulse">{i18n.t("panel.apikeys.loading")}</p>
                         </div>
                     }
                 } else if let Some(err) = (*error).clone() {
@@ -193,7 +227,7 @@ pub fn api_keys_page() -> Html {
                 } else if api_keys.is_empty() {
                     html! {
                         <div class="bg-slate-800 rounded-lg p-8 text-center">
-                            <p class="text-gray-400">{"No API keys found. Create your first one!"}</p>
+                            <p class="text-gray-400">{i18n.t("panel.apikeys.no_keys")}</p>
                         </div>
                     }
                 } else {
@@ -242,16 +276,17 @@ pub struct ApiKeyCardProps {
 
 #[function_component(ApiKeyCard)]
 fn api_key_card(props: &ApiKeyCardProps) -> Html {
+    let (i18n, _set_language) = use_translation();
     let key = &props.api_key;
     let created_date = chrono::DateTime::from_timestamp(key.created_at, 0)
         .map(|dt| dt.format("%Y-%m-%d %H:%M").to_string())
-        .unwrap_or_else(|| "Unknown".to_string());
+        .unwrap_or_else(|| i18n.t("panel.apikeys.unknown"));
 
     let last_used = key
         .last_used_at
         .and_then(|ts| chrono::DateTime::from_timestamp(ts, 0))
         .map(|dt| dt.format("%Y-%m-%d %H:%M").to_string())
-        .unwrap_or_else(|| "Never".to_string());
+        .unwrap_or_else(|| i18n.t("panel.apikeys.never"));
 
     html! {
         <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
@@ -266,20 +301,20 @@ fn api_key_card(props: &ApiKeyCardProps) -> Html {
                             html! {
                                 <>
                                     <span class="px-3 py-1 bg-green-900/30 border border-green-500 text-green-200 rounded-full text-sm">
-                                        {"Active"}
+                                        {i18n.t("panel.apikeys.active")}
                                     </span>
                                     <button
                                         onclick={props.on_revoke.reform(|_| ())}
                                         class="px-3 py-1 bg-red-900/30 border border-red-500 text-red-200 hover:bg-red-900/50 rounded-md text-sm transition"
                                     >
-                                        {"Revoke"}
+                                        {i18n.t("panel.apikeys.revoke")}
                                     </button>
                                 </>
                             }
                         } else {
                             html! {
                                 <span class="px-3 py-1 bg-gray-900/30 border border-gray-500 text-gray-400 rounded-full text-sm">
-                                    {"Revoked"}
+                                    {i18n.t("panel.apikeys.revoked")}
                                 </span>
                             }
                         }
@@ -299,8 +334,8 @@ fn api_key_card(props: &ApiKeyCardProps) -> Html {
                         }).collect::<Html>()
                     }
                 </div>
-                <p class="text-gray-400">{"Created: "}{created_date}</p>
-                <p class="text-gray-400">{"Last used: "}{last_used}</p>
+                <p class="text-gray-400">{i18n.t("panel.apikeys.created")}{" "}{created_date}</p>
+                <p class="text-gray-400">{i18n.t("panel.apikeys.last_used")}{" "}{last_used}</p>
             </div>
         </div>
     }
@@ -315,6 +350,7 @@ pub struct CreateApiKeyModalProps {
 
 #[function_component(CreateApiKeyModal)]
 fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
+    let (i18n, _set_language) = use_translation();
     let name_ref = use_node_ref();
     let selected_permissions = use_state(|| Vec::<Permission>::new());
     let creating = use_state(|| false);
@@ -339,6 +375,7 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
         let creating = creating.clone();
         let error = error.clone();
         let on_created = props.on_created.clone();
+        let i18n_clone = i18n.clone();
 
         Callback::from(move |_| {
             let name = name_ref
@@ -347,12 +384,12 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                 .unwrap_or_default();
 
             if name.trim().is_empty() {
-                error.set(Some("Name is required".to_string()));
+                error.set(Some(i18n_clone.t("panel.apikeys.modal.error_name_required")));
                 return;
             }
 
             if selected_permissions.is_empty() {
-                error.set(Some("At least one permission is required".to_string()));
+                error.set(Some(i18n_clone.t("panel.apikeys.modal.error_permission_required")));
                 return;
             }
 
@@ -365,6 +402,7 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
             let creating = creating.clone();
             let error = error.clone();
             let on_created = on_created.clone();
+            let i18n_clone2 = i18n_clone.clone();
 
             creating.set(true);
             spawn_local(async move {
@@ -380,14 +418,14 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                                 on_created.emit(response.api_key);
                                 error.set(None);
                             } else {
-                                error.set(Some("Failed to parse response".to_string()));
+                                error.set(Some(i18n_clone2.t("panel.apikeys.modal.error_parse_response")));
                             }
                         } else {
-                            error.set(Some(format!("Failed to create key: {}", resp.status())));
+                            error.set(Some(format!("{}: {}", i18n_clone2.t("panel.apikeys.modal.error_create"), resp.status())));
                         }
                     }
                     Err(e) => {
-                        error.set(Some(format!("Network error: {:?}", e)));
+                        error.set(Some(format!("{}: {:?}", i18n_clone2.t("panel.apikeys.error_network"), e)));
                     }
                 }
                 creating.set(false);
@@ -403,27 +441,27 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                         if let Some(key) = &props.created_key {
                             html! {
                                 <>
-                                    <h2 class="text-2xl font-bold text-white">{"API Key Created!"}</h2>
+                                    <h2 class="text-2xl font-bold text-white">{i18n.t("panel.apikeys.modal.title_created")}</h2>
                                     <div class="bg-yellow-900/20 border border-yellow-500 text-yellow-200 p-4 rounded-md">
-                                        <p class="font-semibold mb-2">{"⚠️ Important: Save this key now!"}</p>
-                                        <p class="text-sm">{"You won't be able to see it again."}</p>
+                                        <p class="font-semibold mb-2">{i18n.t("panel.apikeys.modal.warning_title")}</p>
+                                        <p class="text-sm">{i18n.t("panel.apikeys.modal.warning_message")}</p>
                                     </div>
                                     <div class="bg-slate-900 p-4 rounded-md">
-                                        <p class="text-xs text-gray-400 mb-2">{"Your API Key:"}</p>
+                                        <p class="text-xs text-gray-400 mb-2">{i18n.t("panel.apikeys.modal.your_key")}</p>
                                         <code class="text-green-400 font-mono text-sm break-all">{key}</code>
                                     </div>
                                     <button
                                         onclick={props.on_close.reform(|_| ())}
                                         class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
                                     >
-                                        {"Close"}
+                                        {i18n.t("panel.apikeys.modal.close")}
                                     </button>
                                 </>
                             }
                         } else {
                             html! {
                                 <>
-                                    <h2 class="text-2xl font-bold text-white">{"Create API Key"}</h2>
+                                    <h2 class="text-2xl font-bold text-white">{i18n.t("panel.apikeys.modal.title_create")}</h2>
 
                                     {
                                         if let Some(err) = (*error).clone() {
@@ -438,17 +476,17 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                                     }
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-2">{"Name"}</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-2">{i18n.t("panel.apikeys.modal.name")}</label>
                                         <input
                                             ref={name_ref}
                                             type="text"
-                                            placeholder="My API Key"
+                                            placeholder={i18n.t("panel.apikeys.modal.name_placeholder")}
                                             class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-2">{"Permissions"}</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-2">{i18n.t("panel.apikeys.modal.permissions")}</label>
                                         <div class="space-y-2">
                                             {
                                                 Permission::all().iter().map(|perm| {
@@ -477,14 +515,14 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                                             disabled={*creating}
                                             class="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md transition disabled:opacity-50"
                                         >
-                                            {"Cancel"}
+                                            {i18n.t("panel.apikeys.modal.cancel")}
                                         </button>
                                         <button
                                             onclick={on_create}
                                             disabled={*creating}
                                             class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition disabled:opacity-50"
                                         >
-                                            {if *creating { "Creating..." } else { "Create" }}
+                                            {if *creating { i18n.t("panel.apikeys.modal.creating") } else { i18n.t("panel.apikeys.modal.create_button") }}
                                         </button>
                                     </div>
                                 </>

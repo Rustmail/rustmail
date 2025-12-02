@@ -28,6 +28,10 @@ pub struct BotConfig {
     pub features_channel_id: Option<u64>,
     #[serde(default)]
     pub ip: Option<String>,
+    #[serde(default)]
+    pub panel_super_admin_users: Vec<u64>,
+    #[serde(default)]
+    pub panel_super_admin_roles: Vec<u64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]

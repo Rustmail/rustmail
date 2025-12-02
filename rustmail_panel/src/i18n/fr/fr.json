@@ -12,6 +12,7 @@
     "config": "Configuration",
     "apikeys": "Clés API",
     "tickets": "Tickets",
+    "administration": "Administration",
     "logout": "Se déconnecter"
   },
   "panel": {
@@ -61,7 +62,11 @@
         "logs_channel_id": "ID du canal de logs (optionnel)",
         "features_channel_id": "ID du canal de features (optionnel)",
         "ip": "Adresse IP du serveur",
-        "ip_help": "Adresse IP pour le serveur API (optionnel)"
+        "ip_help": "Adresse IP pour le serveur API (optionnel)",
+        "super_admin_users": "Super Admin Users (IDs)",
+        "super_admin_users_help": "Liste d'IDs Discord séparés par des virgules. Ces utilisateurs auront tous les accès au panel.",
+        "super_admin_roles": "Super Admin Roles (IDs)",
+        "super_admin_roles_help": "Liste d'IDs de rôles Discord séparés par des virgules. Les membres ayant ces rôles auront tous les accès au panel."
       },
       "server_mode": {
         "type": "Type de mode",
@@ -162,6 +167,79 @@
       "filter_system": "Système",
       "no_messages": "Aucun message à afficher avec les filtres sélectionnés",
       "tickets_per_page": "Tickets par page"
+    },
+    "apikeys": {
+      "title": "Clés API",
+      "create": "+ Créer une clé API",
+      "loading": "Chargement...",
+      "error_parse": "Échec de l'analyse des clés API",
+      "error_load": "Échec du chargement des clés API",
+      "error_network": "Erreur réseau",
+      "no_keys": "Aucune clé API trouvée. Créez-en une !",
+      "active": "Active",
+      "revoked": "Révoquée",
+      "revoke": "Révoquer",
+      "created": "Créée :",
+      "last_used": "Dernière utilisation :",
+      "never": "Jamais",
+      "unknown": "Inconnu",
+      "modal": {
+        "title_created": "Clé API créée !",
+        "warning_title": "⚠️ Important : Sauvegardez cette clé maintenant !",
+        "warning_message": "Vous ne pourrez plus la voir.",
+        "your_key": "Votre clé API :",
+        "close": "Fermer",
+        "title_create": "Créer une clé API",
+        "name": "Nom",
+        "name_placeholder": "Ma clé API",
+        "permissions": "Permissions",
+        "cancel": "Annuler",
+        "create_button": "Créer",
+        "creating": "Création...",
+        "error_name_required": "Le nom est requis",
+        "error_permission_required": "Au moins une permission est requise",
+        "error_parse_response": "Échec de l'analyse de la réponse",
+        "error_create": "Échec de la création de la clé"
+      }
+    },
+    "administration": {
+      "title": "Administration",
+      "description": "Gérez les permissions d'accès au panel",
+      "loading": "Chargement...",
+      "grant_permission": "Accorder une permission",
+      "subject_type": "Type de sujet",
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "select_user": "Sélectionner un utilisateur",
+      "select_role": "Sélectionner un rôle",
+      "select_permissions": "Sélectionner les permissions",
+      "grant_button": "Accorder",
+      "grant_button_count": "Accorder {count} permissions",
+      "granting": "Attribution...",
+      "active_permissions": "Permissions actives",
+      "no_permissions": "Aucune permission active",
+      "add": "Ajouter",
+      "remove_all": "Tout retirer",
+      "removing": "Suppression...",
+      "available_permissions": "Permissions disponibles",
+      "close": "Fermer",
+      "cancel": "Annuler",
+      "permissions": {
+        "view_panel": "Voir le Panel",
+        "manage_bot": "Gérer le Bot",
+        "manage_config": "Gérer la Config",
+        "manage_tickets": "Gérer les Tickets",
+        "manage_api_keys": "Gérer les Clés API",
+        "manage_permissions": "Gérer les Permissions"
+      }
+    },
+    "forbidden": {
+      "title": "Accès refusé",
+      "message": "Vous n'avez pas la permission nécessaire pour accéder à cette page.",
+      "required_permission": "Permission requise :",
+      "help": "Contactez un administrateur si vous pensez que vous devriez avoir accès à cette section.",
+      "back_home": "Retour à l'accueil",
+      "checking_permissions": "Vérification des permissions..."
     }
   }
 }

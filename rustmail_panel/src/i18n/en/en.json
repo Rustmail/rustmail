@@ -12,6 +12,7 @@
     "config": "Configuration",
     "apikeys": "API Keys",
     "tickets": "Tickets",
+    "administration": "Administration",
     "logout": "Logout"
   },
   "panel": {
@@ -61,7 +62,11 @@
         "logs_channel_id": "Logs Channel ID (optional)",
         "features_channel_id": "Features Channel ID (optional)",
         "ip": "Server IP Address",
-        "ip_help": "IP address for the API server (optional)"
+        "ip_help": "IP address for the API server (optional)",
+        "super_admin_users": "Super Admin Users (IDs)",
+        "super_admin_users_help": "Comma-separated list of Discord user IDs. These users will have full access to the panel.",
+        "super_admin_roles": "Super Admin Roles (IDs)",
+        "super_admin_roles_help": "Comma-separated list of Discord role IDs. Members with these roles will have full access to the panel."
       },
       "server_mode": {
         "type": "Mode Type",
@@ -162,6 +167,79 @@
       "filter_system": "System",
       "tickets_per_page": "Tickets per page",
       "no_messages": "No messages to display with selected filters"
+    },
+    "apikeys": {
+      "title": "API Keys",
+      "create": "+ Create API Key",
+      "loading": "Loading...",
+      "error_parse": "Failed to parse API keys",
+      "error_load": "Failed to load API keys",
+      "error_network": "Network error",
+      "no_keys": "No API keys found. Create your first one!",
+      "active": "Active",
+      "revoked": "Revoked",
+      "revoke": "Revoke",
+      "created": "Created:",
+      "last_used": "Last used:",
+      "never": "Never",
+      "unknown": "Unknown",
+      "modal": {
+        "title_created": "API Key Created!",
+        "warning_title": "⚠️ Important: Save this key now!",
+        "warning_message": "You won't be able to see it again.",
+        "your_key": "Your API Key:",
+        "close": "Close",
+        "title_create": "Create API Key",
+        "name": "Name",
+        "name_placeholder": "My API Key",
+        "permissions": "Permissions",
+        "cancel": "Cancel",
+        "create_button": "Create",
+        "creating": "Creating...",
+        "error_name_required": "Name is required",
+        "error_permission_required": "At least one permission is required",
+        "error_parse_response": "Failed to parse response",
+        "error_create": "Failed to create key"
+      }
+    },
+    "administration": {
+      "title": "Administration",
+      "description": "Manage panel access permissions",
+      "loading": "Loading...",
+      "grant_permission": "Grant Permission",
+      "subject_type": "Subject Type",
+      "user": "User",
+      "role": "Role",
+      "select_user": "Select a user",
+      "select_role": "Select a role",
+      "select_permissions": "Select permissions",
+      "grant_button": "Grant",
+      "grant_button_count": "Grant {count} permissions",
+      "granting": "Granting...",
+      "active_permissions": "Active Permissions",
+      "no_permissions": "No active permissions",
+      "add": "Add",
+      "remove_all": "Remove All",
+      "removing": "Removing...",
+      "available_permissions": "Available Permissions",
+      "close": "Close",
+      "cancel": "Cancel",
+      "permissions": {
+        "view_panel": "View Panel",
+        "manage_bot": "Manage Bot",
+        "manage_config": "Manage Config",
+        "manage_tickets": "Manage Tickets",
+        "manage_api_keys": "Manage API Keys",
+        "manage_permissions": "Manage Permissions"
+      }
+    },
+    "forbidden": {
+      "title": "Access Denied",
+      "message": "You do not have the necessary permission to access this page.",
+      "required_permission": "Required permission:",
+      "help": "Contact an administrator if you believe you should have access to this section.",
+      "back_home": "Back to home",
+      "checking_permissions": "Checking permissions..."
     }
   }
 }

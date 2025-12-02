@@ -1,6 +1,7 @@
 mod components;
 mod pages;
 mod router;
+mod types;
 mod utils;
 
 use crate::router::{Route, switch};

@@ -1,3 +1,5 @@
+use crate::components::forbidden::Forbidden403;
+use crate::types::PanelPermission;
 use gloo_net::http::Request;
 use i18nrs::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
@@ -17,6 +19,35 @@ pub fn configuration_page() -> Html {
     let save_message = use_state(|| None::<(bool, String)>);
 
     let expanded_sections = use_state(|| vec![true, false, false, false, false, false, false, false]);
+
+    let permissions = use_state(|| None::<Vec<PanelPermission>>);
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(Some(perms));
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    if let Some(perms) = (*permissions).as_ref() {
+        if !perms.contains(&PanelPermission::ManageConfig) {
+            return html! {
+                <Forbidden403 required_permission={i18n.t("panel.configuration.title")} />
+            };
+        }
+    } else {
+        return html! {
+            <div class="flex items-center justify-center min-h-[70vh]">
+                <div class="text-gray-400 animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
+            </div>
+        };
+    }
 
     {
         let bot_status = bot_status.clone();
@@ -848,6 +879,58 @@ fn bot_section(props: &BotSectionProps) -> Html {
                     })
                 }}
             />
+
+            <div>
+                <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.bot.super_admin_users")}</label>
+                <input
+                    type="text"
+                    value={config.bot.panel_super_admin_users.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(", ")}
+                    placeholder="123456789, 987654321"
+                    oninput={{
+                        let config = config.clone();
+                        move |e: InputEvent| {
+                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                let mut cfg = (*config).clone();
+                                cfg.bot.panel_super_admin_users = input.value()
+                                    .split(',')
+                                    .map(|s| s.trim())
+                                    .filter(|s| !s.is_empty())
+                                    .filter_map(|s| s.parse::<u64>().ok())
+                                    .collect();
+                                config.set(cfg);
+                            }
+                        }
+                    }}
+                    class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.bot.super_admin_users_help")}</p>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.bot.super_admin_roles")}</label>
+                <input
+                    type="text"
+                    value={config.bot.panel_super_admin_roles.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(", ")}
+                    placeholder="123456789, 987654321"
+                    oninput={{
+                        let config = config.clone();
+                        move |e: InputEvent| {
+                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                let mut cfg = (*config).clone();
+                                cfg.bot.panel_super_admin_roles = input.value()
+                                    .split(',')
+                                    .map(|s| s.trim())
+                                    .filter(|s| !s.is_empty())
+                                    .filter_map(|s| s.parse::<u64>().ok())
+                                    .collect();
+                                config.set(cfg);
+                            }
+                        }
+                    }}
+                    class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.bot.super_admin_roles_help")}</p>
+            </div>
         </div>
     }
 }

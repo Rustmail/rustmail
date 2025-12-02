@@ -3,6 +3,7 @@ use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
 use crate::components::navbar::RustmailNavbar;
 use crate::components::ticket::{TicketDetails, TicketsList};
+use crate::types::PanelPermission;
 use gloo_net::http::Request;
 use gloo_utils::window;
 use i18nrs::yew::use_translation;
@@ -89,7 +90,25 @@ pub fn panel() -> Html {
         });
     }
 
+    let permissions = use_state(|| Vec::<PanelPermission>::new());
+    {
+        let permissions = permissions.clone();
+        use_effect_with((), move |()| {
+            let permissions = permissions.clone();
+
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
+                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
+                        permissions.set(perms);
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
     let avatar_url = (*avatar).clone().unwrap_or_default();
+    let user_permissions = (*permissions).clone();
 
     html! {
         <>
@@ -102,7 +121,7 @@ pub fn panel() -> Html {
                     },
                     Some(true) => html! {
                         <BrowserRouter>
-                            <RustmailNavbar avatar_url={avatar_url.clone()} />
+                            <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.clone()} />
                             <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
                                 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                                     <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />

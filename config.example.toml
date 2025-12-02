@@ -9,6 +9,8 @@ enable_logs = true
 enable_features = true
 logs_channel_id = 14043597305699
 features_channel_id = 14069404548593076
+panel_super_admin_users = []
+panel_super_admin_roles = []
 
 [bot.mode]
 type = "dual"
