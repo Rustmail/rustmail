@@ -18,7 +18,8 @@ pub fn configuration_page() -> Html {
     let show_restart_modal = use_state(|| false);
     let save_message = use_state(|| None::<(bool, String)>);
 
-    let expanded_sections = use_state(|| vec![true, false, false, false, false, false, false, false]);
+    let expanded_sections =
+        use_state(|| vec![true, false, false, false, false, false, false, false]);
 
     let permissions = use_state(|| None::<Vec<PanelPermission>>);
     {
@@ -120,21 +121,35 @@ pub fn configuration_page() -> Html {
         let show_restart_modal = show_restart_modal.clone();
         let save_message = save_message.clone();
         let i18n = i18n.clone();
+        let config = config.clone();
 
         Callback::from(move |new_config: ConfigResponse| {
             let show_restart_modal = show_restart_modal.clone();
             let save_message = save_message.clone();
             let i18n = i18n.clone();
+            let config = config.clone();
 
             spawn_local(async move {
                 match Request::put("/api/bot/config").json(&new_config) {
                     Ok(req) => match req.send().await {
                         Ok(resp) => {
                             if resp.ok() {
-                                save_message.set(Some((true, i18n.t("panel.configuration.save_success"))));
+                                save_message
+                                    .set(Some((true, i18n.t("panel.configuration.save_success"))));
                                 show_restart_modal.set(true);
+                                if let Ok(resp) = Request::get("/api/bot/config").send().await {
+                                    if resp.ok() {
+                                        if let Ok(config_data) = resp.json::<ConfigResponse>().await
+                                        {
+                                            config.set(Some(config_data));
+                                        }
+                                    }
+                                }
                             } else {
-                                let error_msg = resp.text().await.unwrap_or_else(|_| "Erreur inconnue".to_string());
+                                let error_msg = resp
+                                    .text()
+                                    .await
+                                    .unwrap_or_else(|_| "Erreur inconnue".to_string());
                                 save_message.set(Some((false, error_msg)));
                             }
                         }
@@ -334,8 +349,24 @@ struct ConfigFormProps {
 fn config_form(props: &ConfigFormProps) -> Html {
     let (i18n, _set_language) = use_translation();
     let config = use_state(|| props.config.clone());
+    let is_saving = use_state(|| false);
+
+    let has_changes = *config != props.config;
+    let original_config = props.config.clone();
+
+    {
+        let is_saving = is_saving.clone();
+        let config_matches = *config == props.config;
+        use_effect_with(config_matches, move |matches| {
+            if *matches {
+                is_saving.set(false);
+            }
+            || ()
+        });
+    }
 
     html! {
+        <>
         <div class="space-y-4">
             <AccordionSection
                 title={i18n.t("panel.configuration.sections.bot")}
@@ -424,24 +455,66 @@ fn config_form(props: &ConfigFormProps) -> Html {
             >
                 <LogsReminderSection config={config.clone()} />
             </AccordionSection>
-
-            <div class="pt-4 border-t border-slate-600">
-                <button
-                    onclick={{
-                        let config = (*config).clone();
-                        let on_save = props.on_save.clone();
-                        move |_| on_save.emit(config.clone())
-                    }}
-                    class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition font-semibold flex items-center justify-center gap-2"
-                >
-                    <i class="bi bi-save"></i>
-                    {i18n.t("panel.configuration.save")}
-                </button>
-                <p class="mt-2 text-xs text-gray-500 text-center">
-                    {i18n.t("panel.configuration.save_help")}
-                </p>
-            </div>
         </div>
+
+        {if has_changes && !*is_saving {
+            html! {
+                <div
+                    class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out"
+                    style="animation: slideUp 0.3s ease-out;"
+                >
+                    <style>
+                        {"
+                            @keyframes slideUp {
+                                from {
+                                    opacity: 0;
+                                    transform: translateX(-50%) translateY(20px);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: translateX(-50%) translateY(0);
+                                }
+                            }
+                        "}
+                    </style>
+                    <div class="flex items-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-2xl transition-all">
+                        <button
+                            onclick={{
+                                let config = config.clone();
+                                let original_config = original_config.clone();
+                                Callback::from(move |_| {
+                                    config.set(original_config.clone());
+                                })
+                            }}
+                            class="text-white hover:text-gray-200 transition text-sm font-medium"
+                        >
+                            {i18n.t("panel.configuration.reset")}
+                        </button>
+                        <div class="w-px h-6 bg-white/30"></div>
+                        <button
+                            onclick={{
+                                let config = (*config).clone();
+                                let on_save = props.on_save.clone();
+                                let is_saving = is_saving.clone();
+                                move |_| {
+                                    is_saving.set(true);
+                                    on_save.emit(config.clone());
+                                }
+                            }}
+                            class="text-white font-semibold text-sm flex items-center gap-2"
+                        >
+                            {i18n.t("panel.configuration.unsaved_changes")}
+                            <span class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full transition">
+                                {i18n.t("panel.configuration.save_button")}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            }
+        } else {
+            html! {}
+        }}
+        </>
     }
 }
 
@@ -502,7 +575,10 @@ struct TextInputProps {
 
 #[function_component(TextInput)]
 fn text_input(props: &TextInputProps) -> Html {
-    let input_type = props.input_type.clone().unwrap_or_else(|| "text".to_string());
+    let input_type = props
+        .input_type
+        .clone()
+        .unwrap_or_else(|| "text".to_string());
     let placeholder = props.placeholder.clone().unwrap_or_default();
 
     html! {
