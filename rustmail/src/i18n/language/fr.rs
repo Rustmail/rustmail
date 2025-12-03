@@ -992,10 +992,11 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             • `/snippet list` - Lister tous les snippets disponibles\n\
             • `/snippet show <clé>` - Afficher le contenu d'un snippet spécifique\n\
             • `/snippet edit <clé> <contenu>` - Modifier un snippet existant\n\
-            • `/snippet delete <clé>` - Supprimer un snippet\n\n\
-            **Utilisation :**\n\
-            • Commande slash : `/reply snippet:<clé>`\n\
-            • Commande texte : `!reply {{clé}}`",
+            • `/snippet delete <clé>` - Supprimer un snippet\n\
+            • `/snippet use <clé>` - Utiliser un snippet pour répondre\n\n\
+            **Utilisation rapide :**\n\
+            • Commande slash : `/snippet use <clé>` ou `/reply snippet:<clé>`\n\
+            • Commande texte : `!snippet <clé>` ou `!reply {{clé}}`",
         ),
     );
     dict.messages.insert(
@@ -1017,6 +1018,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.snippet_delete_description".to_string(),
         DictionaryMessage::new("Supprimer un snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_use_description".to_string(),
+        DictionaryMessage::new("Utiliser un snippet pour répondre dans un ticket"),
     );
     dict.messages.insert(
         "slash_command.snippet_key_argument".to_string(),
@@ -1128,5 +1133,9 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new(
             "Sous-commande inconnue. Utilisez : `create`, `list`, `show`, `edit`, ou `delete`",
         ),
+    );
+    dict.messages.insert(
+        "snippet.used".to_string(),
+        DictionaryMessage::new("Snippet '**{key}**' utilisé avec succès !"),
     );
 }

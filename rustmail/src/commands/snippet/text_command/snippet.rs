@@ -20,7 +20,7 @@ pub async fn snippet_command(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    let content = match extract_reply_content(&msg.content, &config.command.prefix, &["snippet"]) {
+    let content = match extract_reply_content(&msg.content, &config.command.prefix, &["snippet", "s"]) {
         Some(c) => c,
         None => {
             MessageBuilder::system_message(&ctx, config)
@@ -49,18 +49,7 @@ pub async fn snippet_command(
         "edit" => handle_edit(&ctx, &msg, args, pool, config).await,
         "delete" => handle_delete(&ctx, &msg, args, pool, config).await,
         _ => {
-            MessageBuilder::system_message(&ctx, config)
-                .translated_content(
-                    "snippet.unknown_text_subcommand",
-                    None,
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .reply_to(msg)
-                .send(true)
-                .await?;
-            Ok(())
+            handle_use(&ctx, &msg, subcommand, pool, config).await
         }
     }
 }
@@ -72,9 +61,17 @@ async fn handle_create(
     pool: &sqlx::SqlitePool,
     config: &Config,
 ) -> ModmailResult<()> {
-    let mut parts = args.splitn(2, ' ');
-    let key = parts.next().unwrap_or("").trim();
-    let content = parts.next().unwrap_or("").trim();
+    let trimmed_args = args.trim_start();
+    let split_pos = trimmed_args
+        .find(|c: char| c.is_whitespace())
+        .unwrap_or(trimmed_args.len());
+
+    let key = trimmed_args[..split_pos].trim();
+    let content = if split_pos < trimmed_args.len() {
+        &trimmed_args[split_pos + 1..]
+    } else {
+        ""
+    };
 
     if key.is_empty() || content.is_empty() {
         MessageBuilder::system_message(ctx, config)
@@ -267,9 +264,17 @@ async fn handle_edit(
     pool: &sqlx::SqlitePool,
     config: &Config,
 ) -> ModmailResult<()> {
-    let mut parts = args.splitn(2, ' ');
-    let key = parts.next().unwrap_or("").trim();
-    let content = parts.next().unwrap_or("").trim();
+    let trimmed_args = args.trim_start();
+    let split_pos = trimmed_args
+        .find(|c: char| c.is_whitespace())
+        .unwrap_or(trimmed_args.len());
+
+    let key = trimmed_args[..split_pos].trim();
+    let content = if split_pos < trimmed_args.len() {
+        &trimmed_args[split_pos + 1..]
+    } else {
+        ""
+    };
 
     if key.is_empty() || content.is_empty() {
         MessageBuilder::system_message(ctx, config)
@@ -364,6 +369,70 @@ async fn handle_delete(
         .reply_to(msg.clone())
         .send(true)
         .await?;
+
+    Ok(())
+}
+
+async fn handle_use(
+    ctx: &Context,
+    msg: &Message,
+    key: &str,
+    pool: &sqlx::SqlitePool,
+    config: &Config,
+) -> ModmailResult<()> {
+    if key.is_empty() {
+        MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "snippet.text_usage",
+                None,
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
+            .await?;
+        return Ok(());
+    }
+
+    match get_snippet_by_key(key, pool).await? {
+        Some(snippet) => {
+            let thread = get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await;
+
+            if let Some(thread) = thread {
+                let user_id = serenity::all::UserId::new(thread.user_id as u64);
+
+                use crate::utils::message::message_builder::StaffReply;
+
+                let message_number = allocate_next_message_number(&thread.id, pool).await?;
+
+                StaffReply::new(
+                    ctx,
+                    config,
+                    thread.id.clone(),
+                    msg.author.id,
+                    msg.author.name.clone(),
+                    message_number,
+                )
+                .to_thread(msg.channel_id)
+                .to_user(user_id)
+                .content(snippet.content)
+                .send_msg_and_record(pool)
+                .await?;
+            } else {
+                MessageBuilder::system_message(ctx, config)
+                    .content(&snippet.content)
+                    .reply_to(msg.clone())
+                    .send(true)
+                    .await?;
+            }
+        }
+        None => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
+        }
+    }
 
     Ok(())
 }
