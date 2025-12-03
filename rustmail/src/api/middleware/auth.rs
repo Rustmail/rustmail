@@ -1,8 +1,8 @@
 use crate::prelude::api::*;
-use crate::prelude::types::*;
 use crate::prelude::db::*;
-use axum::extract::State;
+use crate::prelude::types::*;
 use axum::extract::Request;
+use axum::extract::State;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
@@ -87,12 +87,6 @@ pub async fn auth_middleware(
     mut req: Request,
     next: Next,
 ) -> Response {
-    let session_cookie = jar.get("session_id");
-
-    if session_cookie.is_none() {
-        return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
-    }
-
     let db_pool = {
         let state_lock = bot_state.lock().await;
         match &state_lock.db_pool {
@@ -111,7 +105,7 @@ pub async fn auth_middleware(
         if let Ok(api_key_str) = api_key_header.to_str() {
             let key_hash = hash_api_key(api_key_str);
 
-            match get_api_key_by_hash(&db_pool, &key_hash).await {
+            return match get_api_key_by_hash(&db_pool, &key_hash).await {
                 Ok(Some(api_key)) => {
                     if api_key.is_valid() {
                         let pool_clone = db_pool.clone();
@@ -121,21 +115,17 @@ pub async fn auth_middleware(
                         });
 
                         req.extensions_mut().insert(api_key);
-                        return next.run(req).await;
+                        next.run(req).await
                     } else {
-                        return (StatusCode::UNAUTHORIZED, "API key expired or inactive")
-                            .into_response();
+                        (StatusCode::UNAUTHORIZED, "API key expired or inactive").into_response()
                     }
                 }
-                Ok(None) => {
-                    return (StatusCode::UNAUTHORIZED, "Invalid API key").into_response();
-                }
+                Ok(None) => (StatusCode::UNAUTHORIZED, "Invalid API key").into_response(),
                 Err(e) => {
                     eprintln!("Error fetching API key: {}", e);
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
-                        .into_response();
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error").into_response()
                 }
-            }
+            };
         }
     }
 

@@ -3,6 +3,7 @@ use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::features::*;
 use crate::prelude::modules::*;
+use crate::prelude::types::*;
 use serenity::all::{ActivityData, CreateCommand, GuildId};
 use serenity::futures::future::join_all;
 use serenity::{
@@ -12,7 +13,7 @@ use serenity::{
 use sqlx::SqlitePool;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::watch::Receiver;
+use tokio::sync::{watch::Receiver, Mutex};
 use tokio::time::interval;
 
 #[derive(Clone)]
@@ -20,14 +21,21 @@ pub struct ReadyHandler {
     pub config: Config,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
+    pub bot_state: Arc<Mutex<BotState>>,
 }
 
 impl ReadyHandler {
-    pub fn new(config: &Config, registry: Arc<CommandRegistry>, shutdown: Receiver<bool>) -> Self {
+    pub fn new(
+        config: &Config,
+        registry: Arc<CommandRegistry>,
+        shutdown: Receiver<bool>,
+        bot_state: Arc<Mutex<BotState>>,
+    ) -> Self {
         Self {
             config: config.clone(),
             registry,
             shutdown: Arc::new(shutdown),
+            bot_state,
         }
     }
 }
@@ -36,6 +44,13 @@ impl ReadyHandler {
 impl EventHandler for ReadyHandler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is online !", ready.user.name);
+
+        {
+            let state = self.bot_state.lock().await;
+            let mut ctx_lock = state.bot_context.write().await;
+            *ctx_lock = Some(ctx.clone());
+        }
+
         let pool = match &self.config.db_pool {
             Some(pool) => pool,
             None => {
