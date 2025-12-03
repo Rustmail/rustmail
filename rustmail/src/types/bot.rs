@@ -1,7 +1,7 @@
 use crate::prelude::config::*;
-use serenity::all::Http;
+use serenity::all::{Context, Http};
 use std::sync::Arc;
-use tokio::sync::watch::Sender;
+use tokio::sync::{watch::Sender, RwLock};
 use tokio::task::JoinHandle;
 
 pub enum BotStatus {
@@ -25,4 +25,5 @@ pub struct BotState {
     pub db_pool: Option<sqlx::SqlitePool>,
     pub command_tx: tokio::sync::mpsc::Sender<BotCommand>,
     pub bot_http: Option<Arc<Http>>,
+    pub bot_context: Arc<RwLock<Option<Context>>>,
 }

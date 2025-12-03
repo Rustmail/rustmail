@@ -35,6 +35,7 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         db_pool: Some(pool),
         command_tx: command_tx.clone(),
         bot_http: None,
+        bot_context: Arc::new(tokio::sync::RwLock::new(None)),
     };
 
     Arc::new(Mutex::new(bot_state))
@@ -147,6 +148,7 @@ pub async fn run_bot(
             &config,
             registry.clone(),
             shutdown_rx.clone(),
+            bot_state.clone(),
         ))
         .event_handler(
             GuildMessagesHandler::new(

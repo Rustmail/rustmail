@@ -30,7 +30,7 @@ pub async fn handle_external_ticket_create(
 
     let user_id = UserId::new(user_id_u64);
 
-    let (config, db_pool, bot_http, command_tx) = {
+    let (mut config, db_pool, bot_http, command_tx) = {
         let state = bot_state.lock().await;
         let config = state
             .config
@@ -60,6 +60,8 @@ pub async fn handle_external_ticket_create(
 
         (config, db_pool, bot_http, command_tx)
     };
+
+    config.db_pool = Some(db_pool.clone());
 
     println!(
         "API Key #{} creating ticket for Discord ID: {}",
@@ -187,14 +189,34 @@ pub async fn handle_external_ticket_create(
 
     let open_thread_message = get_user_recap(user_id, &username, &member_join_date, &logs_info);
 
-    if let Err(e) = channel.id.say(&bot_http, open_thread_message).await {
-        eprintln!("Failed to send welcome message to thread: {}", e);
+    let ctx = {
+        let state = bot_state.lock().await;
+        let ctx_lock = state.bot_context.read().await;
+        ctx_lock
+            .as_ref()
+            .ok_or((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Bot context not available".to_string(),
+            ))?
+            .clone()
+    };
+
+    if let Err(e) = MessageBuilder::system_message(&ctx, &config)
+        .to_channel(channel.id)
+        .content(open_thread_message)
+        .send(true)
+        .await
+    {
+        eprintln!("Failed to send message to channel via MessageBuilder: {:?}", e);
     }
 
-    if let Ok(dm_channel) = user.create_dm_channel(&bot_http).await {
-        if let Err(e) = dm_channel.say(&bot_http, &config.bot.welcome_message).await {
-            eprintln!("Failed to send DM to user: {}", e);
-        }
+    if let Err(e) = MessageBuilder::system_message(&ctx, &config)
+        .content(&config.bot.welcome_message)
+        .to_user(user_id)
+        .send(true)
+        .await
+    {
+        eprintln!("Failed to send DM via MessageBuilder: {:?}", e);
     }
 
     println!(
