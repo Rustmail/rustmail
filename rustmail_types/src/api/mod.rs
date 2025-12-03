@@ -20,7 +20,6 @@ pub struct ConfigResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CreateTicket {
     pub discord_id: String,
-    pub api_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
