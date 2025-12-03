@@ -95,6 +95,15 @@ impl RegistrableCommand for SnippetCommand {
                 None,
             )
             .await;
+            let use_desc = get_translated_message(
+                &config,
+                "slash_command.snippet_use_description",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
             let key_desc = get_translated_message(
                 &config,
                 "slash_command.snippet_key_argument",
@@ -182,6 +191,17 @@ impl RegistrableCommand for SnippetCommand {
                             delete_desc,
                         )
                         .add_sub_option(
+                            CreateCommandOption::new(CommandOptionType::String, "key", key_desc.clone())
+                                .required(true),
+                        ),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(
+                            CommandOptionType::SubCommand,
+                            "use",
+                            use_desc,
+                        )
+                        .add_sub_option(
                             CreateCommandOption::new(CommandOptionType::String, "key", key_desc)
                                 .required(true),
                         ),
@@ -222,6 +242,9 @@ impl RegistrableCommand for SnippetCommand {
                 "edit" => handle_edit(&ctx, &command, &command.data.options, pool, &config).await,
                 "delete" => {
                     handle_delete(&ctx, &command, &command.data.options, pool, &config).await
+                }
+                "use" => {
+                    handle_use(&ctx, &command, &command.data.options, pool, &config).await
                 }
                 _ => {
                     let response = MessageBuilder::system_message(&ctx, &config)
@@ -555,6 +578,84 @@ async fn handle_delete(
         .await;
 
     command.create_followup(&ctx.http, response).await?;
+
+    Ok(())
+}
+
+async fn handle_use(
+    ctx: &Context,
+    command: &CommandInteraction,
+    options: &Vec<CommandDataOption>,
+    pool: &sqlx::SqlitePool,
+    config: &Config,
+) -> ModmailResult<()> {
+    let mut key = String::new();
+
+    if let Some(subcommand) = options.first() {
+        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
+            for option in sub_options {
+                if option.name == "key" {
+                    if let CommandDataOptionValue::String(val) = &option.value {
+                        key = val.to_string();
+                    }
+                }
+            }
+        }
+    }
+
+    match get_snippet_by_key(&key, pool).await? {
+        Some(snippet) => {
+            let thread = get_thread_by_channel_id(&command.channel_id.to_string(), pool).await;
+
+            if let Some(thread) = thread {
+                let user_id = serenity::all::UserId::new(thread.user_id as u64);
+
+                use crate::utils::message::message_builder::StaffReply;
+
+                let message_number = allocate_next_message_number(&thread.id, pool).await?;
+
+                StaffReply::new(
+                    ctx,
+                    config,
+                    thread.id.clone(),
+                    command.user.id,
+                    command.user.name.clone(),
+                    message_number,
+                )
+                .to_thread(command.channel_id)
+                .to_user(user_id)
+                .content(snippet.content)
+                .send_command_and_record(command, pool)
+                .await?;
+
+                let response = MessageBuilder::system_message(ctx, config)
+                    .translated_content(
+                        "snippet.used",
+                        Some(&HashMap::from([("key".to_string(), key.clone())])),
+                        Some(command.user.id),
+                        command.guild_id.map(|g| g.get()),
+                    )
+                    .await
+                    .ephemeral(true)
+                    .build_interaction_message_followup()
+                    .await;
+
+                command.create_followup(&ctx.http, response).await?;
+            } else {
+                let response = MessageBuilder::system_message(ctx, config)
+                    .content(&snippet.content)
+                    .build_interaction_message_followup()
+                    .await;
+
+                command.create_followup(&ctx.http, response).await?;
+            }
+        }
+        None => {
+            return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                key.to_string(),
+            )));
+        }
+    }
 
     Ok(())
 }

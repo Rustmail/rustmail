@@ -981,10 +981,11 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             • `/snippet list` - List all available snippets\n\
             • `/snippet show <key>` - Display a specific snippet's content\n\
             • `/snippet edit <key> <content>` - Update an existing snippet\n\
-            • `/snippet delete <key>` - Delete a snippet\n\n\
-            **Usage:**\n\
-            • Slash command: `/reply snippet:<key>`\n\
-            • Text command: `!reply {{key}}`",
+            • `/snippet delete <key>` - Delete a snippet\n\
+            • `/snippet use <key>` - Use a snippet to reply\n\n\
+            **Quick usage:**\n\
+            • Slash command: `/snippet use <key>` or `/reply snippet:<key>`\n\
+            • Text command: `!snippet <key>` or `!reply {{key}}`",
         ),
     );
     dict.messages.insert(
@@ -1006,6 +1007,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.snippet_delete_description".to_string(),
         DictionaryMessage::new("Delete a snippet"),
+    );
+    dict.messages.insert(
+        "slash_command.snippet_use_description".to_string(),
+        DictionaryMessage::new("Use a snippet to reply in a ticket"),
     );
     dict.messages.insert(
         "slash_command.snippet_key_argument".to_string(),
@@ -1115,5 +1120,9 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new(
             "Unknown subcommand. Use: `create`, `list`, `show`, `edit`, or `delete`",
         ),
+    );
+    dict.messages.insert(
+        "snippet.used".to_string(),
+        DictionaryMessage::new("Snippet '**{key}**' used successfully!"),
     );
 }
