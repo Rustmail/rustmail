@@ -35,6 +35,13 @@ jobs:
           rustup target add wasm32-unknown-unknown
           cargo install trunk --locked
 
+      - name: Install wasm-opt 125
+        run: |
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-linux.tar.gz
+          tar -xzf binaryen-version_125-x86_64-linux.tar.gz
+          sudo mv binaryen-version_125/bin/wasm-opt /usr/local/bin/
+          wasm-opt --version
+
       - name: Build frontend
         working-directory: rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
@@ -86,11 +93,26 @@ jobs:
       - name: Install Rust
         run: rustup update stable && rustup default stable
 
-      - name: Add wasm32 target
-        run: rustup target add wasm32-unknown-unknown
+      - name: Install trunk and wasm target
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install trunk --locked
 
-      - name: Install trunk
-        run: cargo install trunk --locked
+      - name: Install wasm-opt 125
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            wget https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-linux.tar.gz
+            tar -xzf binaryen-version_125-x86_64-linux.tar.gz
+            sudo mv binaryen-version_125/bin/wasm-opt /usr/local/bin/
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install binaryen
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            curl -L https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-windows.tar.gz -o binaryen.tar.gz
+            tar -xzf binaryen.tar.gz
+            mv binaryen-version_125/bin/wasm-opt.exe /usr/bin/
+          fi
+          wasm-opt --version
+        shell: bash
 
       - name: Create static directory
         run: mkdir -p rustmail/static

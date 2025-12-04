@@ -6,6 +6,7 @@ use rust_embed::RustEmbed;
 use std::borrow::Cow;
 use std::net::SocketAddr;
 use tokio::signal;
+use tower_http::compression::CompressionLayer;
 
 mod api;
 mod bot;
@@ -85,7 +86,8 @@ async fn main() {
             let server_task = tokio::spawn(async move {
                 let app = create_api_router(bot_state_clone)
                     .route("/", axum::routing::get(static_handler))
-                    .route("/{*path}", axum::routing::get(static_handler));
+                    .route("/{*path}", axum::routing::get(static_handler))
+                    .layer(CompressionLayer::new());
 
                 let bind_address = config
                     .bot
