@@ -191,7 +191,7 @@ pub fn configuration_page() -> Html {
             <div class="max-w-4xl mx-auto">
 
                 <div class="mb-8">
-                    <h1 class="text-3xl text-white mb-2">{i18n.t("panel.configuration.title")}</h1>
+                    <h1 class="text-3xl text-white mb-2 font-bold">{i18n.t("panel.configuration.title")}</h1>
                     <p class="text-gray-400">{i18n.t("panel.configuration.description")}</p>
                 </div>
 
