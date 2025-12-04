@@ -87,9 +87,32 @@ async fn main() {
                     .route("/", axum::routing::get(static_handler))
                     .route("/{*path}", axum::routing::get(static_handler));
 
-                let api_address = config.bot.ip.unwrap_or_else(|| "0.0.0.0".to_string());
+                let bind_address = config
+                    .bot
+                    .ip
+                    .as_ref()
+                    .and_then(|ip| {
+                        if ip.parse::<std::net::IpAddr>().is_ok() {
+                            Some(ip.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_else(|| "0.0.0.0".to_string());
 
-                let listener = tokio::net::TcpListener::bind(format!("{}:{}", api_address, 3002)).await.unwrap();
+                let listener =
+                    match tokio::net::TcpListener::bind(format!("{}:3002", bind_address)).await {
+                        Ok(l) => l,
+                        Err(e) => {
+                            eprintln!(
+                                "Failed to bind to {}:3002 ({}), falling back to 0.0.0.0:3002",
+                                bind_address, e
+                            );
+                            tokio::net::TcpListener::bind("0.0.0.0:3002")
+                                .await
+                                .expect("Failed to bind to 0.0.0.0:3002")
+                        }
+                    };
                 println!("listening on {}", listener.local_addr().unwrap());
 
                 axum::serve(
