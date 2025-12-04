@@ -235,12 +235,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfa8873f51c92e232f9bac4065cddef41b714152812bfc5f7672ba16d6ef8cd9"
 
 [[package]]
-name = "bs58"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "771fe0050b883fcc3ea2359b1a96bcfbc090b7116eae7c3c512c7a083fdf23d3"
-
-[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -370,12 +364,6 @@ name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
-
-[[package]]
-name = "constant_time_eq"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21a53c0a4d288377e7415b53dcfc3c04da5cdc2cc95c8d5ac178b58f0b861ad6"
 
 [[package]]
 name = "cookie"
@@ -2327,19 +2315,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
-name = "prefixed-api-key"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73c45ab8e504c85c6d1d32207001f4cca3370924424090a9487227843a71123d"
-dependencies = [
- "bs58",
- "constant_time_eq",
- "digest",
- "hex",
- "rand 0.8.5",
-]
-
-[[package]]
 name = "prettyplease"
 version = "0.2.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2822,18 +2797,16 @@ dependencies = [
 
 [[package]]
 name = "rustmail"
-version = "1.0.7"
+version = "1.0.8"
 dependencies = [
  "async-trait",
  "axum",
  "axum-extra",
- "base64 0.22.1",
  "chrono",
  "hex",
  "hyper 1.8.1",
  "mime_guess",
  "moka",
- "prefixed-api-key",
  "rand 0.9.2",
  "regex",
  "reqwest 0.12.24",
@@ -2853,7 +2826,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail_panel"
-version = "0.1.0"
+version = "1.0.8"
 dependencies = [
  "ammonia",
  "chrono",
@@ -2876,7 +2849,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail_types"
-version = "0.1.1"
+version = "1.0.8"
 dependencies = [
  "chrono-tz",
  "serde",
