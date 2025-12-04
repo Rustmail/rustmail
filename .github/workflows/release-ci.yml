@@ -39,6 +39,14 @@ jobs:
         working-directory: rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
+      - name: Optimize WASM
+        run: |
+          cargo install wasm-opt --locked
+          for f in rustmail/static/*.wasm; do
+            wasm-opt -Oz "$f" -o "$f.tmp"
+            mv "$f.tmp" "$f"
+          done
+
       - name: Build Rust backend
         run: cargo build --verbose -p rustmail
 
@@ -99,6 +107,15 @@ jobs:
       - name: Build frontend
         working-directory: rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
+
+      - name: Optimize WASM
+        run: |
+          cargo install wasm-opt --locked
+          for f in rustmail/static/*.wasm; do
+            wasm-opt -Oz "$f" -o "$f.tmp"
+            mv "$f.tmp" "$f"
+          done
+        shell: bash
 
       - name: Verify static files were created
         run: ls rustmail/static
