@@ -7,9 +7,9 @@ use js_sys::Date;
 use serde::Deserialize;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::UrlSearchParams;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use web_sys::UrlSearchParams;
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct ThreadMessage {
@@ -202,7 +202,10 @@ pub fn tickets_list() -> Html {
         let page_size = page_size.clone();
 
         Callback::from(move |_| {
-            let url = format!("/panel/tickets?page={}&page_size={}", *current_page, *page_size);
+            let url = format!(
+                "/panel/tickets?page={}&page_size={}",
+                *current_page, *page_size
+            );
             navigator.replace(&TicketsRoute::TicketsList);
             if let Some(window) = web_sys::window() {
                 if let Some(history) = window.history().ok() {
@@ -270,7 +273,9 @@ pub fn tickets_list() -> Html {
                 let query = search_query.to_lowercase();
                 t.id.to_lowercase().contains(&query)
                     || t.user_name.to_lowercase().contains(&query)
-                    || t.messages.iter().any(|m| m.content.to_lowercase().contains(&query))
+                    || t.messages
+                        .iter()
+                        .any(|m| m.content.to_lowercase().contains(&query))
             }
         })
         .cloned()
@@ -287,7 +292,7 @@ pub fn tickets_list() -> Html {
     html! {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-white">
             <div class="mb-8">
-                <h1 class="text-3xl text-white mb-2">{i18n.t("panel.tickets.title")}</h1>
+                <h1 class="text-3xl text-white mb-2 font-bold">{i18n.t("panel.tickets.title")}</h1>
                 <p class="text-gray-400">{i18n.t("panel.tickets.description")}</p>
             </div>
 
