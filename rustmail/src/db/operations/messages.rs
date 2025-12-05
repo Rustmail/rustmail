@@ -166,7 +166,7 @@ pub async fn get_latest_thread_message(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
                dm_message_id, inbox_message_id, message_number,
-               created_at as "created_at: String", content
+               created_at as "created_at: String", content, is_internal
         FROM thread_messages
         WHERE thread_id = ?
         ORDER BY created_at DESC
@@ -188,6 +188,7 @@ pub async fn get_latest_thread_message(
         message_number: row.message_number,
         _created_at: row.created_at,
         content: row.content,
+        _is_internal: row.is_internal,
     });
 
     Ok(latest)
@@ -259,6 +260,49 @@ pub async fn insert_user_message_with_ids(
     Ok(())
 }
 
+pub async fn insert_internal_message(
+    ctx: &Context,
+    msg: &Message,
+    thread_id: &str,
+    pool: &SqlitePool,
+    config: &Config,
+) -> Result<(), Error> {
+    let user_id = msg.author.id.get() as i64;
+    let inbox_message_id = msg.id.to_string();
+
+    let user_name = msg
+        .author
+        .id
+        .to_user(&ctx.http)
+        .await
+        .map(|user| user.name)
+        .unwrap_or_else(|_| "Unknown".to_string());
+
+    let content = extract_message_content(msg, config);
+
+    sqlx::query!(
+        r#"
+        INSERT INTO thread_messages (
+            thread_id, user_id, user_name, is_anonymous, inbox_message_id, content, thread_status, is_internal
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?
+        )
+        "#,
+        thread_id,
+        user_id,
+        user_name,
+        false,
+        inbox_message_id,
+        content,
+        1,
+        true
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 pub async fn get_thread_message_by_inbox_message_id(
     inbox_message_id: &str,
     pool: &SqlitePool,
@@ -267,7 +311,7 @@ pub async fn get_thread_message_by_inbox_message_id(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
                dm_message_id, inbox_message_id, message_number,
-               created_at as "created_at: String", content
+               created_at as "created_at: String", content, is_internal
         FROM thread_messages
         WHERE inbox_message_id = ?
         ORDER BY created_at DESC
@@ -289,6 +333,7 @@ pub async fn get_thread_message_by_inbox_message_id(
         message_number: row.message_number,
         _created_at: row.created_at,
         content: row.content,
+        _is_internal: row.is_internal,
     }) {
         Some(row) => row,
         None => {
@@ -309,7 +354,7 @@ pub async fn get_thread_message_by_message_id(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
                dm_message_id, inbox_message_id, message_number,
-               created_at as "created_at: String", content
+               created_at as "created_at: String", content, is_internal
         FROM thread_messages
         WHERE dm_message_id = ? OR inbox_message_id = ?
         ORDER BY created_at DESC
@@ -332,6 +377,7 @@ pub async fn get_thread_message_by_message_id(
         message_number: row.message_number,
         _created_at: row.created_at,
         content: row.content,
+        _is_internal: row.is_internal,
     }) {
         Some(row) => row,
         None => {
@@ -354,7 +400,7 @@ pub async fn get_thread_message_by_dm_message_id(
         r#"
         SELECT id, thread_id, user_id, user_name, is_anonymous,
                dm_message_id, inbox_message_id, message_number,
-               created_at as "created_at: String", content
+               created_at as "created_at: String", content, is_internal
         FROM thread_messages
         WHERE dm_message_id = ?
         AND thread_status = 1
@@ -377,6 +423,7 @@ pub async fn get_thread_message_by_dm_message_id(
         message_number: row.message_number,
         _created_at: row.created_at,
         content: row.content,
+        _is_internal: row.is_internal,
     }) {
         Some(row) => row,
         None => {
@@ -401,4 +448,5 @@ pub struct ThreadMessage {
     pub message_number: Option<i64>,
     pub _created_at: String,
     pub content: String,
+    pub _is_internal: bool,
 }

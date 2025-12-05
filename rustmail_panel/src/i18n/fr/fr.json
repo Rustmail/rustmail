@@ -168,6 +168,7 @@
       "filter_user": "Utilisateurs",
       "filter_staff": "Staff",
       "filter_system": "Système",
+      "filter_internal": "Interne",
       "no_messages": "Aucun message à afficher avec les filtres sélectionnés",
       "tickets_per_page": "Tickets par page"
     },

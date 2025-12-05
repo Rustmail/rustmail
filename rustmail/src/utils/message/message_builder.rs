@@ -775,7 +775,7 @@ impl<'a> StaffReply<'a> {
             .add_attachments(self.attachments.clone())
             .to_channel(thread_channel);
 
-        let thread_msg = thread_builder.send(true).await?;
+        let thread_msg = thread_builder.send(false).await?;
 
         let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
 
@@ -927,7 +927,8 @@ impl<'a> UserIncoming<'a> {
         .content(self.content)
         .add_attachments(self.attachments)
         .to_channel(thread_channel);
-        let sent = builder.send(true).await?;
+
+        let sent = builder.send(false).await?;
         if let Err(e) = insert_user_message_with_ids(
             self.dm_msg,
             &sent,
