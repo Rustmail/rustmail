@@ -1,3 +1,4 @@
+use crate::commands::send_welcome_message;
 use crate::db::repr::{ApiKey, Permission};
 use crate::prelude::api::*;
 use crate::prelude::db::*;
@@ -28,7 +29,19 @@ pub async fn handle_external_ticket_create(
         )
     })?;
 
+    let staff_discord_id_u64 = if let Some(staff_id) = update.staff_discord_id {
+        Some(staff_id.parse::<u64>().map_err(|_| {
+            (
+                StatusCode::BAD_REQUEST,
+                "Invalid staff Discord ID format".to_string(),
+            )
+        })?)
+    } else {
+        None
+    };
+
     let user_id = UserId::new(user_id_u64);
+    let staff_id = staff_discord_id_u64.map(UserId::new);
 
     let (mut config, db_pool, bot_http, command_tx) = {
         let state = bot_state.lock().await;
@@ -64,8 +77,8 @@ pub async fn handle_external_ticket_create(
     config.db_pool = Some(db_pool.clone());
 
     println!(
-        "API Key #{} creating ticket for Discord ID: {}",
-        api_key.id, user_id_u64
+        "API Key #{} creating ticket for Discord ID: {} Staff Discord ID (optional): {:?}",
+        api_key.id, user_id_u64, staff_id
     );
 
     let user = bot_http.get_user(user_id).await.map_err(|e| {
@@ -74,6 +87,17 @@ pub async fn handle_external_ticket_create(
             format!("Discord user not found: {}", e),
         )
     })?;
+
+    let staff = if let Some(staff_id) = staff_id {
+        Some(bot_http.get_user(staff_id).await.map_err(|e| {
+            (
+                StatusCode::NOT_FOUND,
+                format!("Staff Discord user not found: {}", e),
+            )
+        })?)
+    } else {
+        None
+    };
 
     if user.bot {
         return Err((
@@ -207,16 +231,44 @@ pub async fn handle_external_ticket_create(
         .send(true)
         .await
     {
-        eprintln!("Failed to send message to channel via MessageBuilder: {:?}", e);
+        eprintln!(
+            "Failed to send message to channel via MessageBuilder: {:?}",
+            e
+        );
     }
 
-    if let Err(e) = MessageBuilder::system_message(&ctx, &config)
-        .content(&config.bot.welcome_message)
-        .to_user(user_id)
-        .send(true)
-        .await
-    {
-        eprintln!("Failed to send DM via MessageBuilder: {:?}", e);
+    if let Some(staff_user) = staff {
+        if staff_user.bot {
+            eprintln!(
+                "Warning: staff user {} is a bot, skipping ping",
+                staff_user.id
+            );
+        } else {
+            send_welcome_message(&ctx, &channel, &config, &user).await;
+
+            if let Err(e) = MessageBuilder::system_message(&ctx, &config)
+                .mention(vec![staff_user.id])
+                .to_channel(channel.id)
+                .send(true)
+                .await
+            {
+                eprintln!(
+                    "Failed to send staff ping message via MessageBuilder: {:?}",
+                    e
+                );
+            }
+
+            println!(
+                "API Key #{} - Staff member {} ({}) pinged in ticket for user {}",
+                api_key.id, staff_user.name, staff_user.id, username
+            );
+        }
+    } else {
+        let _ = MessageBuilder::system_message(&ctx, &config)
+            .content(&config.bot.welcome_message)
+            .to_user(user_id)
+            .send(true)
+            .await;
     }
 
     println!(
