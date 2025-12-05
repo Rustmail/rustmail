@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT id, thread_id, user_id, user_name, is_anonymous,\n               dm_message_id, inbox_message_id, message_number,\n               created_at as \"created_at: String\", content\n        FROM thread_messages\n        WHERE inbox_message_id = ?\n        ORDER BY created_at DESC\n        LIMIT 1\n        ",
+  "query": "\n        SELECT id, thread_id, user_id, user_name, is_anonymous,\n               dm_message_id, inbox_message_id, message_number,\n               created_at as \"created_at: String\", content, is_internal\n        FROM thread_messages\n        WHERE dm_message_id = ?\n        AND thread_status = 1\n        ORDER BY created_at DESC\n        LIMIT 1\n        ",
   "describe": {
     "columns": [
       {
@@ -52,6 +52,11 @@
         "name": "content",
         "ordinal": 9,
         "type_info": "Text"
+      },
+      {
+        "name": "is_internal",
+        "ordinal": 10,
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -67,8 +72,9 @@
       true,
       true,
       false,
+      false,
       false
     ]
   },
-  "hash": "0a9a9189a018b53b2a3c6ae0c85c44ef60d33d78ce17d773466f374cd2803e15"
+  "hash": "d7f09c6247ff4656eb6ec7cbcbbd70e80561d6c07d2695063c74cba55e98dc22"
 }
