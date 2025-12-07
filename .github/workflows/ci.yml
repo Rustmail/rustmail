@@ -10,7 +10,7 @@ env:
 jobs:
   build_and_test:
     name: Rustmail - latest
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       SQLX_OFFLINE: true
     strategy:
@@ -21,14 +21,14 @@ jobs:
           - nightly
     steps:
       - uses: actions/checkout@v4
+        with:
+          clean: 'false'
 
-      - name: Set up Rust
-        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-
-      - name: Install trunk and wasm target
+      - name: Setup Rust environment
         run: |
-          rustup target add wasm32-unknown-unknown
-          cargo install trunk --locked
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
+          echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
 
       - name: Build frontend
         working-directory: rustmail_panel
