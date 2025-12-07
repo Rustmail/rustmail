@@ -28,6 +28,18 @@ jobs:
           echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
           echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
 
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.toolchain }}-
+
       - name: Build frontend
         working-directory: rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
