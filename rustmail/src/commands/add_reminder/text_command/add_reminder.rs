@@ -62,7 +62,7 @@ pub async fn add_reminder(
 
     let trigger_timestamp = trigger_dt.with_timezone(&config.bot.timezone).timestamp();
 
-    let thread = match get_thread_by_user_id(msg.author.id, pool).await {
+    let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), pool).await {
         Some(t) => t,
         None => {
             return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
