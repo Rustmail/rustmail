@@ -21,24 +21,14 @@ jobs:
           - nightly
     steps:
       - uses: actions/checkout@v4
+        with:
+          clean: 'false'
 
       - name: Setup Rust environment
         run: |
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
           echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
-
-      - name: Cache Cargo dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            target
-          key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ matrix.toolchain }}-
 
       - name: Build frontend
         working-directory: rustmail_panel

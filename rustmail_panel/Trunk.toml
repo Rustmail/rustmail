@@ -5,4 +5,4 @@ generate-integrity = false
 [[hooks]]
 stage = "post_build"
 command = "sh"
-command_arguments = ["-c", "find ../rustmail/static -name '*.wasm' -exec wasm-opt --debug -Oz {} -o {} \\;"]
+command_arguments = ["-c", "find ../rustmail/static -name '*.wasm' -exec wasm-opt -Oz {} -o {} \\;"]
