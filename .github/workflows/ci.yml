@@ -22,9 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Rust
-        run: rustup default ${{ matrix.toolchain }}
-
       - name: Build frontend
         working-directory: rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
