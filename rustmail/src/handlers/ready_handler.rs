@@ -5,7 +5,6 @@ use crate::prelude::features::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use serenity::all::{ActivityData, CreateCommand, GuildId};
-use serenity::futures::future::join_all;
 use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
@@ -121,22 +120,19 @@ fn update_threads_status(ctx: &Context, pool: &SqlitePool) {
             loop {
                 let tickets_status = get_all_thread_status(&pool).await;
 
-                let mut handles = Vec::new();
                 for ticket in tickets_status.iter() {
                     let ctx = ctx.clone();
                     let ticket = ticket.clone();
-                    let handle = tokio::spawn(async move {
-                        if let Err(e) = update_thread_status_ui(&ctx, &ticket).await {
-                            eprintln!(
-                                "Failed to update thread status for channel {}: {:?}",
-                                ticket.channel_id, e
-                            );
-                        }
-                    });
-                    handles.push(handle);
-                }
 
-                join_all(handles).await;
+                    if let Err(e) = update_thread_status_ui(&ctx, &ticket).await {
+                        eprintln!(
+                            "Failed to update thread status for channel {}: {:?}",
+                            ticket.channel_id, e
+                        );
+                    }
+
+                    tokio::time::sleep(Duration::from_millis(500)).await;
+                }
 
                 println!("Updated {} ticket statuses", tickets_status.len());
 

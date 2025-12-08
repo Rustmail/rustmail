@@ -325,10 +325,12 @@ impl EventHandler for GuildMessagesHandler {
         multiple_deleted_messages_ids: Vec<MessageId>,
         guild_id: Option<GuildId>,
     ) {
-        for mid in multiple_deleted_messages_ids {
-            self.message_delete(ctx.clone(), channel_id, mid, guild_id)
-                .await;
-        }
+        let futures: Vec<_> = multiple_deleted_messages_ids
+            .into_iter()
+            .map(|mid| self.message_delete(ctx.clone(), channel_id, mid, guild_id))
+            .collect();
+
+        futures::future::join_all(futures).await;
     }
 
     async fn message_update(

@@ -7,7 +7,6 @@ use crate::types::TicketAuthor;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, CreateAttachment, GuildId, Message, UserId};
 use std::collections::HashMap;
-use crate::modules::update_thread_status_ui;
 
 fn extract_message_content_with_media(msg: &Message) -> (String, Vec<String>) {
     let content = msg.content.clone();
@@ -114,12 +113,16 @@ pub async fn send_to_thread(
 
     let (content, attachment_urls) = extract_message_content_with_media(msg);
 
-    let mut attachments: Vec<CreateAttachment> = Vec::new();
-    for url in &attachment_urls {
-        if let Some(a) = download_attachment(url).await {
-            attachments.push(a);
-        }
-    }
+    let download_futures: Vec<_> = attachment_urls
+        .iter()
+        .map(|url| download_attachment(url))
+        .collect();
+
+    let attachments: Vec<CreateAttachment> = futures::future::join_all(download_futures)
+        .await
+        .into_iter()
+        .flatten()
+        .collect();
 
     let thread_id = match get_thread_id_by_user_id(msg.author.id, pool).await {
         Some(thread_id) => thread_id,
@@ -139,7 +142,6 @@ pub async fn send_to_thread(
     ticket_status.last_message_by = TicketAuthor::User;
     ticket_status.last_message_at = Utc::now().timestamp();
     update_thread_status_db(&thread_id.clone(), &ticket_status, &pool.clone()).await?;
-    update_thread_status_ui(&ctx, &ticket_status).await?;
 
     let builder = MessageBuilder::begin_user_incoming(ctx, config, thread_id.clone(), msg)
         .to_thread(channel_id)
@@ -187,9 +189,7 @@ pub async fn send_to_thread(
             .send(true)
             .await;
 
-        for staff_id in &alerts {
-            let _ = mark_alert_as_used(*staff_id, user_id, pool).await;
-        }
+        let _ = mark_alerts_as_used_batch(&alerts, user_id, pool).await;
     }
 
     Ok(sent_msg)

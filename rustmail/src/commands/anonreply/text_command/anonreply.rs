@@ -1,4 +1,3 @@
-use crate::modules::update_thread_status_ui;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
@@ -84,13 +83,6 @@ pub async fn anonreply(
     ticket_status.last_message_by = TicketAuthor::Staff;
     ticket_status.last_message_at = Utc::now().timestamp();
     update_thread_status_db(&thread.id, &ticket_status, db_pool).await?;
-
-    tokio::spawn({
-        let ctx = ctx.clone();
-        async move {
-            let _ = update_thread_status_ui(&ctx, &ticket_status).await;
-        }
-    });
 
     let _ = msg.delete(&ctx.http).await;
 

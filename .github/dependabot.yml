@@ -13,7 +13,7 @@ updates:
       - "Akinator31"
     labels:
       - "dependencies"
-      - "rust"
+      - "🦀 rust"
     commit-message:
       prefix: "cargo"
       include: "scope"

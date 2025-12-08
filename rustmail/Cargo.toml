@@ -15,6 +15,7 @@ reqwest = { version = "0.12.23", features = ["json"] }
 async-trait = "0.1.89"
 chrono = { version = "0.4.42", features = ["serde"] }
 regex = "1.11.3"
+futures = "0.3"
 axum = "0.8.7"
 axum-extra = { version = "0.12.2", features = ["cookie"] }
 hyper = "1.8.1"
