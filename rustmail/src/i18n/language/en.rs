@@ -1125,4 +1125,604 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "snippet.used".to_string(),
         DictionaryMessage::new("Snippet '**{key}**' used successfully!"),
     );
+    dict.messages.insert(
+        "audit_log.reason".to_string(),
+        DictionaryMessage::new("Reason"),
+    );
+    dict.messages.insert(
+        "audit_log.channel".to_string(),
+        DictionaryMessage::new("Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.target".to_string(),
+        DictionaryMessage::new("Target"),
+    );
+    dict.messages.insert(
+        "audit_log.unknown".to_string(),
+        DictionaryMessage::new("Unknown"),
+    );
+    dict.messages.insert(
+        "audit_log.unknown_action".to_string(),
+        DictionaryMessage::new("Unknown Action (code: {code})"),
+    );
+    dict.messages.insert(
+        "audit_log.member.kick".to_string(),
+        DictionaryMessage::new("Member Kicked"),
+    );
+    dict.messages.insert(
+        "audit_log.member.prune".to_string(),
+        DictionaryMessage::new("Members Pruned"),
+    );
+    dict.messages.insert(
+        "audit_log.member.ban_add".to_string(),
+        DictionaryMessage::new("Member Banned"),
+    );
+    dict.messages.insert(
+        "audit_log.member.ban_remove".to_string(),
+        DictionaryMessage::new("Member Unbanned"),
+    );
+    dict.messages.insert(
+        "audit_log.member.update".to_string(),
+        DictionaryMessage::new("Member Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.member.role_update".to_string(),
+        DictionaryMessage::new("Member Roles Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.member.member_move".to_string(),
+        DictionaryMessage::new("Member Moved"),
+    );
+    dict.messages.insert(
+        "audit_log.member.member_disconnect".to_string(),
+        DictionaryMessage::new("Member Disconnected"),
+    );
+    dict.messages.insert(
+        "audit_log.member.bot_add".to_string(),
+        DictionaryMessage::new("Bot Added"),
+    );
+    dict.messages.insert(
+        "audit_log.member.unknown".to_string(),
+        DictionaryMessage::new("Unknown Member Action"),
+    );
+    dict.messages.insert(
+        "audit_log.channel.create".to_string(),
+        DictionaryMessage::new("Channel Created"),
+    );
+    dict.messages.insert(
+        "audit_log.channel.update".to_string(),
+        DictionaryMessage::new("Channel Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.channel.delete".to_string(),
+        DictionaryMessage::new("Channel Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.channel.unknown".to_string(),
+        DictionaryMessage::new("Unknown Channel Action"),
+    );
+    dict.messages.insert(
+        "audit_log.channel_overwrite.create".to_string(),
+        DictionaryMessage::new("Permission Overwrite Created"),
+    );
+    dict.messages.insert(
+        "audit_log.channel_overwrite.update".to_string(),
+        DictionaryMessage::new("Permission Overwrite Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.channel_overwrite.delete".to_string(),
+        DictionaryMessage::new("Permission Overwrite Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.channel_overwrite.unknown".to_string(),
+        DictionaryMessage::new("Unknown Permission Overwrite Action"),
+    );
+    dict.messages.insert(
+        "audit_log.role.create".to_string(),
+        DictionaryMessage::new("Role Created"),
+    );
+    dict.messages.insert(
+        "audit_log.role.update".to_string(),
+        DictionaryMessage::new("Role Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.role.delete".to_string(),
+        DictionaryMessage::new("Role Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.role.unknown".to_string(),
+        DictionaryMessage::new("Unknown Role Action"),
+    );
+    dict.messages.insert(
+        "audit_log.invite.create".to_string(),
+        DictionaryMessage::new("Invite Created"),
+    );
+    dict.messages.insert(
+        "audit_log.invite.update".to_string(),
+        DictionaryMessage::new("Invite Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.invite.delete".to_string(),
+        DictionaryMessage::new("Invite Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.invite.unknown".to_string(),
+        DictionaryMessage::new("Unknown Invite Action"),
+    );
+    dict.messages.insert(
+        "audit_log.webhook.create".to_string(),
+        DictionaryMessage::new("Webhook Created"),
+    );
+    dict.messages.insert(
+        "audit_log.webhook.update".to_string(),
+        DictionaryMessage::new("Webhook Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.webhook.delete".to_string(),
+        DictionaryMessage::new("Webhook Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.webhook.unknown".to_string(),
+        DictionaryMessage::new("Unknown Webhook Action"),
+    );
+    dict.messages.insert(
+        "audit_log.emoji.create".to_string(),
+        DictionaryMessage::new("Emoji Created"),
+    );
+    dict.messages.insert(
+        "audit_log.emoji.update".to_string(),
+        DictionaryMessage::new("Emoji Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.emoji.delete".to_string(),
+        DictionaryMessage::new("Emoji Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.emoji.unknown".to_string(),
+        DictionaryMessage::new("Unknown Emoji Action"),
+    );
+    dict.messages.insert(
+        "audit_log.message.delete".to_string(),
+        DictionaryMessage::new("Message Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.message.bulk_delete".to_string(),
+        DictionaryMessage::new("Messages Bulk Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.message.pin".to_string(),
+        DictionaryMessage::new("Message Pinned"),
+    );
+    dict.messages.insert(
+        "audit_log.message.unpin".to_string(),
+        DictionaryMessage::new("Message Unpinned"),
+    );
+    dict.messages.insert(
+        "audit_log.message.unknown".to_string(),
+        DictionaryMessage::new("Unknown Message Action"),
+    );
+    dict.messages.insert(
+        "audit_log.guild.update".to_string(),
+        DictionaryMessage::new("Server Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.integration.create".to_string(),
+        DictionaryMessage::new("Integration Created"),
+    );
+    dict.messages.insert(
+        "audit_log.integration.update".to_string(),
+        DictionaryMessage::new("Integration Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.integration.delete".to_string(),
+        DictionaryMessage::new("Integration Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.integration.unknown".to_string(),
+        DictionaryMessage::new("Unknown Integration Action"),
+    );
+    dict.messages.insert(
+        "audit_log.stage_instance.create".to_string(),
+        DictionaryMessage::new("Stage Instance Created"),
+    );
+    dict.messages.insert(
+        "audit_log.stage_instance.update".to_string(),
+        DictionaryMessage::new("Stage Instance Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.stage_instance.delete".to_string(),
+        DictionaryMessage::new("Stage Instance Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.stage_instance.unknown".to_string(),
+        DictionaryMessage::new("Unknown Stage Instance Action"),
+    );
+    dict.messages.insert(
+        "audit_log.sticker.create".to_string(),
+        DictionaryMessage::new("Sticker Created"),
+    );
+    dict.messages.insert(
+        "audit_log.sticker.update".to_string(),
+        DictionaryMessage::new("Sticker Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.sticker.delete".to_string(),
+        DictionaryMessage::new("Sticker Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.sticker.unknown".to_string(),
+        DictionaryMessage::new("Unknown Sticker Action"),
+    );
+    dict.messages.insert(
+        "audit_log.scheduled_event.create".to_string(),
+        DictionaryMessage::new("Scheduled Event Created"),
+    );
+    dict.messages.insert(
+        "audit_log.scheduled_event.update".to_string(),
+        DictionaryMessage::new("Scheduled Event Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.scheduled_event.delete".to_string(),
+        DictionaryMessage::new("Scheduled Event Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.scheduled_event.unknown".to_string(),
+        DictionaryMessage::new("Unknown Scheduled Event Action"),
+    );
+    dict.messages.insert(
+        "audit_log.thread.create".to_string(),
+        DictionaryMessage::new("Thread Created"),
+    );
+    dict.messages.insert(
+        "audit_log.thread.update".to_string(),
+        DictionaryMessage::new("Thread Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.thread.delete".to_string(),
+        DictionaryMessage::new("Thread Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.thread.unknown".to_string(),
+        DictionaryMessage::new("Unknown Thread Action"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.rule_create".to_string(),
+        DictionaryMessage::new("AutoMod Rule Created"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.rule_update".to_string(),
+        DictionaryMessage::new("AutoMod Rule Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.rule_delete".to_string(),
+        DictionaryMessage::new("AutoMod Rule Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.block_message".to_string(),
+        DictionaryMessage::new("AutoMod Blocked Message"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.send_alert_message".to_string(),
+        DictionaryMessage::new("AutoMod Sent Alert"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.user_communication_disabled".to_string(),
+        DictionaryMessage::new("AutoMod Timed Out User"),
+    );
+    dict.messages.insert(
+        "audit_log.automod.unknown".to_string(),
+        DictionaryMessage::new("Unknown AutoMod Action"),
+    );
+    dict.messages.insert(
+        "audit_log.creator_monetization.request_created".to_string(),
+        DictionaryMessage::new("Monetization Request Created"),
+    );
+    dict.messages.insert(
+        "audit_log.creator_monetization.terms_accepted".to_string(),
+        DictionaryMessage::new("Monetization Terms Accepted"),
+    );
+    dict.messages.insert(
+        "audit_log.creator_monetization.unknown".to_string(),
+        DictionaryMessage::new("Unknown Monetization Action"),
+    );
+    dict.messages.insert(
+        "audit_log.voice_channel_status.update".to_string(),
+        DictionaryMessage::new("Voice Channel Status Updated"),
+    );
+    dict.messages.insert(
+        "audit_log.voice_channel_status.delete".to_string(),
+        DictionaryMessage::new("Voice Channel Status Deleted"),
+    );
+    dict.messages.insert(
+        "audit_log.voice_channel_status.unknown".to_string(),
+        DictionaryMessage::new("Unknown Voice Status Action"),
+    );
+    dict.messages.insert(
+        "audit_log.change.afk_channel".to_string(),
+        DictionaryMessage::new("AFK Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.afk_timeout".to_string(),
+        DictionaryMessage::new("AFK Timeout"),
+    );
+    dict.messages.insert(
+        "audit_log.change.permissions_allow".to_string(),
+        DictionaryMessage::new("Permissions Allowed"),
+    );
+    dict.messages.insert(
+        "audit_log.change.application".to_string(),
+        DictionaryMessage::new("Application ID"),
+    );
+    dict.messages.insert(
+        "audit_log.change.archived".to_string(),
+        DictionaryMessage::new("Archived"),
+    );
+    dict.messages.insert(
+        "audit_log.change.asset".to_string(),
+        DictionaryMessage::new("Asset"),
+    );
+    dict.messages.insert(
+        "audit_log.change.auto_archive_duration".to_string(),
+        DictionaryMessage::new("Auto Archive Duration"),
+    );
+    dict.messages.insert(
+        "audit_log.change.available".to_string(),
+        DictionaryMessage::new("Available"),
+    );
+    dict.messages.insert(
+        "audit_log.change.avatar".to_string(),
+        DictionaryMessage::new("Avatar"),
+    );
+    dict.messages.insert(
+        "audit_log.change.banner".to_string(),
+        DictionaryMessage::new("Banner"),
+    );
+    dict.messages.insert(
+        "audit_log.change.bitrate".to_string(),
+        DictionaryMessage::new("Bitrate"),
+    );
+    dict.messages.insert(
+        "audit_log.change.channel".to_string(),
+        DictionaryMessage::new("Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.invite_code".to_string(),
+        DictionaryMessage::new("Invite Code"),
+    );
+    dict.messages.insert(
+        "audit_log.change.color".to_string(),
+        DictionaryMessage::new("Color"),
+    );
+    dict.messages.insert(
+        "audit_log.change.timeout".to_string(),
+        DictionaryMessage::new("Timeout"),
+    );
+    dict.messages.insert(
+        "audit_log.change.deaf".to_string(),
+        DictionaryMessage::new("Deafened"),
+    );
+    dict.messages.insert(
+        "audit_log.change.default_auto_archive".to_string(),
+        DictionaryMessage::new("Default Auto Archive"),
+    );
+    dict.messages.insert(
+        "audit_log.change.default_notifications".to_string(),
+        DictionaryMessage::new("Default Notifications"),
+    );
+    dict.messages.insert(
+        "audit_log.change.permissions_deny".to_string(),
+        DictionaryMessage::new("Permissions Denied"),
+    );
+    dict.messages.insert(
+        "audit_log.change.description".to_string(),
+        DictionaryMessage::new("Description"),
+    );
+    dict.messages.insert(
+        "audit_log.change.discovery_splash".to_string(),
+        DictionaryMessage::new("Discovery Splash"),
+    );
+    dict.messages.insert(
+        "audit_log.change.enable_emoticons".to_string(),
+        DictionaryMessage::new("Enable Emoticons"),
+    );
+    dict.messages.insert(
+        "audit_log.change.entity_type".to_string(),
+        DictionaryMessage::new("Entity Type"),
+    );
+    dict.messages.insert(
+        "audit_log.change.expire_behavior".to_string(),
+        DictionaryMessage::new("Expire Behavior"),
+    );
+    dict.messages.insert(
+        "audit_log.change.expire_grace_period".to_string(),
+        DictionaryMessage::new("Expire Grace Period"),
+    );
+    dict.messages.insert(
+        "audit_log.change.explicit_content_filter".to_string(),
+        DictionaryMessage::new("Explicit Content Filter"),
+    );
+    dict.messages.insert(
+        "audit_log.change.format_type".to_string(),
+        DictionaryMessage::new("Format Type"),
+    );
+    dict.messages.insert(
+        "audit_log.change.guild".to_string(),
+        DictionaryMessage::new("Server ID"),
+    );
+    dict.messages.insert(
+        "audit_log.change.hoist".to_string(),
+        DictionaryMessage::new("Hoisted"),
+    );
+    dict.messages.insert(
+        "audit_log.change.icon".to_string(),
+        DictionaryMessage::new("Icon"),
+    );
+    dict.messages.insert(
+        "audit_log.change.id".to_string(),
+        DictionaryMessage::new("ID"),
+    );
+    dict.messages.insert(
+        "audit_log.change.image".to_string(),
+        DictionaryMessage::new("Image"),
+    );
+    dict.messages.insert(
+        "audit_log.change.invitable".to_string(),
+        DictionaryMessage::new("Invitable"),
+    );
+    dict.messages.insert(
+        "audit_log.change.inviter".to_string(),
+        DictionaryMessage::new("Inviter"),
+    );
+    dict.messages.insert(
+        "audit_log.change.location".to_string(),
+        DictionaryMessage::new("Location"),
+    );
+    dict.messages.insert(
+        "audit_log.change.locked".to_string(),
+        DictionaryMessage::new("Locked"),
+    );
+    dict.messages.insert(
+        "audit_log.change.max_age".to_string(),
+        DictionaryMessage::new("Max Age"),
+    );
+    dict.messages.insert(
+        "audit_log.change.max_uses".to_string(),
+        DictionaryMessage::new("Max Uses"),
+    );
+    dict.messages.insert(
+        "audit_log.change.mentionable".to_string(),
+        DictionaryMessage::new("Mentionable"),
+    );
+    dict.messages.insert(
+        "audit_log.change.mfa_level".to_string(),
+        DictionaryMessage::new("MFA Level"),
+    );
+    dict.messages.insert(
+        "audit_log.change.mute".to_string(),
+        DictionaryMessage::new("Muted"),
+    );
+    dict.messages.insert(
+        "audit_log.change.name".to_string(),
+        DictionaryMessage::new("Name"),
+    );
+    dict.messages.insert(
+        "audit_log.change.nickname".to_string(),
+        DictionaryMessage::new("Nickname"),
+    );
+    dict.messages.insert(
+        "audit_log.change.nsfw".to_string(),
+        DictionaryMessage::new("NSFW"),
+    );
+    dict.messages.insert(
+        "audit_log.change.owner".to_string(),
+        DictionaryMessage::new("Owner"),
+    );
+    dict.messages.insert(
+        "audit_log.change.permission_overwrites".to_string(),
+        DictionaryMessage::new("Permission Overwrites"),
+    );
+    dict.messages.insert(
+        "audit_log.change.permissions".to_string(),
+        DictionaryMessage::new("Permissions"),
+    );
+    dict.messages.insert(
+        "audit_log.change.position".to_string(),
+        DictionaryMessage::new("Position"),
+    );
+    dict.messages.insert(
+        "audit_log.change.preferred_locale".to_string(),
+        DictionaryMessage::new("Preferred Locale"),
+    );
+    dict.messages.insert(
+        "audit_log.change.privacy_level".to_string(),
+        DictionaryMessage::new("Privacy Level"),
+    );
+    dict.messages.insert(
+        "audit_log.change.prune_delete_days".to_string(),
+        DictionaryMessage::new("Prune Delete Days"),
+    );
+    dict.messages.insert(
+        "audit_log.change.public_updates_channel".to_string(),
+        DictionaryMessage::new("Public Updates Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.slowmode".to_string(),
+        DictionaryMessage::new("Slowmode"),
+    );
+    dict.messages.insert(
+        "audit_log.change.region".to_string(),
+        DictionaryMessage::new("Region"),
+    );
+    dict.messages.insert(
+        "audit_log.change.roles_added".to_string(),
+        DictionaryMessage::new("Roles Added"),
+    );
+    dict.messages.insert(
+        "audit_log.change.roles_removed".to_string(),
+        DictionaryMessage::new("Roles Removed"),
+    );
+    dict.messages.insert(
+        "audit_log.change.rules_channel".to_string(),
+        DictionaryMessage::new("Rules Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.splash".to_string(),
+        DictionaryMessage::new("Splash"),
+    );
+    dict.messages.insert(
+        "audit_log.change.status".to_string(),
+        DictionaryMessage::new("Status"),
+    );
+    dict.messages.insert(
+        "audit_log.change.system_channel".to_string(),
+        DictionaryMessage::new("System Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.tags".to_string(),
+        DictionaryMessage::new("Tags"),
+    );
+    dict.messages.insert(
+        "audit_log.change.temporary".to_string(),
+        DictionaryMessage::new("Temporary"),
+    );
+    dict.messages.insert(
+        "audit_log.change.topic".to_string(),
+        DictionaryMessage::new("Topic"),
+    );
+    dict.messages.insert(
+        "audit_log.change.type".to_string(),
+        DictionaryMessage::new("Type"),
+    );
+    dict.messages.insert(
+        "audit_log.change.unicode_emoji".to_string(),
+        DictionaryMessage::new("Unicode Emoji"),
+    );
+    dict.messages.insert(
+        "audit_log.change.user_limit".to_string(),
+        DictionaryMessage::new("User Limit"),
+    );
+    dict.messages.insert(
+        "audit_log.change.uses".to_string(),
+        DictionaryMessage::new("Uses"),
+    );
+    dict.messages.insert(
+        "audit_log.change.vanity_url".to_string(),
+        DictionaryMessage::new("Vanity URL"),
+    );
+    dict.messages.insert(
+        "audit_log.change.verification_level".to_string(),
+        DictionaryMessage::new("Verification Level"),
+    );
+    dict.messages.insert(
+        "audit_log.change.widget_channel".to_string(),
+        DictionaryMessage::new("Widget Channel"),
+    );
+    dict.messages.insert(
+        "audit_log.change.widget_enabled".to_string(),
+        DictionaryMessage::new("Widget Enabled"),
+    );
+    dict.messages.insert(
+        "audit_log.change.system_channel_flags".to_string(),
+        DictionaryMessage::new("System Channel Flags"),
+    );
 }

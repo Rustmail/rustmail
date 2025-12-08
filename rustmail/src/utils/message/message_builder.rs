@@ -53,6 +53,7 @@ pub struct MessageBuilder<'a> {
     components: Option<Vec<CreateActionRow>>,
     ephemeral: bool,
     mention: Vec<UserId>,
+    custom_embed: Option<CreateEmbed>,
 }
 
 impl<'a> MessageBuilder<'a> {
@@ -72,6 +73,7 @@ impl<'a> MessageBuilder<'a> {
             components: None,
             ephemeral: false,
             mention: Vec::<UserId>::new(),
+            custom_embed: None,
         }
     }
 
@@ -175,6 +177,11 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn footer<S: Into<String>>(mut self, text: S) -> Self {
         self.footer_text = Some(text.into());
+        self
+    }
+
+    pub fn build_embed_only(mut self, embed: CreateEmbed) -> Self {
+        self.custom_embed = Some(embed);
         self
     }
 
@@ -481,7 +488,9 @@ impl<'a> MessageBuilder<'a> {
     pub async fn build_create_message(&self) -> CreateMessage {
         let mut message = CreateMessage::new();
 
-        if self.should_use_embed().await {
+        if let Some(embed) = &self.custom_embed {
+            message = message.embed(embed.clone());
+        } else if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
 
             if !self.mention.is_empty() {
