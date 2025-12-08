@@ -12,7 +12,7 @@ use serenity::{
 use sqlx::SqlitePool;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{watch::Receiver, Mutex};
+use tokio::sync::{Mutex, watch::Receiver};
 use tokio::time::interval;
 
 #[derive(Clone)]
@@ -78,8 +78,8 @@ impl EventHandler for ReadyHandler {
 
         update_threads_status(&ctx, &pool.clone());
 
-        let guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
-        let guild_id2 = GuildId::new(self.config.bot.get_community_guild_id());
+        let staff_guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
+        let community_guild_id = GuildId::new(self.config.bot.get_community_guild_id());
 
         let mut guild_commands: Vec<CreateCommand> = Vec::new();
         let mut community_commands: Vec<CreateCommand> = Vec::new();
@@ -94,14 +94,24 @@ impl EventHandler for ReadyHandler {
             }
         }
 
-        if let Err(e) = guild_id
+        if staff_guild_id == community_guild_id {
+            if let Err(e) = staff_guild_id.set_commands(&ctx.http, guild_commands).await {
+                eprintln!("set_commands() failed: {:?}", e);
+            }
+            return;
+        }
+
+        if let Err(e) = staff_guild_id
             .set_commands(&ctx.http, guild_commands.clone())
             .await
         {
             eprintln!("set_commands() failed: {:?}", e);
         }
 
-        if let Err(e) = guild_id2.set_commands(&ctx.http, community_commands).await {
+        if let Err(e) = community_guild_id
+            .set_commands(&ctx.http, community_commands)
+            .await
+        {
             eprintln!("set_commands() failed: {:?}", e);
         }
     }
