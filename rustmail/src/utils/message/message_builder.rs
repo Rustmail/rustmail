@@ -587,6 +587,48 @@ impl<'a> MessageBuilder<'a> {
             eprintln!("Failed to send message: {}", e);
         }
     }
+
+    pub async fn send_interaction_followup(
+        self,
+        command: &CommandInteraction,
+        to_be_recorded: bool,
+    ) -> Result<Message, ModmailError> {
+        let pool = match &self.config.db_pool {
+            Some(pool) => pool,
+            None => {
+                return Err(ModmailError::Database(DatabaseError::ConnectionFailed));
+            }
+        };
+
+        let response = self.build_interaction_message_followup().await;
+
+        let message = command
+            .create_followup(&self.ctx.http, response)
+            .await
+            .map_err(ModmailError::from)?;
+
+        if to_be_recorded {
+            let thread_id = get_thread_by_channel_id(&command.channel_id.to_string(), pool)
+                .await
+                .map(|t| t.id)
+                .unwrap_or_default();
+
+            let _ = insert_staff_message(
+                self.ctx,
+                &message,
+                None,
+                &thread_id,
+                self.bot_user_id,
+                false,
+                pool,
+                self.config,
+                None,
+            )
+            .await;
+        }
+
+        Ok(message)
+    }
 }
 
 impl<'a> MessageBuilder<'a> {
