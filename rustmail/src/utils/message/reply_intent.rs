@@ -21,23 +21,32 @@ pub async fn extract_intent(
 }
 
 pub async fn download_attachments(attachments: &[Attachment]) -> Vec<CreateAttachment> {
-    let mut downloaded_attachments = Vec::new();
+    use futures::future::join_all;
 
-    for attachment in attachments {
-        if let Ok(response) = reqwest::get(&attachment.url).await {
-            if let Ok(bytes) = response.bytes().await {
-                downloaded_attachments
-                    .push(CreateAttachment::bytes(bytes, attachment.filename.clone()));
-            } else {
-                eprintln!(
-                    "Failed to read bytes from attachment: {}",
-                    attachment.filename
-                );
+    let download_futures = attachments.iter().map(|attachment| {
+        let url = attachment.url.clone();
+        let filename = attachment.filename.clone();
+
+        async move {
+            match reqwest::get(&url).await {
+                Ok(response) => match response.bytes().await {
+                    Ok(bytes) => Some(CreateAttachment::bytes(bytes, filename.clone())),
+                    Err(_) => {
+                        eprintln!("Failed to read bytes from attachment: {}", filename);
+                        None
+                    }
+                },
+                Err(_) => {
+                    eprintln!("Failed to download attachment: {}", filename);
+                    None
+                }
             }
-        } else {
-            eprintln!("Failed to download attachment: {}", attachment.filename);
         }
-    }
+    });
 
-    downloaded_attachments
+    join_all(download_futures)
+        .await
+        .into_iter()
+        .flatten()
+        .collect()
 }
