@@ -363,18 +363,32 @@ pub async fn get_staff_alerts_for_user(
     Ok(alerts.into_iter().map(|row| row.staff_user_id).collect())
 }
 
-pub async fn mark_alert_as_used(
-    staff_user_id: i64,
+pub async fn mark_alerts_as_used_batch(
+    staff_user_ids: &[i64],
     thread_user_id: i64,
     pool: &SqlitePool,
 ) -> Result<(), Error> {
-    sqlx::query!(
-        "UPDATE staff_alerts SET used = TRUE WHERE staff_user_id = ? AND thread_user_id = ? AND used = FALSE",
-        staff_user_id,
-        thread_user_id
-    )
-    .execute(pool)
-    .await?;
+    if staff_user_ids.is_empty() {
+        return Ok(());
+    }
+
+    let placeholders = staff_user_ids
+        .iter()
+        .map(|_| "?")
+        .collect::<Vec<_>>()
+        .join(",");
+    let query = format!(
+        "UPDATE staff_alerts SET used = TRUE WHERE staff_user_id IN ({}) AND thread_user_id = ? AND used = FALSE",
+        placeholders
+    );
+
+    let mut query_builder = sqlx::query(&query);
+    for staff_id in staff_user_ids {
+        query_builder = query_builder.bind(staff_id);
+    }
+    query_builder = query_builder.bind(thread_user_id);
+
+    query_builder.execute(pool).await?;
 
     Ok(())
 }
