@@ -23,16 +23,19 @@ pub struct ThreadMessage {
     pub message_number: Option<i64>,
     pub created_at: String,
     pub content: String,
+    pub is_internal: bool,
 }
 
 impl ThreadMessage {
     fn message_type(&self) -> MessageType {
-        if self.user_name.starts_with("System") || self.user_name == "System" {
-            MessageType::System
-        } else if self.user_id == 0 || self.is_anonymous {
+        if self.is_internal {
+            MessageType::Internal
+        } else if self.message_number.is_some() {
+            MessageType::Staff
+        } else if self.dm_message_id.is_some() && self.inbox_message_id.is_some() {
             MessageType::User
         } else {
-            MessageType::Staff
+            MessageType::System
         }
     }
 }
@@ -42,6 +45,7 @@ enum MessageType {
     User,
     Staff,
     System,
+    Internal,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
@@ -507,6 +511,7 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
     let show_user = use_state(|| true);
     let show_staff = use_state(|| true);
     let show_system = use_state(|| true);
+    let show_internal = use_state(|| true);
     let search_query = use_state(|| String::new());
 
     let permissions = use_state(|| None::<Vec<PanelPermission>>);
@@ -594,6 +599,7 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                                 MessageType::User => *show_user,
                                 MessageType::Staff => *show_staff,
                                 MessageType::System => *show_system,
+                                MessageType::Internal => *show_internal,
                             };
 
                             let search_match = if search_query.is_empty() {
@@ -746,6 +752,25 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                                         <i class="bi bi-gear"></i>
                                         {i18n.t("panel.tickets.filter_system")}
                                     </button>
+
+                                    <button
+                                        onclick={{
+                                            let show_internal = show_internal.clone();
+                                            move |_| show_internal.set(!*show_internal)
+                                        }}
+                                        class={classes!(
+                                            "px-4", "py-2", "rounded-lg", "border", "transition-all", "text-sm", "font-medium",
+                                            "flex", "items-center", "gap-2",
+                                            if *show_internal {
+                                                "bg-purple-500/20 text-purple-400 border-purple-500/50"
+                                            } else {
+                                                "bg-slate-700/30 text-gray-400 border-slate-600"
+                                            }
+                                        )}
+                                    >
+                                        <i class="bi bi-pencil-square"></i>
+                                        {i18n.t("panel.tickets.filter_internal")}
+                                    </button>
                                 </div>
                             </div>
 
@@ -778,6 +803,11 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                                                             "bg-yellow-500/10",
                                                             "border-yellow-500/30",
                                                             "text-yellow-400"
+                                                        ),
+                                                        MessageType::Internal => (
+                                                            "bg-purple-500/10",
+                                                            "border-purple-500/30",
+                                                            "text-purple-400"
                                                         ),
                                                     };
 

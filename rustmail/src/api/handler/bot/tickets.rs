@@ -22,6 +22,7 @@ pub struct ThreadMessage {
     pub message_number: Option<i64>,
     pub created_at: String,
     pub content: String,
+    pub is_internal: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -180,7 +181,8 @@ pub async fn handle_tickets_bot(
                 inbox_message_id,
                 message_number,
                 created_at as "created_at: String",
-                content
+                content,
+                is_internal
             FROM thread_messages
             WHERE thread_id = ?
             ORDER BY created_at ASC
@@ -210,6 +212,7 @@ pub async fn handle_tickets_bot(
                 message_number: m.message_number,
                 created_at: m.created_at,
                 content: m.content,
+                is_internal: m.is_internal,
             })
             .collect();
 
@@ -391,7 +394,8 @@ pub async fn handle_tickets_bot(
             inbox_message_id,
             message_number,
             created_at,
-            content
+            content,
+            is_internal
         FROM thread_messages
         WHERE thread_id IN ({})
         ORDER BY thread_id, created_at ASC
@@ -412,6 +416,7 @@ pub async fn handle_tickets_bot(
             Option<i64>,
             String,
             String,
+            bool,
         ),
     >(&messages_query_str);
 
@@ -445,6 +450,7 @@ pub async fn handle_tickets_bot(
                 message_number: msg.7,
                 created_at: msg.8,
                 content: msg.9,
+                is_internal: msg.10,
             });
     }
 

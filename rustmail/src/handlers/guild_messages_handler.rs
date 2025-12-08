@@ -242,6 +242,23 @@ impl EventHandler for GuildMessagesHandler {
             }
             return;
         }
+
+        if let Some(guild_id) = msg.guild_id {
+            let staff_guild_id = self.config.bot.get_staff_guild_id();
+            if guild_id.get() == staff_guild_id && !msg.author.bot {
+                if let Some(pool) = &self.config.db_pool {
+                    let channel_id_str = msg.channel_id.to_string();
+                    if let Some(_thread) = get_thread_by_channel_id(&channel_id_str, pool).await {
+                        if let Err(e) =
+                            insert_internal_message(&ctx, &msg, &_thread.id, pool, &self.config)
+                                .await
+                        {
+                            eprintln!("Failed to record internal message: {}", e);
+                        }
+                    }
+                }
+            }
+        }
         return;
     }
 
