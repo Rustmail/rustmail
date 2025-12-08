@@ -8,7 +8,7 @@ use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     ChannelId, CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
-    CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, GuildId, ResolvedOption,
+    CreateCommand, CreateCommandOption, GuildId, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -222,16 +222,12 @@ impl RegistrableCommand for NewThreadCommand {
                 guild_channel.to_string()
             );
 
-            let response = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content("new_thread.success_with_dm", Some(&params), None, None)
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
-
-            let _ = command
-                .create_followup(&ctx.http, CreateInteractionResponseFollowup::from(response))
-                .await?;
 
             Ok(())
         })

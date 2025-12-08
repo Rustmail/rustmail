@@ -82,14 +82,12 @@ impl RegistrableCommand for IdCommand {
                 format!("||{}||", thread.user_id.to_string()),
             );
 
-            let response = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content("id.show_id", Some(&params), None, None)
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
-
-            let _ = command.create_followup(&ctx.http, response).await;
 
             Ok(())
         })

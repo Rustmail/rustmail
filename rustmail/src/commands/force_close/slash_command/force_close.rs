@@ -59,6 +59,8 @@ impl RegistrableCommand for ForceCloseCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
+            defer_response(&ctx, &command).await?;
+
             if !is_a_ticket_channel(command.channel_id, db_pool).await {
                 match command.channel_id.to_channel(&ctx.http).await {
                     Ok(channel) => {
@@ -119,7 +121,7 @@ impl RegistrableCommand for ForceCloseCommand {
                                     )
                                     .await
                                     .to_channel(serenity::all::ChannelId::new(logs_channel_id))
-                                    .send(true)
+                                    .send_interaction_followup(&command, true)
                                     .await;
                             }
                         }

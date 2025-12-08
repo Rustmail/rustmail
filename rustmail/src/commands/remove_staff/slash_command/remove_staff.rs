@@ -8,7 +8,7 @@ use crate::prelude::utils::*;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, CommandType, Context,
-    CreateCommand, CreateCommandOption, CreateInteractionResponseFollowup, ResolvedOption,
+    CreateCommand, CreateCommandOption, ResolvedOption,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -113,7 +113,7 @@ impl RegistrableCommand for RemoveStaffCommand {
                         let mut params = HashMap::new();
                         params.insert("user".to_string(), format!("<@{}>", user_id));
 
-                        let response = MessageBuilder::system_message(&ctx, &config)
+                        let _ = MessageBuilder::system_message(&ctx, &config)
                             .translated_content(
                                 "add_staff.remove_success",
                                 Some(&params),
@@ -122,14 +122,7 @@ impl RegistrableCommand for RemoveStaffCommand {
                             )
                             .await
                             .to_channel(command.channel_id)
-                            .build_interaction_message_followup()
-                            .await;
-
-                        let _ = command
-                            .create_followup(
-                                &ctx.http,
-                                CreateInteractionResponseFollowup::from(response),
-                            )
+                            .send_interaction_followup(&command, true)
                             .await;
 
                         Ok(())

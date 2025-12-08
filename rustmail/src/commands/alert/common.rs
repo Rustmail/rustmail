@@ -101,7 +101,7 @@ pub async fn handle_cancel_alert_from_command(
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", user_id));
 
-        let response = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(ctx, config)
             .translated_content(
                 "alert.cancel_confirmation",
                 Some(&params),
@@ -110,10 +110,8 @@ pub async fn handle_cancel_alert_from_command(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message_followup()
+            .send_interaction_followup(command, true)
             .await;
-
-        let _ = command.create_followup(&ctx.http, response).await;
 
         Ok(())
     }
@@ -163,7 +161,7 @@ pub async fn handle_set_alert_from_command(
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", user_id));
 
-        let response = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(ctx, config)
             .translated_content(
                 "alert.confirmation",
                 Some(&params),
@@ -172,10 +170,8 @@ pub async fn handle_set_alert_from_command(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message_followup()
+            .send_interaction_followup(command, true)
             .await;
-
-        let _ = command.create_followup(&ctx.http, response).await;
 
         Ok(())
     }

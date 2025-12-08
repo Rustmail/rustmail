@@ -64,7 +64,7 @@ impl RegistrableCommand for RecoverCommand {
             let mut params = HashMap::new();
             params.insert("user".to_string(), command.user.name.clone());
 
-            let response = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content(
                     "recovery.started",
                     Some(&params),
@@ -73,10 +73,8 @@ impl RegistrableCommand for RecoverCommand {
                 )
                 .await
                 .to_channel(command.channel_id)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
-
-            let _ = command.create_followup(&ctx.http, response).await;
 
             let ctx_clone = ctx.clone();
             let config_clone = config.clone();
@@ -95,15 +93,11 @@ impl RegistrableCommand for RecoverCommand {
                 params.insert("threads".to_string(), successful_threads.to_string());
                 params.insert("failed".to_string(), failed_threads.to_string());
 
-                let response = MessageBuilder::system_message(&ctx_clone, &config_clone)
+                let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                     .translated_content("recovery.summary", Some(&params), None, None)
                     .await
                     .to_channel(channel_id)
-                    .build_interaction_message_followup()
-                    .await;
-
-                let _ = command_clone
-                    .create_followup(&ctx_clone.http, response)
+                    .send_interaction_followup(&command_clone, true)
                     .await;
             });
 

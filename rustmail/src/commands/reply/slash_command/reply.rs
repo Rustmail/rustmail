@@ -158,7 +158,7 @@ impl RegistrableCommand for ReplyCommand {
                     _ => {}
                 }
             }
-            
+
             if let Some(key) = snippet_key {
                 match get_snippet_by_key(&key, db_pool).await? {
                     Some(snippet) => {
@@ -241,7 +241,7 @@ impl RegistrableCommand for ReplyCommand {
                 let mut params = HashMap::new();
                 params.insert("number".to_string(), next_message_number.to_string());
 
-                let response = MessageBuilder::system_message(&ctx, &config)
+                let _ = MessageBuilder::system_message(&ctx, &config)
                     .translated_content(
                         "success.message_sent",
                         Some(&params),
@@ -250,10 +250,8 @@ impl RegistrableCommand for ReplyCommand {
                     )
                     .await
                     .to_channel(command.channel_id)
-                    .build_interaction_message_followup()
+                    .send_interaction_followup(&command, true)
                     .await;
-
-                let _ = command.create_followup(&ctx.http, response).await;
             }
 
             Ok(())

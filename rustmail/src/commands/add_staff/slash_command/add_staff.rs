@@ -111,14 +111,12 @@ impl RegistrableCommand for AddStaffCommand {
                         let mut params = HashMap::new();
                         params.insert("user".to_string(), format!("<@{}>", user_id));
 
-                        let response = MessageBuilder::system_message(&ctx, &config)
+                        let _ = MessageBuilder::system_message(&ctx, &config)
                             .translated_content("add_staff.add_success", Some(&params), None, None)
                             .await
                             .to_channel(command.channel_id)
-                            .build_interaction_message_followup()
+                            .send_interaction_followup(&command, true)
                             .await;
-
-                        let _ = command.create_followup(&ctx.http, response).await;
 
                         Ok(())
                     }

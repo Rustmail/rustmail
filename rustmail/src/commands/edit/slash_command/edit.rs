@@ -178,7 +178,7 @@ impl RegistrableCommand for EditCommand {
             match edit_result {
                 Ok(()) => {
                     if config.notifications.show_success_on_edit {
-                        let response = MessageBuilder::system_message(&ctx, &config)
+                        let _ = MessageBuilder::system_message(&ctx, &config)
                             .translated_content(
                                 "success.message_edited",
                                 None,
@@ -188,10 +188,8 @@ impl RegistrableCommand for EditCommand {
                             .await
                             .color(hex_string_to_int(&config.thread.system_message_color) as u32)
                             .to_channel(command.channel_id)
-                            .build_interaction_message_followup()
+                            .send_interaction_followup(&command, true)
                             .await;
-
-                        let _ = command.create_followup(&ctx.http, response).await;
                     };
 
                     if config.logs.show_log_on_edit {
@@ -214,7 +212,7 @@ impl RegistrableCommand for EditCommand {
                         params.insert("after".to_string(), format!("`{}`", new_content.clone()));
                         params.insert("link".to_string(), message_link);
 
-                        let response = MessageBuilder::system_message(&ctx, &config)
+                        let _ = MessageBuilder::system_message(&ctx, &config)
                             .translated_content(
                                 "edit.modification_from_staff",
                                 Some(&params),
@@ -223,10 +221,8 @@ impl RegistrableCommand for EditCommand {
                             )
                             .await
                             .to_channel(command.channel_id)
-                            .build_interaction_message_followup()
+                            .send_interaction_followup(&command, true)
                             .await;
-
-                        let _ = command.create_followup(&ctx.http, response).await;
                     }
 
                     match update_message_content(&dm_msg_id, &new_content, pool).await {

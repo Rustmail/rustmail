@@ -61,6 +61,7 @@ impl RegistrableCommand for PingCommand {
 
         Box::pin(async move {
             defer_response(&ctx, &command).await?;
+
             let response = MessageBuilder::system_message(&ctx, &config)
                 .content("...")
                 .to_channel(command.channel_id)

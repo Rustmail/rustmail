@@ -79,7 +79,7 @@ pub async fn send_register_confirmation_from_command(
     }
 
     if !reminder_content.is_empty() {
-        let response = MessageBuilder::system_message(&ctx, &config)
+        let _ = MessageBuilder::system_message(&ctx, &config)
             .translated_content(
                 "reminder.registered_with_content",
                 Some(&params),
@@ -89,12 +89,10 @@ pub async fn send_register_confirmation_from_command(
             .await
             .to_channel(command.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .build_interaction_message_followup()
+            .send_interaction_followup(&command, true)
             .await;
-
-        let _ = command.create_followup(&ctx.http, response).await;
     } else {
-        let response = MessageBuilder::system_message(&ctx, &config)
+        let _ = MessageBuilder::system_message(&ctx, &config)
             .translated_content(
                 "reminder.registered_without_content",
                 Some(&params),
@@ -104,10 +102,8 @@ pub async fn send_register_confirmation_from_command(
             .await
             .to_channel(command.channel_id)
             .footer(format!("{}: {}", "ID", reminder_id))
-            .build_interaction_message_followup()
+            .send_interaction_followup(&command, true)
             .await;
-
-        let _ = command.create_followup(&ctx.http, response).await;
     }
 }
 

@@ -118,7 +118,7 @@ impl RegistrableCommand for RemoveReminderCommand {
                     let mut params = HashMap::new();
                     params.insert("id".to_string(), reminder_id.to_string());
 
-                    let response = MessageBuilder::system_message(&ctx, &config)
+                    let _ = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
                             "remove_reminder.confirmation",
                             Some(&params),
@@ -127,10 +127,8 @@ impl RegistrableCommand for RemoveReminderCommand {
                         )
                         .await
                         .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
+                        .send_interaction_followup(&command, true)
                         .await;
-
-                    let _ = command.create_followup(&ctx.http, response).await;
                 }
                 Err(e) => {
                     return Err(ModmailError::Database(DatabaseError::QueryFailed(

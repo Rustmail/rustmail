@@ -191,20 +191,24 @@ impl RegistrableCommand for SnippetCommand {
                             delete_desc,
                         )
                         .add_sub_option(
-                            CreateCommandOption::new(CommandOptionType::String, "key", key_desc.clone())
-                                .required(true),
+                            CreateCommandOption::new(
+                                CommandOptionType::String,
+                                "key",
+                                key_desc.clone(),
+                            )
+                            .required(true),
                         ),
                     )
                     .add_option(
-                        CreateCommandOption::new(
-                            CommandOptionType::SubCommand,
-                            "use",
-                            use_desc,
-                        )
-                        .add_sub_option(
-                            CreateCommandOption::new(CommandOptionType::String, "key", key_desc)
+                        CreateCommandOption::new(CommandOptionType::SubCommand, "use", use_desc)
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "key",
+                                    key_desc,
+                                )
                                 .required(true),
-                        ),
+                            ),
                     ),
             ]
         })
@@ -243,11 +247,9 @@ impl RegistrableCommand for SnippetCommand {
                 "delete" => {
                     handle_delete(&ctx, &command, &command.data.options, pool, &config).await
                 }
-                "use" => {
-                    handle_use(&ctx, &command, &command.data.options, pool, &config).await
-                }
+                "use" => handle_use(&ctx, &command, &command.data.options, pool, &config).await,
                 _ => {
-                    let response = MessageBuilder::system_message(&ctx, &config)
+                    let _ = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
                             "snippet.unknown_subcommand",
                             None,
@@ -256,10 +258,8 @@ impl RegistrableCommand for SnippetCommand {
                         )
                         .await
                         .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
+                        .send_interaction_followup(&command, true)
                         .await;
-
-                    command.create_followup(&ctx.http, response).await?;
 
                     Ok(())
                 }
@@ -320,7 +320,7 @@ async fn handle_create(
     let mut params = HashMap::new();
     params.insert("key".to_string(), key.clone());
 
-    let response = MessageBuilder::system_message(ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             "snippet.created",
             Some(&params),
@@ -329,10 +329,8 @@ async fn handle_create(
         )
         .await
         .to_channel(command.channel_id)
-        .build_interaction_message_followup()
+        .send_interaction_followup(&command, false)
         .await;
-
-    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -346,7 +344,7 @@ async fn handle_list(
     let snippets = get_all_snippets(pool).await?;
 
     if snippets.is_empty() {
-        let response = MessageBuilder::system_message(ctx, config)
+        let _ = MessageBuilder::system_message(ctx, config)
             .translated_content(
                 "snippet.no_snippets_found",
                 None,
@@ -355,10 +353,9 @@ async fn handle_list(
             )
             .await
             .to_channel(command.channel_id)
-            .build_interaction_message_followup()
+            .send_interaction_followup(&command, false)
             .await;
 
-        command.create_followup(&ctx.http, response).await?;
         return Ok(());
     }
 
@@ -377,13 +374,11 @@ async fn handle_list(
         content.push_str(&format!("`{}` - {}\n\n", index + 1, snippet.key));
     }
 
-    let response = MessageBuilder::system_message(ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .content(content)
         .to_channel(command.channel_id)
-        .build_interaction_message_followup()
+        .send_interaction_followup(&command, true)
         .await;
-
-    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -451,13 +446,11 @@ async fn handle_show(
                 snippet.created_at
             );
 
-            let response = MessageBuilder::system_message(ctx, config)
+            let _ = MessageBuilder::system_message(ctx, config)
                 .content(content)
                 .to_channel(command.channel_id)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
-
-            command.create_followup(&ctx.http, response).await?;
         }
         None => {
             return Err(ModmailError::Command(CommandError::SnippetNotFound(
@@ -515,7 +508,7 @@ async fn handle_edit(
     let mut params = HashMap::new();
     params.insert("key".to_string(), key.clone());
 
-    let response = MessageBuilder::system_message(ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             "snippet.updated",
             Some(&params),
@@ -524,10 +517,8 @@ async fn handle_edit(
         )
         .await
         .to_channel(command.channel_id)
-        .build_interaction_message_followup()
+        .send_interaction_followup(&command, true)
         .await;
-
-    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -565,7 +556,7 @@ async fn handle_delete(
     let mut params = HashMap::new();
     params.insert("key".to_string(), key.clone());
 
-    let response = MessageBuilder::system_message(ctx, config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(
             "snippet.deleted",
             Some(&params),
@@ -574,10 +565,8 @@ async fn handle_delete(
         )
         .await
         .to_channel(command.channel_id)
-        .build_interaction_message_followup()
+        .send_interaction_followup(&command, true)
         .await;
-
-    command.create_followup(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -628,7 +617,7 @@ async fn handle_use(
                 .send_command_and_record(command, pool)
                 .await?;
 
-                let response = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(ctx, config)
                     .translated_content(
                         "snippet.used",
                         Some(&HashMap::from([("key".to_string(), key.clone())])),
@@ -637,17 +626,13 @@ async fn handle_use(
                     )
                     .await
                     .ephemeral(true)
-                    .build_interaction_message_followup()
+                    .send_interaction_followup(&command, true)
                     .await;
-
-                command.create_followup(&ctx.http, response).await?;
             } else {
-                let response = MessageBuilder::system_message(ctx, config)
+                let _ = MessageBuilder::system_message(ctx, config)
                     .content(&snippet.content)
-                    .build_interaction_message_followup()
+                    .send_interaction_followup(&command, true)
                     .await;
-
-                command.create_followup(&ctx.http, response).await?;
             }
         }
         None => {

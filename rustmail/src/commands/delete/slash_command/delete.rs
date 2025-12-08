@@ -139,15 +139,13 @@ impl RegistrableCommand for DeleteCommand {
             let mut params = HashMap::new();
             params.insert("number".to_string(), message_number.to_string());
 
-            let response = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content("delete.success", Some(&params), None, None)
                 .await
                 .to_channel(command.channel_id)
                 .ephemeral(true)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
-
-            let _ = command.create_followup(&ctx.http, response).await;
 
             Ok(())
         })
