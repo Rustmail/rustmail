@@ -133,7 +133,7 @@ impl RegistrableCommand for MoveCommand {
                     params.insert("category".to_string(), category_name.to_string());
                     params.insert("staff".to_string(), command.user.id.to_string());
 
-                    let response = MessageBuilder::system_message(&ctx, &config)
+                    let _ = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
                             "move_thread.success",
                             Some(&params),
@@ -142,10 +142,8 @@ impl RegistrableCommand for MoveCommand {
                         )
                         .await
                         .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
+                        .send_interaction_followup(&command, true)
                         .await;
-
-                    command.create_followup(&ctx.http, response).await?;
 
                     Ok(())
                 }

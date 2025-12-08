@@ -33,13 +33,11 @@ pub async fn display_commands_list(
     }
 
     if let Some(command) = command {
-        let response = MessageBuilder::system_message(&ctx, config)
+        let _ = MessageBuilder::system_message(&ctx, config)
             .content(docs_message)
             .to_channel(command.channel_id)
-            .build_interaction_message_followup()
+            .send_interaction_followup(&command, true)
             .await;
-
-        command.create_followup(&ctx.http, response).await?;
 
         return Ok(());
     }
@@ -73,13 +71,12 @@ pub async fn display_command_help(
         }
 
         if let Some(command) = command {
-            let response = MessageBuilder::system_message(&ctx, config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .content(docs_message)
                 .to_channel(command.channel_id)
-                .build_interaction_message_followup()
+                .send_interaction_followup(&command, true)
                 .await;
 
-            command.create_followup(&ctx.http, response).await?;
             return Ok(());
         }
 

@@ -156,7 +156,7 @@ impl RegistrableCommand for CloseCommand {
                     .await
                     .unwrap_or(false);
                 return if existed {
-                    let response = MessageBuilder::system_message(&ctx, &config)
+                    let _ = MessageBuilder::system_message(&ctx, &config)
                         .translated_content(
                             "close.closure_canceled",
                             None,
@@ -165,10 +165,8 @@ impl RegistrableCommand for CloseCommand {
                         )
                         .await
                         .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
+                        .send_interaction_followup(&command, true)
                         .await;
-
-                    let _ = command.create_followup(&ctx.http, response).await;
                     Ok(())
                 } else {
                     Err(ModmailError::Command(
@@ -199,7 +197,7 @@ impl RegistrableCommand for CloseCommand {
                         let mut warn_params = HashMap::new();
                         warn_params.insert("old_time".to_string(), old_human);
 
-                        let response = MessageBuilder::system_message(&ctx, &config)
+                        let _ = MessageBuilder::system_message(&ctx, &config)
                             .translated_content(
                                 "close.replacing_existing_closure",
                                 Some(&warn_params),
@@ -208,10 +206,8 @@ impl RegistrableCommand for CloseCommand {
                             )
                             .await
                             .to_channel(command.channel_id)
-                            .build_interaction_message_followup()
+                            .send_interaction_followup(&command, true)
                             .await;
-
-                        let _ = command.create_followup(&ctx.http, response).await;
                     }
                 }
 
@@ -220,35 +216,23 @@ impl RegistrableCommand for CloseCommand {
                 let mut params = HashMap::new();
                 params.insert("time".to_string(), human);
 
-                let _ = if silent {
-                    let response = MessageBuilder::system_message(&ctx, &config)
-                        .translated_content(
-                            "close.silent_closing",
-                            Some(&params),
-                            Some(command.user.id),
-                            command.guild_id.map(|g| g.get()),
-                        )
-                        .await
-                        .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
-                        .await;
-
-                    command.create_followup(&ctx.http, response).await
+                let close_key = if silent {
+                    "close.silent_closing"
                 } else {
-                    let response = MessageBuilder::system_message(&ctx, &config)
-                        .translated_content(
-                            "close.closing",
-                            Some(&params),
-                            Some(command.user.id),
-                            command.guild_id.map(|g| g.get()),
-                        )
-                        .await
-                        .to_channel(command.channel_id)
-                        .build_interaction_message_followup()
-                        .await;
-
-                    command.create_followup(&ctx.http, response).await
+                    "close.closing"
                 };
+
+                let _ = MessageBuilder::system_message(&ctx, &config)
+                    .translated_content(
+                        close_key,
+                        Some(&params),
+                        Some(command.user.id),
+                        command.guild_id.map(|g| g.get()),
+                    )
+                    .await
+                    .to_channel(command.channel_id)
+                    .send_interaction_followup(&command, true)
+                    .await;
 
                 let closed_by = command.user.id.to_string();
 
@@ -336,7 +320,7 @@ impl RegistrableCommand for CloseCommand {
                 let mut params = HashMap::new();
                 params.insert("username".to_string(), thread.user_name.clone());
 
-                let response = MessageBuilder::system_message(&ctx, &config)
+                let _ = MessageBuilder::system_message(&ctx, &config)
                     .translated_content(
                         "user.left_server_close",
                         Some(&params),
@@ -345,10 +329,8 @@ impl RegistrableCommand for CloseCommand {
                     )
                     .await
                     .to_channel(command.channel_id)
-                    .build_interaction_message_followup()
+                    .send_interaction_followup(&command, true)
                     .await;
-
-                let _ = command.create_followup(&ctx.http, response).await;
             }
 
             close_thread(

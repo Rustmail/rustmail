@@ -86,16 +86,12 @@ pub async fn get_response(
     if !command.is_none() {
         let command = command.unwrap();
 
-        let response = MessageBuilder::system_message(&ctx.clone(), &config.clone())
+        MessageBuilder::system_message(&ctx.clone(), &config.clone())
             .content(content)
             .components(components)
             .to_channel(channel_id)
-            .build_interaction_message_followup()
-            .await;
-
-        let tkt = command.create_followup(&ctx.http, response).await;
-
-        Ok(tkt?)
+            .send_interaction_followup(&command, true)
+            .await
     } else {
         MessageBuilder::system_message(&ctx, &config)
             .content(content)
