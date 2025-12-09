@@ -1,5 +1,5 @@
+use crate::i18n::yew::use_translation;
 use crate::pages::panel::PanelRoute;
-use i18nrs::yew::use_translation;
 use yew::prelude::*;
 use yew_router::prelude::*;
 

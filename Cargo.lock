@@ -1629,17 +1629,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "i18nrs"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c09d2f33c772de8e151f781d95ac0809fe01b4cf106446e11a9b7172c08a3d6e"
-dependencies = [
- "serde_json",
- "web-sys",
- "yew",
-]
-
-[[package]]
 name = "iana-time-zone"
 version = "0.1.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2903,7 +2892,6 @@ dependencies = [
  "chrono-tz",
  "gloo-net 0.6.0",
  "gloo-utils 0.2.0",
- "i18nrs",
  "js-sys",
  "pulldown-cmark 0.13.0",
  "rustmail_types",

@@ -1,8 +1,8 @@
 use crate::components::forbidden::Forbidden403;
+use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use crate::utils::markdown::markdown_to_html_safe;
 use gloo_net::http::Request;
-use i18nrs::yew::use_translation;
 use js_sys::Date;
 use serde::Deserialize;
 use wasm_bindgen::JsValue;

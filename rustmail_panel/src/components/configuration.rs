@@ -1,7 +1,7 @@
 use crate::components::forbidden::Forbidden403;
+use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
-use i18nrs::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 

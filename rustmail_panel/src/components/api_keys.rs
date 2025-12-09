@@ -1,7 +1,7 @@
 use crate::components::forbidden::Forbidden403;
+use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
-use i18nrs::yew::use_translation;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
@@ -131,11 +131,19 @@ pub fn api_keys_page() -> Html {
                                 error.set(Some(i18n_clone.t("panel.apikeys.error_parse")));
                             }
                         } else {
-                            error.set(Some(format!("{}: {}", i18n_clone.t("panel.apikeys.error_load"), resp.status())));
+                            error.set(Some(format!(
+                                "{}: {}",
+                                i18n_clone.t("panel.apikeys.error_load"),
+                                resp.status()
+                            )));
                         }
                     }
                     Err(e) => {
-                        error.set(Some(format!("{}: {:?}", i18n_clone.t("panel.apikeys.error_network"), e)));
+                        error.set(Some(format!(
+                            "{}: {:?}",
+                            i18n_clone.t("panel.apikeys.error_network"),
+                            e
+                        )));
                     }
                 }
                 loading.set(false);
@@ -384,12 +392,16 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                 .unwrap_or_default();
 
             if name.trim().is_empty() {
-                error.set(Some(i18n_clone.t("panel.apikeys.modal.error_name_required")));
+                error.set(Some(
+                    i18n_clone.t("panel.apikeys.modal.error_name_required"),
+                ));
                 return;
             }
 
             if selected_permissions.is_empty() {
-                error.set(Some(i18n_clone.t("panel.apikeys.modal.error_permission_required")));
+                error.set(Some(
+                    i18n_clone.t("panel.apikeys.modal.error_permission_required"),
+                ));
                 return;
             }
 
@@ -418,14 +430,24 @@ fn create_api_key_modal(props: &CreateApiKeyModalProps) -> Html {
                                 on_created.emit(response.api_key);
                                 error.set(None);
                             } else {
-                                error.set(Some(i18n_clone2.t("panel.apikeys.modal.error_parse_response")));
+                                error.set(Some(
+                                    i18n_clone2.t("panel.apikeys.modal.error_parse_response"),
+                                ));
                             }
                         } else {
-                            error.set(Some(format!("{}: {}", i18n_clone2.t("panel.apikeys.modal.error_create"), resp.status())));
+                            error.set(Some(format!(
+                                "{}: {}",
+                                i18n_clone2.t("panel.apikeys.modal.error_create"),
+                                resp.status()
+                            )));
                         }
                     }
                     Err(e) => {
-                        error.set(Some(format!("{}: {:?}", i18n_clone2.t("panel.apikeys.error_network"), e)));
+                        error.set(Some(format!(
+                            "{}: {:?}",
+                            i18n_clone2.t("panel.apikeys.error_network"),
+                            e
+                        )));
                     }
                 }
                 creating.set(false);
