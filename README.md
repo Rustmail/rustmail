@@ -41,3 +41,6 @@ If you need help, join the [Discord server][discord-invite] and ask for assistan
 ## License
 
 This project is licensed under the [AGPLv3 License](https://github.com/Rustmail/rustmail/blob/main/LICENSE).
+
+> **Note:** The `rustmail-panel` i18n module includes code derived from [i18n-rs](https://github.com/opensass/i18n-rs),
+> which is licensed under the MIT License.
