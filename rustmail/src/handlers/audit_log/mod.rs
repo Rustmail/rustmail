@@ -19,7 +19,7 @@ pub const COLOR_NEUTRAL: u32 = 0x99AAB5;
 
 #[derive(Debug, Clone)]
 pub struct AuditLogContext<'a> {
-    pub ctx: &'a Context,
+    pub _ctx: &'a Context,
     pub config: &'a Config,
     pub entry: &'a AuditLogEntry,
     pub executor: &'a User,
@@ -28,14 +28,14 @@ pub struct AuditLogContext<'a> {
 
 impl<'a> AuditLogContext<'a> {
     pub fn new(
-        ctx: &'a Context,
+        _ctx: &'a Context,
         config: &'a Config,
         entry: &'a AuditLogEntry,
         executor: &'a User,
         guild_id: GuildId,
     ) -> Self {
         Self {
-            ctx,
+            _ctx,
             config,
             entry,
             executor,
@@ -44,8 +44,15 @@ impl<'a> AuditLogContext<'a> {
     }
 
     pub async fn translate(&self, key: &str, params: Option<&HashMap<String, String>>) -> String {
-        get_translated_message(self.config, key, params, None, Some(self.guild_id.get()), None)
-            .await
+        get_translated_message(
+            self.config,
+            key,
+            params,
+            None,
+            Some(self.guild_id.get()),
+            None,
+        )
+        .await
     }
 
     pub fn target_id(&self) -> Option<u64> {
@@ -103,7 +110,10 @@ pub trait AuditLogFormatter: Send + Sync {
             embed = embed.field(reason_label, reason, false);
         }
 
-        embed = embed.footer(CreateEmbedFooter::new(format!("ID: {}", alc.entry.id.get())));
+        embed = embed.footer(CreateEmbedFooter::new(format!(
+            "ID: {}",
+            alc.entry.id.get()
+        )));
 
         embed
     }
