@@ -6,7 +6,7 @@ license = "MIT"
 
 [dependencies]
 rustmail_types = { path = "../rustmail_types" }
-yew = { version = "0.21", features = ["csr"] }
+yew = { version = "0.22", features = ["csr"] }
 yew-router = "0.18.0"
 wasm-bindgen-futures = "0.4.50"
 gloo-net = "0.6.0"
