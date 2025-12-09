@@ -1,4 +1,5 @@
 use crate::components::language_switcher::LanguageSwitcher;
+use crate::i18n::yew::use_translation;
 use crate::pages::panel::PanelRoute;
 use crate::types::PanelPermission;
 use yew::{Callback, Html, Properties, classes, function_component, html, use_state};
@@ -12,7 +13,7 @@ pub struct RustmailNavbarProps {
 
 #[function_component(RustmailNavbar)]
 pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
-    let (i18n, _set_language) = i18nrs::yew::use_translation();
+    let (i18n, _set_language) = use_translation();
 
     let mobile_menu_open = use_state(|| false);
     let profile_menu_open = use_state(|| false);
@@ -41,7 +42,9 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
     let has_manage_config = props.permissions.contains(&PanelPermission::ManageConfig);
     let has_manage_apikeys = props.permissions.contains(&PanelPermission::ManageApiKeys);
     let has_manage_tickets = props.permissions.contains(&PanelPermission::ManageTickets);
-    let has_manage_permissions = props.permissions.contains(&PanelPermission::ManagePermissions);
+    let has_manage_permissions = props
+        .permissions
+        .contains(&PanelPermission::ManagePermissions);
 
     html! {
         <nav class="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-slate-900 to-black border-b border-slate-800">

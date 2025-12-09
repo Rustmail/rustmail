@@ -1,6 +1,6 @@
 use crate::components::language_switcher::LanguageSwitcher;
+use crate::i18n::yew::use_translation;
 use gloo_utils::window;
-use i18nrs::yew::use_translation;
 use web_sys::UrlSearchParams;
 use yew::prelude::*;
 

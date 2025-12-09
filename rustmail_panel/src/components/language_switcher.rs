@@ -1,4 +1,4 @@
-use i18nrs::yew::use_translation;
+use crate::i18n::yew::use_translation;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq, Clone)]

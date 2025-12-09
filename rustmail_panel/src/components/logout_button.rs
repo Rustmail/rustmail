@@ -1,8 +1,9 @@
+use crate::i18n::yew::use_translation;
 use yew::{Html, function_component, html};
 
 #[function_component(LogoutButton)]
 pub fn logout_button() -> Html {
-    let (i18n, _set_language) = i18nrs::yew::use_translation();
+    let (i18n, _set_language) = use_translation();
 
     html! {
         <a href="/api/auth/logout"
