@@ -1738,4 +1738,39 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "audit_log.change.system_channel_flags".to_string(),
         DictionaryMessage::new("Options du Salon Système"),
     );
+    dict.messages.insert(
+        "slash_command.status_command_help".to_string(),
+        DictionaryMessage::new(
+            "Permet de changer le status du bot.\n
+
+            Vous pouvez choisir le status entre :\n
+            - En ligne (`online`)\n
+            - Inactif (`idle`)\n
+            - Ne pas deranger (`dnd`)\n
+            - Invisible (`invisible`)\n
+            - Maintenance (`maintenance`) (uniquement par un admin de rustmail)\n
+            
+            Pour changer le status du bot : `!status <mode>` or `/status`",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.status_command_description".to_string(),
+        DictionaryMessage::new("Changer le status du bot (online, idle, dnd, invisible)"),
+    );
+    dict.messages.insert(
+        "slash_command.mode_arg_description".to_string(),
+        DictionaryMessage::new("Le mode dans lequel définir le bot"),
+    );
+    dict.messages.insert(
+        "slash_command.online_status_mode".to_string(),
+        DictionaryMessage::new("En ligne"),
+    );
+    dict.messages.insert(
+        "slash_command.idle_status_mode".to_string(),
+        DictionaryMessage::new("Inactif"),
+    );
+    dict.messages.insert(
+        "slash_command.do_not_disturb_status_mode".to_string(),
+        DictionaryMessage::new("Ne pas déranger"),
+    );
 }
