@@ -640,7 +640,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "logs.ticket_closed".to_string(),
-        DictionaryMessage::new("Ticket closed for user **{username}** (ID: {user_id})\n[View log on panel]({panel_url})"),
+        DictionaryMessage::new("Ticket closed by <@{staff}> for user **{username}** (ID: {user_id})\n[View log on panel]({panel_url})"),
     );
     dict.messages.insert(
         "feature.not_implemented".to_string(),

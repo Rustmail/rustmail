@@ -295,6 +295,7 @@ pub async fn close(
             let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
 
             let mut params = HashMap::new();
+            params.insert("staff".to_string(), msg.author.id.to_string());
             params.insert("username".to_string(), thread.user_name.clone());
             params.insert("user_id".to_string(), thread.user_id.to_string());
             params.insert("panel_url".to_string(), panel_url);
