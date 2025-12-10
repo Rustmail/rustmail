@@ -221,7 +221,9 @@ pub fn configuration_page() -> Html {
                             disabled={*is_loading || *bot_status == "running"}
                             class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
-                            <i class="bi bi-play-fill"></i>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                            </svg>
                             {i18n.t("panel.configuration.start_bot")}
                         </button>
 
@@ -233,7 +235,9 @@ pub fn configuration_page() -> Html {
                             disabled={*is_loading || *bot_status == "stopped"}
                             class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
-                            <i class="bi bi-stop-fill"></i>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
+                            </svg>
                             {i18n.t("panel.configuration.stop_bot")}
                         </button>
 
@@ -245,7 +249,10 @@ pub fn configuration_page() -> Html {
                             disabled={*is_loading}
                             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                         >
-                            <i class="bi bi-arrow-repeat"></i>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                            </svg>
                             {i18n.t("panel.configuration.restart_bot")}
                         </button>
                     </div>
