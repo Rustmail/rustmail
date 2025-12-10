@@ -46,7 +46,7 @@ async fn static_handler(path: Option<Path<String>>) -> Response {
                 Cow::Borrowed(bytes) => axum::body::Body::from(bytes.to_vec()),
                 Cow::Owned(bytes) => axum::body::Body::from(bytes),
             };
-            axum::response::Response::builder()
+            Response::builder()
                 .header("Content-Type", mime.as_ref())
                 .body(body)
                 .unwrap()
@@ -57,12 +57,12 @@ async fn static_handler(path: Option<Path<String>>) -> Response {
                     Cow::Borrowed(bytes) => axum::body::Body::from(bytes.to_vec()),
                     Cow::Owned(bytes) => axum::body::Body::from(bytes),
                 };
-                axum::response::Response::builder()
+                Response::builder()
                     .header("Content-Type", "text/html")
                     .body(body)
                     .unwrap()
             } else {
-                axum::response::Response::builder()
+                Response::builder()
                     .status(404)
                     .body(axum::body::Body::from("404 Not Found"))
                     .unwrap()
