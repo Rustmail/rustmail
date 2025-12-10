@@ -1,5 +1,5 @@
-pub mod config;
 pub mod api;
+pub mod config;
 
-pub use config::*;
 pub use api::*;
+pub use config::*;

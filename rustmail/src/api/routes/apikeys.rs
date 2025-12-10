@@ -15,13 +15,7 @@ pub fn create_apikeys_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mute
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {
-                require_panel_permission(
-                    state,
-                    jar,
-                    req,
-                    next,
-                    PanelPermission::ManageApiKeys,
-                )
+                require_panel_permission(state, jar, req, next, PanelPermission::ManageApiKeys)
             },
         ))
         .layer(axum::middleware::from_fn_with_state(

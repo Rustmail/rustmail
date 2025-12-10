@@ -25,17 +25,14 @@ pub async fn require_panel_permission(
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Database not initialized",
                 )
-                    .into_response()
+                    .into_response();
             }
         };
         let cfg = match &state_lock.config {
             Some(c) => c.clone(),
             None => {
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Config not initialized",
-                )
-                    .into_response()
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Config not initialized")
+                    .into_response();
             }
         };
         let gid = cfg.bot.get_staff_guild_id();
@@ -46,7 +43,7 @@ pub async fn require_panel_permission(
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Bot HTTP not initialized",
                 )
-                    .into_response()
+                    .into_response();
             }
         };
         (db, cfg, gid, http)

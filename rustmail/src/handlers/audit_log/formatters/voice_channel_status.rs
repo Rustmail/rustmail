@@ -1,7 +1,5 @@
 use super::EmbedField;
-use crate::handlers::audit_log::{
-    AuditLogContext, AuditLogFormatter, COLOR_DANGER, COLOR_WARNING,
-};
+use crate::handlers::audit_log::{AuditLogContext, AuditLogFormatter, COLOR_DANGER, COLOR_WARNING};
 use serenity::all::VoiceChannelStatusAction;
 
 pub struct VoiceChannelStatusFormatter(pub VoiceChannelStatusAction);

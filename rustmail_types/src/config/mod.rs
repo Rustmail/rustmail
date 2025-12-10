@@ -1,17 +1,17 @@
 mod bot;
 mod commands;
-mod threads;
-mod languages;
-mod notifications;
 mod error_handling;
+mod languages;
 mod logs;
+mod notifications;
 mod reminders;
+mod threads;
 
 pub use bot::{BotConfig, ServerMode};
 pub use commands::CommandConfig;
-pub use threads::ThreadConfig;
-pub use languages::LanguageConfig;
-pub use notifications::NotificationsConfig;
 pub use error_handling::ErrorHandlingConfig;
+pub use languages::LanguageConfig;
 pub use logs::LogsConfig;
+pub use notifications::NotificationsConfig;
 pub use reminders::ReminderConfig;
+pub use threads::ThreadConfig;

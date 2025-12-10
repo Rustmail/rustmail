@@ -1,4 +1,4 @@
-use super::{format_change_value, EmbedField};
+use super::{EmbedField, format_change_value};
 use crate::handlers::audit_log::{AuditLogContext, AuditLogFormatter, COLOR_WARNING};
 
 pub enum GuildFormatter {

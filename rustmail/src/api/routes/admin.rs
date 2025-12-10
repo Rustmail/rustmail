@@ -16,13 +16,7 @@ pub fn create_admin_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {
-                require_panel_permission(
-                    state,
-                    jar,
-                    req,
-                    next,
-                    PanelPermission::ManagePermissions,
-                )
+                require_panel_permission(state, jar, req, next, PanelPermission::ManagePermissions)
             },
         ))
         .layer(axum::middleware::from_fn_with_state(

@@ -44,11 +44,7 @@ impl AuditLogFormatter for MessageFormatter {
                 MessageAction::Delete => {
                     if let Some(channel_id) = opts.channel_id {
                         let channel_label = alc.translate("audit_log.channel", None).await;
-                        desc.push_str(&format!(
-                            "**{}:** <#{}>\n",
-                            channel_label,
-                            channel_id.get()
-                        ));
+                        desc.push_str(&format!("**{}:** <#{}>\n", channel_label, channel_id.get()));
                     }
                 }
                 MessageAction::BulkDelete => {
@@ -62,21 +58,13 @@ impl AuditLogFormatter for MessageFormatter {
                     }
                     if let Some(channel_id) = opts.channel_id {
                         let channel_label = alc.translate("audit_log.channel", None).await;
-                        desc.push_str(&format!(
-                            "**{}:** <#{}>",
-                            channel_label,
-                            channel_id.get()
-                        ));
+                        desc.push_str(&format!("**{}:** <#{}>", channel_label, channel_id.get()));
                     }
                 }
                 MessageAction::Pin | MessageAction::Unpin => {
                     if let Some(channel_id) = opts.channel_id {
                         let channel_label = alc.translate("audit_log.channel", None).await;
-                        desc.push_str(&format!(
-                            "**{}:** <#{}>",
-                            channel_label,
-                            channel_id.get()
-                        ));
+                        desc.push_str(&format!("**{}:** <#{}>", channel_label, channel_id.get()));
                     }
                 }
                 _ => {}

@@ -17,7 +17,7 @@ pub async fn delete_api_key_handler(
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Database not initialized".to_string(),
-                ))
+                ));
             }
         }
     };

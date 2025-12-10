@@ -1,8 +1,10 @@
+use crate::errors::{ModmailError, ModmailResult};
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::utils::*;
-use serenity::all::{ChannelId, CommandInteraction, Context, EditChannel, GuildChannel, GuildId, Message};
-use crate::errors::{ModmailError, ModmailResult};
+use serenity::all::{
+    ChannelId, CommandInteraction, Context, EditChannel, GuildChannel, GuildId, Message,
+};
 
 pub async fn is_in_thread(msg: &Message, pool: &sqlx::SqlitePool) -> bool {
     let channel_id = msg.channel_id.to_string();
@@ -52,7 +54,12 @@ pub async fn move_channel_to_category_by_msg(
     let permissions = get_category_permissions_overwrites(ctx, category_id).await?;
 
     msg.channel_id
-        .edit(&ctx.http, EditChannel::new().category(category_id).permissions(permissions))
+        .edit(
+            &ctx.http,
+            EditChannel::new()
+                .category(category_id)
+                .permissions(permissions),
+        )
         .await
         .map_err(ModmailError::from)
 }
@@ -66,7 +73,12 @@ pub async fn move_channel_to_category_by_command_option(
 
     command
         .channel_id
-        .edit(&ctx.http, EditChannel::new().category(category_id).permissions(permissions))
+        .edit(
+            &ctx.http,
+            EditChannel::new()
+                .category(category_id)
+                .permissions(permissions),
+        )
         .await
         .map_err(ModmailError::from)
 }

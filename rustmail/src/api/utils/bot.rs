@@ -1,11 +1,11 @@
-use std::sync::Arc;
-use axum::http::StatusCode;
-use axum::Json;
-use tokio::spawn;
-use tokio::sync::Mutex;
 use crate::bot::run_bot;
 use crate::config::load_config;
 use crate::types::{BotState, BotStatus};
+use axum::Json;
+use axum::http::StatusCode;
+use std::sync::Arc;
+use tokio::spawn;
+use tokio::sync::Mutex;
 
 pub enum StartBotResponse {
     Success(StatusCode, Json<&'static str>),
@@ -17,15 +17,17 @@ pub enum StopBotResponse {
     Conflict(StatusCode, Json<&'static str>),
 }
 
-pub async fn start_bot(bot_state: Arc<Mutex<BotState>>) -> StartBotResponse
-{
+pub async fn start_bot(bot_state: Arc<Mutex<BotState>>) -> StartBotResponse {
     let mut state_lock = bot_state.lock().await;
     match state_lock.status {
         BotStatus::Stopped => {
             state_lock.config = load_config("config.toml");
 
             if state_lock.config.is_none() {
-                return StartBotResponse::Conflict(StatusCode::BAD_REQUEST, Json("Missing configuration."));
+                return StartBotResponse::Conflict(
+                    StatusCode::BAD_REQUEST,
+                    Json("Missing configuration."),
+                );
             }
 
             let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(false);
@@ -46,7 +48,9 @@ pub async fn start_bot(bot_state: Arc<Mutex<BotState>>) -> StartBotResponse
             drop(state_lock);
             StartBotResponse::Success(StatusCode::OK, Json("Bot is starting"))
         }
-        BotStatus::Running { .. } => StartBotResponse::Conflict(StatusCode::BAD_REQUEST, Json("Bot is already running")),
+        BotStatus::Running { .. } => {
+            StartBotResponse::Conflict(StatusCode::BAD_REQUEST, Json("Bot is already running"))
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{format_change_value, EmbedField};
+use super::{EmbedField, format_change_value};
 use crate::handlers::audit_log::{
     AuditLogContext, AuditLogFormatter, COLOR_DANGER, COLOR_INFO, COLOR_SUCCESS, COLOR_WARNING,
 };

@@ -1,8 +1,8 @@
-use crate::config::{load_config, Config, LanguageConfigExt};
+use crate::config::{Config, LanguageConfigExt, load_config};
 use crate::prelude::types::*;
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::Json;
 use rustmail_types::ConfigResponse;
 use std::fs;
 use std::sync::Arc;
@@ -60,7 +60,7 @@ pub async fn handle_update_config(
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Configuration not loaded".to_string(),
-                ))
+                ));
             }
         }
     };
@@ -138,8 +138,7 @@ fn validate_config(config: &Config) -> Result<(), String> {
 async fn save_config_with_backup(config: &Config, path: &str) -> Result<(), String> {
     if std::path::Path::new(path).exists() {
         let backup_path = format!("{}.backup", path);
-        fs::copy(path, &backup_path)
-            .map_err(|e| format!("Failed to create backup: {}", e))?;
+        fs::copy(path, &backup_path).map_err(|e| format!("Failed to create backup: {}", e))?;
     }
 
     let config_response = ConfigResponse {

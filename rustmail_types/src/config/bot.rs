@@ -37,7 +37,9 @@ pub struct BotConfig {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum ServerMode {
-    Single { guild_id: u64 },
+    Single {
+        guild_id: u64,
+    },
     Dual {
         community_guild_id: u64,
         staff_guild_id: u64,
@@ -48,7 +50,9 @@ impl BotConfig {
     pub fn get_community_guild_id(&self) -> u64 {
         match &self.mode {
             ServerMode::Single { guild_id } => *guild_id,
-            ServerMode::Dual { community_guild_id, .. } => *community_guild_id,
+            ServerMode::Dual {
+                community_guild_id, ..
+            } => *community_guild_id,
         }
     }
 
@@ -93,7 +97,9 @@ impl BotConfig {
     pub fn is_community_guild(&self, guild_id: u64) -> bool {
         match &self.mode {
             ServerMode::Single { guild_id: gid } => *gid == guild_id,
-            ServerMode::Dual { community_guild_id, .. } => *community_guild_id == guild_id,
+            ServerMode::Dual {
+                community_guild_id, ..
+            } => *community_guild_id == guild_id,
         }
     }
 }

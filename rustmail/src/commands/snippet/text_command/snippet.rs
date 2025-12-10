@@ -20,23 +20,24 @@ pub async fn snippet_command(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    let content = match extract_reply_content(&msg.content, &config.command.prefix, &["snippet", "s"]) {
-        Some(c) => c,
-        None => {
-            MessageBuilder::system_message(&ctx, config)
-                .translated_content(
-                    "snippet.text_usage",
-                    None,
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .reply_to(msg)
-                .send(true)
-                .await?;
-            return Ok(());
-        }
-    };
+    let content =
+        match extract_reply_content(&msg.content, &config.command.prefix, &["snippet", "s"]) {
+            Some(c) => c,
+            None => {
+                MessageBuilder::system_message(&ctx, config)
+                    .translated_content(
+                        "snippet.text_usage",
+                        None,
+                        Some(msg.author.id),
+                        msg.guild_id.map(|g| g.get()),
+                    )
+                    .await
+                    .reply_to(msg)
+                    .send(true)
+                    .await?;
+                return Ok(());
+            }
+        };
 
     let mut parts = content.splitn(2, ' ');
     let subcommand = parts.next().unwrap_or("").trim();
@@ -48,9 +49,7 @@ pub async fn snippet_command(
         "show" => handle_show(&ctx, &msg, args, pool, config).await,
         "edit" => handle_edit(&ctx, &msg, args, pool, config).await,
         "delete" => handle_delete(&ctx, &msg, args, pool, config).await,
-        _ => {
-            handle_use(&ctx, &msg, subcommand, pool, config).await
-        }
+        _ => handle_use(&ctx, &msg, subcommand, pool, config).await,
     }
 }
 

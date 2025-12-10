@@ -1,9 +1,9 @@
 use crate::prelude::api::*;
 use crate::prelude::types::*;
+use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::Json;
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
 use rustmail_types::api::panel_permissions::*;
@@ -18,7 +18,13 @@ pub async fn handle_list_permissions(
         let state_lock = bot_state.lock().await;
         match &state_lock.db_pool {
             Some(pool) => pool.clone(),
-            None => return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": "Database not initialized"}))).into_response(),
+            None => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({"error": "Database not initialized"})),
+                )
+                    .into_response();
+            }
         }
     };
 
@@ -27,12 +33,25 @@ pub async fn handle_list_permissions(
         .await
     {
         Ok(r) => r,
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": format!("Database error: {}", e)}))).into_response(),
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": format!("Database error: {}", e)})),
+            )
+                .into_response();
+        }
     };
 
     let mut permissions = Vec::new();
     for row in rows {
-        if let (Ok(id), Ok(subject_type), Ok(subject_id), Ok(permission), Ok(granted_by), Ok(granted_at)) = (
+        if let (
+            Ok(id),
+            Ok(subject_type),
+            Ok(subject_id),
+            Ok(permission),
+            Ok(granted_by),
+            Ok(granted_at),
+        ) = (
             row.try_get::<i64, _>("id"),
             row.try_get::<String, _>("subject_type"),
             row.try_get::<String, _>("subject_id"),
@@ -68,12 +87,22 @@ pub async fn handle_grant_permission(
         let state_lock = bot_state.lock().await;
         let pool = match &state_lock.db_pool {
             Some(p) => p.clone(),
-            None => return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": "Database not initialized"}))).into_response(),
+            None => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({"error": "Database not initialized"})),
+                )
+                    .into_response();
+            }
         };
 
         let session_cookie = jar.get("session_id");
         if session_cookie.is_none() {
-            return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response();
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Unauthorized"})),
+            )
+                .into_response();
         }
 
         let session_id = session_cookie.unwrap().value().to_string();
@@ -102,7 +131,11 @@ pub async fn handle_grant_permission(
 
     match result {
         Ok(_) => (StatusCode::OK, Json(serde_json::json!({"success": true}))).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": format!("Database error: {}", e)}))).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": format!("Database error: {}", e)})),
+        )
+            .into_response(),
     }
 }
 
@@ -114,7 +147,13 @@ pub async fn handle_revoke_permission(
         let state_lock = bot_state.lock().await;
         match &state_lock.db_pool {
             Some(pool) => pool.clone(),
-            None => return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": "Database not initialized"}))).into_response(),
+            None => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({"error": "Database not initialized"})),
+                )
+                    .into_response();
+            }
         }
     };
 
@@ -125,6 +164,10 @@ pub async fn handle_revoke_permission(
 
     match result {
         Ok(_) => (StatusCode::OK, Json(serde_json::json!({"success": true}))).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": format!("Database error: {}", e)}))).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": format!("Database error: {}", e)})),
+        )
+            .into_response(),
     }
 }

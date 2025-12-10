@@ -21,7 +21,7 @@ pub async fn reply(
         .ok_or_else(database_connection_failed)?;
 
     let mut content = extract_reply_content(&msg.content, &config.command.prefix, &["reply", "r"]);
-    
+
     if let Some(text) = &content {
         if let Some(stripped) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
             let snippet_key = stripped.trim();

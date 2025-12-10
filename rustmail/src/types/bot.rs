@@ -1,7 +1,7 @@
 use crate::prelude::config::*;
 use serenity::all::{Context, Http};
 use std::sync::Arc;
-use tokio::sync::{watch::Sender, RwLock};
+use tokio::sync::{RwLock, watch::Sender};
 use tokio::task::JoinHandle;
 
 pub enum BotStatus {
