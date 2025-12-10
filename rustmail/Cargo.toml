@@ -33,3 +33,11 @@ tower-http = { version = "0.6.8", features = ["compression-gzip", "compression-b
 [dependencies.uuid]
 version = "1.19.0"
 features = ["v4"]
+
+[dev-dependencies.cargo-husky]
+version = "1.5.0"
+default-features = true
+features = ["precommit-hook", "run-cargo-check", "run-cargo-fmt", "run-for-all"]
+
+[package.metadata.husky]
+hooks = { pre-commit = "cargo fmt --all -- --check", pre-push = "cargo test --workspace" }

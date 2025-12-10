@@ -2,6 +2,9 @@ use crate::bot::{init_bot_state, start_bot_if_config_valid};
 use crate::prelude::api::*;
 use axum::extract::Path;
 use axum::response::Response;
+#[cfg(test)]
+#[allow(unused_imports)]
+use cargo_husky as _;
 use rust_embed::RustEmbed;
 use std::borrow::Cow;
 use std::net::SocketAddr;
