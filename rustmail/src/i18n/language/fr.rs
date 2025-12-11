@@ -1773,4 +1773,48 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         "slash_command.do_not_disturb_status_mode".to_string(),
         DictionaryMessage::new("Ne pas déranger"),
     );
+    dict.messages.insert(
+        "status.status_is_missing".to_string(),
+        DictionaryMessage::new("Le status est manquant. `!help status` pour plus d'informations."),
+    );
+    dict.messages.insert(
+        "status.invalid_status".to_string(),
+        DictionaryMessage::new(
+            "Le status est invalide. Utilisez `!help status` pour plus d'informations.",
+        ),
+    );
+    dict.messages.insert(
+        "status.status_online".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en ligne 🟢."),
+    );
+    dict.messages.insert(
+        "status.status_idle".to_string(),
+        DictionaryMessage::new("Le bot est maintenant inactif 🌙."),
+    );
+    dict.messages.insert(
+        "status.status_dnd".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en mode `Ne pas déranger` ⛔."),
+    );
+    dict.messages.insert(
+        "status.status_invisible".to_string(),
+        DictionaryMessage::new("Le bot est maintenant invisible ⚫."),
+    );
+    dict.messages.insert(
+        "status.status_maintenance".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en maintenance 🚧."),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active".to_string(),
+        DictionaryMessage::new(
+            "🔧 Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard.",
+        ),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active_user".to_string(),
+        DictionaryMessage::new("🔧 Le système de support est actuellement en maintenance. Votre message n'a pas pu être traité. Veuillez réessayer plus tard."),
+    );
+    dict.messages.insert(
+        "status.maintenance_activity".to_string(),
+        DictionaryMessage::new("🔧 Maintenance en cours"),
+    );
 }

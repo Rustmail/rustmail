@@ -1760,4 +1760,46 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         "slash_command.do_not_disturb_status_mode".to_string(),
         DictionaryMessage::new("Do not disturb"),
     );
+    dict.messages.insert(
+        "status.status_is_missing".to_string(),
+        DictionaryMessage::new("Status mode is missing. See help with `!help status`."),
+    );
+    dict.messages.insert(
+        "status.invalid_status".to_string(),
+        DictionaryMessage::new("Invalid status mode. See help with `!help status`."),
+    );
+    dict.messages.insert(
+        "status.status_online".to_string(),
+        DictionaryMessage::new("The bot is now online."),
+    );
+    dict.messages.insert(
+        "status.status_idle".to_string(),
+        DictionaryMessage::new("The bot is now idle."),
+    );
+    dict.messages.insert(
+        "status.status_dnd".to_string(),
+        DictionaryMessage::new("The bot is now in `Do Not Disturb` mode."),
+    );
+    dict.messages.insert(
+        "status.status_invisible".to_string(),
+        DictionaryMessage::new("The bot is now invisible."),
+    );
+    dict.messages.insert(
+        "status.status_maintenance".to_string(),
+        DictionaryMessage::new("The bot is now in maintenance mode."),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active".to_string(),
+        DictionaryMessage::new(
+            "🔧 The bot is currently in maintenance mode. Please try again later.",
+        ),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active_user".to_string(),
+        DictionaryMessage::new("🔧 The support system is currently undergoing maintenance. Your message could not be processed. Please try again later."),
+    );
+    dict.messages.insert(
+        "status.maintenance_activity".to_string(),
+        DictionaryMessage::new("🔧 Maintenance in progress"),
+    );
 }
