@@ -7,12 +7,13 @@ use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use crate::prelude::utils::*;
 use crate::wrap_command;
-use serenity::all::{GuildId, MessageId, UserId};
+use serenity::all::{GuildId, MessageId, Permissions, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
     async_trait,
 };
 use std::collections::HashSet;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 use tokio::sync::Mutex as AsyncMutex;
@@ -39,6 +40,7 @@ pub struct GuildMessagesHandler {
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
     pub pagination: PaginationStore,
+    pub maintenance_mode: Arc<AtomicBool>,
 }
 
 impl GuildMessagesHandler {
@@ -47,6 +49,7 @@ impl GuildMessagesHandler {
         registry: Arc<CommandRegistry>,
         shutdown: Receiver<bool>,
         pagination: PaginationStore,
+        maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
         let h = Self {
             config: Arc::new(config.clone()),
@@ -54,6 +57,7 @@ impl GuildMessagesHandler {
             registry,
             shutdown: Arc::new(shutdown),
             pagination,
+            maintenance_mode,
         };
 
         let mut lock = h.commands.lock().await;
@@ -198,10 +202,68 @@ async fn manage_incoming_message(
     Ok(())
 }
 
+async fn is_user_maintenance_exempt(ctx: &Context, msg: &Message, config: &Config) -> bool {
+    let user_id = msg.author.id.get();
+
+    if config.bot.panel_super_admin_users.contains(&user_id) {
+        return true;
+    }
+
+    let guild_id = match msg.guild_id {
+        Some(id) => id,
+        None => return false,
+    };
+
+    let member = match guild_id.member(&ctx.http, msg.author.id).await {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+
+    if !config.bot.panel_super_admin_roles.is_empty() {
+        for role_id in &member.roles {
+            if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
+                return true;
+            }
+        }
+    }
+
+    let guild = match guild_id.to_partial_guild(&ctx.http).await {
+        Ok(g) => g,
+        Err(_) => return false,
+    };
+
+    if guild.owner_id == msg.author.id {
+        return true;
+    }
+
+    member.roles.iter().any(|role_id| {
+        guild
+            .roles
+            .get(role_id)
+            .map(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
+            .unwrap_or(false)
+    })
+}
+
 #[async_trait]
 impl EventHandler for GuildMessagesHandler {
     async fn message(&self, ctx: Context, msg: Message) {
         if msg.guild_id.is_none() {
+            if self.maintenance_mode.load(Ordering::Relaxed) {
+                let _ = MessageBuilder::system_message(&ctx, &self.config)
+                    .translated_content(
+                        "status.maintenance_mode_active_user",
+                        None,
+                        Some(msg.author.id),
+                        None,
+                    )
+                    .await
+                    .to_user(msg.author.id)
+                    .send(true)
+                    .await;
+                return;
+            }
+
             if let Err(error) = manage_incoming_message(&ctx, &msg, &self.config).await {
                 if let Some(error_handler) = &self.config.error_handler {
                     let _ = error_handler
@@ -220,6 +282,18 @@ impl EventHandler for GuildMessagesHandler {
 
             if let Some(i) = message_content.find(" ") {
                 command_name = &message_content[self.config.command.prefix.len()..i];
+            }
+
+            if self.maintenance_mode.load(Ordering::Relaxed) {
+                if !is_user_maintenance_exempt(&ctx, &msg, &self.config).await {
+                    let _ = MessageBuilder::system_message(&ctx, &self.config)
+                        .translated_content("status.maintenance_mode_active", None, None, None)
+                        .await
+                        .to_channel(msg.channel_id)
+                        .send(true)
+                        .await;
+                    return;
+                }
             }
 
             let commands_lock = self.commands.lock().await;
