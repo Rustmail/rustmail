@@ -1,14 +1,18 @@
+use crate::commands::status::BotStatus;
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
 use crate::errors::ModmailResult;
 use crate::handlers::InteractionHandler;
 use crate::i18n::get_translated_message;
-use futures::FutureExt;
+use crate::utils::{MessageBuilder, defer_response};
+use serenity::FutureExt;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    ResolvedOption,
+    ActivityData, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
+    CreateCommand, CreateCommandOption, ResolvedOption,
 };
+use std::str::FromStr;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 
 pub struct StatusCommand;
 
@@ -102,10 +106,79 @@ impl RegistrableCommand for StatusCommand {
         &self,
         ctx: &Context,
         command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
+        _options: &[ResolvedOption<'_>],
         config: &Config,
         handler: Arc<InteractionHandler>,
     ) -> BoxFuture<'_, ModmailResult<()>> {
-        todo!()
+        let ctx = ctx.clone();
+        let command = command.clone();
+        let config = config.clone();
+
+        Box::pin(async move {
+            defer_response(&ctx, &command).await?;
+
+            let mode = command.data.options.iter().find_map(|opt| {
+                if opt.name == "mode" {
+                    if let CommandDataOptionValue::String(s) = &opt.value {
+                        return Some(s.clone());
+                    }
+                }
+                None
+            });
+
+            let mode = match mode {
+                Some(m) => m,
+                None => return Ok(()),
+            };
+
+            let bot_status = match BotStatus::from_str(&mode) {
+                Ok(status) => status,
+                Err(_) => return Ok(()),
+            };
+
+            let message_key = match bot_status {
+                BotStatus::Online => {
+                    handler.maintenance_mode.store(false, Ordering::Relaxed);
+                    ctx.set_activity(Some(ActivityData::playing(&config.bot.status)));
+                    ctx.online();
+                    "status.status_online"
+                }
+                BotStatus::Idle => {
+                    ctx.idle();
+                    "status.status_idle"
+                }
+                BotStatus::Dnd => {
+                    ctx.dnd();
+                    "status.status_dnd"
+                }
+                BotStatus::Invisible => {
+                    ctx.invisible();
+                    "status.status_invisible"
+                }
+                BotStatus::Maintenance => {
+                    handler.maintenance_mode.store(true, Ordering::Relaxed);
+                    let maintenance_status = get_translated_message(
+                        &config,
+                        "status.maintenance_activity",
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                    .await;
+                    ctx.set_activity(Some(ActivityData::playing(&maintenance_status)));
+                    ctx.dnd();
+                    "status.status_maintenance"
+                }
+            };
+
+            let _ = MessageBuilder::system_message(&ctx, &config)
+                .translated_content(message_key, None, None, None)
+                .await
+                .send_interaction_followup(&command, true)
+                .await;
+
+            Ok(())
+        })
     }
 }
