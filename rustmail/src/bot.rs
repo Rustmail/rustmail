@@ -11,6 +11,7 @@ use serenity::prelude::TypeMapKey;
 use std::collections::HashMap;
 use std::process;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::{select, spawn};
@@ -36,6 +37,7 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         command_tx: command_tx.clone(),
         bot_http: None,
         bot_context: Arc::new(tokio::sync::RwLock::new(None)),
+        maintenance_mode: Arc::new(AtomicBool::new(false)),
     };
 
     Arc::new(Mutex::new(bot_state))
@@ -90,12 +92,15 @@ pub async fn run_bot(
         state_lock.db_pool.clone().expect("Database pool not set")
     };
 
-    let mut config = {
+    let (mut config, maintenance_mode) = {
         let state_lock = bot_state.lock().await;
         if state_lock.config.is_none() {
             panic!("Config not set before starting rustmail!");
         }
-        state_lock.config.clone().expect("Config not set")
+        (
+            state_lock.config.clone().expect("Config not set"),
+            state_lock.maintenance_mode.clone(),
+        )
     };
 
     let pagination = Arc::new(Mutex::new(HashMap::<String, PaginationContext>::new()));
@@ -157,6 +162,7 @@ pub async fn run_bot(
                 registry.clone(),
                 shutdown_rx.clone(),
                 pagination.clone(),
+                maintenance_mode.clone(),
             )
             .await,
         )
@@ -169,6 +175,7 @@ pub async fn run_bot(
             registry.clone(),
             shutdown_rx,
             pagination,
+            maintenance_mode,
         ))
         .event_handler(GuildHandler::new(&config))
         .await
