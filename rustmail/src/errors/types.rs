@@ -68,6 +68,8 @@ pub enum CommandError {
     SnippetAlreadyExists(String),
     InvalidSnippetKeyFormat,
     SnippetContentTooLong,
+    StatusIsMissing,
+    InvalidStatusValue,
 }
 
 #[derive(Debug, Clone)]
@@ -182,6 +184,8 @@ impl fmt::Display for CommandError {
             CommandError::SnippetAlreadyExists(name) => {
                 write!(f, "Snippet already exists: {}", name)
             }
+            CommandError::StatusIsMissing => write!(f, "Status is missing"),
+            CommandError::InvalidStatusValue => write!(f, "Invalid status value"),
         }
     }
 }
