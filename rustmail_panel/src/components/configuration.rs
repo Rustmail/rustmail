@@ -12,6 +12,7 @@ pub fn configuration_page() -> Html {
     let (i18n, _set_language) = use_translation();
 
     let bot_status = use_state(|| "running".to_string());
+    let presence_status = use_state(|| "online".to_string());
     let is_loading = use_state(|| false);
     let config = use_state(|| None::<ConfigResponse>);
     let config_loading = use_state(|| true);
@@ -52,6 +53,7 @@ pub fn configuration_page() -> Html {
 
     {
         let bot_status = bot_status.clone();
+        let presence_status = presence_status.clone();
         let is_loading = is_loading.clone();
 
         use_effect_with((), move |_| {
@@ -62,6 +64,9 @@ pub fn configuration_page() -> Html {
                         if let Ok(json) = resp.json::<serde_json::Value>().await {
                             if let Some(status) = json["status"].as_str() {
                                 bot_status.set(status.to_string());
+                            }
+                            if let Some(presence) = json["presence"].as_str() {
+                                presence_status.set(presence.to_string());
                             }
                         }
                     }
@@ -109,6 +114,30 @@ pub fn configuration_page() -> Html {
                             "start" | "restart" => bot_status.set("running".to_string()),
                             "stop" => bot_status.set("stopped".to_string()),
                             _ => {}
+                        }
+                    }
+                }
+                is_loading.set(false);
+            });
+        })
+    };
+
+    let handle_presence_change = {
+        let presence_status = presence_status.clone();
+        let is_loading = is_loading.clone();
+
+        Callback::from(move |new_presence: String| {
+            let presence_status = presence_status.clone();
+            let is_loading = is_loading.clone();
+
+            spawn_local(async move {
+                is_loading.set(true);
+                if let Ok(req) = Request::post("/api/bot/presence")
+                    .json(&serde_json::json!({"status": new_presence}))
+                {
+                    if let Ok(resp) = req.send().await {
+                        if resp.ok() {
+                            presence_status.set(new_presence);
                         }
                     }
                 }
@@ -212,7 +241,7 @@ pub fn configuration_page() -> Html {
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-3">
+                    <div class="flex flex-wrap gap-3 mb-4">
                         <button
                             onclick={{
                                 let handle_bot_action = handle_bot_action.clone();
@@ -255,6 +284,41 @@ pub fn configuration_page() -> Html {
                             </svg>
                             {i18n.t("panel.configuration.restart_bot")}
                         </button>
+                    </div>
+
+                    <div class="border-t border-slate-600 pt-4">
+                        <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.presence_status")}</label>
+                        <div class="flex items-center gap-3">
+                            <select
+                                value={(*presence_status).clone()}
+                                disabled={*is_loading || *bot_status == "stopped"}
+                                onchange={{
+                                    let handle_presence_change = handle_presence_change.clone();
+                                    move |e: Event| {
+                                        if let Some(select) = e.target_dyn_into::<web_sys::HtmlSelectElement>() {
+                                            handle_presence_change.emit(select.value());
+                                        }
+                                    }
+                                }}
+                                class="px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <option value="online" selected={*presence_status == "online"}>{i18n.t("panel.configuration.presence.online")}</option>
+                                <option value="idle" selected={*presence_status == "idle"}>{i18n.t("panel.configuration.presence.idle")}</option>
+                                <option value="dnd" selected={*presence_status == "dnd"}>{i18n.t("panel.configuration.presence.dnd")}</option>
+                                <option value="invisible" selected={*presence_status == "invisible"}>{i18n.t("panel.configuration.presence.invisible")}</option>
+                                <option value="maintenance" selected={*presence_status == "maintenance"}>{i18n.t("panel.configuration.presence.maintenance")}</option>
+                            </select>
+                            <div class={classes!(
+                                "w-3", "h-3", "rounded-full",
+                                match (*presence_status).as_str() {
+                                    "online" => "bg-green-500",
+                                    "idle" => "bg-yellow-500",
+                                    "dnd" | "maintenance" => "bg-red-500",
+                                    "invisible" => "bg-gray-500",
+                                    _ => "bg-green-500"
+                                }
+                            )}></div>
+                        </div>
                     </div>
                 </div>
 
