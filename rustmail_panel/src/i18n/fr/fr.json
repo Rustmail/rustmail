@@ -131,6 +131,14 @@
         "message": "Les modifications ont été sauvegardées. Voulez-vous redémarrer le bot maintenant pour appliquer les changements ?",
         "yes": "Oui, redémarrer",
         "later": "Plus tard"
+      },
+      "presence_status": "Statut de présence",
+      "presence": {
+        "online": "En ligne",
+        "idle": "Inactif",
+        "dnd": "Ne pas déranger",
+        "invisible": "Invisible",
+        "maintenance": "Maintenance"
       }
     },
     "tickets": {
