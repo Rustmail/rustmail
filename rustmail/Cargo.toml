@@ -37,6 +37,3 @@ features = ["v4"]
 
 [dev-dependencies]
 cargo-husky = { version = "1.5.0", default-features = false, features = ["run-for-all", "run-cargo-fmt", "precommit-hook", "run-cargo-test", "run-cargo-check"] }
-
-[package.metadata.husky]
-hooks = { pre-commit = "cargo fmt --all -- --check", pre-push = "cargo test --workspace" }
