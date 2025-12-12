@@ -28,4 +28,5 @@ pub struct BotState {
     pub bot_http: Option<Arc<Http>>,
     pub bot_context: Arc<RwLock<Option<Context>>>,
     pub maintenance_mode: Arc<AtomicBool>,
+    pub presence_status: Arc<RwLock<String>>,
 }

@@ -38,6 +38,7 @@ pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
         bot_http: None,
         bot_context: Arc::new(tokio::sync::RwLock::new(None)),
         maintenance_mode: Arc::new(AtomicBool::new(false)),
+        presence_status: Arc::new(tokio::sync::RwLock::new("online".to_string())),
     };
 
     Arc::new(Mutex::new(bot_state))
