@@ -68,6 +68,9 @@ pub enum CommandError {
     SnippetAlreadyExists(String),
     InvalidSnippetKeyFormat,
     SnippetContentTooLong,
+    StatusIsMissing,
+    InvalidStatusValue,
+    MaintenanceModeNotAllowed,
 }
 
 #[derive(Debug, Clone)]
@@ -181,6 +184,11 @@ impl fmt::Display for CommandError {
             CommandError::SnippetContentTooLong => write!(f, "Snippet content is too long"),
             CommandError::SnippetAlreadyExists(name) => {
                 write!(f, "Snippet already exists: {}", name)
+            }
+            CommandError::StatusIsMissing => write!(f, "Status is missing"),
+            CommandError::InvalidStatusValue => write!(f, "Invalid status value"),
+            CommandError::MaintenanceModeNotAllowed => {
+                write!(f, "Only admins can enable maintenance mode")
             }
         }
     }

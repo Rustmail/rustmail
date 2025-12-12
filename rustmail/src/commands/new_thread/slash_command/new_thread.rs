@@ -121,7 +121,7 @@ impl RegistrableCommand for NewThreadCommand {
                 return Err(ModmailError::Discord(DiscordError::UserIsABot));
             }
 
-            if thread_exists(user_id, pool).await {
+            if thread_exists_by_user(user_id, pool).await {
                 return if let Some(channel_id_str) =
                     get_thread_channel_by_user_id(user_id, pool).await
                 {

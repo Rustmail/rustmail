@@ -1183,6 +1183,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Rôles du Membre Mis à Jour"),
     );
     dict.messages.insert(
+        "audit_log.member.move".to_string(),
+        DictionaryMessage::new("Membre Déplacé dans un Salon Vocal"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnect".to_string(),
+        DictionaryMessage::new("Membre Déconnecté d'un Salon Vocal"),
+    );
+    dict.messages.insert(
         "audit_log.member.member_move".to_string(),
         DictionaryMessage::new("Membre Déplacé"),
     );
@@ -1737,5 +1745,88 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "audit_log.change.system_channel_flags".to_string(),
         DictionaryMessage::new("Options du Salon Système"),
+    );
+    dict.messages.insert(
+        "slash_command.status_command_help".to_string(),
+        DictionaryMessage::new(
+            "Permet de changer le status du bot.\n
+
+            Vous pouvez choisir le status entre :\n
+            - En ligne (`online`)\n
+            - Inactif (`idle`)\n
+            - Ne pas deranger (`dnd`)\n
+            - Invisible (`invisible`)\n
+            - Maintenance (`maintenance`) (uniquement par un admin de rustmail)\n
+            
+            Pour changer le status du bot : `!status <mode>` or `/status`",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.status_command_description".to_string(),
+        DictionaryMessage::new("Changer le status du bot (online, idle, dnd, invisible)"),
+    );
+    dict.messages.insert(
+        "slash_command.mode_arg_description".to_string(),
+        DictionaryMessage::new("Le mode dans lequel définir le bot"),
+    );
+    dict.messages.insert(
+        "slash_command.online_status_mode".to_string(),
+        DictionaryMessage::new("En ligne"),
+    );
+    dict.messages.insert(
+        "slash_command.idle_status_mode".to_string(),
+        DictionaryMessage::new("Inactif"),
+    );
+    dict.messages.insert(
+        "slash_command.do_not_disturb_status_mode".to_string(),
+        DictionaryMessage::new("Ne pas déranger"),
+    );
+    dict.messages.insert(
+        "status.status_is_missing".to_string(),
+        DictionaryMessage::new("Le status est manquant. `!help status` pour plus d'informations."),
+    );
+    dict.messages.insert(
+        "status.invalid_status".to_string(),
+        DictionaryMessage::new(
+            "Le status est invalide. Utilisez `!help status` pour plus d'informations.",
+        ),
+    );
+    dict.messages.insert(
+        "status.status_online".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en ligne 🟢."),
+    );
+    dict.messages.insert(
+        "status.status_idle".to_string(),
+        DictionaryMessage::new("Le bot est maintenant inactif 🌙."),
+    );
+    dict.messages.insert(
+        "status.status_dnd".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en mode `Ne pas déranger` ⛔."),
+    );
+    dict.messages.insert(
+        "status.status_invisible".to_string(),
+        DictionaryMessage::new("Le bot est maintenant invisible ⚫."),
+    );
+    dict.messages.insert(
+        "status.status_maintenance".to_string(),
+        DictionaryMessage::new("Le bot est maintenant en maintenance 🚧."),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active".to_string(),
+        DictionaryMessage::new(
+            "🔧 Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard.",
+        ),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active_user".to_string(),
+        DictionaryMessage::new("🔧 Le système de support est actuellement en maintenance. Votre message n'a pas pu être traité. Veuillez réessayer plus tard."),
+    );
+    dict.messages.insert(
+        "status.maintenance_not_allowed".to_string(),
+        DictionaryMessage::new("Seuls les administrateurs peuvent activer le mode maintenance."),
+    );
+    dict.messages.insert(
+        "status.maintenance_activity".to_string(),
+        DictionaryMessage::new("🔧 Maintenance en cours"),
     );
 }

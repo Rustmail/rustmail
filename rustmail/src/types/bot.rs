@@ -1,6 +1,7 @@
 use crate::prelude::config::*;
 use serenity::all::{Context, Http};
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use tokio::sync::{RwLock, watch::Sender};
 use tokio::task::JoinHandle;
 
@@ -26,4 +27,5 @@ pub struct BotState {
     pub command_tx: tokio::sync::mpsc::Sender<BotCommand>,
     pub bot_http: Option<Arc<Http>>,
     pub bot_context: Arc<RwLock<Option<Context>>>,
+    pub maintenance_mode: Arc<AtomicBool>,
 }

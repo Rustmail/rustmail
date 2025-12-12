@@ -30,7 +30,7 @@ pub async fn add_staff(
         Err(_) => return Err(ModmailError::Command(CommandError::InvalidFormat)),
     };
 
-    if thread_exists(msg.author.id, pool).await {
+    if thread_exists_by_channel(msg.channel_id, pool).await {
         match add_user_to_channel(&ctx, msg.channel_id, user_id).await {
             Ok(_) => {
                 let mut params = HashMap::new();

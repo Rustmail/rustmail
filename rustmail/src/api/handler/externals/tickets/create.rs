@@ -134,7 +134,7 @@ pub async fn handle_external_ticket_create(
         ));
     }
 
-    if thread_exists(user_id, &db_pool).await {
+    if thread_exists_by_user(user_id, &db_pool).await {
         return if let Some(channel_id_str) = get_thread_channel_by_user_id(user_id, &db_pool).await
         {
             Err((

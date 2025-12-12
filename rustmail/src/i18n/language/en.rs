@@ -1170,6 +1170,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Member Roles Updated"),
     );
     dict.messages.insert(
+        "audit_log.member.move".to_string(),
+        DictionaryMessage::new("Member Moved"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnect".to_string(),
+        DictionaryMessage::new("Member Disconnected"),
+    );
+    dict.messages.insert(
         "audit_log.member.member_move".to_string(),
         DictionaryMessage::new("Member Moved"),
     );
@@ -1724,5 +1732,86 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "audit_log.change.system_channel_flags".to_string(),
         DictionaryMessage::new("System Channel Flags"),
+    );
+    dict.messages.insert(
+        "slash_command.status_command_help".to_string(),
+        DictionaryMessage::new(
+            "Allows you to change the bot's status.\n
+
+            You can choose between the following statuses:\n
+            - Online (`online`)\n
+            - Idle (`idle`)\n
+            - Do Not Disturb (`dnd`)\n
+            - Invisible (`invisible`)\n\n
+            - Maintenance (`maintenance`) (only by a rustmail admin)\n
+
+            To change the bot's status: `!status <mode>` or `/status`",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.status_command_description".to_string(),
+        DictionaryMessage::new("Change the bot's status (online, idle, dnd, invisible)."),
+    );
+    dict.messages.insert(
+        "slash_command.mode_arg_description".to_string(),
+        DictionaryMessage::new("The status mode to set"),
+    );
+    dict.messages.insert(
+        "slash_command.online_status_mode".to_string(),
+        DictionaryMessage::new("Online"),
+    );
+    dict.messages.insert(
+        "slash_command.idle_status_mode".to_string(),
+        DictionaryMessage::new("Idle"),
+    );
+    dict.messages.insert(
+        "slash_command.do_not_disturb_status_mode".to_string(),
+        DictionaryMessage::new("Do not disturb"),
+    );
+    dict.messages.insert(
+        "status.status_is_missing".to_string(),
+        DictionaryMessage::new("Status mode is missing. See help with `!help status`."),
+    );
+    dict.messages.insert(
+        "status.invalid_status".to_string(),
+        DictionaryMessage::new("Invalid status mode. See help with `!help status`."),
+    );
+    dict.messages.insert(
+        "status.status_online".to_string(),
+        DictionaryMessage::new("The bot is now online."),
+    );
+    dict.messages.insert(
+        "status.status_idle".to_string(),
+        DictionaryMessage::new("The bot is now idle."),
+    );
+    dict.messages.insert(
+        "status.status_dnd".to_string(),
+        DictionaryMessage::new("The bot is now in `Do Not Disturb` mode."),
+    );
+    dict.messages.insert(
+        "status.status_invisible".to_string(),
+        DictionaryMessage::new("The bot is now invisible."),
+    );
+    dict.messages.insert(
+        "status.status_maintenance".to_string(),
+        DictionaryMessage::new("The bot is now in maintenance mode."),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active".to_string(),
+        DictionaryMessage::new(
+            "🔧 The bot is currently in maintenance mode. Please try again later.",
+        ),
+    );
+    dict.messages.insert(
+        "status.maintenance_mode_active_user".to_string(),
+        DictionaryMessage::new("🔧 The support system is currently undergoing maintenance. Your message could not be processed. Please try again later."),
+    );
+    dict.messages.insert(
+        "status.maintenance_not_allowed".to_string(),
+        DictionaryMessage::new("Only administrators can enable maintenance mode."),
+    );
+    dict.messages.insert(
+        "status.maintenance_activity".to_string(),
+        DictionaryMessage::new("🔧 Maintenance in progress"),
     );
 }
