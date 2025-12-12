@@ -1,6 +1,6 @@
 use strum::EnumString;
 
-#[derive(EnumString)]
+#[derive(EnumString, PartialEq)]
 #[strum(serialize_all = "snake_case")]
 pub enum BotStatus {
     Online,

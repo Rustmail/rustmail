@@ -1807,6 +1807,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("🔧 The support system is currently undergoing maintenance. Your message could not be processed. Please try again later."),
     );
     dict.messages.insert(
+        "status.maintenance_not_allowed".to_string(),
+        DictionaryMessage::new("Only administrators can enable maintenance mode."),
+    );
+    dict.messages.insert(
         "status.maintenance_activity".to_string(),
         DictionaryMessage::new("🔧 Maintenance in progress"),
     );

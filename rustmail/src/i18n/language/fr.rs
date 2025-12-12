@@ -1822,6 +1822,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("🔧 Le système de support est actuellement en maintenance. Votre message n'a pas pu être traité. Veuillez réessayer plus tard."),
     );
     dict.messages.insert(
+        "status.maintenance_not_allowed".to_string(),
+        DictionaryMessage::new("Seuls les administrateurs peuvent activer le mode maintenance."),
+    );
+    dict.messages.insert(
         "status.maintenance_activity".to_string(),
         DictionaryMessage::new("🔧 Maintenance en cours"),
     );

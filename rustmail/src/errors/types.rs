@@ -70,6 +70,7 @@ pub enum CommandError {
     SnippetContentTooLong,
     StatusIsMissing,
     InvalidStatusValue,
+    MaintenanceModeNotAllowed,
 }
 
 #[derive(Debug, Clone)]
@@ -186,6 +187,9 @@ impl fmt::Display for CommandError {
             }
             CommandError::StatusIsMissing => write!(f, "Status is missing"),
             CommandError::InvalidStatusValue => write!(f, "Invalid status value"),
+            CommandError::MaintenanceModeNotAllowed => {
+                write!(f, "Only admins can enable maintenance mode")
+            }
         }
     }
 }

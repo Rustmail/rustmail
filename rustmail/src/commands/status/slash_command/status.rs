@@ -1,18 +1,65 @@
 use crate::commands::status::BotStatus;
 use crate::commands::{BoxFuture, RegistrableCommand};
 use crate::config::Config;
-use crate::errors::ModmailResult;
+use crate::errors::{CommandError, ModmailError, ModmailResult};
 use crate::handlers::InteractionHandler;
 use crate::i18n::get_translated_message;
 use crate::utils::{MessageBuilder, defer_response};
 use serenity::FutureExt;
 use serenity::all::{
     ActivityData, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
-    CreateCommand, CreateCommandOption, ResolvedOption,
+    CreateCommand, CreateCommandOption, Permissions, ResolvedOption,
 };
 use std::str::FromStr;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+
+async fn is_interaction_user_admin_or_super_admin(
+    ctx: &Context,
+    command: &CommandInteraction,
+    config: &Config,
+) -> bool {
+    let user_id = command.user.id.get();
+
+    if config.bot.panel_super_admin_users.contains(&user_id) {
+        return true;
+    }
+
+    let guild_id = match command.guild_id {
+        Some(id) => id,
+        None => return false,
+    };
+
+    let member = match guild_id.member(&ctx.http, command.user.id).await {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+
+    if !config.bot.panel_super_admin_roles.is_empty() {
+        for role_id in &member.roles {
+            if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
+                return true;
+            }
+        }
+    }
+
+    let guild = match guild_id.to_partial_guild(&ctx.http).await {
+        Ok(g) => g,
+        Err(_) => return false,
+    };
+
+    if guild.owner_id == command.user.id {
+        return true;
+    }
+
+    member.roles.iter().any(|role_id| {
+        guild
+            .roles
+            .get(role_id)
+            .map(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
+            .unwrap_or(false)
+    })
+}
 
 pub struct StatusCommand;
 
@@ -135,6 +182,16 @@ impl RegistrableCommand for StatusCommand {
                 Ok(status) => status,
                 Err(_) => return Ok(()),
             };
+
+            if bot_status == BotStatus::Maintenance {
+                let is_allowed =
+                    is_interaction_user_admin_or_super_admin(&ctx, &command, &config).await;
+                if !is_allowed {
+                    return Err(ModmailError::Command(
+                        CommandError::MaintenanceModeNotAllowed,
+                    ));
+                }
+            }
 
             let message_key = match bot_status {
                 BotStatus::Online => {

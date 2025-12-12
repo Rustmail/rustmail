@@ -251,6 +251,9 @@ impl DictionaryManager {
                 }
                 CommandError::StatusIsMissing => ("status.status_is_missing".to_string(), None),
                 CommandError::InvalidStatusValue => ("status.invalid_status".to_string(), None),
+                CommandError::MaintenanceModeNotAllowed => {
+                    ("status.maintenance_not_allowed".to_string(), None)
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
