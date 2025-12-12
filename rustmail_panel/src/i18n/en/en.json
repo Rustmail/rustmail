@@ -131,6 +131,14 @@
         "message": "The changes have been saved. Would you like to restart the bot now to apply the changes?",
         "yes": "Yes, restart",
         "later": "Later"
+      },
+      "presence_status": "Presence Status",
+      "presence": {
+        "online": "Online",
+        "idle": "Idle",
+        "dnd": "Do Not Disturb",
+        "invisible": "Invisible",
+        "maintenance": "Maintenance"
       }
     },
     "tickets": {

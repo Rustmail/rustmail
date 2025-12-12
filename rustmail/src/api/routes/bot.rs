@@ -11,6 +11,7 @@ pub fn create_bot_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<Bo
         .route("/start", post(handle_start_bot))
         .route("/stop", post(handle_stop_bot))
         .route("/restart", post(handle_restart_bot))
+        .route("/presence", post(handle_set_presence))
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {
