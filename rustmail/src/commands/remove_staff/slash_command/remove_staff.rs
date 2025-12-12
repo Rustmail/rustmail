@@ -107,7 +107,7 @@ impl RegistrableCommand for RemoveStaffCommand {
                 }
             };
 
-            if thread_exists(command.user.id, pool).await {
+            if thread_exists_by_channel(command.channel_id, pool).await {
                 match remove_user_from_channel(&ctx, command.channel_id, user_id).await {
                     Ok(_) => {
                         let mut params = HashMap::new();

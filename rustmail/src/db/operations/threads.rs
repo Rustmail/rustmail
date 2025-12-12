@@ -218,8 +218,14 @@ pub async fn close_thread(
     Ok(())
 }
 
-pub async fn thread_exists(user_id: UserId, pool: &SqlitePool) -> bool {
+pub async fn thread_exists_by_user(user_id: UserId, pool: &SqlitePool) -> bool {
     get_thread_channel_by_user_id(user_id, pool).await.is_some()
+}
+
+pub async fn thread_exists_by_channel(channel: ChannelId, pool: &SqlitePool) -> bool {
+    get_thread_by_channel_id(&channel.to_string(), pool)
+        .await
+        .is_some()
 }
 
 pub async fn is_a_ticket_channel(channel_id: ChannelId, pool: &SqlitePool) -> bool {

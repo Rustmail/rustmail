@@ -140,7 +140,7 @@ async fn manage_incoming_message(
     let user_mutex = get_thread_lock(config, user_key);
     let guard = user_mutex.lock().await;
 
-    if thread_exists(msg.author.id, pool).await {
+    if thread_exists_by_user(msg.author.id, pool).await {
         if let Some(channel_id_str) = get_thread_channel_by_user_id(msg.author.id, pool).await {
             let channel_id_num = channel_id_str
                 .parse::<u64>()

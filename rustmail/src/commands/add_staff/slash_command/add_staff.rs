@@ -105,7 +105,7 @@ impl RegistrableCommand for AddStaffCommand {
                 }
             };
 
-            if thread_exists(command.user.id, pool).await {
+            if thread_exists_by_channel(command.channel_id, pool).await {
                 match add_user_to_channel(&ctx, command.channel_id, user_id).await {
                     Ok(_) => {
                         let mut params = HashMap::new();

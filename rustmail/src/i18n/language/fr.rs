@@ -1183,6 +1183,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Rôles du Membre Mis à Jour"),
     );
     dict.messages.insert(
+        "audit_log.member.move".to_string(),
+        DictionaryMessage::new("Membre Déplacé dans un Salon Vocal"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnect".to_string(),
+        DictionaryMessage::new("Membre Déconnecté d'un Salon Vocal"),
+    );
+    dict.messages.insert(
         "audit_log.member.member_move".to_string(),
         DictionaryMessage::new("Membre Déplacé"),
     );

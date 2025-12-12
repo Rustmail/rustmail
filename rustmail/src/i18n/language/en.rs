@@ -1170,6 +1170,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Member Roles Updated"),
     );
     dict.messages.insert(
+        "audit_log.member.move".to_string(),
+        DictionaryMessage::new("Member Moved"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnect".to_string(),
+        DictionaryMessage::new("Member Disconnected"),
+    );
+    dict.messages.insert(
         "audit_log.member.member_move".to_string(),
         DictionaryMessage::new("Member Moved"),
     );
