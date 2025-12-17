@@ -1,27 +1,32 @@
 [bot]
-token = "TOKEN_HERE"
-status = "DM POUR SUPPORT"
-welcome_message = "Votre message à bien été reçu par l'équipe Staff ! Nous vous répondrons dès que possible."
-close_message = "Merci d'avoir contacté le support ! Ton ticket est désormais clos."
+token = "MTQyMjU1OTIyNjIwM.GWv0F5.v9sdNf59KZyWL0jVk_eqokcY-jnQ7X8upVBXYw"
+status = "DM FOR SUPPORT"
+welcome_message = "Message received! Our staff will get back to you as soon as possible."
+close_message = "Thank you for contacting support! Your ticket is now closed."
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
 enable_logs = true
 enable_features = true
-logs_channel_id = 14043597305699
-features_channel_id = 14069404548593076
-panel_super_admin_users = []
+enable_panel = true
+client_id = 1422559226685450
+client_secret = "YWaq7VQM28PjfoNuWJPVpcs3gWFXI"
+redirect_url = "http://192.168.2.92:3002/api/auth/callback"
+timezone = "Europe/Paris"
+logs_channel_id = 14043597305635899
+features_channel_id = 14069404548309076
+ip = "http://192.168.2.92"
+panel_super_admin_users = [6891484871962727]
 panel_super_admin_roles = []
 
 [bot.mode]
-type = "dual"
-community_guild_id = 12096679805062590
-staff_guild_id = 711880297271856
+type = "single"
+guild_id = 7118802972311856
 
 [command]
 prefix = "!"
 
 [thread]
-inbox_category_id = 137646043847505960
+inbox_category_id = 1376460638505960
 embedded_message = true
 user_message_color = "3d54ff"
 staff_message_color = "ff3126"
@@ -29,25 +34,18 @@ system_message_color = "00ff00"
 block_quote = true
 time_to_close_thread = 5
 create_ticket_by_create_channel = true
-
-[notifications]
-show_success_on_edit = false
-show_partial_success_on_edit = true
-show_failure_on_edit = true
-show_success_on_reply = false
-show_success_on_delete = false
-
-[logs]
-show_log_on_edit = true
-show_log_on_delete = true
+close_on_leave = false
+auto_archive_duration = 10080
 
 [language]
-default_language = "en"
+default_language = "fr"
 fallback_language = "en"
-supported_languages = ["en", "fr", "es", "de"]
-
-[reminders]
-embed_color = "ffb800"
+supported_languages = [
+    "en",
+    "fr",
+    "es",
+    "de",
+]
 
 [error_handling]
 show_detailed_errors = false
@@ -55,3 +53,20 @@ log_errors = true
 send_error_embeds = true
 auto_delete_error_messages = true
 error_message_ttl = 30
+display_errors = true
+
+[notifications]
+show_success_on_edit = false
+show_partial_success_on_edit = true
+show_failure_on_edit = true
+show_success_on_reply = false
+show_success_on_delete = false
+show_success = true
+show_error = true
+
+[reminders]
+embed_color = "ffb800"
+
+[logs]
+show_log_on_edit = true
+show_log_on_delete = true

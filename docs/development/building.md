@@ -14,7 +14,7 @@ Install Rust via rustup:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Minimum version: Rust 1.75+
+Minimum version: **Rust 1.85+** (Edition 2024)
 
 Verify installation:
 ```bash
@@ -77,22 +77,26 @@ Output: `target/release/rustmail`
 
 ```bash
 cd rustmail_panel
-trunk build --release
+trunk build --release --dist ../rustmail/static
 ```
 
-Output: `rustmail_panel/dist/`
+Output: `rustmail/static/`
 
-### Full Build
+### Full Build (Panel + Bot)
+
+The panel must be built first and placed in `rustmail/static/` so the bot can embed it:
 
 ```bash
-# Build bot
-cargo build -p rustmail --release
-
-# Build panel
+# Build panel and output to bot's static folder
 cd rustmail_panel
-trunk build --release
+trunk build --release --dist ../rustmail/static
 cd ..
+
+# Build bot (embeds the panel)
+cargo build -p rustmail --release
 ```
+
+Output: `target/release/rustmail` (single binary with embedded panel)
 
 ---
 
@@ -157,9 +161,9 @@ cargo fmt --all --check
 
 ## Build Optimization
 
-### Release Profile
+### Custom Release Profile
 
-The default release profile in `Cargo.toml`:
+You can add a custom release profile to your workspace `Cargo.toml` for optimized builds:
 
 ```toml
 [profile.release]
@@ -170,7 +174,7 @@ opt-level = 3
 
 ### Smaller Binary
 
-For reduced binary size:
+For reduced binary size, use:
 
 ```toml
 [profile.release]
@@ -179,6 +183,8 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 ```
+
+Note: These profiles increase compile time but produce smaller/faster binaries.
 
 ---
 
@@ -293,6 +299,25 @@ cargo sqlx prepare --workspace
 
 ## IDE Setup
 
+### RustRover / IntelliJ
+
+The repository includes a pre-configured run configuration in `.run/Run rustmail.run.xml`.
+
+This configuration:
+1. Builds the panel with Trunk
+2. Outputs to `rustmail/static/`
+3. Runs the bot
+
+To use it:
+1. Open the project in RustRover
+2. Select "Run rustmail" from the run configurations dropdown
+3. Click Run
+
+The equivalent command:
+```bash
+cd rustmail_panel && trunk build --release --dist ../rustmail/static && cd .. && cargo run -p rustmail
+```
+
 ### VS Code
 
 Recommended extensions:
@@ -308,10 +333,6 @@ Settings (`.vscode/settings.json`):
 }
 ```
 
-### IntelliJ/CLion
-
-Install the Rust plugin. The project should be recognized automatically.
-
 ---
 
 ## Project Layout Reference
@@ -322,8 +343,9 @@ rustmail/
 ├── Cargo.lock              # Dependency lock file
 ├── rustmail/               # Main bot crate
 │   ├── Cargo.toml
-│   └── src/
-├── rustmail_panel/         # Panel crate
+│   ├── src/
+│   └── static/             # Panel build output (embedded)
+├── rustmail_panel/         # Web panel crate (Yew/WASM)
 │   ├── Cargo.toml
 │   ├── Trunk.toml
 │   ├── index.html
@@ -331,7 +353,10 @@ rustmail/
 ├── rustmail_types/         # Shared types crate
 │   ├── Cargo.toml
 │   └── src/
-├── migrations/             # Database migrations
+├── rustmail-i18n/          # Internationalization resources
+├── migrations/             # SQLite migrations
+├── docs/                   # Documentation (mdBook)
+├── .run/                   # IDE run configurations
 ├── config.example.toml     # Example configuration
 └── Dockerfile
 ```

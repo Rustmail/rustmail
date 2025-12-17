@@ -1,7 +1,7 @@
 [book]
 title = "Rustmail Documentation"
 description = "Documentation for Rustmail, a Discord modmail bot"
-authors = ["Rustmail Team"]
+authors = ["Akinator31"]
 language = "en"
 src = "."
 

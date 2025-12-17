@@ -126,15 +126,16 @@ rustmail_types/src/
 
 ### Gateway Events
 
-Rustmail handles these Discord gateway events:
+Rustmail reacts to various Discord gateway events. Here are the main ones:
 
-| Event                     | Handler            | Purpose                   |
-|---------------------------|--------------------|---------------------------|
-| `message_create`          | Guild messages     | Process DMs and commands  |
-| `interaction_create`      | Guild interactions | Handle slash commands     |
-| `guild_member_add/remove` | Guild members      | Track user status         |
-| `typing_start`            | Typing proxy       | Forward typing indicators |
-| `ready`                   | Ready handler      | Initialize bot state      |
+| Event                | Handler                 | Purpose                   |
+|----------------------|-------------------------|---------------------------|
+| `ready`              | `ReadyHandler`          | Initialize bot state      |
+| `message_create`     | `GuildMessagesHandler`  | Process DMs and commands  |
+| `interaction_create` | `InteractionHandler`    | Handle slash commands     |
+| `typing_start`       | `TypingProxyHandler`    | Forward typing indicators |
+
+All event handlers are located in `rustmail/src/handlers/`.
 
 ### Commands System
 
