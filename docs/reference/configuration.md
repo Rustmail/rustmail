@@ -53,14 +53,14 @@ Required when `enable_panel = true`.
 
 ### Network
 
-| Option | Type   | Required | Default       | Description                      |
-|--------|--------|----------|---------------|----------------------------------|
-| `ip`   | string | No       | Auto-detected | IP address for panel URL display |
+| Option | Type   | Required | Default       | Description                          |
+|--------|--------|----------|---------------|--------------------------------------|
+| `ip`   | string | No       | Auto-detected | Network interface to bind the server |
 
-**Note:** The `ip` field only affects what address is displayed for panel access. The server always binds to `0.0.0.0:3002`. Set this manually when:
+**Note:** The server attempts to bind to the configured IP address. If the IP is invalid or unavailable, it falls back to `0.0.0.0:3002` (all interfaces). Set this manually when:
+- Running in Docker with host networking
 - Auto-detection returns wrong interface
-- Running in Docker with custom networking
-- You want to show a specific LAN address
+- You need to bind to a specific network interface
 
 ### Panel Administrators
 

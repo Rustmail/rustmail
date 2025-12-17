@@ -18,7 +18,8 @@
 
 ## Overview
 
-Rustmail is a Discord modmail bot that enables staff teams to manage support tickets through private channels. Users send direct messages to the bot, which creates dedicated channels for staff to respond and track conversations.
+Rustmail is a Discord modmail bot that enables staff teams to manage support tickets through private channels. Users
+send direct messages to the bot, which creates dedicated channels for staff to respond and track conversations.
 
 ### Key Features
 
@@ -56,18 +57,18 @@ The bot creates its SQLite database automatically on first run.
 
 ## Documentation
 
-| Section | Description |
-|---------|-------------|
-| [Installation](docs/getting-started/installation.md) | Download and setup instructions |
-| [Configuration](docs/getting-started/configuration.md) | Detailed configuration guide |
-| [Commands](docs/guides/commands.md) | Complete command reference |
-| [Server Modes](docs/guides/server-modes.md) | Single vs dual-server setup |
-| [Web Panel](docs/guides/panel.md) | Administration panel guide |
-| [API Reference](docs/reference/api.md) | REST API documentation |
-| [Docker Deployment](docs/deployment/docker.md) | Container deployment |
-| [Architecture](docs/development/architecture.md) | Technical overview |
+| Section                                                | Description                     |
+|--------------------------------------------------------|---------------------------------|
+| [Installation](docs/getting-started/installation.md)   | Download and setup instructions |
+| [Configuration](docs/getting-started/configuration.md) | Detailed configuration guide    |
+| [Commands](docs/guides/commands.md)                    | Complete command reference      |
+| [Server Modes](docs/guides/server-modes.md)            | Single vs dual-server setup     |
+| [Web Panel](docs/guides/panel.md)                      | Administration panel guide      |
+| [API Reference](docs/reference/api.md)                 | REST API documentation          |
+| [Docker Deployment](docs/deployment/docker.md)         | Container deployment            |
+| [Architecture](docs/development/architecture.md)       | Technical overview              |
 
-Full documentation is available in the [docs](docs/) directory.
+Full documentation is available in the [docs](docs/) directory or on the [website](https://docs.rustmail.rs).
 
 ---
 
@@ -81,4 +82,5 @@ For help and discussions, join the [Discord server](https://discord.gg/9Bzma6Swt
 
 This project is licensed under the [AGPLv3 License](LICENSE).
 
-The `rustmail_panel` i18n module includes code derived from [i18n-rs](https://github.com/opensass/i18n-rs), licensed under MIT.
+The `rustmail_panel` i18n module includes code derived from [i18n-rs](https://github.com/opensass/i18n-rs), licensed
+under MIT.

@@ -96,7 +96,7 @@ Check your `config.toml` for:
 ### Invalid Server ID
 
 ```
-Serveur principal introuvable: ...
+Main server not found: ...
 ```
 
 Verify:

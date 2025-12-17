@@ -255,7 +255,7 @@ List tickets with pagination and filtering.
 | `id`          | string | -          | Get a specific ticket by ID                        |
 | `page`        | int    | 1          | Page number                                        |
 | `page_size`   | int    | 50         | Items per page (max 200)                           |
-| `status`      | int    | 0          | Filter: `0` = open, `1` = closed                   |
+| `status`      | int    | 1          | Filter: `1` = open, `0` = closed                   |
 | `category_id` | string | -          | Filter by category ID                              |
 | `sort_by`     | string | created_at | Sort field: `created_at`, `closed_at`, `user_name` |
 | `sort_order`  | string | DESC       | Sort order: `asc` or `desc`                        |
