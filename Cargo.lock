@@ -2665,7 +2665,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail"
-version = "1.0.13"
+version = "1.0.16"
 dependencies = [
  "async-trait",
  "axum",
@@ -2698,7 +2698,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail_panel"
-version = "1.0.13"
+version = "1.0.16"
 dependencies = [
  "ammonia",
  "chrono",
@@ -2720,7 +2720,7 @@ dependencies = [
 
 [[package]]
 name = "rustmail_types"
-version = "1.0.13"
+version = "1.0.16"
 dependencies = [
  "chrono-tz",
  "serde",
