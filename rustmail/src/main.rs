@@ -8,8 +8,11 @@ use cargo_husky as _;
 use rust_embed::RustEmbed;
 use std::borrow::Cow;
 use std::net::SocketAddr;
+use std::{env, process};
 use tokio::signal;
 use tower_http::compression::CompressionLayer;
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod api;
 mod bot;
@@ -71,8 +74,53 @@ async fn static_handler(path: Option<Path<String>>) -> Response {
     }
 }
 
+fn print_version() {
+    println!("rustmail {}", VERSION);
+}
+
+fn print_help() {
+    println!("rustmail {} - Discord modmail bot", VERSION);
+    println!();
+    println!("USAGE:");
+    println!("    rustmail [OPTIONS]");
+    println!();
+    println!("OPTIONS:");
+    println!("    -h, --help       Print this help message");
+    println!("    -v, --version    Print version information");
+    println!();
+    println!("CONFIGURATION:");
+    println!("    Rustmail requires a config.toml file in the current directory.");
+    println!("    Use the online configurator: https://config.rustmail.rs");
+    println!();
+    println!("DOCUMENTATION:");
+    println!("    https://docs.rustmail.rs");
+    println!();
+    println!("SOURCE CODE:");
+    println!("    https://github.com/Rustmail/rustmail");
+}
+
 #[tokio::main]
 async fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    for arg in args.iter().skip(1) {
+        match arg.as_str() {
+            "-v" | "--version" => {
+                print_version();
+                process::exit(0);
+            }
+            "-h" | "--help" => {
+                print_help();
+                process::exit(0);
+            }
+            _ => {
+                eprintln!("Unknown option: {}", arg);
+                eprintln!("Run 'rustmail --help' for usage information.");
+                process::exit(1);
+            }
+        }
+    }
+
     let bot_state = init_bot_state().await;
 
     let _ = start_bot_if_config_valid(bot_state.clone()).await;
