@@ -304,6 +304,40 @@ Common issues:
 - Missing required configuration fields
 - Permission issues on mounted volumes
 
+### Container Stops After "Database connected!"
+
+If logs only show:
+```
+Database connection pool established
+Database connected!
+```
+
+The bot cannot load `config.toml`. The most common cause is an incorrect volume mount:
+
+```bash
+# WRONG - relative path creates a directory instead of mounting the file
+docker run -v config.toml:/app/config.toml ...
+
+# CORRECT - use absolute path
+docker run -v $(pwd)/config.toml:/app/config.toml ...
+docker run -v /home/user/rustmail/config.toml:/app/config.toml ...
+```
+
+Verify the mount is correct:
+```bash
+# Should show a file, not a directory
+docker exec rustmail ls -la /app/config.toml
+
+# Should display your config content
+docker exec rustmail cat /app/config.toml
+```
+
+If `/app/config.toml` is a directory, remove the container and recreate with the correct path:
+```bash
+docker rm -f rustmail
+docker run -d --name rustmail -v $(pwd)/config.toml:/app/config.toml:ro ...
+```
+
 ### Cannot Connect to Panel
 
 - Verify port 3002 is exposed: `docker port rustmail`

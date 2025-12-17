@@ -10,7 +10,8 @@ The easiest way to create your configuration is the online generator:
 
 **[config.rustmail.rs](https://config.rustmail.rs)**
 
-The generator walks you through each setting and produces a valid `config.toml` file. You can also build the configurator locally from the [rustmail_configurator](https://github.com/Rustmail/rustmail_configurator) repository.
+The generator walks you through each setting and produces a valid `config.toml` file. You can also build the
+configurator locally from the [rustmail_configurator](https://github.com/Rustmail/rustmail_configurator) repository.
 
 ---
 
@@ -22,7 +23,8 @@ If you prefer to create the configuration manually, copy `config.example.toml` a
 cp config.example.toml config.toml
 ```
 
-Below is an overview of each configuration section. For a complete reference of all options, see [Configuration Reference](../reference/configuration.md).
+Below is an overview of each configuration section. For a complete reference of all options,
+see [Configuration Reference](../reference/configuration.md).
 
 ---
 
@@ -67,6 +69,7 @@ staff_guild_id = 987654321098765432
 ```
 
 In dual-server mode:
+
 - `community_guild_id` is where your users are
 - `staff_guild_id` is where ticket channels are created
 
@@ -82,7 +85,8 @@ user_message_color = "3d54ff"
 staff_message_color = "ff3126"
 ```
 
-The `inbox_category_id` is required. Create a category in your staff server (or your single server) and copy its ID. All ticket channels will be created under this category.
+The `inbox_category_id` is required. Create a category in your staff server (or your single server) and copy its ID. All
+ticket channels will be created under this category.
 
 ---
 
@@ -105,45 +109,73 @@ client_secret = "your_oauth2_client_secret"
 redirect_url = "http://localhost:3002/api/auth/callback"
 ```
 
-### Understanding the Redirect URL
+### Understanding redirect_url vs ip
 
-The `redirect_url` is where Discord sends users after they authenticate. It must:
+These two fields serve different purposes and are often confused:
 
-1. Match exactly what you configured in the Discord Developer Portal
-2. Point to your bot's `/api/auth/callback` endpoint
+| Field          | Purpose                                            | Required                     |
+|----------------|----------------------------------------------------|------------------------------|
+| `redirect_url` | Public URL for OAuth2 authentication and log links | **Yes** (if panel enabled)   |
+| `ip`           | Network interface binding address                  | No (defaults to auto-detect) |
+
+### The redirect_url Field (Important)
+
+The `redirect_url` is **your panel's public URL**. It is used for:
+
+1. **OAuth2 authentication** - Discord redirects users here after login
+2. **Log links** - Links to ticket logs sent in your logs channel
+
+It must:
+
+- Match **exactly** what you configured in the Discord Developer Portal
+- End with `/api/auth/callback`
+- Be accessible from the internet (or your network for local use)
 
 **Local development:**
+
 ```toml
 redirect_url = "http://localhost:3002/api/auth/callback"
 ```
 
-**Production with domain:**
+**Production with domain (behind reverse proxy):**
+
 ```toml
 redirect_url = "https://panel.example.com/api/auth/callback"
 ```
 
-### The IP Field
+**LAN access (no domain):**
+
+```toml
+redirect_url = "http://192.168.1.100:3002/api/auth/callback"
+```
+
+### The ip Field (Optional)
 
 ```toml
 [bot]
 ip = "192.168.1.100"  # Optional
 ```
 
-The `ip` field controls what address the panel shows for direct access. If omitted, Rustmail auto-detects your local IP address.
+The `ip` field controls which **network interface** the panel server binds to. This is a technical setting for advanced
+network configurations.
+
+- If omitted, Rustmail auto-detects your local IP
+- If the IP is invalid or unavailable, it falls back to `0.0.0.0` (all interfaces)
 
 **When to set it manually:**
 
-- Running in Docker with specific network configuration
+- Running in Docker with host networking
 - When auto-detection returns an incorrect interface
-- When you want to display a specific LAN address
+- When you need to bind to a specific network interface
 
-**Note:** This field is cosmetic for the panel URL display. It does not affect where the server binds (the bot always listens on `0.0.0.0:3002`).
+**For most users:** Leave `ip` unset and focus on configuring `redirect_url` correctly.
 
 ---
 
 ## Reverse Proxy Setup
 
-For production deployments, you typically run Rustmail behind a reverse proxy (Nginx, Caddy, Traefik, NPM, etc.) with a custom domain.
+For production deployments, you typically run Rustmail behind a reverse proxy (Nginx, Caddy, Traefik, NPM, etc.) with a
+custom domain.
 
 ### Architecture
 
@@ -157,11 +189,11 @@ Internet → Reverse Proxy (443) → Rustmail (3002)
 ### Nginx Proxy Manager (NPM)
 
 1. **Add Proxy Host:**
-   - Domain: `panel.example.com`
-   - Scheme: `http`
-   - Forward Hostname/IP: Your server's internal IP or `localhost`
-   - Forward Port: `3002`
-   - Enable SSL with Let's Encrypt
+    - Domain: `panel.example.com`
+    - Scheme: `http`
+    - Forward Hostname/IP: Your server's internal IP or `localhost`
+    - Forward Port: `3002`
+    - Enable SSL with Let's Encrypt
 
 2. **Configure Rustmail:**
    ```toml
@@ -171,7 +203,7 @@ Internet → Reverse Proxy (443) → Rustmail (3002)
    ```
 
 3. **Update Discord OAuth2:**
-   - Add `https://panel.example.com/api/auth/callback` to your redirect URIs
+    - Add `https://panel.example.com/api/auth/callback` to your redirect URIs
 
 ### Nginx Configuration
 
@@ -216,11 +248,13 @@ labels:
 
 **OAuth2 redirect mismatch:**
 The redirect URL in `config.toml` must exactly match one of the URLs configured in Discord Developer Portal. Check for:
+
 - Protocol mismatch (`http` vs `https`)
 - Trailing slashes
 - Port numbers
 
 **Panel not accessible:**
+
 - Verify the reverse proxy can reach port 3002
 - Check firewall rules
 - Ensure Rustmail is running and panel is enabled
@@ -240,7 +274,8 @@ panel_super_admin_roles = [987654321098765432]
 - `panel_super_admin_users` - List of Discord user IDs
 - `panel_super_admin_roles` - List of Discord role IDs
 
-Users matching either list have unrestricted panel access. Additional permissions can be granted through the panel itself.
+Users matching either list have unrestricted panel access. Additional permissions can be granted through the panel
+itself.
 
 ---
 

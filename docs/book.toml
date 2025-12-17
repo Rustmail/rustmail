@@ -1,0 +1,28 @@
+[book]
+title = "Rustmail Documentation"
+description = "Documentation for Rustmail, a Discord modmail bot"
+authors = ["Rustmail Team"]
+language = "en"
+src = "."
+
+[build]
+build-dir = "../book"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/Rustmail/rustmail"
+edit-url-template = "https://github.com/Rustmail/rustmail/edit/main/docs/{path}"
+site-url = "/"
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+limit-results = 20
+boost-hierarchy = 2
+
+[output.html.playground]
+editable = false

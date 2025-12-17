@@ -15,8 +15,9 @@ Before installing Rustmail, create a Discord application:
 3. Navigate to **Bot** in the sidebar
 4. Click **Add Bot**
 5. Under **Privileged Gateway Intents**, enable:
-   - **Server Members Intent**
-   - **Message Content Intent**
+    - **Presence Intent**
+    - **Server Members Intent**
+    - **Message Content Intent**
 6. Copy the bot token (you will need it for configuration)
 
 ### Bot Invitation
@@ -26,15 +27,15 @@ Invite the bot to your server(s) with the required permissions:
 1. Go to **OAuth2 > URL Generator**
 2. Select scopes: `bot`, `applications.commands`
 3. Select permissions:
-   - Manage Channels
-   - Read Messages/View Channels
-   - Send Messages
-   - Manage Messages
-   - Embed Links
-   - Attach Files
-   - Read Message History
-   - Add Reactions
-   - Use Slash Commands
+    - Manage Channels
+    - Read Messages/View Channels
+    - Send Messages
+    - Manage Messages
+    - Embed Links
+    - Attach Files
+    - Read Message History
+    - Add Reactions
+    - Use Slash Commands
 4. Copy the generated URL and open it in your browser
 5. Select your server and authorize
 
@@ -49,6 +50,7 @@ For dual-server mode, invite the bot to both servers.
 Download the latest release from [GitHub Releases](https://github.com/Rustmail/rustmail/releases).
 
 Available platforms:
+
 - Linux (x86_64)
 - Windows (x86_64)
 - macOS (x86_64, ARM64)
@@ -87,7 +89,8 @@ On first run, the bot creates:
 rustmail/
 ├── rustmail
 ├── config.toml
-└── db.sqlite         # SQLite database (auto-created)
+└── db
+    └── db.sqlite # SQLite database (auto-created)
 ```
 
 ---

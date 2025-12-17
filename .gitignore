@@ -10,3 +10,4 @@ package-lock.json
 bin
 rustmail/static
 rustmail_panel/dist
+/book/
