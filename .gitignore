@@ -8,6 +8,6 @@ node_modules
 .vscode/
 package-lock.json
 bin
-rustmail/static
-rustmail_panel/dist
+crates/rustmail/static
+crates/rustmail_panel/dist
 /book/
