@@ -31,7 +31,7 @@ jobs:
           echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
 
       - name: Build frontend
-        working-directory: rustmail_panel
+        working-directory: crates/rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Build Rust backend

@@ -43,7 +43,7 @@ jobs:
           wasm-opt --version
 
       - name: Build frontend
-        working-directory: rustmail_panel
+        working-directory: crates/rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Build Rust backend
@@ -115,15 +115,15 @@ jobs:
         shell: bash
 
       - name: Create static directory
-        run: mkdir -p rustmail/static
+        run: mkdir -p crates/rustmail/static
         shell: bash
 
       - name: Build frontend
-        working-directory: rustmail_panel
+        working-directory: crates/rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Verify static files were created
-        run: ls rustmail/static
+        run: ls crates/rustmail/static
         shell: bash
 
       - uses: taiki-e/upload-rust-binary-action@v1
