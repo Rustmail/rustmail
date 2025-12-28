@@ -6,6 +6,7 @@ pub mod messages;
 pub mod reminders;
 pub mod scheduled;
 pub mod snippets;
+pub mod statistics;
 pub mod threads;
 
 pub use api_keys::*;
@@ -16,4 +17,5 @@ pub use messages::*;
 pub use reminders::*;
 pub use scheduled::*;
 pub use snippets::*;
+pub use statistics::*;
 pub use threads::*;

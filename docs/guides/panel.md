@@ -63,11 +63,7 @@ Panel access requires one of:
 
 ### Dashboard
 
-The home view displays:
-
-- Bot status (online/offline)
-- Active ticket count
-- Quick statistics
+The home view displays a statistics dashboard with key metrics about your support activity. See [Statistics](#statistics) for details.
 
 ### Tickets
 
@@ -104,6 +100,74 @@ For super administrators:
 - Manage panel permissions
 - Grant access to users and roles
 - View audit information
+
+---
+
+## Statistics
+
+The statistics dashboard provides insights into your support team's performance. It is visible to all users with the **View Panel** permission.
+
+### Period Selector
+
+Use the period selector to view statistics for different time ranges:
+
+- **7 days** - Recent activity
+- **30 days** - Monthly overview (default)
+- **90 days** - Quarterly trends
+
+### Overview Cards
+
+Key metrics displayed at the top:
+
+| Metric              | Description                                            |
+|---------------------|--------------------------------------------------------|
+| Open Tickets        | Number of currently open tickets                       |
+| Closed Today        | Tickets closed since midnight (server time)            |
+| Closed This Week    | Tickets closed in the last 7 days                      |
+| Total Closed        | All-time closed ticket count                           |
+| Avg Response Time   | Average time from ticket creation to first staff reply |
+| Avg Resolution Time | Average time from ticket creation to closure           |
+
+**Note:** Response time is calculated from when a user creates a ticket until a staff member sends their first message in that ticket.
+
+### Activity Chart
+
+A bar chart showing daily ticket activity:
+
+- **Blue bars** - Tickets created
+- **Green bars** - Tickets closed
+
+Hover over bars to see exact counts for each day. The chart is scrollable horizontally for longer periods (90 days).
+
+### Categories
+
+Breakdown of closed tickets by category. Shows:
+
+- Category name
+- Number of tickets
+- Percentage of total
+
+Categories are defined when tickets are moved to specific channels or assigned categories through commands.
+
+### Top Performers
+
+Highlights the top-performing staff members:
+
+| Award               | Criteria                                         |
+|---------------------|--------------------------------------------------|
+| Fastest Responder   | Lowest average response time (minimum 5 tickets) |
+| Most Messages       | Highest message count in tickets                 |
+| Most Tickets Closed | Highest number of closed tickets                 |
+
+### Staff Leaderboard
+
+Ranks staff members by activity within the selected period:
+
+- Username
+- Messages sent in tickets
+- Tickets closed
+
+Click **Show all** to expand beyond the top 5.
 
 ---
 
