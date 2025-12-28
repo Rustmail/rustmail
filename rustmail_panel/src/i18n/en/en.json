@@ -252,6 +252,46 @@
       "help": "Contact an administrator if you believe you should have access to this section.",
       "back_home": "Back to home",
       "checking_permissions": "Checking permissions..."
+    },
+    "statistics": {
+      "title": "Statistics",
+      "loading": "Loading statistics...",
+      "error_parse": "Failed to parse statistics",
+      "error_load": "Failed to load statistics",
+      "error_network": "Network error",
+      "no_data": "No data available",
+      "period": {
+        "week": "7 days",
+        "month": "30 days",
+        "quarter": "90 days"
+      },
+      "open_tickets": "Open Tickets",
+      "closed_today": "Closed Today",
+      "closed_week": "Closed This Week",
+      "total_closed": "Total Closed",
+      "avg_response": "Avg Response Time",
+      "avg_resolution": "Avg Resolution Time",
+      "seconds": "sec",
+      "minutes": "min",
+      "hours": "hours",
+      "days": "days",
+      "hours_short": "h",
+      "minutes_short": "m",
+      "days_short": "d",
+      "activity": "Activity",
+      "created": "Created",
+      "closed": "Closed",
+      "categories": "Categories",
+      "fastest_responder": "Fastest Responder",
+      "most_messages": "Most Messages",
+      "most_tickets_closed": "Most Tickets Closed",
+      "messages": "messages",
+      "tickets": "tickets",
+      "staff_leaderboard": "Staff Leaderboard",
+      "staff_name": "Name",
+      "tickets_closed": "Tickets Closed",
+      "show_all": "Show all",
+      "show_less": "Show less"
     }
   }
 }

@@ -252,6 +252,46 @@
       "help": "Contactez un administrateur si vous pensez que vous devriez avoir accès à cette section.",
       "back_home": "Retour à l'accueil",
       "checking_permissions": "Vérification des permissions..."
+    },
+    "statistics": {
+      "title": "Statistiques",
+      "loading": "Chargement des statistiques...",
+      "error_parse": "Échec de l'analyse des statistiques",
+      "error_load": "Échec du chargement des statistiques",
+      "error_network": "Erreur réseau",
+      "no_data": "Aucune donnée disponible",
+      "period": {
+        "week": "7 jours",
+        "month": "30 jours",
+        "quarter": "90 jours"
+      },
+      "open_tickets": "Tickets ouverts",
+      "closed_today": "Fermés aujourd'hui",
+      "closed_week": "Fermés cette semaine",
+      "total_closed": "Total fermés",
+      "avg_response": "Temps de réponse moy.",
+      "avg_resolution": "Temps de résolution moy.",
+      "seconds": "sec",
+      "minutes": "min",
+      "hours": "heures",
+      "days": "jours",
+      "hours_short": "h",
+      "minutes_short": "m",
+      "days_short": "j",
+      "activity": "Activité",
+      "created": "Créés",
+      "closed": "Fermés",
+      "categories": "Catégories",
+      "fastest_responder": "Réponse la plus rapide",
+      "most_messages": "Plus de messages",
+      "most_tickets_closed": "Plus de tickets fermés",
+      "messages": "messages",
+      "tickets": "tickets",
+      "staff_leaderboard": "Classement du staff",
+      "staff_name": "Nom",
+      "tickets_closed": "Tickets fermés",
+      "show_all": "Voir tout",
+      "show_less": "Voir moins"
     }
   }
 }
