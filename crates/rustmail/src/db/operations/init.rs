@@ -18,7 +18,7 @@ pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
         .connect(&db_url)
         .await?;
 
-    sqlx::migrate!("../migrations").run(&pool).await?;
+    sqlx::migrate!("../../migrations").run(&pool).await?;
 
     println!("Database connection pool established");
     Ok(pool)
