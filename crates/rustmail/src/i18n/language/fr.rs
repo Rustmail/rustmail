@@ -1207,6 +1207,22 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Action Membre Inconnue"),
     );
     dict.messages.insert(
+        "audit_log.member.pruned_count".to_string(),
+        DictionaryMessage::new("{count} membres purgés"),
+    );
+    dict.messages.insert(
+        "audit_log.member.messages_deleted".to_string(),
+        DictionaryMessage::new("Messages supprimés : {days} jours"),
+    );
+    dict.messages.insert(
+        "audit_log.member.moved_to".to_string(),
+        DictionaryMessage::new("Déplacé vers {channel} ({count} membres)"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnected_count".to_string(),
+        DictionaryMessage::new("{count} membres déconnectés"),
+    );
+    dict.messages.insert(
         "audit_log.channel.create".to_string(),
         DictionaryMessage::new("Salon Créé"),
     );

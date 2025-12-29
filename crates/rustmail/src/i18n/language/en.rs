@@ -1194,6 +1194,22 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Unknown Member Action"),
     );
     dict.messages.insert(
+        "audit_log.member.pruned_count".to_string(),
+        DictionaryMessage::new("{count} members pruned"),
+    );
+    dict.messages.insert(
+        "audit_log.member.messages_deleted".to_string(),
+        DictionaryMessage::new("Messages deleted: {days} days"),
+    );
+    dict.messages.insert(
+        "audit_log.member.moved_to".to_string(),
+        DictionaryMessage::new("Moved to {channel} ({count} members)"),
+    );
+    dict.messages.insert(
+        "audit_log.member.disconnected_count".to_string(),
+        DictionaryMessage::new("{count} members disconnected"),
+    );
+    dict.messages.insert(
         "audit_log.channel.create".to_string(),
         DictionaryMessage::new("Channel Created"),
     );
