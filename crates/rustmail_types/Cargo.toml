@@ -1,8 +1,8 @@
 [package]
 name = "rustmail_types"
-version = "1.0.17"
+version = "1.0.18"
 edition = "2024"
-license = "MIT"
+license = "AGPL-3"
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
