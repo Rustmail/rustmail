@@ -51,6 +51,37 @@ impl AuditLogFormatter for MemberFormatter {
     }
 
     async fn description(&self, alc: &AuditLogContext<'_>) -> String {
+        match self.0 {
+            MemberAction::MemberMove => {
+                if let Some(opts) = &alc.entry.options {
+                    if let Some(channel_id) = opts.channel_id {
+                        let mut params = HashMap::new();
+                        params.insert("channel".to_string(), format!("<#{}>", channel_id.get()));
+                        if let Some(count) = opts.count {
+                            params.insert("count".to_string(), count.to_string());
+                        }
+                        return alc
+                            .translate("audit_log.member.moved_to", Some(&params))
+                            .await;
+                    }
+                }
+                return String::new();
+            }
+            MemberAction::MemberDisconnect => {
+                if let Some(opts) = &alc.entry.options {
+                    if let Some(count) = opts.count {
+                        let mut params = HashMap::new();
+                        params.insert("count".to_string(), count.to_string());
+                        return alc
+                            .translate("audit_log.member.disconnected_count", Some(&params))
+                            .await;
+                    }
+                }
+                return String::new();
+            }
+            _ => {}
+        }
+
         let target_label = alc.translate("audit_log.target", None).await;
 
         let target = if let Some(target_id) = alc.target_id() {
@@ -83,29 +114,6 @@ impl AuditLogFormatter for MemberFormatter {
                                 .await;
                             desc.push_str(&format!("\n{}", deleted));
                         }
-                    }
-                }
-                MemberAction::MemberMove => {
-                    if let Some(channel_id) = opts.channel_id {
-                        let mut params = HashMap::new();
-                        params.insert("channel".to_string(), format!("<#{}>", channel_id.get()));
-                        if let Some(count) = opts.count {
-                            params.insert("count".to_string(), count.to_string());
-                        }
-                        let moved = alc
-                            .translate("audit_log.member.moved_to", Some(&params))
-                            .await;
-                        desc.push_str(&format!("\n{}", moved));
-                    }
-                }
-                MemberAction::MemberDisconnect => {
-                    if let Some(count) = opts.count {
-                        let mut params = HashMap::new();
-                        params.insert("count".to_string(), count.to_string());
-                        let disconnected = alc
-                            .translate("audit_log.member.disconnected_count", Some(&params))
-                            .await;
-                        desc.push_str(&format!("\n{}", disconnected));
                     }
                 }
                 _ => {}
