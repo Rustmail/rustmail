@@ -10,6 +10,7 @@ pub struct Reminder {
     pub trigger_time: i64,
     pub created_at: i64,
     pub completed: bool,
+    pub target_roles: Option<String>,
 }
 
 pub async fn insert_reminder(reminder: &Reminder, pool: &sqlx::SqlitePool) -> ModmailResult<i64> {
@@ -35,8 +36,8 @@ pub async fn insert_reminder(reminder: &Reminder, pool: &sqlx::SqlitePool) -> Mo
 
     let result = sqlx::query!(
         r#"
-        INSERT INTO reminders (thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO reminders (thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#,
         reminder.thread_id,
         user_id,
@@ -45,7 +46,8 @@ pub async fn insert_reminder(reminder: &Reminder, pool: &sqlx::SqlitePool) -> Mo
         reminder.reminder_content,
         reminder.trigger_time,
         reminder.created_at,
-        reminder.completed
+        reminder.completed,
+        reminder.target_roles
     )
     .execute(pool)
     .await?;
@@ -79,7 +81,7 @@ pub async fn get_all_pending_reminders(
     let rows = sqlx::query_as!(
         Reminder,
         r#"
-        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed
+        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles
         FROM reminders
         WHERE completed = FALSE
         ORDER BY trigger_time ASC
@@ -97,7 +99,7 @@ pub async fn get_reminder_by_id(
     let row = sqlx::query_as!(
         Reminder,
         r#"
-        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed
+        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles
         FROM reminders
         WHERE id = ?
         "#,
