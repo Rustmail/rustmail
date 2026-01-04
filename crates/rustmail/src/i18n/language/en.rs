@@ -781,6 +781,14 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("⏰ Reminder <@{user}>!"),
     );
     dict.messages.insert(
+        "reminder.show_with_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Reminder for {roles}: \n\n{content} !"),
+    );
+    dict.messages.insert(
+        "reminder.show_without_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Reminder for {roles}!"),
+    );
+    dict.messages.insert(
         "slash_command.add_reminder_command_description".to_string(),
         DictionaryMessage::new("Add a reminder for yourself"),
     );
@@ -803,6 +811,56 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.remove_reminder_id_argument".to_string(),
         DictionaryMessage::new("The ID of the reminder to remove"),
+    );
+    dict.messages.insert(
+        "reminder_subscription.subscribed".to_string(),
+        DictionaryMessage::new("You are now subscribed to reminders for the **{role}** role."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.unsubscribed".to_string(),
+        DictionaryMessage::new("You are now unsubscribed from reminders for the **{role}** role."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.already_subscribed".to_string(),
+        DictionaryMessage::new("You are already subscribed to reminders for the **{role}** role."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.already_unsubscribed".to_string(),
+        DictionaryMessage::new(
+            "You are already unsubscribed from reminders for the **{role}** role.",
+        ),
+    );
+    dict.messages.insert(
+        "reminder_subscription.role_required".to_string(),
+        DictionaryMessage::new("You must have the **{role}** role to perform this action."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.role_not_found".to_string(),
+        DictionaryMessage::new("The role **{role}** does not exist on this server."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.missing_role".to_string(),
+        DictionaryMessage::new("Please specify a role. Usage: `{prefix}rem subscribe <role>` or `{prefix}rem unsubscribe <role>`"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_subscribe_description".to_string(),
+        DictionaryMessage::new("Subscribe or unsubscribe from role-based reminders"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_action_argument".to_string(),
+        DictionaryMessage::new("Action to perform (subscribe/unsubscribe)"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_role_argument".to_string(),
+        DictionaryMessage::new("The role to modify subscription for"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_roles_argument_description".to_string(),
+        DictionaryMessage::new("Roles to target (comma-separated, e.g., dev,mod)"),
+    );
+    dict.messages.insert(
+        "help.reminder_subscription".to_string(),
+        DictionaryMessage::new("Manage your role-based reminder subscriptions. Use `!rem subscribe <role>` to subscribe and `!rem unsubscribe <role>` to unsubscribe. You must have the role to modify your subscription."),
     );
     dict.messages.insert(
         "logs_command.next".to_string(),
@@ -836,7 +894,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.add_reminder".to_string(),
-        DictionaryMessage::new("Sets a reminder for a specific time. To do so, use `!remind <HH:MM> <reminder content>` or `!rem <HH:MM> <reminder content>`. If the specified time has already passed today, the reminder will be scheduled for tomorrow."),
+        DictionaryMessage::new("Sets a reminder for a specific time. Usage: `!rem <HH:MM> [content]` for a personal reminder, or `!rem <HH:MM> <roles> [content]` to target roles (e.g., `!rem 14:30 dev,mod Meeting`). If the time has passed, the reminder will be scheduled for tomorrow. Use `!rem subscribe <role>` or `!rem unsubscribe <role>` to manage your notifications."),
     );
     dict.messages.insert(
         "help.add_staff".to_string(),

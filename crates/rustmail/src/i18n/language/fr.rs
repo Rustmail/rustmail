@@ -803,6 +803,14 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("⏰ Rappel <@{user}> !"),
     );
     dict.messages.insert(
+        "reminder.show_with_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Rappel pour {roles} : \n\n{content} !"),
+    );
+    dict.messages.insert(
+        "reminder.show_without_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Rappel pour {roles} !"),
+    );
+    dict.messages.insert(
         "slash_command.add_reminder_command_description".to_string(),
         DictionaryMessage::new("Ajouter un rappel pour vous-même"),
     );
@@ -825,6 +833,54 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.remove_reminder_id_argument".to_string(),
         DictionaryMessage::new("L'ID du rappel à supprimer."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.subscribed".to_string(),
+        DictionaryMessage::new("Vous êtes maintenant inscrit aux rappels du rôle **{role}**."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.unsubscribed".to_string(),
+        DictionaryMessage::new("Vous êtes maintenant désinscrit des rappels du rôle **{role}**."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.already_subscribed".to_string(),
+        DictionaryMessage::new("Vous êtes déjà inscrit aux rappels du rôle **{role}**."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.already_unsubscribed".to_string(),
+        DictionaryMessage::new("Vous êtes déjà désinscrit des rappels du rôle **{role}**."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.role_required".to_string(),
+        DictionaryMessage::new("Vous devez avoir le rôle **{role}** pour effectuer cette action."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.role_not_found".to_string(),
+        DictionaryMessage::new("Le rôle **{role}** n'existe pas sur ce serveur."),
+    );
+    dict.messages.insert(
+        "reminder_subscription.missing_role".to_string(),
+        DictionaryMessage::new("Veuillez spécifier un rôle. Usage : `{prefix}rem subscribe <role>` ou `{prefix}rem unsubscribe <role>`"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_subscribe_description".to_string(),
+        DictionaryMessage::new("S'inscrire ou se désinscrire des rappels d'un rôle"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_action_argument".to_string(),
+        DictionaryMessage::new("Action à effectuer (subscribe/unsubscribe)"),
+    );
+    dict.messages.insert(
+        "slash_command.reminder_role_argument".to_string(),
+        DictionaryMessage::new("Le rôle pour lequel modifier l'inscription"),
+    );
+    dict.messages.insert(
+        "slash_command.add_reminder_roles_argument_description".to_string(),
+        DictionaryMessage::new("Rôles à cibler (séparés par des virgules, ex: dev,mod)"),
+    );
+    dict.messages.insert(
+        "help.reminder_subscription".to_string(),
+        DictionaryMessage::new("Gérer vos inscriptions aux rappels par rôle. `!rem subscribe <role>` pour s'inscrire, `!rem unsubscribe <role>` pour se désinscrire. Vous devez avoir le rôle pour modifier votre inscription."),
     );
     dict.messages.insert(
         "logs_command.next".to_string(),
@@ -856,7 +912,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.add_reminder".to_string(),
-        DictionaryMessage::new("Configure un rappel à une heure spécifique. Pour ce faire, faites `!remind <HH:MM> <contenu du rappel>` ou `!rem <HH:MM> <contenu du rappel>`. Si l'heure est déjà passée aujourd'hui, le rappel sera programmé pour demain."),
+        DictionaryMessage::new("Configure un rappel à une heure spécifique. Usage : `!rem <HH:MM> [contenu]` pour un rappel personnel, ou `!rem <HH:MM> <rôles> [contenu]` pour cibler des rôles (ex: `!rem 14:30 dev,mod Réunion`). Si l'heure est déjà passée, le rappel sera programmé pour demain. Utilisez `!rem subscribe <rôle>` ou `!rem unsubscribe <rôle>` pour gérer vos notifications."),
     );
     dict.messages.insert(
         "help.add_staff".to_string(),
