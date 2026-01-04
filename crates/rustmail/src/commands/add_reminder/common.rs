@@ -2,9 +2,9 @@ use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use chrono::Local;
-use serenity::all::{ChannelId, CommandInteraction, Context, Message, UserId};
+use serenity::all::{ChannelId, CommandInteraction, Context, GuildId, Message, RoleId, UserId};
 use sqlx::SqlitePool;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::select;
@@ -162,12 +162,46 @@ pub fn spawn_reminder(
         params.insert("user".to_string(), reminder.user_id.to_string());
         params.insert("content".to_string(), reminder.reminder_content.to_string());
 
-        let mut mentions = Vec::<UserId>::new();
-        mentions.push(UserId::new(reminder.user_id as u64));
+        let (mentions, is_role_targeted) = if let Some(ref target_roles_str) = reminder.target_roles
+        {
+            let role_mentions: String = target_roles_str
+                .split(',')
+                .filter_map(|s| s.trim().parse::<u64>().ok())
+                .map(|id| format!("<@&{}>", id))
+                .collect::<Vec<_>>()
+                .join(", ");
+            params.insert("roles".to_string(), role_mentions);
+
+            let members =
+                get_targeted_mentions(&ctx, &pool, reminder.guild_id as u64, target_roles_str)
+                    .await;
+            (members, true)
+        } else {
+            (vec![UserId::new(reminder.user_id as u64)], false)
+        };
+
+        if mentions.is_empty() {
+            if let Err(e) = update_reminder_status(&reminder, true, &pool).await {
+                eprintln!("Failed to update reminder status: {}", e);
+            }
+            return;
+        }
+
+        let (key_with_content, key_without_content) = if is_role_targeted {
+            (
+                "reminder.show_with_content_roles",
+                "reminder.show_without_content_roles",
+            )
+        } else {
+            (
+                "reminder.show_with_content",
+                "reminder.show_without_content",
+            )
+        };
 
         if !reminder.reminder_content.is_empty() {
             let _ = MessageBuilder::system_message(&ctx, &config)
-                .translated_content("reminder.show_with_content", Some(&params), None, None)
+                .translated_content(key_with_content, Some(&params), None, None)
                 .await
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
@@ -176,7 +210,7 @@ pub fn spawn_reminder(
                 .await;
         } else {
             let _ = MessageBuilder::system_message(&ctx, &config)
-                .translated_content("reminder.show_without_content", Some(&params), None, None)
+                .translated_content(key_without_content, Some(&params), None, None)
                 .await
                 .to_channel(ChannelId::new(reminder.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
@@ -189,4 +223,61 @@ pub fn spawn_reminder(
             eprintln!("Failed to update reminder status: {}", e);
         }
     });
+}
+
+async fn get_targeted_mentions(
+    ctx: &Context,
+    pool: &SqlitePool,
+    guild_id: u64,
+    target_roles_str: &str,
+) -> Vec<UserId> {
+    let guild_id_obj = GuildId::new(guild_id);
+
+    let role_ids: Vec<u64> = target_roles_str
+        .split(',')
+        .filter_map(|s| s.trim().parse::<u64>().ok())
+        .collect();
+
+    if role_ids.is_empty() {
+        return vec![];
+    }
+
+    let members = match guild_id_obj.members(&ctx.http, None, None).await {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("Failed to fetch guild members: {}", e);
+            return vec![];
+        }
+    };
+
+    let mut user_ids_with_roles: HashSet<UserId> = HashSet::new();
+
+    for role_id in &role_ids {
+        let role_id_obj = RoleId::new(*role_id);
+        for member in &members {
+            if member.roles.contains(&role_id_obj) {
+                user_ids_with_roles.insert(member.user.id);
+            }
+        }
+    }
+
+    let mut opted_out_users: HashSet<u64> = HashSet::new();
+
+    for role_id in &role_ids {
+        match get_optouts_for_role(guild_id as i64, *role_id as i64, pool).await {
+            Ok(optouts) => {
+                for user_id in optouts {
+                    opted_out_users.insert(user_id as u64);
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to get optouts for role {}: {}", role_id, e);
+            }
+        }
+    }
+
+    user_ids_with_roles
+        .into_iter()
+        .filter(|user_id| !opted_out_users.contains(&user_id.get()))
+        .collect()
 }
