@@ -140,6 +140,7 @@ pub async fn run_bot(
     registry.register_command(ReplyCommand);
     registry.register_command(AddReminderCommand);
     registry.register_command(RemoveReminderCommand);
+    registry.register_command(ReminderSubscriptionCommand);
     registry.register_command(LogsCommand);
     registry.register_command(TakeCommand);
     registry.register_command(ReleaseCommand);
