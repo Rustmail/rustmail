@@ -126,7 +126,6 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
 
             let is_subscribe = action == "subscribe";
 
-            // Get the guild
             let guild_id = config.bot.get_staff_guild_id();
             let guild_id_obj = GuildId::new(guild_id);
             let guild = guild_id_obj
@@ -136,14 +135,12 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                     ModmailError::Discord(DiscordError::ApiError("Guild not found".to_string()))
                 })?;
 
-            // Get the role name
             let role = guild.roles.get(&role_id).ok_or_else(|| {
                 ModmailError::Discord(DiscordError::ApiError("Role not found".to_string()))
             })?;
 
             let role_name = role.name.clone();
 
-            // Check if the user has the role
             let member = guild_id_obj
                 .member(&ctx.http, command.user.id)
                 .await
@@ -167,12 +164,10 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                 return Ok(());
             }
 
-            // Perform the subscription/unsubscription
             let mut params = HashMap::new();
             params.insert("role".to_string(), role_name.clone());
 
             if is_subscribe {
-                // Re-subscribe: delete the opt-out record
                 let was_opted_out = delete_reminder_optout(
                     guild_id as i64,
                     command.user.id.get() as i64,
@@ -199,7 +194,6 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                     .send_interaction_followup(&command, true)
                     .await;
             } else {
-                // Unsubscribe: insert an opt-out record
                 let is_already_opted_out = is_user_opted_out(
                     guild_id as i64,
                     command.user.id.get() as i64,

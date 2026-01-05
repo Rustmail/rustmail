@@ -71,6 +71,10 @@ pub enum CommandError {
     StatusIsMissing,
     InvalidStatusValue,
     MaintenanceModeNotAllowed,
+    ReminderAlreadySubscribed(String),
+    ReminderAlreadyUnsubscribed(String),
+    ReminderRoleRequired(String),
+    ReminderRoleNotFound(String),
 }
 
 #[derive(Debug, Clone)]
@@ -189,6 +193,18 @@ impl fmt::Display for CommandError {
             CommandError::InvalidStatusValue => write!(f, "Invalid status value"),
             CommandError::MaintenanceModeNotAllowed => {
                 write!(f, "Only admins can enable maintenance mode")
+            }
+            CommandError::ReminderAlreadySubscribed(role) => {
+                write!(f, "Already subscribed to reminders for role {}", role)
+            }
+            CommandError::ReminderAlreadyUnsubscribed(role) => {
+                write!(f, "Already unsubscribed from reminders for role {}", role)
+            }
+            CommandError::ReminderRoleRequired(role) => {
+                write!(f, "You must have the {} role to perform this action", role)
+            }
+            CommandError::ReminderRoleNotFound(role) => {
+                write!(f, "Role {} not found", role)
             }
         }
     }

@@ -786,13 +786,19 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.registered_without_content".to_string(),
-        DictionaryMessage::new("⏰ Rappel enregistré pour {time} ({remaining_time}) !"),
+        DictionaryMessage::new("⏰ Rappel programmé pour **{time}** ({remaining_time})"),
     );
     dict.messages.insert(
         "reminder.registered_with_content".to_string(),
-        DictionaryMessage::new(
-            "⏰ Rappel enregistré pour {time} ({remaining_time}) !\n\n{content}",
-        ),
+        DictionaryMessage::new("⏰ Rappel programmé pour **{time}** ({remaining_time})\n\n> {content}"),
+    );
+    dict.messages.insert(
+        "reminder.registered_without_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})"),
+    );
+    dict.messages.insert(
+        "reminder.registered_with_content_roles".to_string(),
+        DictionaryMessage::new("⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})\n\n> {content}"),
     );
     dict.messages.insert(
         "reminder.show_with_content".to_string(),
@@ -912,7 +918,7 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.add_reminder".to_string(),
-        DictionaryMessage::new("Configure un rappel à une heure spécifique. Usage : `!rem <HH:MM> [contenu]` pour un rappel personnel, ou `!rem <HH:MM> <rôles> [contenu]` pour cibler des rôles (ex: `!rem 14:30 dev,mod Réunion`). Si l'heure est déjà passée, le rappel sera programmé pour demain. Utilisez `!rem subscribe <rôle>` ou `!rem unsubscribe <rôle>` pour gérer vos notifications."),
+        DictionaryMessage::new("Configure un rappel à une heure spécifique. Usage : `!rem <HH:MM> [contenu]` pour un rappel personnel, ou `!rem <HH:MM> @role1,@role2 [contenu]` pour cibler des rôles (ex: `!rem 14:30 @dev,@mod Réunion`). Vous pouvez aussi utiliser les mentions Discord. Si l'heure est déjà passée, le rappel sera programmé pour demain. Utilisez `!rem subscribe <rôle>` ou `!rem unsubscribe <rôle>` pour gérer vos notifications."),
     );
     dict.messages.insert(
         "help.add_staff".to_string(),

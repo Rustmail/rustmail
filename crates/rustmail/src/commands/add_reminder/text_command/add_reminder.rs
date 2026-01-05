@@ -96,7 +96,7 @@ pub async fn add_reminder(
         trigger_time: trigger_timestamp,
         created_at: now.timestamp(),
         completed: false,
-        target_roles,
+        target_roles: target_roles.clone(),
     };
 
     let reminder_id = match insert_reminder(&reminder, pool).await {
@@ -114,6 +114,7 @@ pub async fn add_reminder(
         &msg,
         config,
         trigger_timestamp,
+        &target_roles,
     )
     .await;
 
@@ -140,56 +141,76 @@ async fn parse_roles_and_content(
         return (None, String::new());
     }
 
-    let mut parts = content.splitn(2, ' ');
-    let first_word = parts.next().unwrap_or("");
-    let rest = parts.next().unwrap_or("");
-
-    if first_word.is_empty() {
-        return (None, content.to_string());
-    }
-
     let guild_id_obj = GuildId::new(guild_id);
     let guild = match guild_id_obj.to_partial_guild(&ctx.http).await {
         Ok(g) => g,
         Err(_) => return (None, content.to_string()),
     };
 
-    let potential_role_names: Vec<&str> = first_word.split(',').map(|s| s.trim()).collect();
+    let mention_regex = Regex::new(r"<@&(\d+)>").unwrap();
+    let at_role_regex = Regex::new(r"^@(.+)$").unwrap();
 
     let mut found_role_ids: Vec<u64> = Vec::new();
-    let mut all_roles_valid = !potential_role_names.is_empty();
+    let mut last_valid_end = 0;
 
-    for role_name in &potential_role_names {
-        let role_id = role_name
-            .chars()
-            .filter(|c| c.is_ascii_digit())
-            .collect::<String>();
+    let chars: Vec<char> = content.chars().collect();
+    let mut i = 0;
 
-        if role_name.is_empty() {
-            all_roles_valid = false;
+    while i < chars.len() {
+        while i < chars.len() && (chars[i].is_whitespace() || chars[i] == ',') {
+            i += 1;
+        }
+        if i >= chars.len() {
             break;
         }
 
-        let role_name_lower = role_name.to_lowercase();
-        let found = guild.roles.values().find(|r| {
-            r.name.to_lowercase() == role_name_lower || r.id.get().to_string() == *role_id
-        });
+        let word_start = i;
+        while i < chars.len() && !chars[i].is_whitespace() && chars[i] != ',' {
+            i += 1;
+        }
+        let word: String = chars[word_start..i].iter().collect();
 
-        if let Some(role) = found {
-            found_role_ids.push(role.id.get());
+        if word.is_empty() {
+            continue;
+        }
+
+        let role_id: Option<u64> = if let Some(caps) = mention_regex.captures(&word) {
+            caps.get(1).and_then(|m| m.as_str().parse::<u64>().ok())
+        } else if let Some(caps) = at_role_regex.captures(&word) {
+            let role_name = caps.get(1).map(|m| m.as_str()).unwrap_or("");
+            let role_name_lower = role_name.to_lowercase();
+            guild
+                .roles
+                .values()
+                .find(|r| r.name.to_lowercase() == role_name_lower)
+                .map(|r| r.id.get())
         } else {
-            all_roles_valid = false;
+            None
+        };
+
+        if let Some(id) = role_id {
+            if guild.roles.contains_key(&RoleId::new(id)) {
+                found_role_ids.push(id);
+                last_valid_end = i;
+            } else {
+                break;
+            }
+        } else if word.starts_with('@') || word.starts_with("<@&") {
+            break;
+        } else {
             break;
         }
     }
 
-    if all_roles_valid && !found_role_ids.is_empty() {
+    if !found_role_ids.is_empty() {
+        let remaining = content.chars().skip(last_valid_end).collect::<String>();
+        let remaining = remaining.trim_start_matches(|c: char| c.is_whitespace() || c == ',');
         let role_ids_str = found_role_ids
             .iter()
             .map(|id| id.to_string())
             .collect::<Vec<_>>()
             .join(",");
-        (Some(role_ids_str), rest.to_string())
+        (Some(role_ids_str), remaining.to_string())
     } else {
         (None, content.to_string())
     }
@@ -206,21 +227,7 @@ async fn handle_subscription(
     let role_name = args.trim();
 
     if role_name.is_empty() {
-        let mut params = HashMap::new();
-        params.insert("prefix".to_string(), config.command.prefix.clone());
-
-        let _ = MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "reminder_subscription.missing_role",
-                Some(&params),
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            )
-            .await
-            .reply_to(msg.clone())
-            .send(true)
-            .await;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::MissingArguments));
     }
 
     let guild_id = config.bot.get_staff_guild_id();
@@ -243,21 +250,9 @@ async fn handle_subscription(
     let role = match role {
         Some(r) => r,
         None => {
-            let mut params = HashMap::new();
-            params.insert("role".to_string(), role_name.to_string());
-
-            let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "reminder_subscription.role_not_found",
-                    Some(&params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .reply_to(msg.clone())
-                .send(true)
-                .await;
-            return Ok(());
+            return Err(ModmailError::Command(CommandError::ReminderRoleNotFound(
+                role_name.to_string(),
+            )));
         }
     };
 
@@ -269,21 +264,9 @@ async fn handle_subscription(
     };
 
     if !member.roles.contains(&RoleId::new(role.id.get())) {
-        let mut params = HashMap::new();
-        params.insert("role".to_string(), role.name.clone());
-
-        let _ = MessageBuilder::system_message(ctx, config)
-            .translated_content(
-                "reminder_subscription.role_required",
-                Some(&params),
-                Some(msg.author.id),
-                msg.guild_id.map(|g| g.get()),
-            )
-            .await
-            .reply_to(msg.clone())
-            .send(true)
-            .await;
-        return Ok(());
+        return Err(ModmailError::Command(CommandError::ReminderRoleRequired(
+            role.name.clone(),
+        )));
     }
 
     let mut params = HashMap::new();
@@ -298,15 +281,15 @@ async fn handle_subscription(
         )
         .await?;
 
-        let message_key = if was_opted_out {
-            "reminder_subscription.subscribed"
-        } else {
-            "reminder_subscription.already_subscribed"
-        };
+        if !was_opted_out {
+            return Err(ModmailError::Command(CommandError::ReminderAlreadySubscribed(
+                role.name.clone(),
+            )));
+        }
 
         let _ = MessageBuilder::system_message(ctx, config)
             .translated_content(
-                message_key,
+                "reminder_subscription.subscribed",
                 Some(&params),
                 Some(msg.author.id),
                 msg.guild_id.map(|g| g.get()),
@@ -325,38 +308,30 @@ async fn handle_subscription(
         .await?;
 
         if is_already_opted_out {
-            let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "reminder_subscription.already_unsubscribed",
-                    Some(&params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .reply_to(msg.clone())
-                .send(true)
-                .await;
-        } else {
-            insert_reminder_optout(
-                guild_id as i64,
-                msg.author.id.get() as i64,
-                role.id.get() as i64,
-                pool,
-            )
-            .await?;
-
-            let _ = MessageBuilder::system_message(ctx, config)
-                .translated_content(
-                    "reminder_subscription.unsubscribed",
-                    Some(&params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .reply_to(msg.clone())
-                .send(true)
-                .await;
+            return Err(ModmailError::Command(CommandError::ReminderAlreadyUnsubscribed(
+                role.name.clone(),
+            )));
         }
+
+        insert_reminder_optout(
+            guild_id as i64,
+            msg.author.id.get() as i64,
+            role.id.get() as i64,
+            pool,
+        )
+        .await?;
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "reminder_subscription.unsubscribed",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .reply_to(msg.clone())
+            .send(true)
+            .await;
     }
 
     Ok(())

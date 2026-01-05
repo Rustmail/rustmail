@@ -18,9 +18,10 @@ pub async fn send_register_confirmation_from_message(
     msg: &Message,
     config: &Config,
     trigger_timestamp: i64,
+    target_roles: &Option<String>,
 ) {
     let mut params = HashMap::new();
-    params.insert("time".to_string(), format!("<t:{}:F>", trigger_timestamp));
+    params.insert("time".to_string(), format!("<t:{}:t>", trigger_timestamp));
     params.insert(
         "remaining_time".to_string(),
         format!("<t:{}:R>", trigger_timestamp),
@@ -30,33 +31,33 @@ pub async fn send_register_confirmation_from_message(
         params.insert("content".to_string(), reminder_content.to_string());
     }
 
-    if !reminder_content.is_empty() {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content(
-                "reminder.registered_with_content",
-                Some(&params),
-                None,
-                None,
-            )
-            .await
-            .to_channel(msg.channel_id)
-            .footer(format!("{}: {}", "ID", reminder_id))
-            .send(true)
-            .await;
+    let has_roles = if let Some(roles_str) = target_roles {
+        let role_mentions: String = roles_str
+            .split(',')
+            .filter_map(|s| s.trim().parse::<u64>().ok())
+            .map(|id| format!("<@&{}>", id))
+            .collect::<Vec<_>>()
+            .join(", ");
+        params.insert("roles".to_string(), role_mentions);
+        true
     } else {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content(
-                "reminder.registered_without_content",
-                Some(&params),
-                None,
-                None,
-            )
-            .await
-            .to_channel(msg.channel_id)
-            .footer(format!("{}: {}", "ID", reminder_id))
-            .send(true)
-            .await;
-    }
+        false
+    };
+
+    let key = match (has_roles, !reminder_content.is_empty()) {
+        (true, true) => "reminder.registered_with_content_roles",
+        (true, false) => "reminder.registered_without_content_roles",
+        (false, true) => "reminder.registered_with_content",
+        (false, false) => "reminder.registered_without_content",
+    };
+
+    let _ = MessageBuilder::system_message(&ctx, &config)
+        .translated_content(key, Some(&params), None, None)
+        .await
+        .to_channel(msg.channel_id)
+        .footer(format!("{}: {}", "ID", reminder_id))
+        .send(true)
+        .await;
 }
 
 pub async fn send_register_confirmation_from_command(
@@ -66,9 +67,10 @@ pub async fn send_register_confirmation_from_command(
     command: &CommandInteraction,
     config: &Config,
     trigger_timestamp: i64,
+    target_roles: &Option<String>,
 ) {
     let mut params = HashMap::new();
-    params.insert("time".to_string(), format!("<t:{}:F>", trigger_timestamp));
+    params.insert("time".to_string(), format!("<t:{}:t>", trigger_timestamp));
     params.insert(
         "remaining_time".to_string(),
         format!("<t:{}:R>", trigger_timestamp),
@@ -78,33 +80,33 @@ pub async fn send_register_confirmation_from_command(
         params.insert("content".to_string(), reminder_content.to_string());
     }
 
-    if !reminder_content.is_empty() {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content(
-                "reminder.registered_with_content",
-                Some(&params),
-                None,
-                None,
-            )
-            .await
-            .to_channel(command.channel_id)
-            .footer(format!("{}: {}", "ID", reminder_id))
-            .send_interaction_followup(&command, true)
-            .await;
+    let has_roles = if let Some(roles_str) = target_roles {
+        let role_mentions: String = roles_str
+            .split(',')
+            .filter_map(|s| s.trim().parse::<u64>().ok())
+            .map(|id| format!("<@&{}>", id))
+            .collect::<Vec<_>>()
+            .join(", ");
+        params.insert("roles".to_string(), role_mentions);
+        true
     } else {
-        let _ = MessageBuilder::system_message(&ctx, &config)
-            .translated_content(
-                "reminder.registered_without_content",
-                Some(&params),
-                None,
-                None,
-            )
-            .await
-            .to_channel(command.channel_id)
-            .footer(format!("{}: {}", "ID", reminder_id))
-            .send_interaction_followup(&command, true)
-            .await;
-    }
+        false
+    };
+
+    let key = match (has_roles, !reminder_content.is_empty()) {
+        (true, true) => "reminder.registered_with_content_roles",
+        (true, false) => "reminder.registered_without_content_roles",
+        (false, true) => "reminder.registered_with_content",
+        (false, false) => "reminder.registered_without_content",
+    };
+
+    let _ = MessageBuilder::system_message(&ctx, &config)
+        .translated_content(key, Some(&params), None, None)
+        .await
+        .to_channel(command.channel_id)
+        .footer(format!("{}: {}", "ID", reminder_id))
+        .send_interaction_followup(&command, true)
+        .await;
 }
 
 pub fn spawn_reminder(
@@ -250,34 +252,43 @@ async fn get_targeted_mentions(
         }
     };
 
-    let mut user_ids_with_roles: HashSet<UserId> = HashSet::new();
-
-    for role_id in &role_ids {
-        let role_id_obj = RoleId::new(*role_id);
-        for member in &members {
-            if member.roles.contains(&role_id_obj) {
-                user_ids_with_roles.insert(member.user.id);
-            }
-        }
-    }
-
-    let mut opted_out_users: HashSet<u64> = HashSet::new();
-
+    let mut optouts_by_role: HashMap<u64, HashSet<u64>> = HashMap::new();
     for role_id in &role_ids {
         match get_optouts_for_role(guild_id as i64, *role_id as i64, pool).await {
             Ok(optouts) => {
-                for user_id in optouts {
-                    opted_out_users.insert(user_id as u64);
-                }
+                optouts_by_role.insert(*role_id, optouts.into_iter().map(|id| id as u64).collect());
             }
             Err(e) => {
                 eprintln!("Failed to get optouts for role {}: {}", role_id, e);
+                optouts_by_role.insert(*role_id, HashSet::new());
             }
         }
     }
 
-    user_ids_with_roles
-        .into_iter()
-        .filter(|user_id| !opted_out_users.contains(&user_id.get()))
-        .collect()
+    let mut users_to_mention: Vec<UserId> = Vec::new();
+
+    for member in &members {
+        let user_target_roles: Vec<u64> = role_ids
+            .iter()
+            .filter(|&&role_id| member.roles.contains(&RoleId::new(role_id)))
+            .copied()
+            .collect();
+
+        if user_target_roles.is_empty() {
+            continue;
+        }
+
+        let has_subscribed_role = user_target_roles.iter().any(|role_id| {
+            !optouts_by_role
+                .get(role_id)
+                .map(|optouts| optouts.contains(&member.user.id.get()))
+                .unwrap_or(false)
+        });
+
+        if has_subscribed_role {
+            users_to_mention.push(member.user.id);
+        }
+    }
+
+    users_to_mention
 }

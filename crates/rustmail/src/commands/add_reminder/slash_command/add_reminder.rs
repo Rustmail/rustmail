@@ -205,7 +205,7 @@ impl RegistrableCommand for AddReminderCommand {
                 trigger_time: trigger_timestamp,
                 created_at: now.timestamp(),
                 completed: false,
-                target_roles,
+                target_roles: target_roles.clone(),
             };
 
             let reminder_id = match insert_reminder(&reminder, pool).await {
@@ -223,6 +223,7 @@ impl RegistrableCommand for AddReminderCommand {
                 &command,
                 &config,
                 trigger_timestamp,
+                &target_roles,
             )
             .await;
 
@@ -256,31 +257,35 @@ async fn resolve_role_names_to_ids(
     };
 
     let mention_regex = Regex::new(r"<@&(\d+)>").unwrap();
-
-    let role_parts: Vec<&str> = roles_str.split(',').map(|s| s.trim()).collect();
     let mut role_ids: Vec<u64> = Vec::new();
 
-    for role_part in role_parts {
-        if role_part.is_empty() {
-            continue;
-        }
-
-        if let Some(caps) = mention_regex.captures(role_part) {
-            if let Some(id_match) = caps.get(1) {
-                if let Ok(id) = id_match.as_str().parse::<u64>() {
-                    if guild.roles.contains_key(&RoleId::new(id)) {
-                        role_ids.push(id);
-                    }
+    for caps in mention_regex.captures_iter(roles_str) {
+        if let Some(id_match) = caps.get(1) {
+            if let Ok(id) = id_match.as_str().parse::<u64>() {
+                if guild.roles.contains_key(&RoleId::new(id)) && !role_ids.contains(&id) {
+                    role_ids.push(id);
                 }
             }
-        } else {
+        }
+    }
+
+    if role_ids.is_empty() {
+        let role_parts: Vec<&str> = roles_str
+            .split(|c: char| c == ',' || c.is_whitespace())
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        for role_part in role_parts {
             let role_name_lower = role_part.to_lowercase();
             if let Some(role) = guild
                 .roles
                 .values()
                 .find(|r| r.name.to_lowercase() == role_name_lower)
             {
-                role_ids.push(role.id.get());
+                if !role_ids.contains(&role.id.get()) {
+                    role_ids.push(role.id.get());
+                }
             }
         }
     }
