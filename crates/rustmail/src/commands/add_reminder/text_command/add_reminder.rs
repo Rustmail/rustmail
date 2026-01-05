@@ -160,16 +160,20 @@ async fn parse_roles_and_content(
     let mut all_roles_valid = !potential_role_names.is_empty();
 
     for role_name in &potential_role_names {
+        let role_id = role_name
+            .chars()
+            .filter(|c| c.is_ascii_digit())
+            .collect::<String>();
+
         if role_name.is_empty() {
             all_roles_valid = false;
             break;
         }
 
         let role_name_lower = role_name.to_lowercase();
-        let found = guild
-            .roles
-            .values()
-            .find(|r| r.name.to_lowercase() == role_name_lower);
+        let found = guild.roles.values().find(|r| {
+            r.name.to_lowercase() == role_name_lower || r.id.get().to_string() == *role_id
+        });
 
         if let Some(role) = found {
             found_role_ids.push(role.id.get());
