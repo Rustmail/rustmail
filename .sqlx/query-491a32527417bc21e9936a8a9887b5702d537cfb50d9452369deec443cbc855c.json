@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id FROM reminder_optouts\n        WHERE guild_id = ? AND user_id = ? AND role_id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "491a32527417bc21e9936a8a9887b5702d537cfb50d9452369deec443cbc855c"
+}
