@@ -179,7 +179,9 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                 let message_key = if was_opted_out {
                     "reminder_subscription.subscribed"
                 } else {
-                    "reminder_subscription.already_subscribed"
+                    return Err(ModmailError::Command(
+                        CommandError::ReminderAlreadySubscribed(role.name.clone()),
+                    ));
                 };
 
                 let _ = MessageBuilder::system_message(&ctx, &config)
@@ -203,17 +205,9 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                 .await?;
 
                 if is_already_opted_out {
-                    let _ = MessageBuilder::system_message(&ctx, &config)
-                        .translated_content(
-                            "reminder_subscription.already_unsubscribed",
-                            Some(&params),
-                            Some(command.user.id),
-                            command.guild_id.map(|g| g.get()),
-                        )
-                        .await
-                        .to_channel(command.channel_id)
-                        .send_interaction_followup(&command, true)
-                        .await;
+                    return Err(ModmailError::Command(
+                        CommandError::ReminderAlreadyUnsubscribed(role.name.clone()),
+                    ));
                 } else {
                     insert_reminder_optout(
                         guild_id as i64,

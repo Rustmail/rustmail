@@ -241,11 +241,18 @@ async fn handle_subscription(
         }
     };
 
-    let role_name_lower = role_name.to_lowercase();
-    let role = guild
-        .roles
-        .values()
-        .find(|r| r.name.to_lowercase() == role_name_lower);
+    let mention_regex = Regex::new(r"<@&(\d+)>").unwrap();
+    let role = if let Some(caps) = mention_regex.captures(role_name) {
+        caps.get(1)
+            .and_then(|m| m.as_str().parse::<u64>().ok())
+            .and_then(|id| guild.roles.get(&RoleId::new(id)))
+    } else {
+        let role_name_lower = role_name.to_lowercase();
+        guild
+            .roles
+            .values()
+            .find(|r| r.name.to_lowercase() == role_name_lower)
+    };
 
     let role = match role {
         Some(r) => r,
@@ -282,9 +289,9 @@ async fn handle_subscription(
         .await?;
 
         if !was_opted_out {
-            return Err(ModmailError::Command(CommandError::ReminderAlreadySubscribed(
-                role.name.clone(),
-            )));
+            return Err(ModmailError::Command(
+                CommandError::ReminderAlreadySubscribed(role.name.clone()),
+            ));
         }
 
         let _ = MessageBuilder::system_message(ctx, config)
@@ -308,9 +315,9 @@ async fn handle_subscription(
         .await?;
 
         if is_already_opted_out {
-            return Err(ModmailError::Command(CommandError::ReminderAlreadyUnsubscribed(
-                role.name.clone(),
-            )));
+            return Err(ModmailError::Command(
+                CommandError::ReminderAlreadyUnsubscribed(role.name.clone()),
+            ));
         }
 
         insert_reminder_optout(
