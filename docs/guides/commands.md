@@ -199,23 +199,33 @@ Release your assignment from the ticket.
 
 ## Reminders
 
-### add_reminder
+### remind
 
-Set a reminder for the current ticket.
+Set a reminder for the current ticket. Reminders can target yourself or specific roles.
 
-| Slash                            | Text                             |
-|----------------------------------|----------------------------------|
-| `/add_reminder <time> [content]` | `!add_reminder <time> [content]` |
+| Slash                                    | Text                                        |
+|------------------------------------------|---------------------------------------------|
+| `/remind <time> <content> [roles]`       | `!rem <time> [@roles] [content]`            |
 
 **Parameters:**
-- `time` - When to trigger (e.g., `30m`, `2h`, `1d`)
-- `content` - Optional reminder message
+- `time` - When to trigger in HH:MM format (e.g., `14:30`, `09:00`)
+- `content` - Reminder message
+- `roles` - Optional: roles to ping when the reminder triggers
 
 **Examples:**
 ```
-/add_reminder time:1h content:Follow up with user
-!add_reminder 1h Follow up with user
+/remind time:14:30 content:Follow up with user
+/remind time:09:00 content:Team meeting roles:@dev,@mod
+
+!rem 14:30 Follow up with user
+!rem 14:30 @dev @mod Team meeting
+!rem 09:00 @support Check ticket status
 ```
+
+**Notes:**
+- If the specified time has already passed today, the reminder will be scheduled for tomorrow
+- When targeting roles, only members who are subscribed to that role's reminders will be pinged
+- You can use Discord role mentions or `@rolename` syntax in text commands
 
 ### remove_reminder
 
@@ -225,8 +235,35 @@ Cancel a scheduled reminder.
 |----------------------------------|----------------------------------|
 | `/remove_reminder <reminder_id>` | `!remove_reminder <reminder_id>` |
 
+Aliases: `!unremind`, `!urem`
+
 **Parameters:**
 - `reminder_id` - ID of the reminder to cancel
+
+### reminder_subscription
+
+Manage your role-based reminder subscriptions. By default, you receive pings for all roles you have. Use this to opt out of specific role reminders.
+
+| Slash                                           | Text                            |
+|-------------------------------------------------|---------------------------------|
+| `/reminder_subscription <action> <role>`        | `!rem subscribe <role>`         |
+|                                                 | `!rem unsubscribe <role>`       |
+
+**Parameters:**
+- `action` - Either `subscribe` or `unsubscribe`
+- `role` - The role to manage subscription for
+
+**Requirements:**
+- You must have the role to modify your subscription for it
+
+**Examples:**
+```
+/reminder_subscription action:unsubscribe role:@dev
+/reminder_subscription action:subscribe role:@support
+
+!rem unsubscribe dev
+!rem subscribe @support
+```
 
 ---
 
