@@ -790,15 +790,21 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.registered_with_content".to_string(),
-        DictionaryMessage::new("⏰ Rappel programmé pour **{time}** ({remaining_time})\n\n> {content}"),
+        DictionaryMessage::new(
+            "⏰ Rappel programmé pour **{time}** ({remaining_time})\n\n{content}",
+        ),
     );
     dict.messages.insert(
         "reminder.registered_without_content_roles".to_string(),
-        DictionaryMessage::new("⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})"),
+        DictionaryMessage::new(
+            "⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})",
+        ),
     );
     dict.messages.insert(
         "reminder.registered_with_content_roles".to_string(),
-        DictionaryMessage::new("⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})\n\n> {content}"),
+        DictionaryMessage::new(
+            "⏰ Rappel pour {roles} programmé pour **{time}** ({remaining_time})\n\n{content}",
+        ),
     );
     dict.messages.insert(
         "reminder.show_with_content".to_string(),

@@ -770,15 +770,21 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "reminder.registered_with_content".to_string(),
-        DictionaryMessage::new("⏰ Reminder scheduled for **{time}** ({remaining_time})\n\n> {content}"),
+        DictionaryMessage::new(
+            "⏰ Reminder scheduled for **{time}** ({remaining_time})\n\n{content}",
+        ),
     );
     dict.messages.insert(
         "reminder.registered_without_content_roles".to_string(),
-        DictionaryMessage::new("⏰ Reminder for {roles} scheduled for **{time}** ({remaining_time})"),
+        DictionaryMessage::new(
+            "⏰ Reminder for {roles} scheduled for **{time}** ({remaining_time})",
+        ),
     );
     dict.messages.insert(
         "reminder.registered_with_content_roles".to_string(),
-        DictionaryMessage::new("⏰ Reminder for {roles} scheduled for **{time}** ({remaining_time})\n\n> {content}"),
+        DictionaryMessage::new(
+            "⏰ Reminder for {roles} scheduled for **{time}** ({remaining_time})\n\n{content}",
+        ),
     );
     dict.messages.insert(
         "reminder.show_with_content".to_string(),
