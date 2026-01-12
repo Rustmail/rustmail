@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed\n        FROM reminders\n        WHERE id = ?\n        ",
+  "query": "\n        SELECT thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles\n        FROM reminders\n        WHERE id = ?\n        ",
   "describe": {
     "columns": [
       {
@@ -42,6 +42,11 @@
         "name": "completed",
         "ordinal": 7,
         "type_info": "Bool"
+      },
+      {
+        "name": "target_roles",
+        "ordinal": 8,
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -55,8 +60,9 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "0f04c6745dd5b1b1a1f1cc69952147d37c06cfa802ce579377d87462192fca87"
+  "hash": "9a625e16123af16ea10e45566e34f2fafd1c7bf10815e2e6f3c257af7840821c"
 }

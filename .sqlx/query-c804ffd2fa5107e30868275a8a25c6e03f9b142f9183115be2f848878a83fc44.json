@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT OR IGNORE INTO reminder_optouts (guild_id, user_id, role_id)\n        VALUES (?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "c804ffd2fa5107e30868275a8a25c6e03f9b142f9183115be2f848878a83fc44"
+}

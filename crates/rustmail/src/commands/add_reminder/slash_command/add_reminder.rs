@@ -10,7 +10,7 @@ use regex::Regex;
 use serenity::FutureExt;
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
-    CreateCommandOption, ResolvedOption,
+    CreateCommandOption, GuildId, ResolvedOption, RoleId,
 };
 use std::sync::Arc;
 
@@ -60,6 +60,15 @@ impl RegistrableCommand for AddReminderCommand {
                 None,
             )
             .await;
+            let roles_desc = get_translated_message(
+                &config,
+                "slash_command.add_reminder_roles_argument_description",
+                None,
+                None,
+                None,
+                None,
+            )
+            .await;
 
             vec![
                 CreateCommand::new(name)
@@ -75,6 +84,10 @@ impl RegistrableCommand for AddReminderCommand {
                             content_desc,
                         )
                         .required(true),
+                    )
+                    .add_option(
+                        CreateCommandOption::new(CommandOptionType::String, "roles", roles_desc)
+                            .required(false),
                     ),
             ]
         })
@@ -102,6 +115,7 @@ impl RegistrableCommand for AddReminderCommand {
 
             let mut time: Option<String> = None;
             let mut content: Option<String> = None;
+            let mut roles: Option<String> = None;
 
             for option in &command.data.options {
                 match option.name.as_str() {
@@ -113,6 +127,11 @@ impl RegistrableCommand for AddReminderCommand {
                     "content" => {
                         if let CommandDataOptionValue::String(val) = &option.value {
                             content.replace(val.clone());
+                        }
+                    }
+                    "roles" => {
+                        if let CommandDataOptionValue::String(val) = &option.value {
+                            roles.replace(val.clone());
                         }
                     }
                     _ => {}
@@ -171,6 +190,12 @@ impl RegistrableCommand for AddReminderCommand {
                 }
             };
 
+            let target_roles = if let Some(roles_str) = roles {
+                resolve_role_names_to_ids(&ctx, config.bot.get_staff_guild_id(), &roles_str).await
+            } else {
+                None
+            };
+
             let reminder: Reminder = Reminder {
                 thread_id: thread.id,
                 user_id: command.user.id.get() as i64,
@@ -180,6 +205,7 @@ impl RegistrableCommand for AddReminderCommand {
                 trigger_time: trigger_timestamp,
                 created_at: now.timestamp(),
                 completed: false,
+                target_roles: target_roles.clone(),
             };
 
             let reminder_id = match insert_reminder(&reminder, pool).await {
@@ -197,6 +223,7 @@ impl RegistrableCommand for AddReminderCommand {
                 &command,
                 &config,
                 trigger_timestamp,
+                &target_roles,
             )
             .await;
 
@@ -211,5 +238,67 @@ impl RegistrableCommand for AddReminderCommand {
 
             Ok(())
         })
+    }
+}
+
+async fn resolve_role_names_to_ids(
+    ctx: &Context,
+    guild_id: u64,
+    roles_str: &str,
+) -> Option<String> {
+    if roles_str.is_empty() {
+        return None;
+    }
+
+    let guild_id_obj = GuildId::new(guild_id);
+    let guild = match guild_id_obj.to_partial_guild(&ctx.http).await {
+        Ok(g) => g,
+        Err(_) => return None,
+    };
+
+    let mention_regex = Regex::new(r"<@&(\d+)>").unwrap();
+    let mut role_ids: Vec<u64> = Vec::new();
+
+    for caps in mention_regex.captures_iter(roles_str) {
+        if let Some(id_match) = caps.get(1) {
+            if let Ok(id) = id_match.as_str().parse::<u64>() {
+                if guild.roles.contains_key(&RoleId::new(id)) && !role_ids.contains(&id) {
+                    role_ids.push(id);
+                }
+            }
+        }
+    }
+
+    if role_ids.is_empty() {
+        let role_parts: Vec<&str> = roles_str
+            .split(|c: char| c == ',' || c.is_whitespace())
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        for role_part in role_parts {
+            let role_name_lower = role_part.to_lowercase();
+            if let Some(role) = guild
+                .roles
+                .values()
+                .find(|r| r.name.to_lowercase() == role_name_lower)
+            {
+                if !role_ids.contains(&role.id.get()) {
+                    role_ids.push(role.id.get());
+                }
+            }
+        }
+    }
+
+    if role_ids.is_empty() {
+        None
+    } else {
+        Some(
+            role_ids
+                .iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<_>>()
+                .join(","),
+        )
     }
 }

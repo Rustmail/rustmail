@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO reminders (thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles)\n        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 9
+    },
+    "nullable": []
+  },
+  "hash": "4d692f8875188f707a8d95c9f60631c8e806da40bae317dfb91eecc9e0d1a053"
+}

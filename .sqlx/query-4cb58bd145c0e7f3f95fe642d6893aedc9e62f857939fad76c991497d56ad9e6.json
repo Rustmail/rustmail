@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        DELETE FROM reminder_optouts\n        WHERE guild_id = ? AND user_id = ? AND role_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "4cb58bd145c0e7f3f95fe642d6893aedc9e62f857939fad76c991497d56ad9e6"
+}

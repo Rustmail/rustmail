@@ -254,6 +254,38 @@ impl DictionaryManager {
                 CommandError::MaintenanceModeNotAllowed => {
                     ("status.maintenance_not_allowed".to_string(), None)
                 }
+                CommandError::ReminderAlreadySubscribed(role) => {
+                    let mut params = HashMap::new();
+                    params.insert("role".to_string(), role.clone());
+                    (
+                        "reminder_subscription.already_subscribed".to_string(),
+                        Some(params),
+                    )
+                }
+                CommandError::ReminderAlreadyUnsubscribed(role) => {
+                    let mut params = HashMap::new();
+                    params.insert("role".to_string(), role.clone());
+                    (
+                        "reminder_subscription.already_unsubscribed".to_string(),
+                        Some(params),
+                    )
+                }
+                CommandError::ReminderRoleRequired(role) => {
+                    let mut params = HashMap::new();
+                    params.insert("role".to_string(), role.clone());
+                    (
+                        "reminder_subscription.role_required".to_string(),
+                        Some(params),
+                    )
+                }
+                CommandError::ReminderRoleNotFound(role) => {
+                    let mut params = HashMap::new();
+                    params.insert("role".to_string(), role.clone());
+                    (
+                        "reminder_subscription.role_not_found".to_string(),
+                        Some(params),
+                    )
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
