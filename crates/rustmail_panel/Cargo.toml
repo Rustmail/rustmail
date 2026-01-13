@@ -1,6 +1,6 @@
 [package]
 name = "rustmail_panel"
-version = "1.0.18"
+version = "1.0.19"
 edition = "2024"
 license = "AGPL-3"
 
