@@ -68,6 +68,27 @@
         "super_admin_roles": "Super Admin Roles (IDs)",
         "super_admin_roles_help": "Comma-separated list of Discord role IDs. Members with these roles will have full access to the panel."
       },
+      "discord_profile": {
+        "title": "Bot Discord Profile",
+        "description": "Change the bot's name, avatar and banner",
+        "username": "Username",
+        "username_help": "The bot's display name (2-32 characters)",
+        "avatar": "Avatar",
+        "avatar_help": "Click or drag an image (PNG, JPEG, GIF, WebP)",
+        "banner": "Banner",
+        "banner_help": "Click or drag an image for the banner (PNG, JPEG, GIF, WebP)",
+        "current_avatar": "Current avatar",
+        "current_banner": "Current banner",
+        "no_banner": "No banner",
+        "change": "Change",
+        "remove": "Remove",
+        "save_profile": "Save Profile",
+        "saving": "Saving...",
+        "save_success": "Profile updated successfully!",
+        "save_error": "Error updating profile",
+        "loading": "Loading profile...",
+        "bot_not_running": "The bot must be online to edit the profile"
+      },
       "server_mode": {
         "type": "Mode Type",
         "single": "Single (One server only)",
@@ -133,6 +154,9 @@
         "later": "Later"
       },
       "presence_status": "Presence Status",
+      "controls": {
+        "title": "Controls"
+      },
       "presence": {
         "online": "Online",
         "idle": "Idle",

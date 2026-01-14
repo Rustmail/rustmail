@@ -2683,6 +2683,7 @@ dependencies = [
  "async-trait",
  "axum",
  "axum-extra",
+ "base64",
  "cargo-husky",
  "chrono",
  "futures",
