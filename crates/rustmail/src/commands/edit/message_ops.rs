@@ -77,12 +77,10 @@ pub async fn format_new_message<'a>(
     }
 
     if thread_message.is_anonymous {
-        let mut inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, user.id)
+        let inbox_builder = MessageBuilder::anonymous_staff_message(ctx, config, user.id)
+            .as_staff(user.id, format!("{} ({})", user.name.clone(), "Anonymous"))
             .content(content.to_string())
             .with_message_number(message_number);
-        if let Some(role_name) = &top_role_name {
-            inbox_builder = inbox_builder.with_role(role_name.clone());
-        }
 
         let mut dm_builder = MessageBuilder::anonymous_staff_message(ctx, config, user.id)
             .content(content.to_string());

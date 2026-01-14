@@ -806,6 +806,10 @@ impl<'a> StaffReply<'a> {
 
         let mut thread_builder = if self.is_anonymous {
             MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
+                .as_staff(
+                    self.staff_user_id,
+                    format!("{} ({})", self.staff_username, "Anonymous"),
+                )
         } else {
             MessageBuilder::staff_message(
                 self.ctx,
@@ -814,6 +818,7 @@ impl<'a> StaffReply<'a> {
                 self.staff_username.clone(),
             )
         };
+
         if !self.is_anonymous
             && let Some(role_name) = &top_role_name
         {
