@@ -787,6 +787,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         ),
     );
     dict.messages.insert(
+        "reminder.already_complete".to_string(),
+        DictionaryMessage::new("The reminder '#{reminder_id}' has already been completed."),
+    );
+    dict.messages.insert(
         "reminder.show_with_content".to_string(),
         DictionaryMessage::new("⏰ Reminder <@{user}>: \n\n{content} !"),
     );

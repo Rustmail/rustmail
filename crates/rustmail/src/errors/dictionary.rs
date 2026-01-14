@@ -286,6 +286,11 @@ impl DictionaryManager {
                         Some(params),
                     )
                 }
+                CommandError::ReminderAlreadyCompleted(reminder_id) => {
+                    let mut params = HashMap::new();
+                    params.insert("reminder_id".to_string(), reminder_id.clone());
+                    ("reminder.already_complete".to_string(), Some(params))
+                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {

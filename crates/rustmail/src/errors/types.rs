@@ -75,6 +75,7 @@ pub enum CommandError {
     ReminderAlreadyUnsubscribed(String),
     ReminderRoleRequired(String),
     ReminderRoleNotFound(String),
+    ReminderAlreadyCompleted(String),
 }
 
 #[derive(Debug, Clone)]
@@ -205,6 +206,9 @@ impl fmt::Display for CommandError {
             }
             CommandError::ReminderRoleNotFound(role) => {
                 write!(f, "Role {} not found", role)
+            }
+            CommandError::ReminderAlreadyCompleted(reminder_id) => {
+                write!(f, "Reminder {} has already been completed", reminder_id)
             }
         }
     }

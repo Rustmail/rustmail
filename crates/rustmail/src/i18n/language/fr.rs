@@ -823,6 +823,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("⏰ Rappel pour {roles} !"),
     );
     dict.messages.insert(
+        "reminder.already_complete".to_string(),
+        DictionaryMessage::new("Le rappel **#{reminder_id}** a déjà été complété."),
+    );
+    dict.messages.insert(
         "slash_command.add_reminder_command_description".to_string(),
         DictionaryMessage::new("Ajouter un rappel pour vous-même"),
     );
