@@ -34,7 +34,7 @@ pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at:
                         .await;
                         let _ = delete_scheduled_closure(&thread_id, pool).await;
 
-                        if config_clone.bot.enable_logs {
+                        if config_clone.bot.enable_rustmail_logs {
                             if let Some(logs_channel_id) = config_clone.bot.logs_channel_id {
                                 let base_url = config_clone
                                     .bot
@@ -116,7 +116,7 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
                 .await;
                 let _ = delete_scheduled_closure(&thread.id, pool).await;
 
-                if config.bot.enable_logs {
+                if config.bot.enable_rustmail_logs {
                     if let Some(logs_channel_id) = config.bot.logs_channel_id {
                         let base_url = config
                             .bot

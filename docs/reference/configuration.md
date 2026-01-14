@@ -28,18 +28,19 @@ Complete reference for all `config.toml` options.
 
 ### Feature Toggles
 
-| Option            | Type | Required | Default | Description                     |
-|-------------------|------|----------|---------|---------------------------------|
-| `enable_logs`     | bool | Yes      | -       | Enable logging to a channel     |
-| `enable_features` | bool | Yes      | -       | Enable feature request tracking |
-| `enable_panel`    | bool | Yes      | -       | Enable web administration panel |
+| Option                 | Type | Required | Default | Description                          |
+|------------------------|------|----------|---------|--------------------------------------|
+| `enable_rustmail_logs` | bool | Yes      | -       | Enable rustmail logging to a channel |
+| `enable_discord_logs`  | bool | Yes      | -       | Enable discord logging to a channel  |
+| `enable_features`      | bool | Yes      | -       | Enable feature request tracking      |
+| `enable_panel`         | bool | Yes      | -       | Enable web administration panel      |
 
 ### Channel Configuration
 
-| Option                | Type | Required    | Default | Description                                                        |
-|-----------------------|------|-------------|---------|--------------------------------------------------------------------|
-| `logs_channel_id`     | u64  | Conditional | -       | Channel for bot logs. Required if `enable_logs = true`             |
-| `features_channel_id` | u64  | Conditional | -       | Channel for feature requests. Required if `enable_features = true` |
+| Option                | Type | Required    | Default | Description                                                                                         |
+|-----------------------|------|-------------|---------|-----------------------------------------------------------------------------------------------------|
+| `logs_channel_id`     | u64  | Conditional | -       | Channel for bot logs. Required if `enable_rustmail_logs = true` or/and `enable_discord_logs = true` |
+| `features_channel_id` | u64  | Conditional | -       | Channel for feature requests. Required if `enable_features = true`                                  |
 
 ### OAuth2 (Panel)
 

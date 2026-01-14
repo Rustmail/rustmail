@@ -10,7 +10,8 @@ pub struct BotConfig {
     pub close_message: String,
     pub typing_proxy_from_user: bool,
     pub typing_proxy_from_staff: bool,
-    pub enable_logs: bool,
+    pub enable_rustmail_logs: bool,
+    pub enable_discord_logs: bool,
     pub enable_features: bool,
     pub enable_panel: bool,
     pub client_id: u64,
@@ -68,15 +69,18 @@ impl BotConfig {
     }
 
     pub fn validate_logs_config(&self) -> Result<(), String> {
-        match (self.enable_logs, self.logs_channel_id) {
-            (true, None) => {
+        match (
+            self.enable_rustmail_logs,
+            self.enable_discord_logs,
+            self.logs_channel_id,
+        ) {
+            (true, _, None) => {
                 Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string())
             }
-            (false, Some(_)) => {
-                Err("'logs_channel_id' must not be filled in if 'enable_logs' is false".to_string())
+            (_, true, None) => {
+                Err("'logs_channel_id' field is required if 'enable_logs' is true".to_string())
             }
-            (true, Some(_)) => Ok(()),
-            (false, None) => Ok(()),
+            _ => Ok(()),
         }
     }
 

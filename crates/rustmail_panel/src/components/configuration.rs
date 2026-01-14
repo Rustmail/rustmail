@@ -889,13 +889,26 @@ fn bot_section(props: &BotSectionProps) -> Html {
 
             <div class="grid grid-cols-3 gap-4">
                 <CheckboxInput
-                    label={i18n.t("panel.configuration.bot.enable_logs")}
-                    checked={config.bot.enable_logs}
+                    label={i18n.t("panel.configuration.bot.enable_rustmail_logs")}
+                    checked={config.bot.enable_rustmail_logs}
                     on_change={{
                         let config = config.clone();
                         Callback::from(move |val: bool| {
                             let mut cfg = (*config).clone();
-                            cfg.bot.enable_logs = val;
+                            cfg.bot.enable_rustmail_logs = val;
+                            config.set(cfg);
+                        })
+                    }}
+                />
+
+                <CheckboxInput
+                    label={i18n.t("panel.configuration.bot.enable_discord_logs")}
+                    checked={config.bot.enable_discord_logs}
+                    on_change={{
+                        let config = config.clone();
+                        Callback::from(move |val: bool| {
+                            let mut cfg = (*config).clone();
+                            cfg.bot.enable_discord_logs = val;
                             config.set(cfg);
                         })
                     }}

@@ -344,7 +344,7 @@ impl RegistrableCommand for CloseCommand {
             .await?;
             let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
-            if config.bot.enable_logs {
+            if config.bot.enable_rustmail_logs {
                 if let Some(logs_channel_id) = config.bot.logs_channel_id {
                     let base_url = config
                         .bot
