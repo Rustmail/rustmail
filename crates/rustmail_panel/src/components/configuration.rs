@@ -2,6 +2,7 @@ use crate::components::forbidden::Forbidden403;
 use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -225,7 +226,7 @@ pub fn configuration_page() -> Html {
                 </div>
 
                 <div class="mb-6 bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-6">
                         <div>
                             <h2 class="text-xl text-white mb-1">{i18n.t("panel.configuration.bot_status")}</h2>
                             <p class="text-gray-400 text-sm">{i18n.t("panel.configuration.bot_status_description")}</p>
@@ -241,85 +242,90 @@ pub fn configuration_page() -> Html {
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 mb-4">
-                        <button
-                            onclick={{
-                                let handle_bot_action = handle_bot_action.clone();
-                                move |_| handle_bot_action.emit("start".to_string())
-                            }}
-                            disabled={*is_loading || *bot_status == "running"}
-                            class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
-                        >
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                            </svg>
-                            {i18n.t("panel.configuration.start_bot")}
-                        </button>
-
-                        <button
-                            onclick={{
-                                let handle_bot_action = handle_bot_action.clone();
-                                move |_| handle_bot_action.emit("stop".to_string())
-                            }}
-                            disabled={*is_loading || *bot_status == "stopped"}
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
-                        >
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
-                            </svg>
-                            {i18n.t("panel.configuration.stop_bot")}
-                        </button>
-
-                        <button
-                            onclick={{
-                                let handle_bot_action = handle_bot_action.clone();
-                                move |_| handle_bot_action.emit("restart".to_string())
-                            }}
-                            disabled={*is_loading}
-                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
-                        >
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
-                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
-                            </svg>
-                            {i18n.t("panel.configuration.restart_bot")}
-                        </button>
-                    </div>
-
-                    <div class="border-t border-slate-600 pt-4">
-                        <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.presence_status")}</label>
-                        <div class="flex items-center gap-3">
-                            <select
-                                value={(*presence_status).clone()}
-                                disabled={*is_loading || *bot_status == "stopped"}
-                                onchange={{
-                                    let handle_presence_change = handle_presence_change.clone();
-                                    move |e: Event| {
-                                        if let Some(select) = e.target_dyn_into::<web_sys::HtmlSelectElement>() {
-                                            handle_presence_change.emit(select.value());
-                                        }
-                                    }
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4 mb-4">
+                        <h3 class="text-sm font-medium text-gray-300 mb-3">{i18n.t("panel.configuration.controls.title")}</h3>
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <button
+                                onclick={{
+                                    let handle_bot_action = handle_bot_action.clone();
+                                    move |_| handle_bot_action.emit("start".to_string())
                                 }}
-                                class="px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={*is_loading || *bot_status == "running"}
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
                             >
-                                <option value="online" selected={*presence_status == "online"}>{i18n.t("panel.configuration.presence.online")}</option>
-                                <option value="idle" selected={*presence_status == "idle"}>{i18n.t("panel.configuration.presence.idle")}</option>
-                                <option value="dnd" selected={*presence_status == "dnd"}>{i18n.t("panel.configuration.presence.dnd")}</option>
-                                <option value="invisible" selected={*presence_status == "invisible"}>{i18n.t("panel.configuration.presence.invisible")}</option>
-                                <option value="maintenance" selected={*presence_status == "maintenance"}>{i18n.t("panel.configuration.presence.maintenance")}</option>
-                            </select>
-                            <div class={classes!(
-                                "w-3", "h-3", "rounded-full",
-                                match (*presence_status).as_str() {
-                                    "online" => "bg-green-500",
-                                    "idle" => "bg-yellow-500",
-                                    "dnd" | "maintenance" => "bg-red-500",
-                                    "invisible" => "bg-gray-500",
-                                    _ => "bg-green-500"
-                                }
-                            )}></div>
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                                </svg>
+                                {i18n.t("panel.configuration.start_bot")}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let handle_bot_action = handle_bot_action.clone();
+                                    move |_| handle_bot_action.emit("stop".to_string())
+                                }}
+                                disabled={*is_loading || *bot_status == "stopped"}
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
+                                </svg>
+                                {i18n.t("panel.configuration.stop_bot")}
+                            </button>
+
+                            <button
+                                onclick={{
+                                    let handle_bot_action = handle_bot_action.clone();
+                                    move |_| handle_bot_action.emit("restart".to_string())
+                                }}
+                                disabled={*is_loading}
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                                </svg>
+                                {i18n.t("panel.configuration.restart_bot")}
+                            </button>
+                        </div>
+
+                        <div class="border-t border-slate-600/50 pt-3">
+                            <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.presence_status")}</label>
+                            <div class="flex items-center gap-3">
+                                <select
+                                    value={(*presence_status).clone()}
+                                    disabled={*is_loading || *bot_status == "stopped"}
+                                    onchange={{
+                                        let handle_presence_change = handle_presence_change.clone();
+                                        move |e: Event| {
+                                            if let Some(select) = e.target_dyn_into::<web_sys::HtmlSelectElement>() {
+                                                handle_presence_change.emit(select.value());
+                                            }
+                                        }
+                                    }}
+                                    class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <option value="online" selected={*presence_status == "online"}>{i18n.t("panel.configuration.presence.online")}</option>
+                                    <option value="idle" selected={*presence_status == "idle"}>{i18n.t("panel.configuration.presence.idle")}</option>
+                                    <option value="dnd" selected={*presence_status == "dnd"}>{i18n.t("panel.configuration.presence.dnd")}</option>
+                                    <option value="invisible" selected={*presence_status == "invisible"}>{i18n.t("panel.configuration.presence.invisible")}</option>
+                                    <option value="maintenance" selected={*presence_status == "maintenance"}>{i18n.t("panel.configuration.presence.maintenance")}</option>
+                                </select>
+                                <div class={classes!(
+                                    "w-3", "h-3", "rounded-full",
+                                    match (*presence_status).as_str() {
+                                        "online" => "bg-green-500",
+                                        "idle" => "bg-yellow-500",
+                                        "dnd" | "maintenance" => "bg-red-500",
+                                        "invisible" => "bg-gray-500",
+                                        _ => "bg-green-500"
+                                    }
+                                )}></div>
+                            </div>
                         </div>
                     </div>
+
+                    <DiscordProfileInlineSection bot_status={(*bot_status).clone()} />
                 </div>
 
                 <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
@@ -1634,6 +1640,463 @@ fn logs_reminder_section(props: &LogsReminderSectionProps) -> Html {
                     })
                 }}
             />
+        </div>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct DiscordProfileInlineSectionProps {
+    bot_status: String,
+}
+
+#[derive(Clone, PartialEq, serde::Deserialize)]
+struct BotProfile {
+    username: String,
+    avatar_url: Option<String>,
+    banner_url: Option<String>,
+    id: String,
+}
+
+#[function_component(DiscordProfileInlineSection)]
+fn discord_profile_inline_section(props: &DiscordProfileInlineSectionProps) -> Html {
+    let (i18n, _set_language) = use_translation();
+
+    let profile = use_state(|| None::<BotProfile>);
+    let profile_loading = use_state(|| true);
+    let profile_error = use_state(|| None::<String>);
+
+    let new_username = use_state(|| String::new());
+    let new_avatar = use_state(|| None::<String>);
+    let new_banner = use_state(|| None::<String>);
+    let avatar_preview = use_state(|| None::<String>);
+    let banner_preview = use_state(|| None::<String>);
+
+    let is_saving = use_state(|| false);
+    let save_message = use_state(|| None::<(bool, String)>);
+
+    let bot_is_running = props.bot_status == "running";
+
+    // Load profile on mount
+    {
+        let profile = profile.clone();
+        let profile_loading = profile_loading.clone();
+        let profile_error = profile_error.clone();
+        let new_username = new_username.clone();
+        let bot_is_running = bot_is_running;
+
+        use_effect_with(bot_is_running, move |running| {
+            if *running {
+                spawn_local(async move {
+                    profile_loading.set(true);
+                    profile_error.set(None);
+
+                    match Request::get("/api/bot/profile").send().await {
+                        Ok(resp) => {
+                            if resp.ok() {
+                                if let Ok(p) = resp.json::<BotProfile>().await {
+                                    new_username.set(p.username.clone());
+                                    profile.set(Some(p));
+                                }
+                            } else {
+                                profile_error.set(Some("Failed to load profile".to_string()));
+                            }
+                        }
+                        Err(e) => {
+                            profile_error.set(Some(format!("Network error: {:?}", e)));
+                        }
+                    }
+                    profile_loading.set(false);
+                });
+            }
+            || ()
+        });
+    }
+
+    let handle_file_select = {
+        let new_avatar = new_avatar.clone();
+        let avatar_preview = avatar_preview.clone();
+
+        Callback::from(move |file: web_sys::File| {
+            let new_avatar = new_avatar.clone();
+            let avatar_preview = avatar_preview.clone();
+
+            let reader = web_sys::FileReader::new().unwrap();
+            let reader_clone = reader.clone();
+
+            let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::Event| {
+                if let Ok(result) = reader_clone.result() {
+                    if let Some(data_url) = result.as_string() {
+                        avatar_preview.set(Some(data_url.clone()));
+                        new_avatar.set(Some(data_url));
+                    }
+                }
+            }) as Box<dyn FnMut(_)>);
+
+            reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+            onload.forget();
+
+            let _ = reader.read_as_data_url(&file);
+        })
+    };
+
+    let handle_banner_select = {
+        let new_banner = new_banner.clone();
+        let banner_preview = banner_preview.clone();
+
+        Callback::from(move |file: web_sys::File| {
+            let new_banner = new_banner.clone();
+            let banner_preview = banner_preview.clone();
+
+            let reader = web_sys::FileReader::new().unwrap();
+            let reader_clone = reader.clone();
+
+            let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::Event| {
+                if let Ok(result) = reader_clone.result() {
+                    if let Some(data_url) = result.as_string() {
+                        banner_preview.set(Some(data_url.clone()));
+                        new_banner.set(Some(data_url));
+                    }
+                }
+            }) as Box<dyn FnMut(_)>);
+
+            reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+            onload.forget();
+
+            let _ = reader.read_as_data_url(&file);
+        })
+    };
+
+    let handle_save_profile = {
+        let new_username = new_username.clone();
+        let new_avatar = new_avatar.clone();
+        let new_banner = new_banner.clone();
+        let is_saving = is_saving.clone();
+        let save_message = save_message.clone();
+        let profile = profile.clone();
+        let avatar_preview = avatar_preview.clone();
+        let banner_preview = banner_preview.clone();
+        let i18n = i18n.clone();
+
+        Callback::from(move |_| {
+            let username = (*new_username).clone();
+            let avatar = (*new_avatar).clone();
+            let banner = (*new_banner).clone();
+            let is_saving = is_saving.clone();
+            let save_message = save_message.clone();
+            let profile = profile.clone();
+            let new_avatar = new_avatar.clone();
+            let new_banner = new_banner.clone();
+            let avatar_preview = avatar_preview.clone();
+            let banner_preview = banner_preview.clone();
+            let i18n = i18n.clone();
+
+            // Check if there are any changes
+            let current_username = profile
+                .as_ref()
+                .map(|p| p.username.clone())
+                .unwrap_or_default();
+            let has_username_change = !username.is_empty() && username != current_username;
+            let has_avatar_change = avatar.is_some();
+            let has_banner_change = banner.is_some();
+
+            if !has_username_change && !has_avatar_change && !has_banner_change {
+                return;
+            }
+
+            spawn_local(async move {
+                is_saving.set(true);
+
+                let mut payload = serde_json::Map::new();
+
+                if has_username_change {
+                    payload.insert("username".to_string(), serde_json::Value::String(username));
+                }
+
+                if let Some(av) = avatar {
+                    payload.insert("avatar".to_string(), serde_json::Value::String(av));
+                }
+
+                if let Some(bn) = banner {
+                    payload.insert("banner".to_string(), serde_json::Value::String(bn));
+                }
+
+                match Request::put("/api/bot/profile").json(&serde_json::Value::Object(payload)) {
+                    Ok(req) => {
+                        match req.send().await {
+                            Ok(resp) => {
+                                if resp.ok() {
+                                    save_message.set(Some((
+                                        true,
+                                        i18n.t("panel.configuration.discord_profile.save_success"),
+                                    )));
+                                    // Reset pending changes
+                                    new_avatar.set(None);
+                                    new_banner.set(None);
+                                    avatar_preview.set(None);
+                                    banner_preview.set(None);
+
+                                    // Reload profile
+                                    if let Ok(resp) = Request::get("/api/bot/profile").send().await
+                                    {
+                                        if resp.ok() {
+                                            if let Ok(p) = resp.json::<BotProfile>().await {
+                                                profile.set(Some(p));
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    let error = resp
+                                        .text()
+                                        .await
+                                        .unwrap_or_else(|_| "Unknown error".to_string());
+                                    save_message.set(Some((
+                                        false,
+                                        format!(
+                                            "{}: {}",
+                                            i18n.t(
+                                                "panel.configuration.discord_profile.save_error"
+                                            ),
+                                            error
+                                        ),
+                                    )));
+                                }
+                            }
+                            Err(e) => {
+                                save_message.set(Some((false, format!("Network error: {:?}", e))));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        save_message.set(Some((false, format!("Error: {:?}", e))));
+                    }
+                }
+
+                is_saving.set(false);
+            });
+        })
+    };
+
+    // Check if there are pending changes
+    let current_username = profile
+        .as_ref()
+        .map(|p| p.username.clone())
+        .unwrap_or_default();
+    let has_changes = (*new_username != current_username && !new_username.is_empty())
+        || new_avatar.is_some()
+        || new_banner.is_some();
+
+    html! {
+        <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-gray-300 mb-3">{i18n.t("panel.configuration.discord_profile.title")}</h3>
+
+            {
+                if !bot_is_running {
+                    html! {
+                        <div class="text-center py-4 text-gray-400">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"/>
+                            </svg>
+                            <span class="text-sm">{i18n.t("panel.configuration.discord_profile.bot_not_running")}</span>
+                        </div>
+                    }
+                } else if *profile_loading {
+                    html! {
+                        <div class="text-center py-4 text-gray-400">
+                            <span class="text-sm">{i18n.t("panel.configuration.discord_profile.loading")}</span>
+                        </div>
+                    }
+                } else if let Some(error) = (*profile_error).clone() {
+                    html! {
+                        <div class="text-center py-6 text-red-400">
+                            <span class="text-sm">{error}</span>
+                        </div>
+                    }
+                } else {
+                    html! {
+                        <div class="space-y-4">
+                            {
+                                if let Some((is_success, message)) = (*save_message).clone() {
+                                    html! {
+                                        <div class={classes!(
+                                            "px-4", "py-3", "rounded-md", "border",
+                                            if is_success { "bg-green-500/10 border-green-500 text-green-400" } else { "bg-red-500/10 border-red-500 text-red-400" }
+                                        )}>
+                                            {message}
+                                        </div>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
+
+                            // Username
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.discord_profile.username")}</label>
+                                <input
+                                    type="text"
+                                    value={(*new_username).clone()}
+                                    oninput={{
+                                        let new_username = new_username.clone();
+                                        move |e: InputEvent| {
+                                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                                new_username.set(input.value());
+                                            }
+                                        }
+                                    }}
+                                    class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Bot Name"
+                                    minlength="2"
+                                    maxlength="32"
+                                />
+                                <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.discord_profile.username_help")}</p>
+                            </div>
+
+                            // Avatar and Banner side by side
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                // Avatar
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.discord_profile.avatar")}</label>
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-20 h-20 rounded-full bg-slate-700 overflow-hidden border-2 border-slate-600">
+                                                {
+                                                    if let Some(ref preview) = *avatar_preview {
+                                                        html! { <img src={preview.clone()} class="w-full h-full object-cover" alt="Avatar preview" /> }
+                                                    } else if let Some(ref p) = *profile {
+                                                        if let Some(ref url) = p.avatar_url {
+                                                            html! { <img src={url.clone()} class="w-full h-full object-cover" alt="Current avatar" /> }
+                                                        } else {
+                                                            html! {
+                                                                <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                                                    </svg>
+                                                                </div>
+                                                            }
+                                                        }
+                                                    } else {
+                                                        html! {}
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <label class="block w-full cursor-pointer">
+                                                <div class="px-4 py-3 bg-slate-900/50 border border-slate-600 border-dashed rounded-md text-center hover:bg-slate-900/70 transition">
+                                                    <svg class="w-6 h-6 mx-auto mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                    </svg>
+                                                    <span class="text-sm text-gray-400">{i18n.t("panel.configuration.discord_profile.change")}</span>
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    accept="image/png,image/jpeg,image/gif,image/webp"
+                                                    class="hidden"
+                                                    onchange={{
+                                                        let handle_file_select = handle_file_select.clone();
+                                                        move |e: Event| {
+                                                            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                                                if let Some(files) = input.files() {
+                                                                    if let Some(file) = files.get(0) {
+                                                                        handle_file_select.emit(file);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                            <p class="mt-1 text-xs text-gray-500">{i18n.t("panel.configuration.discord_profile.avatar_help")}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                // Banner
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">{i18n.t("panel.configuration.discord_profile.banner")}</label>
+                                    <div class="space-y-2">
+                                        <div class="w-full h-24 rounded-lg bg-slate-700 overflow-hidden border-2 border-slate-600">
+                                            {
+                                                if let Some(ref preview) = *banner_preview {
+                                                    html! { <img src={preview.clone()} class="w-full h-full object-cover" alt="Banner preview" /> }
+                                                } else if let Some(ref p) = *profile {
+                                                    if let Some(ref url) = p.banner_url {
+                                                        html! { <img src={url.clone()} class="w-full h-full object-cover" alt="Current banner" /> }
+                                                    } else {
+                                                        html! {
+                                                            <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                                                {i18n.t("panel.configuration.discord_profile.no_banner")}
+                                                            </div>
+                                                        }
+                                                    }
+                                                } else {
+                                                    html! {}
+                                                }
+                                            }
+                                        </div>
+                                        <label class="block w-full cursor-pointer">
+                                            <div class="px-4 py-2 bg-slate-900/50 border border-slate-600 border-dashed rounded-md text-center hover:bg-slate-900/70 transition">
+                                                <span class="text-sm text-gray-400">{i18n.t("panel.configuration.discord_profile.change")}</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/gif,image/webp"
+                                                class="hidden"
+                                                onchange={{
+                                                    let handle_banner_select = handle_banner_select.clone();
+                                                    move |e: Event| {
+                                                        if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                                                            if let Some(files) = input.files() {
+                                                                if let Some(file) = files.get(0) {
+                                                                    handle_banner_select.emit(file);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        <p class="text-xs text-gray-500">{i18n.t("panel.configuration.discord_profile.banner_help")}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            // Save button
+                            {
+                                if has_changes {
+                                    html! {
+                                        <div class="flex justify-end">
+                                            <button
+                                                onclick={handle_save_profile}
+                                                disabled={*is_saving}
+                                                class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-md transition flex items-center gap-2"
+                                            >
+                                                {
+                                                    if *is_saving {
+                                                        html! {
+                                                            <>
+                                                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                {i18n.t("panel.configuration.discord_profile.saving")}
+                                                            </>
+                                                        }
+                                                    } else {
+                                                        html! { <>{i18n.t("panel.configuration.discord_profile.save_profile")}</> }
+                                                    }
+                                                }
+                                            </button>
+                                        </div>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
+                        </div>
+                    }
+                }
+            }
         </div>
     }
 }

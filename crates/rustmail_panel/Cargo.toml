@@ -11,7 +11,7 @@ yew-router = "0.19.0"
 wasm-bindgen-futures = "0.4.56"
 gloo-net = "0.6.0"
 gloo-utils = "0.2.0"
-web-sys = { version = "0.3.83", features = ["HtmlSelectElement"] }
+web-sys = { version = "0.3.83", features = ["HtmlSelectElement", "File", "FileList", "FileReader", "HtmlInputElement", "DragEvent", "DataTransfer"] }
 serde_json = "1.0.149"
 serde = { version = "1.0.228", features = ["derive"] }
 js-sys = "0.3.83"
