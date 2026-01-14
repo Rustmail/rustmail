@@ -38,7 +38,15 @@ pub async fn remove_reminder(
     };
 
     let reminder = match get_reminder_by_id(reminder_id as i64, pool).await {
-        Ok(Some(r)) => r,
+        Ok(Some(r)) => {
+            if r.completed {
+                return Err(ModmailError::Command(
+                    CommandError::ReminderAlreadyCompleted(reminder_id.to_string()),
+                ));
+            } else {
+                r
+            }
+        }
         Ok(None) => {
             return Err(ModmailError::Database(DatabaseError::NotFound(
                 "".to_string(),
