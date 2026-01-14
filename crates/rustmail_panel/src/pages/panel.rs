@@ -58,10 +58,7 @@ pub fn panel() -> Html {
         if matches!(auth, Some(false)) {
             let win = window();
             if let Ok(pathname) = win.location().pathname() {
-                let redirect = urlencoding::encode(&pathname);
-                let _ = win
-                    .location()
-                    .set_href(&format!("/api/auth/login?redirect={}", redirect));
+                let _ = win.location().set_href("/error?message=Access+Denied");
             } else {
                 let _ = win.location().set_href("/api/auth/login");
             }
