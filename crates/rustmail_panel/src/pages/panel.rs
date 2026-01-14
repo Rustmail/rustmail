@@ -57,11 +57,7 @@ pub fn panel() -> Html {
     use_effect_with((*authorized).clone(), move |auth| {
         if matches!(auth, Some(false)) {
             let win = window();
-            if let Ok(pathname) = win.location().pathname() {
-                let _ = win.location().set_href("/error?message=Access+Denied");
-            } else {
-                let _ = win.location().set_href("/api/auth/login");
-            }
+            let _ = win.location().set_href("/error?message=Access+Denied");
         }
         || ()
     });

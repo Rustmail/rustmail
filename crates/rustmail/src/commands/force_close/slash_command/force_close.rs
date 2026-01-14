@@ -94,7 +94,7 @@ impl RegistrableCommand for ForceCloseCommand {
                     }
 
                     if let Some(thread_info) = thread {
-                        if config.bot.enable_logs {
+                        if config.bot.enable_rustmail_logs {
                             if let Some(logs_channel_id) = config.bot.logs_channel_id {
                                 let base_url = config
                                     .bot

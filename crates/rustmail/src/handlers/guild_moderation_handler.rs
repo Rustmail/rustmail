@@ -110,7 +110,7 @@ impl EventHandler for GuildModerationHandler {
             }
         }
 
-        if !self.config.bot.enable_logs {
+        if !self.config.bot.enable_discord_logs {
             return;
         }
 
