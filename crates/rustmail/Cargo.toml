@@ -14,7 +14,7 @@ toml = "0.9.11"
 reqwest = { version = "0.13.1", features = ["json", "form"] }
 async-trait = "0.1.89"
 chrono = { version = "0.4.43", features = ["serde"] }
-regex = "1.12.2"
+regex = "1.12.3"
 futures = "0.3.31"
 axum = "0.8.8"
 axum-extra = { version = "0.12.5", features = ["cookie"] }
