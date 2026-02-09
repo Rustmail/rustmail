@@ -1,7 +1,7 @@
 use crate::db::repr::{ApiKey, Permission};
 use chrono::Utc;
 use hex;
-use rand::Rng;
+use rand::RngExt;
 use sha2::{Digest, Sha256};
 use sqlx::{Row, SqlitePool};
 
