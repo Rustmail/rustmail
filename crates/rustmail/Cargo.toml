@@ -1,6 +1,6 @@
 [package]
 name = "rustmail"
-version = "1.0.24"
+version = "1.0.25"
 edition = "2024"
 license = "AGPL-3"
 
