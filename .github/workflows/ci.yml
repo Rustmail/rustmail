@@ -4,29 +4,58 @@ on:
   push:
   pull_request:
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build_and_test:
     name: Rustmail - latest
     runs-on: self-hosted
     env:
       SQLX_OFFLINE: true
+      CARGO_TERM_COLOR: always
     strategy:
       matrix:
-        toolchain:
-          - stable
+        toolchain: [stable]
+
     steps:
       - uses: actions/checkout@v4
         with:
           clean: 'false'
 
-      - name: Setup Rust environment
+      - name: Install System Libs
         run: |
+          sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config build-essential
+
+      - name: Setup Rust
+        run: |
+          if ! command -v rustup &> /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          source "$HOME/.cargo/env"
+          rustup default ${{ matrix.toolchain }}
+          rustup target add wasm32-unknown-unknown
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
-          echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
+
+      - name: Setup Trunk, Wasm-bindgen & Wasm-opt
+        run: |
+          source "$HOME/.cargo/env"
+          
+          if ! command -v trunk &> /dev/null; then
+            cargo install trunk --locked
+          fi
+          
+          if ! command -v wasm-bindgen &> /dev/null; then
+            cargo install wasm-bindgen-cli --version 0.2.106
+          fi
+          
+          if ! command -v wasm-opt &> /dev/null; then
+            wget https://github.com/WebAssembly/binaryen/releases/download/version_126/binaryen-version_126-aarch64-linux.tar.gz
+            tar -xzf binaryen-version_126-aarch64-linux.tar.gz
+            sudo mv binaryen-version_126/bin/wasm-opt /usr/local/bin/
+            rm -rf binaryen-version_126*
+          fi
+          
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          wasm-bindgen --version
+          wasm-opt --version
 
       - name: Build frontend
         working-directory: crates/rustmail_panel
