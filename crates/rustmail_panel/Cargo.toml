@@ -6,7 +6,7 @@ license = "AGPL-3"
 
 [dependencies]
 rustmail_types = { path = "../rustmail_types" }
-yew = { version = "0.22.0", features = ["csr"] }
+yew = { version = "0.22.1", features = ["csr"] }
 yew-router = "0.19.0"
 wasm-bindgen-futures = "0.4.56"
 gloo-net = "0.6.0"
