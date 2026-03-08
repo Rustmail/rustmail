@@ -635,6 +635,29 @@ pub fn ticket_details(props: &TicketDetailsProps) -> Html {
                                             }
                                         }
                                     </div>
+                                    <div>
+                                        <a
+                                            href={
+                                                let mut content = format!("Ticket #{}\nUser: {}\nCategory: {}\n\n", ticket.id, ticket.user_name, ticket.category_name.as_deref().unwrap_or("Unknown"));
+                                                for msg in &ticket.messages {
+                                                    let prefix = match msg.message_type() {
+                                                        MessageType::User => "[User]",
+                                                        MessageType::Staff => "[Staff]",
+                                                        MessageType::System => "[System]",
+                                                        MessageType::Internal => "[Internal]",
+                                                    };
+                                                    content.push_str(&format!("{} {} ({}):\n{}\n\n", prefix, msg.user_name, msg.created_at, msg.content));
+                                                }
+                                                let encoded_content = urlencoding::encode(&content);
+                                                format!("data:text/plain;charset=utf-8,{}", encoded_content)
+                                            }
+                                            download={format!("ticket-{}.txt", ticket.id)}
+                                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg inline-flex items-center justify-center gap-2 transition"
+                                        >
+                                            <i class="bi bi-download"></i>
+                                            {i18n.t("panel.tickets.download")}
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">

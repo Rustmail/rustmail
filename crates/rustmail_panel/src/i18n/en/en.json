@@ -196,6 +196,7 @@
       "unknown_date": "Unknown date",
       "loading_ticket": "Loading ticket...",
       "ticket_not_found": "Ticket not found.",
+      "download": "Download ticket",
       "filters": "Message filters",
       "filter_user": "Users",
       "filter_staff": "Staff",

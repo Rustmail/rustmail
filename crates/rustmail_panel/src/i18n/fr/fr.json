@@ -197,6 +197,7 @@
       "unknown_date": "Date inconnue",
       "loading_ticket": "Chargement du ticket...",
       "ticket_not_found": "Ticket introuvable.",
+      "download": "Télécharger le ticket",
       "filters": "Filtres des messages",
       "filter_user": "Utilisateurs",
       "filter_staff": "Staff",
