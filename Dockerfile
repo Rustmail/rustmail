@@ -1,5 +1,7 @@
 FROM debian:bookworm-slim
 
+ARG TARGETARCH
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -7,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY rustmail /app/rustmail
+COPY bin/${TARGETARCH}/rustmail /app/rustmail
 
 RUN mkdir -p /app/db && chmod 755 /app/db
 

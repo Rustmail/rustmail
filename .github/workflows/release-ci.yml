@@ -13,21 +13,16 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
-    name: Rustmail - latest
+  build-frontend:
+    name: Build Frontend (WASM)
     runs-on: ubuntu-22.04
     env:
       SQLX_OFFLINE: true
-    strategy:
-      matrix:
-        toolchain:
-          - stable
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Rust
-        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+        run: rustup update stable && rustup default stable
 
       - name: Install trunk and wasm target
         run: |
@@ -45,17 +40,44 @@ jobs:
         working-directory: crates/rustmail_panel
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
-      - name: Build Rust backend
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-static
+          path: crates/rustmail/static
+          retention-days: 1
+
+  build-and-test:
+    name: Build & Test
+    needs: build-frontend
+    runs-on: ubuntu-22.04
+    env:
+      SQLX_OFFLINE: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: rustup update stable && rustup default stable
+
+      - name: Download frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-static
+          path: crates/rustmail/static
+
+      - name: Build
         run: cargo build --verbose -p rustmail
 
-      - name: Run tests
+      - name: Test
         run: cargo test --verbose -p rustmail
 
   create-release:
     name: Create Release
-    needs: build_and_test
+    needs: build-and-test
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v4
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GT_TOKEN }}
@@ -73,14 +95,31 @@ jobs:
           --generate-notes $prerelease
 
   upload-assets:
-    needs: create-release
+    name: Upload ${{ matrix.target }}
+    needs: [create-release, build-frontend]
     strategy:
+      fail-fast: false
       matrix:
         include:
+          # ── Linux x86_64 (glibc) ──
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
+          # ── Linux x86_64 (musl / static) ──
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-22.04
+          # ── Linux ARM64 (glibc) ──
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04
+          # ── Linux ARM64 (musl / static) ──
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-22.04
+          # ── macOS Intel (cross-compiled on Apple Silicon) ──
           - target: x86_64-apple-darwin
-            os: macos-latest
+            os: macos-14
+          # ── macOS Apple Silicon ──
+          - target: aarch64-apple-darwin
+            os: macos-14
+          # ── Windows x64 ──
           - target: x86_64-pc-windows-msvc
             os: windows-latest
     runs-on: ${{ matrix.os }}
@@ -92,54 +131,30 @@ jobs:
       - name: Install Rust
         run: rustup update stable && rustup default stable
 
-      - name: Install trunk and wasm target
-        run: |
-          rustup target add wasm32-unknown-unknown
-          cargo install trunk --locked
+      - name: Download frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-static
+          path: crates/rustmail/static
 
-      - name: Install wasm-opt 125
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            wget https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-linux.tar.gz
-            tar -xzf binaryen-version_125-x86_64-linux.tar.gz
-            sudo mv binaryen-version_125/bin/wasm-opt /usr/local/bin/
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install binaryen
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            curl -L https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-windows.tar.gz -o binaryen.tar.gz
-            tar -xzf binaryen.tar.gz
-            mv binaryen-version_125/bin/wasm-opt.exe /usr/bin/
-          fi
-          wasm-opt --version
-        shell: bash
-
-      - name: Create static directory
-        run: mkdir -p crates/rustmail/static
-        shell: bash
-
-      - name: Build frontend
-        working-directory: crates/rustmail_panel
-        run: trunk build --release --dist ../rustmail/static --config Trunk.toml
-
-      - name: Verify static files were created
+      - name: Verify static files
         run: ls crates/rustmail/static
         shell: bash
 
+      - name: Install musl-tools (musl targets)
+        if: contains(matrix.target, 'musl') && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
-
           bin: rustmail
-
           target: ${{ matrix.target }}
-
           tar: unix
-
           zip: windows
-
           token: ${{ secrets.GT_TOKEN }}
 
   docker-build-push:
-    name: Build and push Docker Image
+    name: Build & Push Docker Image
     needs: upload-assets
     runs-on: ubuntu-latest
     env:
@@ -148,6 +163,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -159,19 +177,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Linux binary from release
+      - name: Download Linux binaries from release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm -rf rustmail
-          
+          mkdir -p bin/amd64 bin/arm64
+
+          # x86_64 (amd64)
           gh release download ${{ github.ref_name }} \
             --repo ${{ github.repository }} \
             --pattern 'rustmail-x86_64-unknown-linux-gnu.tar.gz'
-
           tar -xzf rustmail-x86_64-unknown-linux-gnu.tar.gz
-          chmod +x rustmail
-          ls -lh rustmail
+          mv rustmail bin/amd64/
+          rm rustmail-x86_64-unknown-linux-gnu.tar.gz
+
+          # aarch64 (arm64)
+          gh release download ${{ github.ref_name }} \
+            --repo ${{ github.repository }} \
+            --pattern 'rustmail-aarch64-unknown-linux-gnu.tar.gz'
+          tar -xzf rustmail-aarch64-unknown-linux-gnu.tar.gz
+          mv rustmail bin/arm64/
+          rm rustmail-aarch64-unknown-linux-gnu.tar.gz
+
+          chmod +x bin/amd64/rustmail bin/arm64/rustmail
+          echo "=== amd64 ===" && file bin/amd64/rustmail
+          echo "=== arm64 ===" && file bin/arm64/rustmail
 
       - name: Extract metadata for Docker
         id: meta
@@ -191,6 +221,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
