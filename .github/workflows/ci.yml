@@ -42,15 +42,38 @@ jobs:
             cargo install trunk --locked
           fi
           
-          if ! command -v wasm-bindgen &> /dev/null; then
-            cargo install wasm-bindgen-cli --version 0.2.106
+          REQUIRED_VERSION=$(cargo metadata --format-version 1 --no-deps 2>/dev/null \
+            | python3 -c "
+          import sys, json
+          meta = json.load(sys.stdin)
+          for pkg in meta['packages']:
+            if pkg['name'] == 'wasm-bindgen':
+              print(pkg['version'])
+              break
+          " || echo "")
+          
+          if [ -z "$REQUIRED_VERSION" ]; then
+            REQUIRED_VERSION=$(grep -A1 'name = "wasm-bindgen"' Cargo.lock \
+              | grep version | head -1 | sed 's/.*version = "\(.*\)"/\1/')
+          fi
+          
+          echo "Required wasm-bindgen version: $REQUIRED_VERSION"
+          
+          INSTALLED_VERSION=$(wasm-bindgen --version 2>/dev/null | awk '{print $2}' || echo "none")
+          echo "Installed wasm-bindgen version: $INSTALLED_VERSION"
+          
+          if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
+            echo "Version mismatch, compiling wasm-bindgen-cli $REQUIRED_VERSION from source..."
+            cargo install wasm-bindgen-cli --version "=$REQUIRED_VERSION" --locked
+          else
+            echo "wasm-bindgen-cli is up to date."
           fi
           
           if ! command -v wasm-opt &> /dev/null; then
-            wget https://github.com/WebAssembly/binaryen/releases/download/version_126/binaryen-version_126-aarch64-linux.tar.gz
-            tar -xzf binaryen-version_126-aarch64-linux.tar.gz
-            sudo mv binaryen-version_126/bin/wasm-opt /usr/local/bin/
-            rm -rf binaryen-version_126*
+            wget https://github.com/WebAssembly/binaryen/releases/download/version_128/binaryen-version_128-aarch64-linux.tar.gz
+            tar -xzf binaryen-version_128-aarch64-linux.tar.gz
+            sudo mv binaryen-version_128/bin/wasm-opt /usr/local/bin/
+            rm -rf binaryen-version_128*
           fi
           
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
