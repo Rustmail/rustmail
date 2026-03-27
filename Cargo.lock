@@ -2850,7 +2850,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "gloo-net 0.7.0",
- "gloo-utils 0.2.0",
+ "gloo-utils 0.3.0",
  "js-sys",
  "pulldown-cmark 0.13.3",
  "rustmail_types",
