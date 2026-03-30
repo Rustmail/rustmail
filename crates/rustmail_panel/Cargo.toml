@@ -8,7 +8,7 @@ license = "AGPL-3"
 rustmail_types = { path = "../rustmail_types" }
 yew = { version = "0.23.0", features = ["csr"] }
 yew-router = "0.20.0"
-wasm-bindgen-futures = "0.4.56"
+wasm-bindgen-futures = "0.4.65"
 gloo-net = "0.7.0"
 gloo-utils = "0.3.0"
 web-sys = { version = "0.3.83", features = ["HtmlSelectElement", "File", "FileList", "FileReader", "HtmlInputElement", "DragEvent", "DataTransfer"] }
