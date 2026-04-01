@@ -9,9 +9,7 @@ target/
 **/Cargo.toml
 **/Cargo.lock
 
-*.md
 LICENSE
-docs/
 
 *.yml
 *.yaml
