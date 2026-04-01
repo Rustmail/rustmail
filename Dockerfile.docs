@@ -6,6 +6,6 @@ RUN mdbook build docs
 
 FROM nginx:alpine AS runtime
 
-COPY --from=builder /app/docs/book/ /usr/share/nginx/html/
+COPY --from=builder /app/book/ /usr/share/nginx/html/
 
 EXPOSE 80
