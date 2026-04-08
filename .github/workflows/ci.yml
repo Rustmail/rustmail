@@ -11,7 +11,7 @@ jobs:
     env:
       SQLX_OFFLINE: true
       CARGO_TERM_COLOR: always
-      CARGO_BUILD_JOBS: 2
+      CARGO_BUILD_JOBS: 3
     strategy:
       matrix:
         toolchain: [stable]
@@ -40,7 +40,10 @@ jobs:
           source "$HOME/.cargo/env"
           
           if ! command -v trunk &> /dev/null; then
-            cargo install trunk --locked
+            wget https://github.com/trunk-rs/trunk/releases/latest/download/trunk-aarch64-unknown-linux-gnu.tar.gz
+            tar -xzf trunk-aarch64-unknown-linux-gnu.tar.gz
+            sudo mv trunk /usr/local/bin/
+            rm trunk-aarch64-unknown-linux-gnu.tar.gz
           fi
           
           REQUIRED_VERSION=$(cargo metadata --format-version 1 --no-deps 2>/dev/null \
