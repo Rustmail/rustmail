@@ -939,6 +939,23 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Force-closes a ticket when an error prevents normal closure. This command will be removed in future versions. To force-close a ticket, use `!force_close` or `!fc` inside a ticket."),
     );
     dict.messages.insert(
+        "help.category".to_string(),
+        DictionaryMessage::new(
+            "Manages ticket categories that users can select to direct their requests.\n\n\
+            **Subcommands:**\n\
+            `create <discord_category_id> <name> [| description] [| emoji]` - Creates a new category.\n\
+            `list` - Lists all configured categories.\n\
+            `rename <old_name> <new_name>` - Renames an existing category.\n\
+            `move <name> <position>` - Changes the position of a category.\n\
+            `delete <name>` or `remove <name>` - Deletes a category.\n\
+            `enable <name>` - Enables a specific category.\n\
+            `disable <name>` - Disables a specific category.\n\
+            `on` - Enables the category selection feature globally.\n\
+            `off` - Disables the category selection feature globally.\n\
+            `timeout <seconds>` - Sets the time limit (in seconds) users have to select a category before defaulting."
+        ),
+    );
+    dict.messages.insert(
         "help.help".to_string(),
         DictionaryMessage::new("Displays a list of all available commands with a short description. To view the help message, use `!help`. If you want help with a specific command, type `!help <command_name>`."),
     );
@@ -1905,5 +1922,115 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "status.maintenance_activity".to_string(),
         DictionaryMessage::new("🔧 Maintenance in progress"),
+    );
+    dict.messages.insert(
+        "category.prompt_title".to_string(),
+        DictionaryMessage::new("Choose a category"),
+    );
+    dict.messages.insert(
+        "category.prompt_message".to_string(),
+        DictionaryMessage::new("Please choose a category for your ticket. If you don't choose within {timeout_minutes} minutes, your ticket will be created in the default inbox."),
+    );
+    dict.messages.insert(
+        "category.default_button_label".to_string(),
+        DictionaryMessage::new("General"),
+    );
+    dict.messages.insert(
+        "category.selection_expired".to_string(),
+        DictionaryMessage::new(
+            "Selection window expired, your ticket was created in the default inbox.",
+        ),
+    );
+    dict.messages.insert(
+        "category.ticket_opened_in".to_string(),
+        DictionaryMessage::new("Your ticket has been opened in **{category}**."),
+    );
+    dict.messages.insert(
+        "category.too_many_enabled".to_string(),
+        DictionaryMessage::new("Too many categories enabled. The maximum is {max}."),
+    );
+    dict.messages.insert(
+        "category.not_found".to_string(),
+        DictionaryMessage::new("Category not found."),
+    );
+    dict.messages.insert(
+        "category.already_exists".to_string(),
+        DictionaryMessage::new("A category with this name already exists."),
+    );
+    dict.messages.insert(
+        "category.invalid_emoji".to_string(),
+        DictionaryMessage::new("Invalid emoji."),
+    );
+    dict.messages.insert(
+        "category.invalid_discord_category".to_string(),
+        DictionaryMessage::new("Invalid Discord category ID."),
+    );
+    dict.messages.insert(
+        "category.created".to_string(),
+        DictionaryMessage::new("Category **{name}** created."),
+    );
+    dict.messages.insert(
+        "category.deleted".to_string(),
+        DictionaryMessage::new("Category **{name}** deleted."),
+    );
+    dict.messages.insert(
+        "category.renamed".to_string(),
+        DictionaryMessage::new("Category renamed to **{name}**."),
+    );
+    dict.messages.insert(
+        "category.moved".to_string(),
+        DictionaryMessage::new("Category **{name}** moved to position {position}."),
+    );
+    dict.messages.insert(
+        "category.timeout_updated".to_string(),
+        DictionaryMessage::new("Selection timeout set to {seconds} seconds."),
+    );
+    dict.messages.insert(
+        "category.feature_enabled".to_string(),
+        DictionaryMessage::new("Category selection feature enabled."),
+    );
+    dict.messages.insert(
+        "category.feature_disabled".to_string(),
+        DictionaryMessage::new("Category selection feature disabled."),
+    );
+    dict.messages.insert(
+        "category.enabled_one".to_string(),
+        DictionaryMessage::new("Category **{name}** enabled."),
+    );
+    dict.messages.insert(
+        "category.disabled_one".to_string(),
+        DictionaryMessage::new("Category **{name}** disabled."),
+    );
+    dict.messages.insert(
+        "category.list_header".to_string(),
+        DictionaryMessage::new("Ticket categories"),
+    );
+    dict.messages.insert(
+        "category.list_empty".to_string(),
+        DictionaryMessage::new("No categories defined."),
+    );
+    dict.messages.insert(
+        "category.list_item".to_string(),
+        DictionaryMessage::new("`{position}` {emoji} **{name}** — {state}"),
+    );
+    dict.messages.insert(
+        "category.state_enabled".to_string(),
+        DictionaryMessage::new("enabled"),
+    );
+    dict.messages.insert(
+        "category.state_disabled".to_string(),
+        DictionaryMessage::new("disabled"),
+    );
+    dict.messages.insert(
+        "category.unknown_subcommand".to_string(),
+        DictionaryMessage::new("Unknown subcommand. Use one of: create, list, rename, move, delete, enable, disable, timeout, on, off."),
+    );
+    dict.messages.insert(
+        "category.text_usage".to_string(),
+        DictionaryMessage::new("Usage: `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off> ...`"),
+    );
+    dict.messages.insert(
+        "category.create_usage".to_string(),
+        DictionaryMessage::new("Usage: `{prefix}category create <discord_category_id> <name> [| description] [| emoji]`"),
     );
 }

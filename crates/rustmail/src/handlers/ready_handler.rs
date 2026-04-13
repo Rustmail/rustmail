@@ -71,6 +71,7 @@ impl EventHandler for ReadyHandler {
                 send_recovery_summary(&ctx, &config, &recovery_results).await;
                 sync_features(&ctx, &config).await;
                 hydrate_scheduled_closures(&ctx, &config).await;
+                hydrate_pending_category_selections(&ctx, &config).await;
             }
         });
 

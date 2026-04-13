@@ -147,6 +147,7 @@ pub async fn run_bot(
     registry.register_command(PingCommand);
     registry.register_command(SnippetCommand);
     registry.register_command(StatusCommand);
+    registry.register_command(CategoryCommand);
 
     let registry = Arc::new(registry);
 

@@ -82,6 +82,14 @@ impl EventHandler for InteractionHandler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         match interaction {
             Interaction::Component(mut comp) => {
+                match handle_category_component_interaction(&ctx, &self.config, &comp).await {
+                    Ok(true) => return,
+                    Ok(false) => {}
+                    Err(e) => {
+                        eprintln!("category interaction error: {e:?}");
+                        return;
+                    }
+                }
                 if let Err(..) =
                     handle_feature_component_interaction(&ctx, &self.config, &comp).await
                 {

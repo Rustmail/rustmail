@@ -955,6 +955,23 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Ferme un ticket lorsqu'une erreur empêche la fermeture normale. Cette commande disparaîtra dans les prochaines versions. Pour forcer la fermeture d'un ticket, faites `!force_close` ou `!fc` dans un ticket."),
     );
     dict.messages.insert(
+        "help.category".to_string(),
+        DictionaryMessage::new(
+            "Gère les catégories de tickets que les utilisateurs peuvent sélectionner pour diriger leurs demandes.\n\n\
+            **Sous-commandes :**\n\
+            `create <discord_category_id> <nom> [| description] [| emoji]` - Crée une nouvelle catégorie.\n\
+            `list` - Affiche la liste des catégories configurées.\n\
+            `rename <ancien_nom> <nouveau_nom>` - Renomme une catégorie existante.\n\
+            `move <nom> <position>` - Change la position d'une catégorie.\n\
+            `delete <nom>` ou `remove <nom>` - Supprime une catégorie.\n\
+            `enable <nom>` - Active une catégorie spécifique.\n\
+            `disable <nom>` - Désactive une catégorie spécifique.\n\
+            `on` - Active globalement la fonctionnalité de sélection de catégorie.\n\
+            `off` - Désactive globalement la fonctionnalité de sélection de catégorie.\n\
+            `timeout <secondes>` - Définit le délai (en secondes) dont disposent les utilisateurs pour choisir une catégorie avant le choix par défaut."
+        ),
+    );
+    dict.messages.insert(
         "help.help".to_string(),
         DictionaryMessage::new("Affiche une liste de toutes les commandes disponibles avec une brève description. Pour afficher le message d'aide, faites `!help`. Si vous souhaitez obtenir de l'aide sur une commande spécifique, faites `!help <nom_de_la_commande>`."),
     );
@@ -1916,5 +1933,115 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "status.maintenance_activity".to_string(),
         DictionaryMessage::new("🔧 Maintenance en cours"),
+    );
+    dict.messages.insert(
+        "category.prompt_title".to_string(),
+        DictionaryMessage::new("Choisissez une catégorie"),
+    );
+    dict.messages.insert(
+        "category.prompt_message".to_string(),
+        DictionaryMessage::new("Merci de choisir une catégorie pour votre ticket. Si vous ne choisissez pas dans les {timeout_minutes} minutes, votre ticket sera créé dans la catégorie par défaut."),
+    );
+    dict.messages.insert(
+        "category.default_button_label".to_string(),
+        DictionaryMessage::new("Général"),
+    );
+    dict.messages.insert(
+        "category.selection_expired".to_string(),
+        DictionaryMessage::new(
+            "Délai de sélection expiré, votre ticket a été créé dans la catégorie par défaut.",
+        ),
+    );
+    dict.messages.insert(
+        "category.ticket_opened_in".to_string(),
+        DictionaryMessage::new("Votre ticket a été ouvert dans **{category}**."),
+    );
+    dict.messages.insert(
+        "category.too_many_enabled".to_string(),
+        DictionaryMessage::new("Trop de catégories activées. Le maximum est {max}."),
+    );
+    dict.messages.insert(
+        "category.not_found".to_string(),
+        DictionaryMessage::new("Catégorie introuvable."),
+    );
+    dict.messages.insert(
+        "category.already_exists".to_string(),
+        DictionaryMessage::new("Une catégorie avec ce nom existe déjà."),
+    );
+    dict.messages.insert(
+        "category.invalid_emoji".to_string(),
+        DictionaryMessage::new("Emoji invalide."),
+    );
+    dict.messages.insert(
+        "category.invalid_discord_category".to_string(),
+        DictionaryMessage::new("ID de catégorie Discord invalide."),
+    );
+    dict.messages.insert(
+        "category.created".to_string(),
+        DictionaryMessage::new("Catégorie **{name}** créée."),
+    );
+    dict.messages.insert(
+        "category.deleted".to_string(),
+        DictionaryMessage::new("Catégorie **{name}** supprimée."),
+    );
+    dict.messages.insert(
+        "category.renamed".to_string(),
+        DictionaryMessage::new("Catégorie renommée en **{name}**."),
+    );
+    dict.messages.insert(
+        "category.moved".to_string(),
+        DictionaryMessage::new("Catégorie **{name}** déplacée en position {position}."),
+    );
+    dict.messages.insert(
+        "category.timeout_updated".to_string(),
+        DictionaryMessage::new("Délai de sélection réglé à {seconds} secondes."),
+    );
+    dict.messages.insert(
+        "category.feature_enabled".to_string(),
+        DictionaryMessage::new("Fonctionnalité de sélection de catégorie activée."),
+    );
+    dict.messages.insert(
+        "category.feature_disabled".to_string(),
+        DictionaryMessage::new("Fonctionnalité de sélection de catégorie désactivée."),
+    );
+    dict.messages.insert(
+        "category.enabled_one".to_string(),
+        DictionaryMessage::new("Catégorie **{name}** activée."),
+    );
+    dict.messages.insert(
+        "category.disabled_one".to_string(),
+        DictionaryMessage::new("Catégorie **{name}** désactivée."),
+    );
+    dict.messages.insert(
+        "category.list_header".to_string(),
+        DictionaryMessage::new("Catégories de ticket"),
+    );
+    dict.messages.insert(
+        "category.list_empty".to_string(),
+        DictionaryMessage::new("Aucune catégorie définie."),
+    );
+    dict.messages.insert(
+        "category.list_item".to_string(),
+        DictionaryMessage::new("`{position}` {emoji} **{name}** — {state}"),
+    );
+    dict.messages.insert(
+        "category.state_enabled".to_string(),
+        DictionaryMessage::new("activée"),
+    );
+    dict.messages.insert(
+        "category.state_disabled".to_string(),
+        DictionaryMessage::new("désactivée"),
+    );
+    dict.messages.insert(
+        "category.unknown_subcommand".to_string(),
+        DictionaryMessage::new("Sous-commande inconnue. Utilisez : create, list, rename, move, delete, enable, disable, timeout, on, off."),
+    );
+    dict.messages.insert(
+        "category.text_usage".to_string(),
+        DictionaryMessage::new("Utilisation : `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off> ...`"),
+    );
+    dict.messages.insert(
+        "category.create_usage".to_string(),
+        DictionaryMessage::new("Utilisation : `{prefix}category create <discord_category_id> <nom> [| description] [| emoji]`"),
     );
 }
