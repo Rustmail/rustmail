@@ -12,6 +12,7 @@
     "config": "Configuration",
     "apikeys": "API Keys",
     "tickets": "Tickets",
+    "categories": "Categories",
     "administration": "Administration",
     "logout": "Logout"
   },
@@ -267,7 +268,37 @@
         "manage_config": "Manage Config",
         "manage_tickets": "Manage Tickets",
         "manage_api_keys": "Manage API Keys",
-        "manage_permissions": "Manage Permissions"
+        "manage_permissions": "Manage Permissions",
+        "manage_categories": "Manage Categories"
+      }
+    },
+    "categories": {
+      "title": "Ticket Categories",
+      "create": "+ Create Category",
+      "loading": "Loading categories...",
+      "no_categories": "No categories defined yet. Create your first one!",
+      "settings": "Global Settings",
+      "feature_enabled": "Category selection enabled",
+      "feature_enabled_help": "When enabled, users opening a ticket via DM will be prompted to choose a category.",
+      "timeout_label": "Selection timeout (seconds)",
+      "timeout_help": "If the user doesn't pick within this delay, the ticket falls back to the default inbox. Minimum 30 seconds.",
+      "state_enabled": "Enabled",
+      "state_disabled": "Disabled",
+      "delete": "Delete",
+      "discord_category_id": "Discord Category ID",
+      "error_name_required": "Name is required",
+      "error_discord_id_required": "Discord category ID is required",
+      "error_create": "Failed to create category",
+      "modal": {
+        "title": "Create Category",
+        "name": "Name",
+        "name_placeholder": "Connection Issue",
+        "description": "Description (optional)",
+        "emoji": "Emoji (optional)",
+        "discord_category_id": "Discord Category ID",
+        "cancel": "Cancel",
+        "create": "Create",
+        "creating": "Creating..."
       }
     },
     "forbidden": {

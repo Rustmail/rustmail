@@ -1,4 +1,5 @@
 pub mod api_keys;
+pub mod categories;
 pub mod configuration;
 pub mod forbidden;
 pub mod home;

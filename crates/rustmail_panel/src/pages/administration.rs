@@ -318,6 +318,7 @@ pub fn administration() -> Html {
                                     ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
                                     ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
                                     ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
+                                    ("manage_categories", i18n.t("panel.administration.permissions.manage_categories")),
                                 ].iter().map(|(value, label)| {
                                 let is_checked = selected_permissions.contains(&value.to_string());
                                 let selected_permissions_clone = selected_permissions.clone();
@@ -518,6 +519,7 @@ pub fn administration() -> Html {
                                         ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
                                         ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
                                         ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
+                                        ("manage_categories", i18n.t("panel.administration.permissions.manage_categories")),
                                     ];
                                     let current_perms: Vec<String> = perms_list.iter().map(|(_, p)| {
                                         match p {
@@ -527,6 +529,7 @@ pub fn administration() -> Html {
                                             PanelPermission::ManageTickets => "manage_tickets",
                                             PanelPermission::ManageApiKeys => "manage_api_keys",
                                             PanelPermission::ManagePermissions => "manage_permissions",
+                                            PanelPermission::ManageCategories => "manage_categories",
                                         }.to_string()
                                     }).collect();
 
