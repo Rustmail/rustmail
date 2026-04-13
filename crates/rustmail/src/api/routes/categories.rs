@@ -1,0 +1,27 @@
+use crate::prelude::api::*;
+use crate::prelude::types::*;
+use axum::Router;
+use axum::routing::{delete, get, patch, post, put};
+use rustmail_types::api::panel_permissions::PanelPermission;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+pub fn create_categories_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<BotState>>> {
+    Router::new()
+        .route("/", get(list_categories_handler))
+        .route("/", post(create_category_handler))
+        .route("/{id}", patch(update_category_handler))
+        .route("/{id}", delete(delete_category_handler))
+        .route("/settings", get(get_category_settings_handler))
+        .route("/settings", put(update_category_settings_handler))
+        .layer(axum::middleware::from_fn_with_state(
+            bot_state.clone(),
+            move |state, jar, req, next| {
+                require_panel_permission(state, jar, req, next, PanelPermission::ManageCategories)
+            },
+        ))
+        .layer(axum::middleware::from_fn_with_state(
+            bot_state,
+            auth_middleware,
+        ))
+}

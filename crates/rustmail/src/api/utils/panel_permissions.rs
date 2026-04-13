@@ -72,6 +72,7 @@ pub async fn get_user_panel_permissions(
             PanelPermission::ManageTickets,
             PanelPermission::ManageApiKeys,
             PanelPermission::ManagePermissions,
+            PanelPermission::ManageCategories,
         ];
         cache.insert(user_id.to_string(), permissions.clone()).await;
         return permissions;
@@ -85,6 +86,7 @@ pub async fn get_user_panel_permissions(
             PanelPermission::ManageTickets,
             PanelPermission::ManageApiKeys,
             PanelPermission::ManagePermissions,
+            PanelPermission::ManageCategories,
         ];
     }
 
