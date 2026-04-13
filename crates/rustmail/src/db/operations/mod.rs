@@ -9,6 +9,7 @@ pub mod scheduled;
 pub mod snippets;
 pub mod statistics;
 pub mod threads;
+pub mod ticket_categories;
 
 pub use api_keys::*;
 pub use features::*;
@@ -21,3 +22,4 @@ pub use scheduled::*;
 pub use snippets::*;
 pub use statistics::*;
 pub use threads::*;
+pub use ticket_categories::*;
