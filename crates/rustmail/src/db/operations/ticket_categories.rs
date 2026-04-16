@@ -151,7 +151,7 @@ pub async fn get_category_by_name(
         SELECT id, name, description, emoji, discord_category_id,
                position, enabled, created_at, updated_at
         FROM ticket_categories
-        WHERE name = ?
+        WHERE name = ? COLLATE NOCASE
         LIMIT 1
         "#,
     )

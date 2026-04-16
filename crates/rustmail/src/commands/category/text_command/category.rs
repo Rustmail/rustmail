@@ -211,6 +211,11 @@ async fn handle_rename(
         Some(c) => c,
         None => return send_translated(ctx, config, msg, "category.not_found", None).await,
     };
+    if let Some(existing) = get_category_by_name(new, pool).await? {
+        if existing.id != cat.id {
+            return send_translated(ctx, config, msg, "category.already_exists", None).await;
+        }
+    }
     update_category(&cat.id, Some(new), None, None, None, None, None, pool).await?;
     let mut params = HashMap::new();
     params.insert("name".to_string(), new.to_string());

@@ -78,7 +78,8 @@ pub async fn create_category_handler(
     State(bot_state): State<Arc<Mutex<BotState>>>,
     Json(req): Json<CreateCategoryRequest>,
 ) -> Result<Json<CategoryDto>, (StatusCode, String)> {
-    if req.name.trim().is_empty() {
+    let name = req.name.trim();
+    if name.is_empty() {
         return Err((StatusCode::BAD_REQUEST, "Name required".to_string()));
     }
     if req.discord_category_id.parse::<u64>().is_err() {
@@ -97,7 +98,11 @@ pub async fn create_category_handler(
         ));
     }
 
-    if let Ok(Some(_)) = get_category_by_name(&req.name, &p).await {
+    if get_category_by_name(name, &p)
+        .await
+        .map_err(internal)?
+        .is_some()
+    {
         return Err((
             StatusCode::CONFLICT,
             "Category with this name already exists".to_string(),
@@ -105,7 +110,7 @@ pub async fn create_category_handler(
     }
 
     let created = create_category(
-        &req.name,
+        name,
         req.description.as_deref(),
         req.emoji.as_deref(),
         &req.discord_category_id,
@@ -138,6 +143,22 @@ pub async fn update_category_handler(
         .map_err(internal)?
         .ok_or((StatusCode::NOT_FOUND, "Category not found".to_string()))?;
 
+    let trimmed_name = req.name.as_deref().map(str::trim);
+    if let Some(name) = trimmed_name {
+        if name.is_empty() {
+            return Err((StatusCode::BAD_REQUEST, "Name required".to_string()));
+        }
+
+        if let Some(conflict) = get_category_by_name(name, &p).await.map_err(internal)? {
+            if conflict.id != existing.id {
+                return Err((
+                    StatusCode::CONFLICT,
+                    "Category with this name already exists".to_string(),
+                ));
+            }
+        }
+    }
+
     if let Some(true) = req.enabled {
         if !existing.enabled {
             let enabled_count = count_enabled_categories(&p).await.map_err(internal)?;
@@ -161,7 +182,7 @@ pub async fn update_category_handler(
 
     update_category(
         &id,
-        req.name.as_deref(),
+        trimmed_name,
         req.description.as_ref().map(|o| o.as_deref()),
         req.emoji.as_ref().map(|o| o.as_deref()),
         req.discord_category_id.as_deref(),

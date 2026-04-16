@@ -42,20 +42,34 @@ struct UpdateCategoryRequest {
     enabled: Option<bool>,
 }
 
-async fn fetch_categories() -> Option<Vec<CategoryDto>> {
-    let resp = Request::get("/api/categories").send().await.ok()?;
+async fn fetch_categories() -> Result<Vec<CategoryDto>, String> {
+    let resp = Request::get("/api/categories")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     if resp.status() != 200 {
-        return None;
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("HTTP {}: {}", status, body));
     }
-    resp.json::<Vec<CategoryDto>>().await.ok()
+    resp.json::<Vec<CategoryDto>>()
+        .await
+        .map_err(|e| e.to_string())
 }
 
-async fn fetch_settings() -> Option<CategorySettingsDto> {
-    let resp = Request::get("/api/categories/settings").send().await.ok()?;
+async fn fetch_settings() -> Result<CategorySettingsDto, String> {
+    let resp = Request::get("/api/categories/settings")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     if resp.status() != 200 {
-        return None;
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("HTTP {}: {}", status, body));
     }
-    resp.json::<CategorySettingsDto>().await.ok()
+    resp.json::<CategorySettingsDto>()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[function_component(CategoriesPage)]
@@ -102,22 +116,28 @@ pub fn categories_page() -> Html {
         let settings = settings.clone();
         let loading = loading.clone();
         let error = error.clone();
+        let i18n = i18n.clone();
         Callback::from(move |_| {
             let categories = categories.clone();
             let settings = settings.clone();
             let loading = loading.clone();
             let error = error.clone();
+            let i18n = i18n.clone();
             spawn_local(async move {
                 loading.set(true);
                 let cats = fetch_categories().await;
                 let s = fetch_settings().await;
                 match (cats, s) {
-                    (Some(c), Some(s)) => {
+                    (Ok(c), Ok(s)) => {
                         categories.set(c);
                         settings.set(Some(s));
                         error.set(None);
                     }
-                    _ => error.set(Some("Failed to load".to_string())),
+                    (Err(e), _) | (_, Err(e)) => error.set(Some(format!(
+                        "{}: {}",
+                        i18n.t("panel.categories.error_load"),
+                        e
+                    ))),
                 }
                 loading.set(false);
             });

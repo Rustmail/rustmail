@@ -72,8 +72,18 @@ pub async fn maybe_start_category_selection(ctx: &Context, config: &Config, msg:
     }
 
     if let Ok(Some(_)) = get_pending_selection(msg.author.id.get() as i64, pool).await {
-        let _ = append_queued_message(msg.author.id.get() as i64, &msg.id.to_string(), pool).await;
-        return true;
+        match append_queued_message(msg.author.id.get() as i64, &msg.id.to_string(), pool).await {
+            Ok(_) => return true,
+            Err(err) => {
+                eprintln!(
+                    "failed to append queued message for user {} and message {}: {}",
+                    msg.author.id.get(),
+                    msg.id,
+                    err
+                );
+                return false;
+            }
+        }
     }
 
     let categories = match list_enabled_categories(pool).await {
@@ -196,22 +206,15 @@ pub async fn finalize_with_category(
         None => return Ok(()),
     };
 
-    if !delete_pending_selection(user_id, pool)
-        .await
-        .unwrap_or(false)
-    {
-        return Ok(());
-    }
-
     let user = UserId::new(user_id as u64);
 
     let (discord_override, ticket_cat_id) = if let Some(id) = category_id {
         match get_category_by_id(id, pool).await? {
-            Some(cat) => {
+            Some(cat) if cat.enabled => {
                 let parent = cat.discord_category_id.parse::<u64>().ok();
                 (parent, Some(cat.id.clone()))
             }
-            None => (None, None),
+            Some(_) | None => (None, None),
         }
     } else {
         (None, None)
@@ -235,6 +238,10 @@ pub async fn finalize_with_category(
                 }
             }
         }
+    }
+
+    if !delete_pending_selection(user_id, pool).await? {
+        return Err("Failed to clear pending selection".into());
     }
 
     Ok(())

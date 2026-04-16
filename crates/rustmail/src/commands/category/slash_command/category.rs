@@ -441,10 +441,19 @@ async fn sub_rename(
         Some(v) => v,
         None => return reply(ctx, command, config, "category.text_usage", None).await,
     };
+    let new = new.trim().to_string();
+    if new.is_empty() {
+        return reply(ctx, command, config, "category.text_usage", None).await;
+    }
     let cat = match get_category_by_name(&old, pool).await? {
         Some(c) => c,
         None => return reply(ctx, command, config, "category.not_found", None).await,
     };
+    if let Some(existing) = get_category_by_name(&new, pool).await? {
+        if existing.id != cat.id {
+            return reply(ctx, command, config, "category.already_exists", None).await;
+        }
+    }
     update_category(&cat.id, Some(&new), None, None, None, None, None, pool).await?;
     let mut params = HashMap::new();
     params.insert("name".to_string(), new);

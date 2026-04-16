@@ -43,7 +43,7 @@ pub async fn create_or_get_thread_for_user(
         .create_channel(&ctx.http, channel_builder)
         .await?;
 
-    let _ = create_thread_for_user(&channel, user_id.get() as i64, &username, pool)
+    let thread_id = create_thread_for_user(&channel, user_id.get() as i64, &username, pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating thread: {}", e);
@@ -51,8 +51,8 @@ pub async fn create_or_get_thread_for_user(
         })?;
 
     if let Some(cat_id) = ticket_category_id {
-        if let Some(thread) = get_thread_by_channel_id(&channel.id.to_string(), pool).await {
-            let _ = set_thread_category(&thread.id, Some(cat_id), pool).await;
+        if let Err(e) = set_thread_category(&thread_id, Some(cat_id), pool).await {
+            eprintln!("Failed to set thread category for thread {thread_id}: {e}");
         }
     }
 

@@ -288,6 +288,7 @@
       "discord_category_id": "Discord Category ID",
       "error_name_required": "Name is required",
       "error_discord_id_required": "Discord category ID is required",
+      "error_load": "Failed to load categories",
       "error_create": "Failed to create category",
       "modal": {
         "title": "Create Category",

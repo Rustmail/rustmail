@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS ticket_categories (
     updated_at          INTEGER NOT NULL
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ticket_categories_name_unique
+    ON ticket_categories(name COLLATE NOCASE);
+
 CREATE INDEX IF NOT EXISTS idx_ticket_categories_enabled
     ON ticket_categories(enabled, position);
 
