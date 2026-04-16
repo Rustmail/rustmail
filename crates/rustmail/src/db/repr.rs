@@ -37,6 +37,7 @@ pub struct TicketCategorySettings {
     pub selection_timeout_s: i64,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct PendingCategorySelection {
     pub user_id: i64,
