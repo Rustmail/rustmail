@@ -12,6 +12,7 @@
     "config": "Configuration",
     "apikeys": "Clés API",
     "tickets": "Tickets",
+    "categories": "Catégories",
     "administration": "Administration",
     "logout": "Se déconnecter"
   },
@@ -268,7 +269,37 @@
         "manage_config": "Gérer la Config",
         "manage_tickets": "Gérer les Tickets",
         "manage_api_keys": "Gérer les Clés API",
-        "manage_permissions": "Gérer les Permissions"
+        "manage_permissions": "Gérer les Permissions",
+        "manage_categories": "Gérer les Catégories"
+      }
+    },
+    "categories": {
+      "title": "Catégories de tickets",
+      "create": "+ Créer une catégorie",
+      "loading": "Chargement des catégories...",
+      "no_categories": "Aucune catégorie définie. Créez la première !",
+      "settings": "Paramètres globaux",
+      "feature_enabled": "Sélection de catégorie activée",
+      "feature_enabled_help": "Si activée, les utilisateurs qui ouvrent un ticket via DM seront invités à choisir une catégorie.",
+      "timeout_label": "Délai de sélection (secondes)",
+      "timeout_help": "Si l'utilisateur ne choisit pas dans ce délai, le ticket est envoyé dans la boîte de réception par défaut. Minimum 30 secondes.",
+      "state_enabled": "Activée",
+      "state_disabled": "Désactivée",
+      "delete": "Supprimer",
+      "discord_category_id": "ID de catégorie Discord",
+      "error_name_required": "Le nom est requis",
+      "error_discord_id_required": "L'ID de catégorie Discord est requis",
+      "error_create": "Impossible de créer la catégorie",
+      "modal": {
+        "title": "Créer une catégorie",
+        "name": "Nom",
+        "name_placeholder": "Problème de connexion",
+        "description": "Description (optionnel)",
+        "emoji": "Emoji (optionnel)",
+        "discord_category_id": "ID de catégorie Discord",
+        "cancel": "Annuler",
+        "create": "Créer",
+        "creating": "Création..."
       }
     },
     "forbidden": {

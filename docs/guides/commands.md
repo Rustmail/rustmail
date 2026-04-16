@@ -37,6 +37,24 @@ Check bot responsiveness.
 
 ## Ticket Management
 
+### category
+
+Manage ticket categories that users can select to direct their requests.
+
+| Slash | Text |
+|-------|------|
+| `/category <subcommand>` | `!category <subcommand>` |
+
+**Subcommands:**
+- `create` - Create a new category
+- `list` - List all configured categories
+- `rename` - Rename an existing category
+- `move` - Change the position of a category
+- `delete` / `remove` - Delete a category
+- `enable` / `disable` - Enable or disable a specific category
+- `on` / `off` - Enable or disable the entire category selection feature
+- `timeout` - Set the time limit (in seconds) users have to select a category before defaulting
+
 ### new_thread
 
 Create a new ticket for a user. Use when you need to initiate contact.

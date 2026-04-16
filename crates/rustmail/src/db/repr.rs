@@ -18,6 +18,36 @@ pub struct ApiKey {
     pub is_active: bool,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TicketCategory {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub emoji: Option<String>,
+    pub discord_category_id: String,
+    pub position: i64,
+    pub enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TicketCategorySettings {
+    pub enabled: bool,
+    pub selection_timeout_s: i64,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct PendingCategorySelection {
+    pub user_id: i64,
+    pub prompt_msg_id: String,
+    pub dm_channel_id: String,
+    pub started_at: i64,
+    pub expires_at: i64,
+    pub queued_msg_ids: Vec<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Permission {

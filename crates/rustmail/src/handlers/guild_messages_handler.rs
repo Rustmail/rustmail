@@ -84,6 +84,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, "ping", ping);
         wrap_command!(lock, ["snippet", "s"], snippet_command);
         wrap_command!(lock, "status", status_command);
+        wrap_command!(lock, "category", category_command);
 
         drop(lock);
         h
@@ -195,6 +196,10 @@ async fn manage_incoming_message(
             }
         }
     } else {
+        if maybe_start_category_selection(ctx, config, msg).await {
+            drop(guard);
+            return Ok(());
+        }
         create_channel(ctx, msg, config).await;
     }
 

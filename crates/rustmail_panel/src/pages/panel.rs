@@ -1,4 +1,5 @@
 use crate::components::api_keys::ApiKeysPage;
+use crate::components::categories::CategoriesPage;
 use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
 use crate::components::navbar::RustmailNavbar;
@@ -26,6 +27,8 @@ pub enum PanelRoute {
     Configuration,
     #[at("/panel/apikeys")]
     ApiKeys,
+    #[at("/panel/categories")]
+    Categories,
     #[at("/panel/tickets")]
     TicketsList,
     #[at("/panel/tickets/:id")]
@@ -134,6 +137,7 @@ fn switch(route: PanelRoute, navigator: Option<Navigator>) -> Html {
         PanelRoute::Home => html! { <Home /> },
         PanelRoute::Configuration => html! { <ConfigurationPage /> },
         PanelRoute::ApiKeys => html! { <ApiKeysPage /> },
+        PanelRoute::Categories => html! { <CategoriesPage /> },
         PanelRoute::TicketsList => html! { <TicketsList /> },
         PanelRoute::TicketDetails { id } => {
             let nav = navigator.clone();

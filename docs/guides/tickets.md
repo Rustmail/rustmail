@@ -267,6 +267,21 @@ Cancel an alert:
 !alert cancel
 ```
 
+## Category Selection
+
+You can configure Rustmail to ask users to choose a category before their ticket is opened. This allows you to route tickets directly to specialized teams (e.g., Support, Billing, Escalations).
+
+### Managing Categories
+
+Staff can manage categories using the `/category` or `!category` command:
+
+- `!category create <discord_id> <name> | <description> | <emoji>` - Create a new category
+- `!category list` - View existing categories
+- `!category on` / `off` - Enable or disable the category prompt globally
+- `!category timeout <seconds>` - Change how long the bot waits for the user to make a choice before routing to the default inbox category.
+
+When the category prompt is enabled, the bot will hold the user's initial messages in a queue and present them with interactive buttons. Once a category is selected (or the timeout expires), all queued messages are forwarded to the newly created ticket channel.
+
 ---
 
 ## Moving Tickets

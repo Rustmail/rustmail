@@ -9,6 +9,7 @@ pub enum PanelPermission {
     ManageTickets,
     ManageApiKeys,
     ManagePermissions,
+    ManageCategories,
 }
 
 impl PanelPermission {
@@ -20,6 +21,7 @@ impl PanelPermission {
             PanelPermission::ManageTickets => "Manage Tickets",
             PanelPermission::ManageApiKeys => "Manage API Keys",
             PanelPermission::ManagePermissions => "Manage Permissions",
+            PanelPermission::ManageCategories => "Manage Categories",
         }
     }
 }

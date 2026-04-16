@@ -35,6 +35,7 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
     let home_active = current_path == "/panel";
     let config_active = current_path == "/panel/configuration";
     let apikeys_active = current_path == "/panel/apikeys";
+    let categories_active = current_path == "/panel/categories";
     let tickets_active = current_path.starts_with("/panel/tickets");
     let admin_active = current_path == "/admin";
 
@@ -45,6 +46,9 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
     let has_manage_permissions = props
         .permissions
         .contains(&PanelPermission::ManagePermissions);
+    let has_manage_categories = props
+        .permissions
+        .contains(&PanelPermission::ManageCategories);
 
     html! {
         <nav class="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-slate-900 to-black border-b border-slate-800">
@@ -156,6 +160,31 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                         )}
                                     >
                                         {i18n.t("navbar.tickets")}
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }}
+
+                            { if has_manage_categories {
+                                html! {
+                                    <button
+                                        onclick={{
+                                            let navigator = navigator.clone();
+                                            move |_| if let Some(nav) = &navigator {
+                                                nav.push(&PanelRoute::Categories);
+                                            }
+                                        }}
+                                        class={classes!(
+                                            "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                            if categories_active {
+                                                "bg-white/10 text-white"
+                                            } else {
+                                                "text-gray-300 hover:bg-white/10 hover:text-white"
+                                            }
+                                        )}
+                                    >
+                                        {i18n.t("navbar.categories")}
                                     </button>
                                 }
                             } else {
@@ -333,6 +362,35 @@ pub fn rustmail_navbar(props: &RustmailNavbarProps) -> Html {
                                 )}
                             >
                                 {i18n.t("navbar.tickets")}
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
+
+                    { if has_manage_categories {
+                        html! {
+                            <button
+                                onclick={{
+                                    let navigator = navigator.clone();
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    move |_| {
+                                        if let Some(nav) = &navigator {
+                                            nav.push(&PanelRoute::Categories);
+                                        }
+                                        mobile_menu_open.set(false);
+                                    }
+                                }}
+                                class={classes!(
+                                    "block", "w-full", "text-left", "rounded-md", "px-3", "py-2", "text-sm", "transition",
+                                    if categories_active {
+                                        "bg-white/10 text-white"
+                                    } else {
+                                        "text-gray-300 hover:bg-white/10 hover:text-white"
+                                    }
+                                )}
+                            >
+                                {i18n.t("navbar.categories")}
                             </button>
                         }
                     } else {

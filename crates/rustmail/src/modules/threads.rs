@@ -13,10 +13,12 @@ use std::str::FromStr;
 use std::time::Duration;
 use tokio::time::sleep;
 
-async fn create_or_get_thread_for_user(
+pub async fn create_or_get_thread_for_user(
     ctx: &Context,
     config: &Config,
     user_id: UserId,
+    discord_category_override: Option<u64>,
+    ticket_category_id: Option<&str>,
 ) -> Result<(ChannelId, bool), Box<dyn std::error::Error + Send + Sync>> {
     let pool = match &config.db_pool {
         Some(pool) => pool,
@@ -34,19 +36,25 @@ async fn create_or_get_thread_for_user(
     let thread_name = format!("🔴・{}・0m", username);
 
     let staff_guild_id = GuildId::new(config.bot.get_staff_guild_id());
-    let channel_builder =
-        CreateChannel::new(&thread_name).category(ChannelId::new(config.thread.inbox_category_id));
+    let parent_id = discord_category_override.unwrap_or(config.thread.inbox_category_id);
+    let channel_builder = CreateChannel::new(&thread_name).category(ChannelId::new(parent_id));
 
     let channel = staff_guild_id
         .create_channel(&ctx.http, channel_builder)
         .await?;
 
-    let _ = create_thread_for_user(&channel, user_id.get() as i64, &username, pool)
+    let thread_id = create_thread_for_user(&channel, user_id.get() as i64, &username, pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating thread: {}", e);
             e
         })?;
+
+    if let Some(cat_id) = ticket_category_id {
+        if let Err(e) = set_thread_category(&thread_id, Some(cat_id), pool).await {
+            eprintln!("Failed to set thread category for thread {thread_id}: {e}");
+        }
+    }
 
     let canonical_channel_id_str = get_thread_channel_by_user_id(user_id, pool).await;
     let (target_channel_id, is_new_thread) =
@@ -160,7 +168,7 @@ pub async fn create_channel(ctx: &Context, msg: &Message, config: &Config) {
     }
 
     let (target_channel_id, _is_new_thread) =
-        match create_or_get_thread_for_user(ctx, config, msg.author.id).await {
+        match create_or_get_thread_for_user(ctx, config, msg.author.id, None, None).await {
             Ok(res) => res,
             Err(e) => {
                 eprintln!("Failed to create or get thread: {}", e);
