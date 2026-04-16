@@ -214,7 +214,14 @@ pub async fn finalize_with_category(
                 let parent = cat.discord_category_id.parse::<u64>().ok();
                 (parent, Some(cat.id.clone()))
             }
-            Some(_) | None => (None, None),
+            Some(cat) => {
+                eprintln!(
+                    "Selected category {} is disabled; falling back to default inbox",
+                    cat.id
+                );
+                (None, None)
+            }
+            None => (None, None),
         }
     } else {
         (None, None)
