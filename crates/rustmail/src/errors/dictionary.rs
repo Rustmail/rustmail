@@ -188,6 +188,7 @@ impl DictionaryManager {
                 DiscordError::ShardManagerNotFound => {
                     ("discord.shard_manager_not_found".to_string(), None)
                 }
+                DiscordError::CategoryFull => ("discord.category_full".to_string(), None),
                 _ => ("discord.api_error".to_string(), None),
             },
             ModmailError::Command(cmd_err) => match cmd_err {
