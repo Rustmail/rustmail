@@ -100,18 +100,21 @@ impl RegistrableCommand for TakeCommand {
                         ticket_status.taken_by = Some(command.user.id.to_string());
                         let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
 
-                        tokio::spawn({
-                            let ctx = ctx.clone();
-                            async move {
-                                let _ = update_thread_status_ui(&ctx, &ticket_status).await;
-                            }
-                        });
+                        let applied = update_thread_status_ui(&ctx, &ticket_status)
+                            .await
+                            .unwrap_or(true);
+
+                        let key = if applied {
+                            "take.confirmation"
+                        } else {
+                            "take.confirmation_rate_limited"
+                        };
 
                         let mut params = std::collections::HashMap::new();
                         params.insert("staff".to_string(), format!("<@{}>", command.user.id));
 
                         let _ = MessageBuilder::system_message(&ctx, &config)
-                            .translated_content("take.confirmation", Some(&params), None, None)
+                            .translated_content(key, Some(&params), None, None)
                             .await
                             .to_channel(command.channel_id)
                             .send_interaction_followup(&command, true)
