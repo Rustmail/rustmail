@@ -1,0 +1,1 @@
+ALTER TABLE "thread_status" ADD COLUMN "label" TEXT DEFAULT NULL;

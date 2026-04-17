@@ -438,31 +438,37 @@ pub async fn is_orphaned_thread_channel(
 }
 
 pub async fn get_all_thread_status(pool: &SqlitePool) -> Vec<TicketState> {
-    match sqlx::query!(
+    match sqlx::query(
         r#"
         SELECT ts.channel_id,
                ts.owner_id,
                ts.taken_by,
                ts.last_message_by,
-               ts.last_message_at
+               ts.last_message_at,
+               ts.label
         FROM thread_status ts
         JOIN threads t ON ts.thread_id = t.id
         WHERE t.status = 1
-        "#
+        "#,
     )
     .fetch_all(pool)
     .await
     {
-        Ok(rows) => rows
-            .into_iter()
-            .map(|r| TicketState {
-                channel_id: r.channel_id,
-                owner_id: r.owner_id,
-                taken_by: r.taken_by,
-                last_message_by: TicketAuthor::from_str(&r.last_message_by),
-                last_message_at: r.last_message_at,
-            })
-            .collect(),
+        Ok(rows) => {
+            use sqlx::Row;
+            rows.into_iter()
+                .map(|r| TicketState {
+                    channel_id: r.get("channel_id"),
+                    owner_id: r.get("owner_id"),
+                    taken_by: r.get("taken_by"),
+                    last_message_by: TicketAuthor::from_str(
+                        r.get::<String, _>("last_message_by").as_str(),
+                    ),
+                    last_message_at: r.get("last_message_at"),
+                    label: r.get("label"),
+                })
+                .collect()
+        }
         Err(e) => {
             eprintln!("Database error getting thread statuses: {:?}", e);
             vec![]
@@ -471,29 +477,34 @@ pub async fn get_all_thread_status(pool: &SqlitePool) -> Vec<TicketState> {
 }
 
 pub async fn get_thread_status(thread_id: &str, pool: &SqlitePool) -> Option<TicketState> {
-    match sqlx::query!(
+    match sqlx::query(
         r#"
         SELECT
             channel_id,
             owner_id,
             taken_by,
             last_message_by,
-            last_message_at
+            last_message_at,
+            label
         FROM thread_status
         WHERE thread_id = ?
         "#,
-        thread_id
     )
+    .bind(thread_id)
     .fetch_optional(pool)
     .await
     {
-        Ok(Some(row)) => Some(TicketState {
-            channel_id: row.channel_id,
-            owner_id: row.owner_id,
-            taken_by: row.taken_by,
-            last_message_by: TicketAuthor::from_str(&row.last_message_by),
-            last_message_at: row.last_message_at,
-        }),
+        Ok(Some(row)) => {
+            use sqlx::Row;
+            Some(TicketState {
+                channel_id: row.get("channel_id"),
+                owner_id: row.get("owner_id"),
+                taken_by: row.get("taken_by"),
+                last_message_by: TicketAuthor::from_str(row.get::<String, _>("last_message_by").as_str()),
+                last_message_at: row.get("last_message_at"),
+                label: row.get("label"),
+            })
+        }
         Ok(None) => None,
         Err(e) => {
             eprintln!(
@@ -517,20 +528,22 @@ pub async fn update_thread_status_db(
         thread_id, ticket.taken_by, last_message_by, ticket.last_message_at
     );
 
-    sqlx::query!(
+    sqlx::query(
         r#"
         UPDATE thread_status
         SET
             taken_by = ?,
             last_message_by = ?,
-            last_message_at = ?
+            last_message_at = ?,
+            label = ?
         WHERE thread_id = ?
         "#,
-        ticket.taken_by,
-        last_message_by,
-        ticket.last_message_at,
-        thread_id
     )
+    .bind(&ticket.taken_by)
+    .bind(&last_message_by)
+    .bind(ticket.last_message_at)
+    .bind(&ticket.label)
+    .bind(thread_id)
     .execute(pool)
     .await?;
 
