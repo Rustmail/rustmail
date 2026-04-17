@@ -42,6 +42,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             .with_description("Une erreur s'est produite lors de la communication avec Discord"),
     );
     dict.messages.insert(
+        "discord.category_full".to_string(),
+        DictionaryMessage::new("Impossible de déplacer le ticket : la catégorie Discord cible a atteint le nombre maximum de salons. Libérez de l'espace ou utilisez une autre catégorie."),
+    );
+    dict.messages.insert(
         "discord.attachment_too_large".to_string(),
         DictionaryMessage::new("Votre pièce jointe est trop volumineuse ! Discord a une limite de taille de fichier de 8 Mo pour les pièces jointes. Veuillez réduire la taille du fichier ou envoyer un lien."),
     );

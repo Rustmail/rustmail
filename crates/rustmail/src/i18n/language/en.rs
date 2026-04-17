@@ -44,6 +44,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
+        "discord.category_full".to_string(),
+        DictionaryMessage::new("Unable to move the ticket: the target Discord category has reached the maximum number of channels. Please free up space or use a different category."),
+    );
+    dict.messages.insert(
         "discord.attachment_too_large".to_string(),
         DictionaryMessage::new("Your attachment is too large! Discord has a file size limit of 8 MB for attachments. Please reduce the file size or send a link."),
     );

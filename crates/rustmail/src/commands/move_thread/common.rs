@@ -1,10 +1,11 @@
-use crate::errors::{ModmailError, ModmailResult};
+use crate::errors::{DiscordError, ModmailError, ModmailResult};
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use serenity::all::{
     ChannelId, CommandInteraction, Context, EditChannel, GuildChannel, GuildId, Message,
 };
+use serenity::http::HttpError;
 
 pub async fn is_in_thread(msg: &Message, pool: &sqlx::SqlitePool) -> bool {
     let channel_id = msg.channel_id.to_string();
@@ -46,6 +47,17 @@ pub async fn fetch_server_categories(ctx: &Context, config: &Config) -> Vec<(Cha
     }
 }
 
+fn map_move_error(err: serenity::Error) -> ModmailError {
+    if let serenity::Error::Http(HttpError::UnsuccessfulRequest(ref resp)) = err {
+        // 30013 = "Maximum number of guild channels reached"
+        // 30030 = "Maximum number of server categories reached"
+        if resp.error.code == 30013 || resp.error.code == 30030 {
+            return ModmailError::Discord(DiscordError::CategoryFull);
+        }
+    }
+    ModmailError::from(err)
+}
+
 pub async fn move_channel_to_category_by_msg(
     ctx: &Context,
     msg: &Message,
@@ -61,7 +73,7 @@ pub async fn move_channel_to_category_by_msg(
                 .permissions(permissions),
         )
         .await
-        .map_err(ModmailError::from)
+        .map_err(map_move_error)
 }
 
 pub async fn move_channel_to_category_by_command_option(
@@ -80,7 +92,7 @@ pub async fn move_channel_to_category_by_command_option(
                 .permissions(permissions),
         )
         .await
-        .map_err(ModmailError::from)
+        .map_err(map_move_error)
 }
 
 pub fn find_best_match_category(
