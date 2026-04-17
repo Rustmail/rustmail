@@ -1022,6 +1022,10 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The ticket is now taken by {staff}.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
     );
     dict.messages.insert(
+        "take.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("The ticket is now taken by {staff}.\n⚠️ **Discord's API** enforces a limit of **2** channel name updates every **10 minutes**. The change will be **__automatically__** applied once the cooldown expires."),
+    );
+    dict.messages.insert(
         "take.timeout".to_string(),
         DictionaryMessage::new(
             "⚠️ **Discord’s API** enforces a limit of **2** channel updates every **10 minutes**.
@@ -1047,6 +1051,38 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "release.confirmation".to_string(),
         DictionaryMessage::new("The ticket has been released by {staff}.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
+    );
+    dict.messages.insert(
+        "release.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("The ticket has been released by {staff}.\n⚠️ **Discord's API** enforces a limit of **2** channel name updates every **10 minutes**. The change will be **__automatically__** applied once the cooldown expires."),
+    );
+    dict.messages.insert(
+        "help.rename".to_string(),
+        DictionaryMessage::new("Rename the current ticket by adding a custom label. The player's name and status remain visible. Use `!rename <label>` or `!rn <label>`. Use `!rename` with no argument to clear the label."),
+    );
+    dict.messages.insert(
+        "rename.confirmation".to_string(),
+        DictionaryMessage::new("The ticket has been renamed to **{label}**.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
+    );
+    dict.messages.insert(
+        "rename.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("The ticket has been renamed to **{label}**.\n⚠️ **Discord's API** enforces a limit of **2** channel name updates every **10 minutes**. The change will be **__automatically__** applied once the cooldown expires."),
+    );
+    dict.messages.insert(
+        "rename.cleared".to_string(),
+        DictionaryMessage::new("The ticket label has been cleared.\nDue to **Discord's API**, the channel name change may take up to **10 minutes**."),
+    );
+    dict.messages.insert(
+        "rename.cleared_rate_limited".to_string(),
+        DictionaryMessage::new("The ticket label has been cleared.\n⚠️ **Discord's API** enforces a limit of **2** channel name updates every **10 minutes**. The change will be **__automatically__** applied once the cooldown expires."),
+    );
+    dict.messages.insert(
+        "slash_command.rename_command_description".to_string(),
+        DictionaryMessage::new("Rename the current ticket with a custom label."),
+    );
+    dict.messages.insert(
+        "slash_command.rename_label_option".to_string(),
+        DictionaryMessage::new("The label to display (leave empty to clear)."),
     );
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),

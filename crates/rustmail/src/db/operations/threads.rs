@@ -500,7 +500,9 @@ pub async fn get_thread_status(thread_id: &str, pool: &SqlitePool) -> Option<Tic
                 channel_id: row.get("channel_id"),
                 owner_id: row.get("owner_id"),
                 taken_by: row.get("taken_by"),
-                last_message_by: TicketAuthor::from_str(row.get::<String, _>("last_message_by").as_str()),
+                last_message_by: TicketAuthor::from_str(
+                    row.get::<String, _>("last_message_by").as_str(),
+                ),
                 last_message_at: row.get("last_message_at"),
                 label: row.get("label"),
             })
