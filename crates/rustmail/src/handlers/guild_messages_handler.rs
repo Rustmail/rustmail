@@ -85,6 +85,7 @@ impl GuildMessagesHandler {
         wrap_command!(lock, ["snippet", "s"], snippet_command);
         wrap_command!(lock, "status", status_command);
         wrap_command!(lock, "category", category_command);
+        wrap_command!(lock, ["rename", "rn"], rename_ticket);
 
         drop(lock);
         h
