@@ -52,18 +52,21 @@ pub async fn release(
                 ticket_status.taken_by = None;
                 let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
 
-                tokio::spawn({
-                    let ctx = ctx.clone();
-                    async move {
-                        let _ = update_thread_status_ui(&ctx, &ticket_status).await;
-                    }
-                });
+                let applied = update_thread_status_ui(&ctx, &ticket_status)
+                    .await
+                    .unwrap_or(true);
+
+                let key = if applied {
+                    "release.confirmation"
+                } else {
+                    "release.confirmation_rate_limited"
+                };
 
                 let mut params = std::collections::HashMap::new();
                 params.insert("staff".to_string(), format!("<@{}>", msg.author.id));
 
                 let _ = MessageBuilder::system_message(&ctx, &config_clone)
-                    .translated_content("release.confirmation", Some(&params), None, None)
+                    .translated_content(key, Some(&params), None, None)
                     .await
                     .to_channel(msg.channel_id)
                     .send(true)

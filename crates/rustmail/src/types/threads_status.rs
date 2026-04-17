@@ -5,6 +5,7 @@ pub struct TicketState {
     pub taken_by: Option<String>,
     pub last_message_by: TicketAuthor,
     pub last_message_at: i64,
+    pub label: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

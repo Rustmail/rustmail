@@ -1036,6 +1036,10 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
     );
     dict.messages.insert(
+        "take.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("Le ticket est maintenant pris en charge par {staff}.\n⚠️ **L’API de Discord** impose une limite de **2** modifications de nom de salon toutes les **10 minutes**. Le changement sera **__automatiquement__** appliqué une fois le délai écoulé."),
+    );
+    dict.messages.insert(
         "take.timeout".to_string(),
         DictionaryMessage::new("⚠️ **L’API de Discord** impose une limite de **2** changements de salon toutes les **10 minutes**. L’action sera appliquée **__automatiquement__** dès que le délai sera écoulé."),
     );
@@ -1053,7 +1057,39 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "release.confirmation".to_string(),
-        DictionaryMessage::new("Le ticket n'est plus pris en charge par {staff}.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
+        DictionaryMessage::new("Le ticket n’est plus pris en charge par {staff}.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
+    );
+    dict.messages.insert(
+        "release.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("Le ticket n’est plus pris en charge par {staff}.\n⚠️ **L’API de Discord** impose une limite de **2** modifications de nom de salon toutes les **10 minutes**. Le changement sera **__automatiquement__** appliqué une fois le délai écoulé."),
+    );
+    dict.messages.insert(
+        "help.rename".to_string(),
+        DictionaryMessage::new("Renomme le ticket en ajoutant un libellé personnalisé. Le nom du joueur et le statut restent visibles. Utilisez `!rename <libellé>` ou `!rn <libellé>`. Utilisez `!rename` sans argument pour supprimer le libellé."),
+    );
+    dict.messages.insert(
+        "rename.confirmation".to_string(),
+        DictionaryMessage::new("Le ticket a été renommé en **{label}**.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
+    );
+    dict.messages.insert(
+        "rename.confirmation_rate_limited".to_string(),
+        DictionaryMessage::new("Le ticket a été renommé en **{label}**.\n⚠️ **L’API de Discord** impose une limite de **2** modifications de nom de salon toutes les **10 minutes**. Le changement sera **__automatiquement__** appliqué une fois le délai écoulé."),
+    );
+    dict.messages.insert(
+        "rename.cleared".to_string(),
+        DictionaryMessage::new("Le libellé du ticket a été supprimé.\nA cause de **l’API de Discord**, le changement de nom du salon peut prendre jusqu’à **10 minutes**."),
+    );
+    dict.messages.insert(
+        "rename.cleared_rate_limited".to_string(),
+        DictionaryMessage::new("Le libellé du ticket a été supprimé.\n⚠️ **L’API de Discord** impose une limite de **2** modifications de nom de salon toutes les **10 minutes**. Le changement sera **__automatiquement__** appliqué une fois le délai écoulé."),
+    );
+    dict.messages.insert(
+        "slash_command.rename_command_description".to_string(),
+        DictionaryMessage::new("Renomme le ticket avec un libellé personnalisé."),
+    );
+    dict.messages.insert(
+        "slash_command.rename_label_option".to_string(),
+        DictionaryMessage::new("Le libellé à afficher (laisser vide pour supprimer)."),
     );
     dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
