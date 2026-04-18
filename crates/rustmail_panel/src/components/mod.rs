@@ -1,4 +1,5 @@
 pub mod api_keys;
+pub mod bans;
 pub mod categories;
 pub mod configuration;
 pub mod forbidden;
