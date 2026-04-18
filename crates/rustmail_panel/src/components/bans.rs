@@ -16,7 +16,8 @@ pub struct BannedUserDto {
     pub roles: Vec<String>,
     pub joined_at: Option<i64>,
     pub banned_at: i64,
-    pub banned_by: Option<String>,
+    pub banned_by_id: Option<String>,
+    pub banned_by_name: Option<String>,
     pub ban_reason: Option<String>,
     pub roles_unknown: bool,
 }
@@ -207,7 +208,9 @@ fn ban_card(props: &BanCardProps) -> Html {
                     </div>
                     <div>
                         <p class="text-gray-500">{i18n.t("panel.bans.label_banned_by")}</p>
-                        <p class="text-gray-300 truncate">{u.banned_by.clone().unwrap_or_else(|| i18n.t("panel.bans.unknown"))}</p>
+                        <p class="text-gray-300 truncate">
+                            {u.banned_by_name.clone().or_else(|| u.banned_by_id.clone()).unwrap_or_else(|| i18n.t("panel.bans.unknown"))}
+                        </p>
                     </div>
                 </div>
 

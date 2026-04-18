@@ -23,6 +23,14 @@ pub async fn baninfo(
     let query = extract_reply_content(&msg.content, &config.command.prefix, &["baninfo", "bi"])
         .unwrap_or_default();
 
+    let is_staff_guild = msg
+        .guild_id
+        .map(|id| id.get() == config.bot.get_staff_guild_id())
+        .unwrap_or(false);
+    if !is_staff_guild {
+        return Err(permission_denied());
+    }
+
     if query.is_empty() {
         return Err(ModmailError::Command(CommandError::MissingArguments));
     }
@@ -39,14 +47,32 @@ pub async fn resolve_banned_users(
     query: &str,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<Vec<BannedUser>> {
-    let trimmed = query.trim().trim_start_matches('@');
-    if let Ok(parsed) = trimmed.parse::<u64>() {
+    let normalized = normalize_banned_user_query(query);
+    if let Ok(parsed) = normalized.parse::<u64>() {
         let user_id_str = parsed.to_string();
         if let Some(user) = get_banned_user_by_id(guild_id, &user_id_str, pool).await? {
             return Ok(vec![user]);
         }
     }
-    find_banned_users_by_username(guild_id, trimmed, pool).await
+    find_banned_users_by_username(guild_id, normalized, pool).await
+}
+
+fn normalize_banned_user_query(query: &str) -> &str {
+    let trimmed = query.trim();
+
+    if let Some(inner) = trimmed
+        .strip_prefix("<@!")
+        .and_then(|value| value.strip_suffix('>'))
+        .or_else(|| {
+            trimmed
+                .strip_prefix("<@")
+                .and_then(|value| value.strip_suffix('>'))
+        })
+    {
+        return inner;
+    }
+
+    trimmed.trim_start_matches('@')
 }
 
 async fn resolve_role_labels(ctx: &Context, config: &Config, role_ids: &[String]) -> Vec<String> {

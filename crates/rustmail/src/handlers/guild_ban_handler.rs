@@ -159,10 +159,18 @@ impl EventHandler for GuildBanHandler {
             },
         };
 
-        if let Err(e) = save_banned_user(&record, pool).await {
-            eprintln!("Failed to save banned user {}: {:?}", banned_user.id, e);
+        match save_banned_user(&record, pool).await {
+            Ok(()) => {
+                if let Err(e) = delete_tracked_member(&guild_id_str, &user_id_str, pool).await {
+                    eprintln!(
+                        "Failed to delete tracked member {} from guild {} after saving banned user: {:?}",
+                        banned_user.id, guild_id, e
+                    );
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to save banned user {}: {:?}", banned_user.id, e);
+            }
         }
-
-        let _ = delete_tracked_member(&guild_id_str, &user_id_str, pool).await;
     }
 }

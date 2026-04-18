@@ -139,7 +139,7 @@ pub async fn save_banned_user(user: &BannedUser, pool: &SqlitePool) -> ModmailRe
             nickname = excluded.nickname,
             avatar_url = excluded.avatar_url,
             roles = excluded.roles,
-            joined_at = excluded.joined_at,
+            joined_at = COALESCE(excluded.joined_at, banned_users.joined_at),
             banned_at = excluded.banned_at,
             banned_by = excluded.banned_by,
             ban_reason = excluded.ban_reason,
