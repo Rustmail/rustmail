@@ -13,6 +13,7 @@
     "apikeys": "Clés API",
     "tickets": "Tickets",
     "categories": "Catégories",
+    "bans": "Bans",
     "administration": "Administration",
     "logout": "Se déconnecter"
   },
@@ -270,8 +271,27 @@
         "manage_tickets": "Gérer les Tickets",
         "manage_api_keys": "Gérer les Clés API",
         "manage_permissions": "Gérer les Permissions",
-        "manage_categories": "Gérer les Catégories"
+        "manage_categories": "Gérer les Catégories",
+        "view_bans": "Voir les Bans"
       }
+    },
+    "bans": {
+      "title": "Utilisateurs Bannis",
+      "loading": "Chargement des utilisateurs bannis...",
+      "reload": "Recharger",
+      "no_bans": "Aucun utilisateur banni trouvé dans la base de données.",
+      "error_load": "Échec du chargement des utilisateurs bannis",
+      "error_parse": "Échec de l'analyse des utilisateurs bannis",
+      "unknown": "Inconnu",
+      "no_reason": "Aucune raison fournie",
+      "no_roles": "Aucun rôle",
+      "roles_unknown": "Rôles inconnus (ban depuis un autre serveur)",
+      "label_username": "Nom d'utilisateur",
+      "label_banned_at": "Banni le",
+      "label_joined_at": "Arrivé le",
+      "label_banned_by": "Banni par",
+      "label_reason": "Raison",
+      "label_roles": "Rôles"
     },
     "categories": {
       "title": "Catégories de tickets",

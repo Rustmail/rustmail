@@ -1096,6 +1096,74 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Le libellé à afficher (laisser vide pour supprimer)."),
     );
     dict.messages.insert(
+        "slash_command.baninfo_command_description".to_string(),
+        DictionaryMessage::new(
+            "Affiche les informations enregistrées lors du ban d'un utilisateur (rôles, raison, exécuteur).",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.baninfo_query_option".to_string(),
+        DictionaryMessage::new(
+            "ID utilisateur ou pseudo à rechercher parmi les utilisateurs bannis.",
+        ),
+    );
+    dict.messages.insert(
+        "help.baninfo".to_string(),
+        DictionaryMessage::new(
+            "Affiche les informations enregistrées lors du ban d'un utilisateur. Utilise `!baninfo <user_id|pseudo>` ou `!bi <...>`. Utile pour restaurer un compte compromis : rôles, surnom, date d'arrivée, raison et auteur du ban sont conservés.",
+        ),
+    );
+    dict.messages.insert(
+        "baninfo.title".to_string(),
+        DictionaryMessage::new("Informations sur l'utilisateur banni"),
+    );
+    dict.messages.insert(
+        "baninfo.not_found".to_string(),
+        DictionaryMessage::new("Aucun utilisateur banni ne correspond à `{query}`."),
+    );
+    dict.messages.insert(
+        "baninfo.multiple_matches".to_string(),
+        DictionaryMessage::new(
+            "Plusieurs utilisateurs bannis correspondent. Relance la commande avec l'ID de l'utilisateur :",
+        ),
+    );
+    dict.messages.insert(
+        "baninfo.roles_unknown".to_string(),
+        DictionaryMessage::new("Inconnus (l'utilisateur n'était pas suivi avant le ban)"),
+    );
+    dict.messages.insert(
+        "baninfo.label.username".to_string(),
+        DictionaryMessage::new("Nom d'utilisateur"),
+    );
+    dict.messages.insert(
+        "baninfo.label.nickname".to_string(),
+        DictionaryMessage::new("Surnom"),
+    );
+    dict.messages.insert(
+        "baninfo.label.user_id".to_string(),
+        DictionaryMessage::new("Utilisateur"),
+    );
+    dict.messages.insert(
+        "baninfo.label.joined_at".to_string(),
+        DictionaryMessage::new("Arrivé le"),
+    );
+    dict.messages.insert(
+        "baninfo.label.banned_at".to_string(),
+        DictionaryMessage::new("Banni le"),
+    );
+    dict.messages.insert(
+        "baninfo.label.banned_by".to_string(),
+        DictionaryMessage::new("Banni par"),
+    );
+    dict.messages.insert(
+        "baninfo.label.reason".to_string(),
+        DictionaryMessage::new("Raison"),
+    );
+    dict.messages.insert(
+        "baninfo.label.roles".to_string(),
+        DictionaryMessage::new("Rôles"),
+    );
+    dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
         DictionaryMessage::new("Le nom de la commande pour laquelle vous souhaitez de l'aide"),
     );

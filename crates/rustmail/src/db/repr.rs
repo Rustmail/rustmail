@@ -48,6 +48,36 @@ pub struct PendingCategorySelection {
     pub queued_msg_ids: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct TrackedMember {
+    pub guild_id: String,
+    pub user_id: String,
+    pub username: String,
+    pub global_name: Option<String>,
+    pub nickname: Option<String>,
+    pub avatar_url: Option<String>,
+    pub roles: Vec<String>,
+    pub joined_at: Option<i64>,
+    pub first_seen_at: i64,
+    pub last_seen_at: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BannedUser {
+    pub guild_id: String,
+    pub user_id: String,
+    pub username: String,
+    pub global_name: Option<String>,
+    pub nickname: Option<String>,
+    pub avatar_url: Option<String>,
+    pub roles: Vec<String>,
+    pub joined_at: Option<i64>,
+    pub banned_at: i64,
+    pub banned_by: Option<String>,
+    pub ban_reason: Option<String>,
+    pub roles_unknown: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Permission {

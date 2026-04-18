@@ -149,6 +149,7 @@ pub async fn run_bot(
     registry.register_command(StatusCommand);
     registry.register_command(CategoryCommand);
     registry.register_command(RenameCommand);
+    registry.register_command(BaninfoCommand);
 
     let registry = Arc::new(registry);
 
@@ -182,6 +183,7 @@ pub async fn run_bot(
             maintenance_mode,
         ))
         .event_handler(GuildHandler::new(&config))
+        .event_handler(GuildBanHandler::new(&config))
         .await
         .expect("Failed to create client.");
 

@@ -1,4 +1,5 @@
 use crate::components::api_keys::ApiKeysPage;
+use crate::components::bans::BansPage;
 use crate::components::categories::CategoriesPage;
 use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
@@ -29,6 +30,8 @@ pub enum PanelRoute {
     ApiKeys,
     #[at("/panel/categories")]
     Categories,
+    #[at("/panel/bans")]
+    Bans,
     #[at("/panel/tickets")]
     TicketsList,
     #[at("/panel/tickets/:id")]
@@ -138,6 +141,7 @@ fn switch(route: PanelRoute, navigator: Option<Navigator>) -> Html {
         PanelRoute::Configuration => html! { <ConfigurationPage /> },
         PanelRoute::ApiKeys => html! { <ApiKeysPage /> },
         PanelRoute::Categories => html! { <CategoriesPage /> },
+        PanelRoute::Bans => html! { <BansPage /> },
         PanelRoute::TicketsList => html! { <TicketsList /> },
         PanelRoute::TicketDetails { id } => {
             let nav = navigator.clone();
