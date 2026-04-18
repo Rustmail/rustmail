@@ -10,6 +10,7 @@ pub enum PanelPermission {
     ManageApiKeys,
     ManagePermissions,
     ManageCategories,
+    ViewBans,
 }
 
 impl PanelPermission {
@@ -22,6 +23,7 @@ impl PanelPermission {
             PanelPermission::ManageApiKeys => "manage_api_keys",
             PanelPermission::ManagePermissions => "manage_permissions",
             PanelPermission::ManageCategories => "manage_categories",
+            PanelPermission::ViewBans => "view_bans",
         }
     }
 
@@ -34,6 +36,7 @@ impl PanelPermission {
             "manage_api_keys" => Some(PanelPermission::ManageApiKeys),
             "manage_permissions" => Some(PanelPermission::ManagePermissions),
             "manage_categories" => Some(PanelPermission::ManageCategories),
+            "view_bans" => Some(PanelPermission::ViewBans),
             _ => None,
         }
     }

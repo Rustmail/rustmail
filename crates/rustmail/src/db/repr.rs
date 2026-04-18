@@ -62,7 +62,7 @@ pub struct TrackedMember {
     pub last_seen_at: i64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BannedUser {
     pub guild_id: String,
     pub user_id: String,
