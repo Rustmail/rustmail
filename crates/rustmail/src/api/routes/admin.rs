@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub fn create_admin_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<BotState>>> {
-    let admin_router = Router::new()
+    let permissions_router = Router::new()
         .route("/members", get(handle_list_members))
         .route("/roles", get(handle_list_roles))
         .route("/permissions", get(handle_list_permissions))
@@ -18,11 +18,19 @@ pub fn create_admin_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<
             move |state, jar, req, next| {
                 require_panel_permission(state, jar, req, next, PanelPermission::ManagePermissions)
             },
-        ))
+        ));
+
+    let bans_router = Router::new().route("/bans", get(handle_list_bans)).layer(
+        axum::middleware::from_fn_with_state(bot_state.clone(), move |state, jar, req, next| {
+            require_panel_permission(state, jar, req, next, PanelPermission::ViewBans)
+        }),
+    );
+
+    Router::new()
+        .merge(permissions_router)
+        .merge(bans_router)
         .layer(axum::middleware::from_fn_with_state(
             bot_state,
             auth_middleware,
-        ));
-
-    admin_router
+        ))
 }
