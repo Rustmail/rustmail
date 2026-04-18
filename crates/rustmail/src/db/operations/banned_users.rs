@@ -224,3 +224,27 @@ pub async fn find_banned_users_by_username(
 
     Ok(rows.into_iter().map(row_to_banned_user).collect())
 }
+
+pub async fn get_all_banned_users(
+    guild_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<Vec<BannedUser>> {
+    let rows = sqlx::query(
+        r#"
+        SELECT guild_id, user_id, username, global_name, nickname, avatar_url,
+               roles, joined_at, banned_at, banned_by, ban_reason, roles_unknown
+        FROM banned_users
+        WHERE guild_id = ?
+        ORDER BY banned_at DESC
+        "#,
+    )
+    .bind(guild_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Failed to fetch all banned users: {e:?}");
+        validation_failed("Failed to fetch all banned users")
+    })?;
+
+    Ok(rows.into_iter().map(row_to_banned_user).collect())
+}
