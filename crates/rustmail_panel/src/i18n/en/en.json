@@ -13,6 +13,7 @@
     "apikeys": "API Keys",
     "tickets": "Tickets",
     "categories": "Categories",
+    "bans": "Bans",
     "administration": "Administration",
     "logout": "Logout"
   },
@@ -269,8 +270,27 @@
         "manage_tickets": "Manage Tickets",
         "manage_api_keys": "Manage API Keys",
         "manage_permissions": "Manage Permissions",
-        "manage_categories": "Manage Categories"
+        "manage_categories": "Manage Categories",
+        "view_bans": "View Bans"
       }
+    },
+    "bans": {
+      "title": "Banned Users",
+      "loading": "Loading banned users...",
+      "reload": "Reload",
+      "no_bans": "No banned users found in database.",
+      "error_load": "Failed to load banned users",
+      "error_parse": "Failed to parse banned users",
+      "unknown": "Unknown",
+      "no_reason": "No reason provided",
+      "no_roles": "No roles",
+      "roles_unknown": "Roles unknown (ban from another server)",
+      "label_username": "Username",
+      "label_banned_at": "Banned at",
+      "label_joined_at": "Joined at",
+      "label_banned_by": "Banned by",
+      "label_reason": "Reason",
+      "label_roles": "Roles"
     },
     "categories": {
       "title": "Ticket Categories",
