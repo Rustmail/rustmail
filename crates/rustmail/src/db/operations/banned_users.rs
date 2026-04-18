@@ -41,10 +41,7 @@ fn row_to_banned_user(row: sqlx::sqlite::SqliteRow) -> BannedUser {
     }
 }
 
-pub async fn upsert_tracked_member(
-    member: &TrackedMember,
-    pool: &SqlitePool,
-) -> ModmailResult<()> {
+pub async fn upsert_tracked_member(member: &TrackedMember, pool: &SqlitePool) -> ModmailResult<()> {
     let roles_json = serde_json::to_string(&member.roles)
         .map_err(|_| validation_failed("Failed to serialize member roles"))?;
 

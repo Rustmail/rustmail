@@ -1089,6 +1089,72 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The label to display (leave empty to clear)."),
     );
     dict.messages.insert(
+        "slash_command.baninfo_command_description".to_string(),
+        DictionaryMessage::new(
+            "Show information recorded when a user was banned (roles, reason, executor).",
+        ),
+    );
+    dict.messages.insert(
+        "slash_command.baninfo_query_option".to_string(),
+        DictionaryMessage::new("User ID or username to look up among banned users."),
+    );
+    dict.messages.insert(
+        "help.baninfo".to_string(),
+        DictionaryMessage::new(
+            "Show information recorded when a user was banned. Use `!baninfo <user_id|username>` or `!bi <...>`. Useful for restoring a compromised account: roles, nickname, join date, ban reason and executor are kept.",
+        ),
+    );
+    dict.messages.insert(
+        "baninfo.title".to_string(),
+        DictionaryMessage::new("Banned user information"),
+    );
+    dict.messages.insert(
+        "baninfo.not_found".to_string(),
+        DictionaryMessage::new("No banned user matches `{query}`."),
+    );
+    dict.messages.insert(
+        "baninfo.multiple_matches".to_string(),
+        DictionaryMessage::new(
+            "Several banned users matched. Re-run the command with the user ID:",
+        ),
+    );
+    dict.messages.insert(
+        "baninfo.roles_unknown".to_string(),
+        DictionaryMessage::new("Unknown (user was not tracked before the ban)"),
+    );
+    dict.messages.insert(
+        "baninfo.label.username".to_string(),
+        DictionaryMessage::new("Username"),
+    );
+    dict.messages.insert(
+        "baninfo.label.nickname".to_string(),
+        DictionaryMessage::new("Nickname"),
+    );
+    dict.messages.insert(
+        "baninfo.label.user_id".to_string(),
+        DictionaryMessage::new("User"),
+    );
+    dict.messages.insert(
+        "baninfo.label.joined_at".to_string(),
+        DictionaryMessage::new("Joined at"),
+    );
+    dict.messages.insert(
+        "baninfo.label.banned_at".to_string(),
+        DictionaryMessage::new("Banned at"),
+    );
+    dict.messages.insert(
+        "baninfo.label.banned_by".to_string(),
+        DictionaryMessage::new("Banned by"),
+    );
+    dict.messages.insert(
+        "baninfo.label.reason".to_string(),
+        DictionaryMessage::new("Reason"),
+    );
+    dict.messages.insert(
+        "baninfo.label.roles".to_string(),
+        DictionaryMessage::new("Roles"),
+    );
+    dict.messages.insert(
         "slash_command.help_command_argument_desc".to_string(),
         DictionaryMessage::new("The command to get help with"),
     );
