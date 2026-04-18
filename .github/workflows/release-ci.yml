@@ -29,11 +29,11 @@ jobs:
           rustup target add wasm32-unknown-unknown
           cargo install trunk --locked
 
-      - name: Install wasm-opt 128
+      - name: Install wasm-opt 129
         run: |
-          wget https://github.com/WebAssembly/binaryen/releases/download/version_128/binaryen-version_128-aarch64-linux.tar.gz
-          tar -xzf binaryen-version_128-aarch64-linux.tar.gz
-          sudo mv binaryen-version_128/bin/wasm-opt /usr/local/bin/
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_129/binaryen-version_129-x86_64-linux.tar.gz
+          tar -xzf binaryen-version_129-x86_64-linux.tar.gz
+          sudo mv binaryen-version_129/bin/wasm-opt /usr/local/bin/
           wasm-opt --version
 
       - name: Build frontend
