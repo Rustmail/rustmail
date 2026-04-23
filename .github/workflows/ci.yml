@@ -1,13 +1,11 @@
 name: Cargo Build & Test
-
 on:
   push:
   pull_request:
-
 jobs:
   build_and_test:
     name: Rustmail - latest
-    runs-on: self-hosted
+    runs-on: ubuntu-22.04
     env:
       SQLX_OFFLINE: true
       CARGO_TERM_COLOR: always
@@ -15,11 +13,8 @@ jobs:
     strategy:
       matrix:
         toolchain: [stable]
-
     steps:
-      - uses: actions/checkout@v6
-        with:
-          clean: 'false'
+      - uses: actions/checkout@v4
 
       - name: Install System Libs
         run: |
@@ -27,60 +22,26 @@ jobs:
 
       - name: Setup Rust
         run: |
-          if ! command -v rustup &> /dev/null; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          fi
-          source "$HOME/.cargo/env"
           rustup default ${{ matrix.toolchain }}
           rustup target add wasm32-unknown-unknown
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Setup Trunk, Wasm-bindgen & Wasm-opt
         run: |
-          source "$HOME/.cargo/env"
-          
-          if ! command -v trunk &> /dev/null; then
-            wget https://github.com/trunk-rs/trunk/releases/latest/download/trunk-aarch64-unknown-linux-gnu.tar.gz
-            tar -xzf trunk-aarch64-unknown-linux-gnu.tar.gz
-            sudo mv trunk /usr/local/bin/
-            rm trunk-aarch64-unknown-linux-gnu.tar.gz
-          fi
-          
-          REQUIRED_VERSION=$(cargo metadata --format-version 1 --no-deps 2>/dev/null \
-            | python3 -c "
-          import sys, json
-          meta = json.load(sys.stdin)
-          for pkg in meta['packages']:
-            if pkg['name'] == 'wasm-bindgen':
-              print(pkg['version'])
-              break
-          " || echo "")
-          
-          if [ -z "$REQUIRED_VERSION" ]; then
-            REQUIRED_VERSION=$(grep -A1 'name = "wasm-bindgen"' Cargo.lock \
-              | grep version | head -1 | sed 's/.*version = "\(.*\)"/\1/')
-          fi
-          
+          wget https://github.com/trunk-rs/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf trunk-x86_64-unknown-linux-gnu.tar.gz
+          sudo mv trunk /usr/local/bin/
+          rm trunk-x86_64-unknown-linux-gnu.tar.gz
+
+          REQUIRED_VERSION=$(grep -A1 'name = "wasm-bindgen"' Cargo.lock \
+            | grep version | head -1 | sed 's/.*version = "\(.*\)"/\1/')
           echo "Required wasm-bindgen version: $REQUIRED_VERSION"
-          
-          INSTALLED_VERSION=$(wasm-bindgen --version 2>/dev/null | awk '{print $2}' || echo "none")
-          echo "Installed wasm-bindgen version: $INSTALLED_VERSION"
-          
-          if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
-            echo "Version mismatch, compiling wasm-bindgen-cli $REQUIRED_VERSION from source..."
-            cargo install wasm-bindgen-cli --version "=$REQUIRED_VERSION" --locked
-          else
-            echo "wasm-bindgen-cli is up to date."
-          fi
-          
-          if ! command -v wasm-opt &> /dev/null; then
-            wget https://github.com/WebAssembly/binaryen/releases/download/version_128/binaryen-version_128-aarch64-linux.tar.gz
-            tar -xzf binaryen-version_128-aarch64-linux.tar.gz
-            sudo mv binaryen-version_128/bin/wasm-opt /usr/local/bin/
-            rm -rf binaryen-version_128*
-          fi
-          
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          cargo install wasm-bindgen-cli --version "=$REQUIRED_VERSION" --locked
+
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_128/binaryen-version_128-x86_64-linux.tar.gz
+          tar -xzf binaryen-version_128-x86_64-linux.tar.gz
+          sudo mv binaryen-version_128/bin/wasm-opt /usr/local/bin/
+          rm -rf binaryen-version_128*
+
           wasm-bindgen --version
           wasm-opt --version
 
