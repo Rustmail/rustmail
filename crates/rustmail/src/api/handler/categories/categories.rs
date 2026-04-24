@@ -1,7 +1,8 @@
 use crate::db::operations::ticket_categories::CATEGORY_BUTTON_HARD_LIMIT;
 use crate::db::operations::{
-    count_enabled_categories, create_category, delete_category, get_category_by_id,
-    get_category_by_name, get_category_settings, list_all_categories, update_category,
+    add_category_role, count_enabled_categories, create_category, delete_category,
+    get_category_by_id, get_category_by_name, get_category_settings, list_all_categories,
+    list_category_role_ids, remove_category_role, set_category_roles, update_category,
     update_category_settings,
 };
 use crate::db::repr::{TicketCategory, TicketCategorySettings};
@@ -252,4 +253,89 @@ pub async fn update_category_settings_handler(
         .map_err(internal)?;
     let s = get_category_settings(&p).await.map_err(internal)?;
     Ok(Json(s.into()))
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CategoryRolesDto {
+    pub role_ids: Vec<String>,
+}
+
+async fn ensure_category_exists(
+    p: &SqlitePool,
+    id: &str,
+) -> Result<TicketCategory, (StatusCode, String)> {
+    get_category_by_id(id, p)
+        .await
+        .map_err(internal)?
+        .ok_or((StatusCode::NOT_FOUND, "Category not found".to_string()))
+}
+
+fn validate_role_id(raw: &str) -> Result<String, (StatusCode, String)> {
+    let trimmed = raw.trim();
+    trimmed
+        .parse::<u64>()
+        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid role_id".to_string()))?;
+    Ok(trimmed.to_string())
+}
+
+pub async fn list_category_roles_handler(
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+    Path(id): Path<String>,
+) -> Result<Json<CategoryRolesDto>, (StatusCode, String)> {
+    let p = pool(&bot_state).await?;
+    let _ = ensure_category_exists(&p, &id).await?;
+    let role_ids = list_category_role_ids(&id, &p).await.map_err(internal)?;
+    Ok(Json(CategoryRolesDto { role_ids }))
+}
+
+#[derive(Deserialize)]
+pub struct CategoryRoleRequest {
+    pub role_id: String,
+}
+
+pub async fn add_category_role_handler(
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+    Path(id): Path<String>,
+    Json(req): Json<CategoryRoleRequest>,
+) -> Result<Json<CategoryRolesDto>, (StatusCode, String)> {
+    let p = pool(&bot_state).await?;
+    let _ = ensure_category_exists(&p, &id).await?;
+    let role_id = validate_role_id(&req.role_id)?;
+    add_category_role(&id, &role_id, &p)
+        .await
+        .map_err(internal)?;
+    let role_ids = list_category_role_ids(&id, &p).await.map_err(internal)?;
+    Ok(Json(CategoryRolesDto { role_ids }))
+}
+
+pub async fn set_category_roles_handler(
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+    Path(id): Path<String>,
+    Json(req): Json<CategoryRolesDto>,
+) -> Result<Json<CategoryRolesDto>, (StatusCode, String)> {
+    let p = pool(&bot_state).await?;
+    let _ = ensure_category_exists(&p, &id).await?;
+    let mut validated: Vec<String> = Vec::with_capacity(req.role_ids.len());
+    for raw in &req.role_ids {
+        validated.push(validate_role_id(raw)?);
+    }
+    set_category_roles(&id, &validated, &p)
+        .await
+        .map_err(internal)?;
+    let role_ids = list_category_role_ids(&id, &p).await.map_err(internal)?;
+    Ok(Json(CategoryRolesDto { role_ids }))
+}
+
+pub async fn remove_category_role_handler(
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+    Path((id, role_id)): Path<(String, String)>,
+) -> Result<Json<CategoryRolesDto>, (StatusCode, String)> {
+    let p = pool(&bot_state).await?;
+    let _ = ensure_category_exists(&p, &id).await?;
+    let role_id = validate_role_id(&role_id)?;
+    remove_category_role(&id, &role_id, &p)
+        .await
+        .map_err(internal)?;
+    let role_ids = list_category_role_ids(&id, &p).await.map_err(internal)?;
+    Ok(Json(CategoryRolesDto { role_ids }))
 }
