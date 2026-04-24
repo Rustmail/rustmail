@@ -342,17 +342,16 @@ pub async fn remove_category_role(
     role_id: &str,
     pool: &SqlitePool,
 ) -> ModmailResult<bool> {
-    let res = sqlx::query(
-        "DELETE FROM ticket_category_roles WHERE category_id = ? AND role_id = ?",
-    )
-    .bind(category_id)
-    .bind(role_id)
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Failed to remove category role: {e:?}");
-        validation_failed("Failed to remove category role")
-    })?;
+    let res =
+        sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ? AND role_id = ?")
+            .bind(category_id)
+            .bind(role_id)
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                eprintln!("Failed to remove category role: {e:?}");
+                validation_failed("Failed to remove category role")
+            })?;
 
     Ok(res.rows_affected() > 0)
 }
