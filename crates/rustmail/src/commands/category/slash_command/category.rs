@@ -184,7 +184,90 @@ impl RegistrableCommand for CategoryCommand {
                         CommandOptionType::SubCommand,
                         "off",
                         "Disable category selection feature",
-                    )),
+                    ))
+                    .add_option(
+                        CreateCommandOption::new(
+                            CommandOptionType::SubCommandGroup,
+                            "roles",
+                            "Manage roles linked to a category",
+                        )
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::SubCommand,
+                                "add",
+                                "Link a role to a category",
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "name",
+                                    "Category name",
+                                )
+                                .required(true),
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::Role,
+                                    "role",
+                                    "Role to link",
+                                )
+                                .required(true),
+                            ),
+                        )
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::SubCommand,
+                                "remove",
+                                "Unlink a role from a category",
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "name",
+                                    "Category name",
+                                )
+                                .required(true),
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::Role,
+                                    "role",
+                                    "Role to unlink",
+                                )
+                                .required(true),
+                            ),
+                        )
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::SubCommand,
+                                "list",
+                                "List roles linked to a category",
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "name",
+                                    "Category name",
+                                )
+                                .required(true),
+                            ),
+                        )
+                        .add_sub_option(
+                            CreateCommandOption::new(
+                                CommandOptionType::SubCommand,
+                                "clear",
+                                "Unlink all roles from a category",
+                            )
+                            .add_sub_option(
+                                CreateCommandOption::new(
+                                    CommandOptionType::String,
+                                    "name",
+                                    "Category name",
+                                )
+                                .required(true),
+                            ),
+                        ),
+                    ),
             ]
         })
     }
@@ -230,6 +313,7 @@ impl RegistrableCommand for CategoryCommand {
                 }
                 "on" => sub_feature(&ctx, &command, pool, &config, true).await,
                 "off" => sub_feature(&ctx, &command, pool, &config, false).await,
+                "roles" => sub_roles(&ctx, &command, subcommand, pool, &config).await,
                 _ => reply(&ctx, &command, &config, "category.unknown_subcommand", None).await,
             }
         })
@@ -568,4 +652,149 @@ async fn sub_feature(
         "category.feature_disabled"
     };
     reply(ctx, command, config, key, None).await
+}
+
+fn get_sub_group_options(options: &[CommandDataOption]) -> Option<(&str, &Vec<CommandDataOption>)> {
+    let sub_group = options.first()?;
+    if let CommandDataOptionValue::SubCommandGroup(sub_opts) = &sub_group.value {
+        let sub = sub_opts.first()?;
+        if let CommandDataOptionValue::SubCommand(leaf_opts) = &sub.value {
+            return Some((sub.name.as_str(), leaf_opts));
+        }
+    }
+    None
+}
+
+fn leaf_string(opts: &[CommandDataOption], key: &str) -> Option<String> {
+    for o in opts {
+        if o.name == key {
+            if let CommandDataOptionValue::String(s) = &o.value {
+                return Some(s.clone());
+            }
+        }
+    }
+    None
+}
+
+fn leaf_role(opts: &[CommandDataOption], key: &str) -> Option<u64> {
+    for o in opts {
+        if o.name == key {
+            if let CommandDataOptionValue::Role(r) = &o.value {
+                return Some(r.get());
+            }
+        }
+    }
+    None
+}
+
+async fn sub_roles(
+    ctx: &Context,
+    command: &CommandInteraction,
+    _sub_group: &CommandDataOption,
+    pool: &sqlx::SqlitePool,
+    config: &Config,
+) -> ModmailResult<()> {
+    let (action, leaf_opts) = match get_sub_group_options(&command.data.options) {
+        Some(v) => v,
+        None => return reply(ctx, command, config, "category.roles_usage", None).await,
+    };
+
+    match action {
+        "add" => {
+            let name = match leaf_string(leaf_opts, "name") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let role = match leaf_role(leaf_opts, "role") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let cat = match get_category_by_name(&name, pool).await? {
+                Some(c) => c,
+                None => return reply(ctx, command, config, "category.not_found", None).await,
+            };
+            let added = add_category_role(&cat.id, &role.to_string(), pool).await?;
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("role".to_string(), format!("<@&{}>", role));
+            let key = if added {
+                "category.role_added"
+            } else {
+                "category.role_already_linked"
+            };
+            reply(ctx, command, config, key, Some(params)).await
+        }
+        "remove" => {
+            let name = match leaf_string(leaf_opts, "name") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let role = match leaf_role(leaf_opts, "role") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let cat = match get_category_by_name(&name, pool).await? {
+                Some(c) => c,
+                None => return reply(ctx, command, config, "category.not_found", None).await,
+            };
+            let removed = remove_category_role(&cat.id, &role.to_string(), pool).await?;
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("role".to_string(), format!("<@&{}>", role));
+            let key = if removed {
+                "category.role_removed"
+            } else {
+                "category.role_not_linked"
+            };
+            reply(ctx, command, config, key, Some(params)).await
+        }
+        "list" => {
+            let name = match leaf_string(leaf_opts, "name") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let cat = match get_category_by_name(&name, pool).await? {
+                Some(c) => c,
+                None => return reply(ctx, command, config, "category.not_found", None).await,
+            };
+            let roles = list_category_role_ids(&cat.id, pool).await?;
+            if roles.is_empty() {
+                let mut params = HashMap::new();
+                params.insert("name".to_string(), cat.name);
+                return reply(
+                    ctx,
+                    command,
+                    config,
+                    "category.roles_list_empty",
+                    Some(params),
+                )
+                .await;
+            }
+            let mentions = roles
+                .iter()
+                .map(|r| format!("<@&{}>", r))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("roles".to_string(), mentions);
+            reply(ctx, command, config, "category.roles_list", Some(params)).await
+        }
+        "clear" => {
+            let name = match leaf_string(leaf_opts, "name") {
+                Some(v) => v,
+                None => return reply(ctx, command, config, "category.roles_usage", None).await,
+            };
+            let cat = match get_category_by_name(&name, pool).await? {
+                Some(c) => c,
+                None => return reply(ctx, command, config, "category.not_found", None).await,
+            };
+            let removed = clear_category_roles(&cat.id, pool).await?;
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("count".to_string(), removed.to_string());
+            reply(ctx, command, config, "category.roles_cleared", Some(params)).await
+        }
+        _ => reply(ctx, command, config, "category.roles_usage", None).await,
+    }
 }
