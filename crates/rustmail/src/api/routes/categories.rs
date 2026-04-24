@@ -14,6 +14,14 @@ pub fn create_categories_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<M
         .route("/{id}", delete(delete_category_handler))
         .route("/settings", get(get_category_settings_handler))
         .route("/settings", put(update_category_settings_handler))
+        .route("/{id}/roles", get(list_category_roles_handler))
+        .route("/{id}/roles", post(add_category_role_handler))
+        .route("/{id}/roles", put(set_category_roles_handler))
+        .route("/{id}/roles", delete(clear_category_roles_handler))
+        .route(
+            "/{id}/roles/{role_id}",
+            delete(remove_category_role_handler),
+        )
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {

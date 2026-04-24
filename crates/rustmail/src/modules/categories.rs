@@ -5,8 +5,9 @@ use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::all::{
-    ButtonStyle, ChannelId, ComponentInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Message, ReactionType, UserId,
+    ButtonStyle, ChannelId, ComponentInteraction, Context, CreateAllowedMentions,
+    CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage, Message,
+    ReactionType, RoleId, UserId,
 };
 use serenity::builder::{CreateActionRow, CreateButton};
 use std::collections::HashMap;
@@ -227,7 +228,7 @@ pub async fn finalize_with_category(
         (None, None)
     };
 
-    let (target_channel_id, _is_new) = create_or_get_thread_for_user(
+    let (target_channel_id, is_new) = create_or_get_thread_for_user(
         ctx,
         config,
         user,
@@ -235,6 +236,14 @@ pub async fn finalize_with_category(
         ticket_cat_id.as_deref(),
     )
     .await?;
+
+    if is_new {
+        if let Some(cat_id) = ticket_cat_id.as_deref() {
+            if let Err(e) = mention_category_roles(ctx, pool, target_channel_id, cat_id).await {
+                eprintln!("Failed to mention category roles: {e:?}");
+            }
+        }
+    }
 
     let dm_channel = ChannelId::new(pending.dm_channel_id.parse::<u64>().unwrap_or(0));
     for mid in &pending.queued_msg_ids {
@@ -285,6 +294,39 @@ pub async fn handle_category_component_interaction(
 
     finalize_with_category(ctx, config, user_id, category_id.as_deref()).await?;
     Ok(true)
+}
+
+async fn mention_category_roles(
+    ctx: &Context,
+    pool: &sqlx::SqlitePool,
+    channel_id: ChannelId,
+    category_id: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let role_ids = list_category_role_ids(category_id, pool).await?;
+    if role_ids.is_empty() {
+        return Ok(());
+    }
+
+    let parsed: Vec<RoleId> = role_ids
+        .iter()
+        .filter_map(|s| s.parse::<u64>().ok().map(RoleId::new))
+        .collect();
+    if parsed.is_empty() {
+        return Ok(());
+    }
+
+    let content = parsed
+        .iter()
+        .map(|r| format!("<@&{}>", r.get()))
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let msg = CreateMessage::new()
+        .content(content)
+        .allowed_mentions(CreateAllowedMentions::new().roles(parsed.clone()));
+
+    channel_id.send_message(&ctx.http, msg).await?;
+    Ok(())
 }
 
 pub async fn hydrate_pending_category_selections(ctx: &Context, config: &Config) {

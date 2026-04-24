@@ -972,7 +972,11 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
             `disable <nom>` - Désactive une catégorie spécifique.\n\
             `on` - Active globalement la fonctionnalité de sélection de catégorie.\n\
             `off` - Désactive globalement la fonctionnalité de sélection de catégorie.\n\
-            `timeout <secondes>` - Définit le délai (en secondes) dont disposent les utilisateurs pour choisir une catégorie avant le choix par défaut."
+            `timeout <secondes>` - Définit le délai (en secondes) dont disposent les utilisateurs pour choisir une catégorie avant le choix par défaut.\n\
+            `roles add <nom> <role_id>` - Associe un rôle à une catégorie ; le rôle est mentionné à l'ouverture d'un ticket dans la catégorie.\n\
+            `roles remove <nom> <role_id>` - Dissocie un rôle d'une catégorie.\n\
+            `roles list <nom>` - Affiche les rôles associés à une catégorie.\n\
+            `roles clear <nom>` - Dissocie tous les rôles d'une catégorie."
         ),
     );
     dict.messages.insert(
@@ -2142,14 +2146,50 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "category.unknown_subcommand".to_string(),
-        DictionaryMessage::new("Sous-commande inconnue. Utilisez : create, list, rename, move, delete, enable, disable, timeout, on, off."),
+        DictionaryMessage::new("Sous-commande inconnue. Utilisez : create, list, rename, move, delete, enable, disable, timeout, on, off, roles."),
     );
     dict.messages.insert(
         "category.text_usage".to_string(),
-        DictionaryMessage::new("Utilisation : `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off> ...`"),
+        DictionaryMessage::new("Utilisation : `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off|roles> ...`"),
     );
     dict.messages.insert(
         "category.create_usage".to_string(),
         DictionaryMessage::new("Utilisation : `{prefix}category create <discord_category_id> <nom> [| description] [| emoji]`"),
+    );
+    dict.messages.insert(
+        "category.roles_usage".to_string(),
+        DictionaryMessage::new(
+            "Utilisation : `{prefix}category roles <add|remove|list|clear> <nom> [role_id]`",
+        ),
+    );
+    dict.messages.insert(
+        "category.role_added".to_string(),
+        DictionaryMessage::new("{role} a été associé à la catégorie **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_already_linked".to_string(),
+        DictionaryMessage::new("{role} est déjà associé à la catégorie **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_removed".to_string(),
+        DictionaryMessage::new("{role} a été dissocié de la catégorie **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_not_linked".to_string(),
+        DictionaryMessage::new("{role} n'est pas associé à la catégorie **{name}**."),
+    );
+    dict.messages.insert(
+        "category.roles_list".to_string(),
+        DictionaryMessage::new("Rôles associés à **{name}** : {roles}"),
+    );
+    dict.messages.insert(
+        "category.roles_list_empty".to_string(),
+        DictionaryMessage::new("Aucun rôle associé à la catégorie **{name}**."),
+    );
+    dict.messages.insert(
+        "category.roles_cleared".to_string(),
+        DictionaryMessage::new(
+            "{count} association(s) de rôle supprimée(s) de la catégorie **{name}**.",
+        ),
     );
 }

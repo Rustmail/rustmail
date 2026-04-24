@@ -276,6 +276,15 @@ pub async fn update_category(
 }
 
 pub async fn delete_category(id: &str, pool: &SqlitePool) -> ModmailResult<bool> {
+    sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to delete category roles: {e:?}");
+            validation_failed("Failed to delete category roles")
+        })?;
+
     let res = sqlx::query("DELETE FROM ticket_categories WHERE id = ?")
         .bind(id)
         .execute(pool)
@@ -286,6 +295,129 @@ pub async fn delete_category(id: &str, pool: &SqlitePool) -> ModmailResult<bool>
         })?;
 
     Ok(res.rows_affected() > 0)
+}
+
+pub async fn list_category_role_ids(
+    category_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<Vec<String>> {
+    let rows = sqlx::query_scalar::<_, String>(
+        "SELECT role_id FROM ticket_category_roles WHERE category_id = ? ORDER BY role_id ASC",
+    )
+    .bind(category_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Failed to list category roles: {e:?}");
+        validation_failed("Failed to list category roles")
+    })?;
+
+    Ok(rows)
+}
+
+pub async fn add_category_role(
+    category_id: &str,
+    role_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<bool> {
+    let now = Utc::now().timestamp();
+    let res = sqlx::query(
+        r#"
+        INSERT INTO ticket_category_roles (category_id, role_id, created_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(category_id, role_id) DO NOTHING
+        "#,
+    )
+    .bind(category_id)
+    .bind(role_id)
+    .bind(now)
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Failed to add category role: {e:?}");
+        validation_failed("Failed to add category role")
+    })?;
+
+    Ok(res.rows_affected() > 0)
+}
+
+pub async fn remove_category_role(
+    category_id: &str,
+    role_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<bool> {
+    let res =
+        sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ? AND role_id = ?")
+            .bind(category_id)
+            .bind(role_id)
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                eprintln!("Failed to remove category role: {e:?}");
+                validation_failed("Failed to remove category role")
+            })?;
+
+    Ok(res.rows_affected() > 0)
+}
+
+pub async fn clear_category_roles(category_id: &str, pool: &SqlitePool) -> ModmailResult<u64> {
+    let res = sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ?")
+        .bind(category_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to clear category roles: {e:?}");
+            validation_failed("Failed to clear category roles")
+        })?;
+
+    Ok(res.rows_affected())
+}
+
+pub async fn set_category_roles(
+    category_id: &str,
+    role_ids: &[String],
+    pool: &SqlitePool,
+) -> ModmailResult<()> {
+    let mut tx = pool.begin().await.map_err(|e| {
+        eprintln!("Failed to begin transaction: {e:?}");
+        validation_failed("Failed to begin transaction")
+    })?;
+
+    sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ?")
+        .bind(category_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to clear category roles in tx: {e:?}");
+            validation_failed("Failed to clear category roles")
+        })?;
+
+    let now = Utc::now().timestamp();
+    for role_id in role_ids {
+        sqlx::query(
+            r#"
+            INSERT INTO ticket_category_roles (category_id, role_id, created_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(category_id, role_id) DO NOTHING
+            "#,
+        )
+        .bind(category_id)
+        .bind(role_id)
+        .bind(now)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to insert category role in tx: {e:?}");
+            validation_failed("Failed to insert category role")
+        })?;
+    }
+
+    tx.commit().await.map_err(|e| {
+        eprintln!("Failed to commit category roles tx: {e:?}");
+        validation_failed("Failed to commit category roles")
+    })?;
+
+    Ok(())
 }
 
 pub async fn set_thread_category(

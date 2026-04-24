@@ -42,6 +42,16 @@ struct UpdateCategoryRequest {
     enabled: Option<bool>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct CategoryRolesDto {
+    pub role_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct CategoryRoleRequest {
+    role_id: String,
+}
+
 async fn fetch_categories() -> Result<Vec<CategoryDto>, String> {
     let resp = Request::get("/api/categories")
         .send()
@@ -376,6 +386,19 @@ struct CategoryCardProps {
     on_delete: Callback<String>,
 }
 
+async fn fetch_category_roles(id: &str) -> Result<CategoryRolesDto, String> {
+    let url = format!("/api/categories/{}/roles", id);
+    let resp = Request::get(&url).send().await.map_err(|e| e.to_string())?;
+    if resp.status() != 200 {
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("HTTP {}: {}", status, body));
+    }
+    resp.json::<CategoryRolesDto>()
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[function_component(CategoryCard)]
 fn category_card(props: &CategoryCardProps) -> Html {
     let (i18n, _set_language) = use_translation();
@@ -385,8 +408,125 @@ fn category_card(props: &CategoryCardProps) -> Html {
     let on_delete = props.on_delete.clone();
     let cat_id = c.id.clone();
 
+    let roles = use_state(|| Vec::<String>::new());
+    let roles_loaded = use_state(|| false);
+    let role_error = use_state(|| None::<String>);
+    let role_input_ref = use_node_ref();
+
+    let load_roles = {
+        let id = c.id.clone();
+        let roles = roles.clone();
+        let roles_loaded = roles_loaded.clone();
+        let role_error = role_error.clone();
+        Callback::from(move |_| {
+            let id = id.clone();
+            let roles = roles.clone();
+            let roles_loaded = roles_loaded.clone();
+            let role_error = role_error.clone();
+            spawn_local(async move {
+                match fetch_category_roles(&id).await {
+                    Ok(dto) => {
+                        roles.set(dto.role_ids);
+                        roles_loaded.set(true);
+                        role_error.set(None);
+                    }
+                    Err(e) => {
+                        roles.set(Vec::new());
+                        roles_loaded.set(true);
+                        role_error.set(Some(e));
+                    }
+                }
+            });
+        })
+    };
+
+    {
+        let load_roles = load_roles.clone();
+        use_effect_with(c.id.clone(), move |_| {
+            load_roles.emit(());
+            || ()
+        });
+    }
+
+    let on_add_role = {
+        let id = c.id.clone();
+        let roles = roles.clone();
+        let role_error = role_error.clone();
+        let role_input_ref = role_input_ref.clone();
+        let i18n = i18n.clone();
+        Callback::from(move |_| {
+            let input = match role_input_ref.cast::<HtmlInputElement>() {
+                Some(i) => i,
+                None => return,
+            };
+            let raw = input.value();
+            let trimmed = raw.trim().trim_start_matches("<@&").trim_end_matches('>');
+            if trimmed.parse::<u64>().is_err() {
+                role_error.set(Some(i18n.t("panel.categories.error_role_invalid")));
+                return;
+            }
+            let role_id = trimmed.to_string();
+            let id = id.clone();
+            let roles = roles.clone();
+            let role_error = role_error.clone();
+            let input = input.clone();
+            spawn_local(async move {
+                let url = format!("/api/categories/{}/roles", id);
+                let body = CategoryRoleRequest {
+                    role_id: role_id.clone(),
+                };
+                match Request::post(&url).json(&body) {
+                    Ok(req) => match req.send().await {
+                        Ok(resp) if resp.status() == 200 => {
+                            if let Ok(dto) = resp.json::<CategoryRolesDto>().await {
+                                roles.set(dto.role_ids);
+                            }
+                            role_error.set(None);
+                            input.set_value("");
+                        }
+                        Ok(resp) => {
+                            let status = resp.status();
+                            let body = resp.text().await.unwrap_or_default();
+                            role_error.set(Some(format!("HTTP {}: {}", status, body)));
+                        }
+                        Err(e) => role_error.set(Some(e.to_string())),
+                    },
+                    Err(e) => role_error.set(Some(format!("{:?}", e))),
+                }
+            });
+        })
+    };
+
+    let on_remove_role = {
+        let id = c.id.clone();
+        let roles = roles.clone();
+        let role_error = role_error.clone();
+        Callback::from(move |role_id: String| {
+            let id = id.clone();
+            let roles = roles.clone();
+            let role_error = role_error.clone();
+            spawn_local(async move {
+                let url = format!("/api/categories/{}/roles/{}", id, role_id);
+                match Request::delete(&url).send().await {
+                    Ok(resp) if resp.status() == 200 => {
+                        if let Ok(dto) = resp.json::<CategoryRolesDto>().await {
+                            roles.set(dto.role_ids);
+                        }
+                        role_error.set(None);
+                    }
+                    Ok(resp) => {
+                        let status = resp.status();
+                        let body = resp.text().await.unwrap_or_default();
+                        role_error.set(Some(format!("HTTP {}: {}", status, body)));
+                    }
+                    Err(e) => role_error.set(Some(e.to_string())),
+                }
+            });
+        })
+    };
+
     html! {
-        <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div class="bg-slate-800 rounded-lg p-6 border border-slate-700 space-y-4">
             <div class="flex justify-between items-start">
                 <div class="space-y-2">
                     <h3 class="text-xl font-semibold text-white">
@@ -425,6 +565,67 @@ fn category_card(props: &CategoryCardProps) -> Html {
                     </button>
                 </div>
             </div>
+
+            <div class="border-t border-slate-700 pt-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-gray-300">{i18n.t("panel.categories.roles_title")}</p>
+                    <p class="text-xs text-gray-500">{i18n.t("panel.categories.roles_help")}</p>
+                </div>
+                {
+                    if let Some(err) = (*role_error).clone() {
+                        html! {
+                            <div class="bg-red-900/20 border border-red-500 text-red-200 p-2 rounded-md text-sm">{err}</div>
+                        }
+                    } else { html! {} }
+                }
+                {
+                    if !*roles_loaded {
+                        html! {
+                            <p class="text-xs text-gray-500 animate-pulse">{i18n.t("panel.categories.roles_loading")}</p>
+                        }
+                    } else if roles.is_empty() {
+                        html! {
+                            <p class="text-xs text-gray-500 italic">{i18n.t("panel.categories.roles_empty")}</p>
+                        }
+                    } else {
+                        html! {
+                            <div class="flex flex-wrap gap-2">
+                                {
+                                    roles.iter().map(|r| {
+                                        let role_id = r.clone();
+                                        let on_remove_role = on_remove_role.clone();
+                                        let role_id_click = role_id.clone();
+                                        html! {
+                                            <span class="inline-flex items-center gap-2 bg-slate-900 border border-slate-700 text-gray-200 text-xs font-mono px-3 py-1 rounded-full">
+                                                {role_id.clone()}
+                                                <button
+                                                    onclick={Callback::from(move |_| on_remove_role.emit(role_id_click.clone()))}
+                                                    class="text-red-400 hover:text-red-200"
+                                                    title={i18n.t("panel.categories.role_remove")}
+                                                >{"×"}</button>
+                                            </span>
+                                        }
+                                    }).collect::<Html>()
+                                }
+                            </div>
+                        }
+                    }
+                }
+                <div class="flex gap-2">
+                    <input
+                        ref={role_input_ref}
+                        type="text"
+                        placeholder={i18n.t("panel.categories.role_input_placeholder")}
+                        class="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        onclick={on_add_role}
+                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition"
+                    >
+                        {i18n.t("panel.categories.role_add")}
+                    </button>
+                </div>
+            </div>
         </div>
     }
 }
@@ -442,6 +643,7 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
     let desc_ref = use_node_ref();
     let emoji_ref = use_node_ref();
     let discord_id_ref = use_node_ref();
+    let roles_ref = use_node_ref();
     let creating = use_state(|| false);
     let error = use_state(|| None::<String>);
 
@@ -450,6 +652,7 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
         let desc_ref = desc_ref.clone();
         let emoji_ref = emoji_ref.clone();
         let discord_id_ref = discord_id_ref.clone();
+        let roles_ref = roles_ref.clone();
         let creating = creating.clone();
         let error = error.clone();
         let on_created = props.on_created.clone();
@@ -472,6 +675,10 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
                 .cast::<HtmlInputElement>()
                 .map(|i| i.value())
                 .filter(|s| !s.trim().is_empty());
+            let roles_raw = roles_ref
+                .cast::<HtmlInputElement>()
+                .map(|i| i.value())
+                .unwrap_or_default();
 
             if name.trim().is_empty() {
                 error.set(Some(i18n_clone.t("panel.categories.error_name_required")));
@@ -482,6 +689,19 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
                     i18n_clone.t("panel.categories.error_discord_id_required"),
                 ));
                 return;
+            }
+
+            let mut role_ids: Vec<String> = Vec::new();
+            for token in roles_raw
+                .split(|c: char| c == ',' || c.is_whitespace())
+                .map(|s| s.trim().trim_start_matches("<@&").trim_end_matches('>'))
+                .filter(|s| !s.is_empty())
+            {
+                if token.parse::<u64>().is_err() {
+                    error.set(Some(i18n_clone.t("panel.categories.error_role_invalid")));
+                    return;
+                }
+                role_ids.push(token.to_string());
             }
 
             let req = CreateCategoryRequest {
@@ -501,6 +721,18 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
                     Ok(r) => match r.send().await {
                         Ok(resp) => {
                             if resp.status() == 200 {
+                                let created = resp.json::<CategoryDto>().await;
+                                if !role_ids.is_empty() {
+                                    if let Ok(ref cat) = created {
+                                        let url = format!("/api/categories/{}/roles", cat.id);
+                                        let body = CategoryRolesDto {
+                                            role_ids: role_ids.clone(),
+                                        };
+                                        if let Ok(req) = Request::put(&url).json(&body) {
+                                            let _ = req.send().await;
+                                        }
+                                    }
+                                }
                                 error.set(None);
                                 on_created.emit(());
                             } else {
@@ -580,6 +812,17 @@ fn create_category_modal(props: &CreateCategoryModalProps) -> Html {
                             placeholder="123456789012345678"
                             class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">{i18n.t("panel.categories.modal.roles")}</label>
+                        <input
+                            ref={roles_ref}
+                            type="text"
+                            placeholder={i18n.t("panel.categories.modal.roles_placeholder")}
+                            class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p class="text-xs text-gray-500 mt-1">{i18n.t("panel.categories.modal.roles_help")}</p>
                     </div>
 
                     <div class="flex gap-3">

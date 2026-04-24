@@ -956,7 +956,11 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
             `disable <name>` - Disables a specific category.\n\
             `on` - Enables the category selection feature globally.\n\
             `off` - Disables the category selection feature globally.\n\
-            `timeout <seconds>` - Sets the time limit (in seconds) users have to select a category before defaulting."
+            `timeout <seconds>` - Sets the time limit (in seconds) users have to select a category before defaulting.\n\
+            `roles add <name> <role_id>` - Links a role to a category; the role is mentioned when a ticket is opened in the category.\n\
+            `roles remove <name> <role_id>` - Unlinks a role from a category.\n\
+            `roles list <name>` - Lists roles linked to a category.\n\
+            `roles clear <name>` - Unlinks all roles from a category."
         ),
     );
     dict.messages.insert(
@@ -2129,14 +2133,48 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "category.unknown_subcommand".to_string(),
-        DictionaryMessage::new("Unknown subcommand. Use one of: create, list, rename, move, delete, enable, disable, timeout, on, off."),
+        DictionaryMessage::new("Unknown subcommand. Use one of: create, list, rename, move, delete, enable, disable, timeout, on, off, roles."),
     );
     dict.messages.insert(
         "category.text_usage".to_string(),
-        DictionaryMessage::new("Usage: `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off> ...`"),
+        DictionaryMessage::new("Usage: `{prefix}category <create|list|rename|move|delete|enable|disable|timeout|on|off|roles> ...`"),
     );
     dict.messages.insert(
         "category.create_usage".to_string(),
         DictionaryMessage::new("Usage: `{prefix}category create <discord_category_id> <name> [| description] [| emoji]`"),
+    );
+    dict.messages.insert(
+        "category.roles_usage".to_string(),
+        DictionaryMessage::new(
+            "Usage: `{prefix}category roles <add|remove|list|clear> <name> [role_id]`",
+        ),
+    );
+    dict.messages.insert(
+        "category.role_added".to_string(),
+        DictionaryMessage::new("Linked {role} to category **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_already_linked".to_string(),
+        DictionaryMessage::new("{role} is already linked to category **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_removed".to_string(),
+        DictionaryMessage::new("Unlinked {role} from category **{name}**."),
+    );
+    dict.messages.insert(
+        "category.role_not_linked".to_string(),
+        DictionaryMessage::new("{role} is not linked to category **{name}**."),
+    );
+    dict.messages.insert(
+        "category.roles_list".to_string(),
+        DictionaryMessage::new("Roles linked to **{name}**: {roles}"),
+    );
+    dict.messages.insert(
+        "category.roles_list_empty".to_string(),
+        DictionaryMessage::new("No roles linked to category **{name}**."),
+    );
+    dict.messages.insert(
+        "category.roles_cleared".to_string(),
+        DictionaryMessage::new("Cleared {count} role link(s) from category **{name}**."),
     );
 }

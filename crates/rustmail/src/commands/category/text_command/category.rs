@@ -42,6 +42,7 @@ pub async fn category_command(
         "timeout" => handle_timeout(&ctx, &msg, args, pool, config).await,
         "on" => handle_feature_toggle(&ctx, &msg, pool, config, true).await,
         "off" => handle_feature_toggle(&ctx, &msg, pool, config, false).await,
+        "roles" => handle_roles(&ctx, &msg, args, pool, config).await,
         _ => send_translated(&ctx, config, &msg, "category.unknown_subcommand", None).await,
     }
 }
@@ -337,4 +338,114 @@ async fn handle_feature_toggle(
         "category.feature_disabled"
     };
     send_translated(ctx, config, msg, key, None).await
+}
+
+fn parse_role_id(raw: &str) -> Option<u64> {
+    let trimmed = raw.trim();
+    let stripped = trimmed
+        .strip_prefix("<@&")
+        .and_then(|r| r.strip_suffix('>'))
+        .unwrap_or(trimmed);
+    stripped.parse::<u64>().ok()
+}
+
+async fn handle_roles(
+    ctx: &Context,
+    msg: &Message,
+    args: &str,
+    pool: &sqlx::SqlitePool,
+    config: &Config,
+) -> ModmailResult<()> {
+    let mut parts = args.splitn(2, ' ');
+    let action = parts.next().unwrap_or("").trim();
+    let rest = parts.next().unwrap_or("").trim();
+
+    match action {
+        "add" | "remove" => {
+            let mut segs = rest.rsplitn(2, ' ');
+            let role_raw = segs.next().unwrap_or("").trim();
+            let name = segs.next().unwrap_or("").trim();
+            if name.is_empty() || role_raw.is_empty() {
+                return send_translated(ctx, config, msg, "category.roles_usage", None).await;
+            }
+            let role = match parse_role_id(role_raw) {
+                Some(r) => r,
+                None => {
+                    return send_translated(ctx, config, msg, "category.roles_usage", None).await;
+                }
+            };
+            let cat = match get_category_by_name(name, pool).await? {
+                Some(c) => c,
+                None => return send_translated(ctx, config, msg, "category.not_found", None).await,
+            };
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name.clone());
+            params.insert("role".to_string(), format!("<@&{}>", role));
+            if action == "add" {
+                let added = add_category_role(&cat.id, &role.to_string(), pool).await?;
+                let key = if added {
+                    "category.role_added"
+                } else {
+                    "category.role_already_linked"
+                };
+                send_translated(ctx, config, msg, key, Some(&params)).await
+            } else {
+                let removed = remove_category_role(&cat.id, &role.to_string(), pool).await?;
+                let key = if removed {
+                    "category.role_removed"
+                } else {
+                    "category.role_not_linked"
+                };
+                send_translated(ctx, config, msg, key, Some(&params)).await
+            }
+        }
+        "list" => {
+            let name = rest;
+            if name.is_empty() {
+                return send_translated(ctx, config, msg, "category.roles_usage", None).await;
+            }
+            let cat = match get_category_by_name(name, pool).await? {
+                Some(c) => c,
+                None => return send_translated(ctx, config, msg, "category.not_found", None).await,
+            };
+            let roles = list_category_role_ids(&cat.id, pool).await?;
+            if roles.is_empty() {
+                let mut params = HashMap::new();
+                params.insert("name".to_string(), cat.name);
+                return send_translated(
+                    ctx,
+                    config,
+                    msg,
+                    "category.roles_list_empty",
+                    Some(&params),
+                )
+                .await;
+            }
+            let mentions = roles
+                .iter()
+                .map(|r| format!("<@&{}>", r))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("roles".to_string(), mentions);
+            send_translated(ctx, config, msg, "category.roles_list", Some(&params)).await
+        }
+        "clear" => {
+            let name = rest;
+            if name.is_empty() {
+                return send_translated(ctx, config, msg, "category.roles_usage", None).await;
+            }
+            let cat = match get_category_by_name(name, pool).await? {
+                Some(c) => c,
+                None => return send_translated(ctx, config, msg, "category.not_found", None).await,
+            };
+            let removed = clear_category_roles(&cat.id, pool).await?;
+            let mut params = HashMap::new();
+            params.insert("name".to_string(), cat.name);
+            params.insert("count".to_string(), removed.to_string());
+            send_translated(ctx, config, msg, "category.roles_cleared", Some(&params)).await
+        }
+        _ => send_translated(ctx, config, msg, "category.roles_usage", None).await,
+    }
 }
