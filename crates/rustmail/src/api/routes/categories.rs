@@ -17,6 +17,7 @@ pub fn create_categories_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<M
         .route("/{id}/roles", get(list_category_roles_handler))
         .route("/{id}/roles", post(add_category_role_handler))
         .route("/{id}/roles", put(set_category_roles_handler))
+        .route("/{id}/roles", delete(clear_category_roles_handler))
         .route(
             "/{id}/roles/{role_id}",
             delete(remove_category_role_handler),

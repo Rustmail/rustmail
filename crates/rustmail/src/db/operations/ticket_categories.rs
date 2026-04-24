@@ -276,10 +276,14 @@ pub async fn update_category(
 }
 
 pub async fn delete_category(id: &str, pool: &SqlitePool) -> ModmailResult<bool> {
-    let _ = sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ?")
+    sqlx::query("DELETE FROM ticket_category_roles WHERE category_id = ?")
         .bind(id)
         .execute(pool)
-        .await;
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to delete category roles: {e:?}");
+            validation_failed("Failed to delete category roles")
+        })?;
 
     let res = sqlx::query("DELETE FROM ticket_categories WHERE id = ?")
         .bind(id)
@@ -298,7 +302,7 @@ pub async fn list_category_role_ids(
     pool: &SqlitePool,
 ) -> ModmailResult<Vec<String>> {
     let rows = sqlx::query_scalar::<_, String>(
-        "SELECT role_id FROM ticket_category_roles WHERE category_id = ? ORDER BY created_at ASC",
+        "SELECT role_id FROM ticket_category_roles WHERE category_id = ? ORDER BY role_id ASC",
     )
     .bind(category_id)
     .fetch_all(pool)

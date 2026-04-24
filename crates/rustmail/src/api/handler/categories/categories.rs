@@ -1,9 +1,9 @@
 use crate::db::operations::ticket_categories::CATEGORY_BUTTON_HARD_LIMIT;
 use crate::db::operations::{
-    add_category_role, count_enabled_categories, create_category, delete_category,
-    get_category_by_id, get_category_by_name, get_category_settings, list_all_categories,
-    list_category_role_ids, remove_category_role, set_category_roles, update_category,
-    update_category_settings,
+    add_category_role, clear_category_roles, count_enabled_categories, create_category,
+    delete_category, get_category_by_id, get_category_by_name, get_category_settings,
+    list_all_categories, list_category_role_ids, remove_category_role, set_category_roles,
+    update_category, update_category_settings,
 };
 use crate::db::repr::{TicketCategory, TicketCategorySettings};
 use crate::prelude::types::*;
@@ -338,4 +338,14 @@ pub async fn remove_category_role_handler(
         .map_err(internal)?;
     let role_ids = list_category_role_ids(&id, &p).await.map_err(internal)?;
     Ok(Json(CategoryRolesDto { role_ids }))
+}
+
+pub async fn clear_category_roles_handler(
+    State(bot_state): State<Arc<Mutex<BotState>>>,
+    Path(id): Path<String>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    let p = pool(&bot_state).await?;
+    let _ = ensure_category_exists(&p, &id).await?;
+    clear_category_roles(&id, &p).await.map_err(internal)?;
+    Ok(StatusCode::NO_CONTENT)
 }

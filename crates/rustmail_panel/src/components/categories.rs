@@ -430,7 +430,11 @@ fn category_card(props: &CategoryCardProps) -> Html {
                         roles_loaded.set(true);
                         role_error.set(None);
                     }
-                    Err(e) => role_error.set(Some(e)),
+                    Err(e) => {
+                        roles.set(Vec::new());
+                        roles_loaded.set(true);
+                        role_error.set(Some(e));
+                    }
                 }
             });
         })
