@@ -40,7 +40,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "discord.api_error".to_string(),
-        DictionaryMessage::new("Discord API error")
+        DictionaryMessage::new("Discord API error: {error}")
             .with_description("An error occurred while communicating with Discord"),
     );
     dict.messages.insert(
@@ -64,6 +64,11 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Invalid command format")
             .with_description("The command syntax is incorrect")
             .with_help("Use `{prefix}help` to see the correct command format"),
+    );
+    dict.messages.insert(
+        "command.command_failed".to_string(),
+        DictionaryMessage::new("Command failed: {error}")
+            .with_description("The command could not be completed"),
     );
     dict.messages.insert(
         "command.missing_arguments".to_string(),
@@ -607,6 +612,54 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("The user {user} has been removed from the ticket successfully."),
     );
     dict.messages.insert(
+        "add_staff.role_add_success".to_string(),
+        DictionaryMessage::new("Added {count} member(s) of role {role} to the ticket."),
+    );
+    dict.messages.insert(
+        "add_staff.role_add_partial".to_string(),
+        DictionaryMessage::new(
+            "Added {added}/{total} member(s) of role {role} to the ticket. {failed} could not be added.",
+        ),
+    );
+    dict.messages.insert(
+        "add_staff.role_no_members".to_string(),
+        DictionaryMessage::new("Role {role} has no members to add."),
+    );
+    dict.messages.insert(
+        "add_staff.role_too_many".to_string(),
+        DictionaryMessage::new(
+            "Role {role} has {count} members, which exceeds the limit of {max}. Add them individually.",
+        ),
+    );
+    dict.messages.insert(
+        "add_staff.role_everyone_forbidden".to_string(),
+        DictionaryMessage::new("Cannot add @everyone to a ticket."),
+    );
+    dict.messages.insert(
+        "add_staff.role_remove_success".to_string(),
+        DictionaryMessage::new("Removed {count} member(s) of role {role} from the ticket."),
+    );
+    dict.messages.insert(
+        "add_staff.role_remove_partial".to_string(),
+        DictionaryMessage::new(
+            "Removed {removed}/{total} member(s) of role {role} from the ticket. {failed} could not be removed.",
+        ),
+    );
+    dict.messages.insert(
+        "add_staff.role_no_members_remove".to_string(),
+        DictionaryMessage::new("Role {role} has no members to remove."),
+    );
+    dict.messages.insert(
+        "add_staff.role_too_many_remove".to_string(),
+        DictionaryMessage::new(
+            "Role {role} has {count} members, which exceeds the limit of {max}. Remove them individually.",
+        ),
+    );
+    dict.messages.insert(
+        "add_staff.role_everyone_forbidden_remove".to_string(),
+        DictionaryMessage::new("Cannot remove @everyone from a ticket."),
+    );
+    dict.messages.insert(
         "id.show_id".to_string(),
         DictionaryMessage::new("ID of {user} : {id}"),
     );
@@ -705,16 +758,16 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
         ),
     );
     dict.messages.insert(
-        "slash_command.add_staff_user_id_argument".to_string(),
-        DictionaryMessage::new("The ID of the staff to add to the ticket"),
+        "slash_command.add_staff_target_argument".to_string(),
+        DictionaryMessage::new("The user or role to add to the ticket"),
     );
     dict.messages.insert(
         "slash_command.remove_staff_command_description".to_string(),
         DictionaryMessage::new("Remove a staff member from the current ticket"),
     );
     dict.messages.insert(
-        "slash_command.remove_staff_user_id_argument".to_string(),
-        DictionaryMessage::new("The ID of the staff to remove from the ticket"),
+        "slash_command.remove_staff_target_argument".to_string(),
+        DictionaryMessage::new("The user or role to remove from the ticket"),
     );
     dict.messages.insert(
         "slash_command.alert_command_description".to_string(),
@@ -920,7 +973,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.add_staff".to_string(),
-        DictionaryMessage::new("Adds a staff member to a ticket. To do so, use `!addmod <staff_id>` or `!am <staff_id>` inside a ticket."),
+        DictionaryMessage::new("Adds a staff member or every member of a role to a ticket. Use `!addmod <staff_id|@user|@role>` or `!am <staff_id|@user|@role>` inside a ticket."),
     );
     dict.messages.insert(
         "help.alert".to_string(),
@@ -993,7 +1046,7 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "help.remove_staff".to_string(),
-        DictionaryMessage::new("Removes a staff member from the current ticket. To remove a staff member, use `!delmod <user>` or `!dm <user>` inside the ticket."),
+        DictionaryMessage::new("Removes a staff member or every member of a role from the current ticket. Use `!delmod <staff_id|@user|@role>` or `!dm <staff_id|@user|@role>` inside the ticket."),
     );
     dict.messages.insert(
         "help.reply".to_string(),
