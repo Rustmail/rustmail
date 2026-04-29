@@ -67,13 +67,14 @@ pub async fn members_with_role(
     guild_id: GuildId,
     role_id: RoleId,
 ) -> ModmailResult<Vec<UserId>> {
+    const PAGE_LIMIT: u64 = 1000;
+
     let mut result = Vec::new();
     let mut after: Option<UserId> = None;
-    let page_size: Option<u64> = Some(1000);
 
     loop {
         let page = guild_id
-            .members(&ctx.http, page_size, after)
+            .members(&ctx.http, Some(PAGE_LIMIT), after)
             .await
             .map_err(|_| {
                 ModmailError::Discord(DiscordError::ApiError(
@@ -81,8 +82,12 @@ pub async fn members_with_role(
                 ))
             })?;
 
-        let page_len = page.len();
+        if page.is_empty() {
+            break;
+        }
+
         let last_id = page.last().map(|m| m.user.id);
+        let page_len = page.len();
 
         for member in page {
             if member.roles.contains(&role_id) {
@@ -90,7 +95,7 @@ pub async fn members_with_role(
             }
         }
 
-        if page_len < 1000 {
+        if page_len < PAGE_LIMIT as usize {
             break;
         }
 
