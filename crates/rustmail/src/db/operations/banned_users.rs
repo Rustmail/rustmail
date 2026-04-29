@@ -81,6 +81,79 @@ pub async fn upsert_tracked_member(member: &TrackedMember, pool: &SqlitePool) ->
     Ok(())
 }
 
+pub async fn bulk_upsert_tracked_members(
+    members: &[TrackedMember],
+    pool: &SqlitePool,
+) -> ModmailResult<()> {
+    if members.is_empty() {
+        return Ok(());
+    }
+
+    // Pre-serialize all roles to JSON up front so errors surface before the transaction opens.
+    let roles_jsons: Vec<String> = members
+        .iter()
+        .map(|m| {
+            serde_json::to_string(&m.roles)
+                .map_err(|_| validation_failed("Failed to serialize member roles"))
+        })
+        .collect::<ModmailResult<Vec<_>>>()?;
+
+    // Pair each member with its serialized roles, then chunk. SQLite's default
+    // SQLITE_MAX_VARIABLE_NUMBER is 999; with 10 bind parameters per row we stay
+    // safely under that limit by capping each statement at 99 rows.
+    let pairs: Vec<(&TrackedMember, &String)> = members.iter().zip(roles_jsons.iter()).collect();
+    const CHUNK_SIZE: usize = 99;
+
+    let mut tx = pool.begin().await.map_err(|e| {
+        eprintln!("Failed to begin tracked members transaction: {e:?}");
+        validation_failed("Failed to begin tracked members transaction")
+    })?;
+
+    for chunk in pairs.chunks(CHUNK_SIZE) {
+        let mut builder = sqlx::QueryBuilder::new(
+            "INSERT INTO tracked_members \
+             (guild_id, user_id, username, global_name, nickname, avatar_url, roles, \
+              joined_at, first_seen_at, last_seen_at) ",
+        );
+
+        builder.push_values(chunk.iter(), |mut b, (member, roles_json)| {
+            b.push_bind(member.guild_id.clone())
+                .push_bind(member.user_id.clone())
+                .push_bind(member.username.clone())
+                .push_bind(member.global_name.clone())
+                .push_bind(member.nickname.clone())
+                .push_bind(member.avatar_url.clone())
+                .push_bind((*roles_json).clone())
+                .push_bind(member.joined_at)
+                .push_bind(member.first_seen_at)
+                .push_bind(member.last_seen_at);
+        });
+
+        builder.push(
+            " ON CONFLICT(guild_id, user_id) DO UPDATE SET \
+             username = excluded.username, \
+             global_name = excluded.global_name, \
+             nickname = excluded.nickname, \
+             avatar_url = excluded.avatar_url, \
+             roles = excluded.roles, \
+             joined_at = COALESCE(excluded.joined_at, tracked_members.joined_at), \
+             last_seen_at = excluded.last_seen_at",
+        );
+
+        builder.build().execute(&mut *tx).await.map_err(|e| {
+            eprintln!("Failed to bulk upsert tracked members chunk: {e:?}");
+            validation_failed("Failed to bulk upsert tracked members chunk")
+        })?;
+    }
+
+    tx.commit().await.map_err(|e| {
+        eprintln!("Failed to commit tracked members transaction: {e:?}");
+        validation_failed("Failed to commit tracked members transaction")
+    })?;
+
+    Ok(())
+}
+
 pub async fn get_tracked_member(
     guild_id: &str,
     user_id: &str,

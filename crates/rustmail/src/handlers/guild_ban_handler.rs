@@ -3,7 +3,7 @@ use crate::prelude::config::*;
 use crate::prelude::db::*;
 use chrono::Utc;
 use serenity::all::audit_log::Action;
-use serenity::all::{Context, EventHandler, GuildId, Member, MemberAction, User};
+use serenity::all::{Context, EventHandler, GuildId, Member, MemberAction, User, UserId};
 use serenity::async_trait;
 use sqlx::SqlitePool;
 
@@ -173,4 +173,68 @@ impl EventHandler for GuildBanHandler {
             }
         }
     }
+}
+
+pub async fn backfill_tracked_members(
+    ctx: &Context,
+    config: &Config,
+    shutdown: &mut tokio::sync::watch::Receiver<bool>,
+) {
+    const PAGE_LIMIT: u64 = 1000;
+
+    let Some(pool) = config.db_pool.as_ref() else {
+        return;
+    };
+
+    let guild_id = GuildId::new(config.bot.get_community_guild_id());
+    let now = Utc::now().timestamp();
+
+    let mut after: Option<UserId> = None;
+    let mut total: usize = 0;
+
+    loop {
+        if *shutdown.borrow() {
+            println!("Tracked member backfill cancelled due to shutdown.");
+            return;
+        }
+
+        let page = match guild_id.members(&ctx.http, Some(PAGE_LIMIT), after).await {
+            Ok(p) => p,
+            Err(e) => {
+                eprintln!("Failed to fetch guild members for backfill: {:?}", e);
+                return;
+            }
+        };
+
+        if page.is_empty() {
+            break;
+        }
+
+        let last_id = page.last().map(|m| m.user.id);
+        let page_len = page.len();
+
+        let tracked_batch: Vec<TrackedMember> =
+            page.iter().map(|m| member_to_tracked(m, now)).collect();
+
+        match bulk_upsert_tracked_members(&tracked_batch, pool).await {
+            Ok(()) => total += page_len,
+            Err(e) => {
+                eprintln!(
+                    "Failed to backfill tracked members page in guild {}: {:?}",
+                    guild_id, e
+                );
+            }
+        }
+
+        if page_len < PAGE_LIMIT as usize {
+            break;
+        }
+
+        after = last_id;
+    }
+
+    println!(
+        "Backfilled {} tracked members for community guild {}",
+        total, guild_id
+    );
 }
