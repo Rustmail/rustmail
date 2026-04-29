@@ -67,17 +67,37 @@ pub async fn members_with_role(
     guild_id: GuildId,
     role_id: RoleId,
 ) -> ModmailResult<Vec<UserId>> {
-    let members = guild_id.members(&ctx.http, None, None).await.map_err(|_| {
-        ModmailError::Discord(DiscordError::ApiError(
-            "Failed to fetch guild members".to_string(),
-        ))
-    })?;
+    let mut result = Vec::new();
+    let mut after: Option<UserId> = None;
+    let page_size: Option<u64> = Some(1000);
 
-    Ok(members
-        .into_iter()
-        .filter(|m| m.roles.contains(&role_id))
-        .map(|m| m.user.id)
-        .collect())
+    loop {
+        let page = guild_id
+            .members(&ctx.http, page_size, after)
+            .await
+            .map_err(|_| {
+                ModmailError::Discord(DiscordError::ApiError(
+                    "Failed to fetch guild members".to_string(),
+                ))
+            })?;
+
+        let page_len = page.len();
+        let last_id = page.last().map(|m| m.user.id);
+
+        for member in page {
+            if member.roles.contains(&role_id) {
+                result.push(member.user.id);
+            }
+        }
+
+        if page_len < 1000 {
+            break;
+        }
+
+        after = last_id;
+    }
+
+    Ok(result)
 }
 
 pub async fn add_role_members_to_channel(

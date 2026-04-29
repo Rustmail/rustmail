@@ -194,7 +194,11 @@ impl DictionaryManager {
                     params.insert("error".to_string(), msg.clone());
                     ("discord.api_error".to_string(), Some(params))
                 }
-                _ => ("discord.api_error".to_string(), None),
+                err => {
+                    let mut params = HashMap::new();
+                    params.insert("error".to_string(), err.to_string());
+                    ("discord.api_error".to_string(), Some(params))
+                }
             },
             ModmailError::Command(cmd_err) => match cmd_err {
                 CommandError::InvalidFormat => ("command.invalid_format".to_string(), None),
