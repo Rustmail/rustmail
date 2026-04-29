@@ -140,6 +140,8 @@ pub async fn anonreply(
             .to_channel(thread_msg.channel_id)
             .send_and_forget()
             .await;
+    } else {
+        mark_thread_engaged(&thread.id, db_pool).await;
     }
 
     if config.notifications.show_success_on_reply

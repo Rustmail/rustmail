@@ -43,7 +43,7 @@ pub async fn create_or_get_thread_for_user(
         .create_channel(&ctx.http, channel_builder)
         .await?;
 
-    let thread_id = create_thread_for_user(&channel, user_id.get() as i64, &username, pool)
+    let thread_id = create_thread_for_user(&channel, user_id.get() as i64, &username, false, pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating thread: {}", e);
@@ -436,8 +436,14 @@ pub async fn handle_thread_modal_interaction(
 
             let _ = guild_channel.edit(&ctx.http, EditChannel::new()).await;
 
-            if let Err(e) =
-                create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool).await
+            if let Err(e) = create_thread_for_user(
+                &guild_channel,
+                user_id.get() as i64,
+                &user.name,
+                false,
+                pool,
+            )
+            .await
             {
                 eprintln!("Failed to create thread record: {}", e);
                 let _ = interaction

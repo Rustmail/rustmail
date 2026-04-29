@@ -237,6 +237,8 @@ impl RegistrableCommand for ReplyCommand {
                 return Err(ModmailError::Command(CommandError::SendDmFailed));
             }
 
+            mark_thread_engaged(&thread.id, db_pool).await;
+
             if config.notifications.show_success_on_reply {
                 let mut params = HashMap::new();
                 params.insert("number".to_string(), next_message_number.to_string());

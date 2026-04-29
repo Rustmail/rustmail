@@ -112,18 +112,21 @@ pub async fn create_thread_for_user(
     channel: &GuildChannel,
     user_id: i64,
     user_name: &str,
+    silent: bool,
     pool: &SqlitePool,
 ) -> Result<String, Error> {
     let channel_id = channel.id.to_string();
     let thread_id = Uuid::new_v4().to_string();
+    let silent_int: i64 = if silent { 1 } else { 0 };
 
-    let res = match sqlx::query!(
-        "INSERT INTO threads (id, user_id, user_name, channel_id) VALUES (?, ?, ?, ?)",
-        thread_id,
-        user_id,
-        user_name,
-        channel_id
+    let res = match sqlx::query(
+        "INSERT INTO threads (id, user_id, user_name, channel_id, silent) VALUES (?, ?, ?, ?, ?)",
     )
+    .bind(&thread_id)
+    .bind(user_id)
+    .bind(user_name)
+    .bind(&channel_id)
+    .bind(silent_int)
     .execute(&pool.clone())
     .await
     {
@@ -180,6 +183,31 @@ pub async fn create_thread_for_user(
     };
 
     res
+}
+
+pub async fn is_thread_silent(thread_id: &str, pool: &SqlitePool) -> bool {
+    sqlx::query_scalar::<_, i64>("SELECT silent FROM threads WHERE id = ?")
+        .bind(thread_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Database error reading thread silent flag: {:?}", e);
+            e
+        })
+        .ok()
+        .flatten()
+        .map(|v| v != 0)
+        .unwrap_or(true)
+}
+
+pub async fn mark_thread_engaged(thread_id: &str, pool: &SqlitePool) {
+    if let Err(e) = sqlx::query("UPDATE threads SET silent = 0 WHERE id = ? AND silent = 1")
+        .bind(thread_id)
+        .execute(pool)
+        .await
+    {
+        eprintln!("Failed to clear thread silent flag: {:?}", e);
+    }
 }
 
 pub async fn close_thread(

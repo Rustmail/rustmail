@@ -1,5 +1,4 @@
 use crate::prelude::config::*;
-use crate::prelude::errors::*;
 use crate::prelude::utils::*;
 use serenity::all::{Context, GuildChannel, Message, User, UserId};
 use std::collections::HashMap;
@@ -47,6 +46,7 @@ pub async fn send_welcome_message(
     channel: &GuildChannel,
     config: &Config,
     user: &User,
+    notify_user: bool,
 ) {
     let mut params = HashMap::new();
     params.insert("user".to_string(), user.name.clone());
@@ -63,28 +63,19 @@ pub async fn send_welcome_message(
         .send(true)
         .await;
 
-    let _ = MessageBuilder::system_message(ctx, config)
-        .translated_content(
-            "new_thread.welcome_message",
-            Some(&params),
-            None,
-            Some(channel.guild_id.get()),
-        )
-        .await
-        .to_user(user.id)
-        .send(true)
-        .await;
-}
-
-pub async fn send_dm_to_user(ctx: &Context, user: &User, config: &Config) -> ModmailResult<()> {
-    let _ = MessageBuilder::system_message(ctx, config)
-        .translated_content("new_thread.dm_notification", None, Some(user.id), None)
-        .await
-        .to_user(user.id)
-        .send(true)
-        .await;
-
-    Ok(())
+    if notify_user {
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content(
+                "new_thread.welcome_message",
+                Some(&params),
+                Some(user.id),
+                Some(channel.guild_id.get()),
+            )
+            .await
+            .to_user(user.id)
+            .send(true)
+            .await;
+    }
 }
 
 pub async fn send_error_message(

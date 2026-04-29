@@ -216,7 +216,9 @@ impl RegistrableCommand for CloseCommand {
                 let mut params = HashMap::new();
                 params.insert("time".to_string(), human);
 
-                let close_key = if silent {
+                let display_silent = silent || is_thread_silent(&thread.id, db_pool).await;
+
+                let close_key = if display_silent {
                     "close.silent_closing"
                 } else {
                     "close.closing"
@@ -303,6 +305,10 @@ impl RegistrableCommand for CloseCommand {
             }
 
             let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
+
+            if !silent && is_thread_silent(&thread.id, db_pool).await {
+                silent = true;
+            }
 
             let closed_by = command.user.id.to_string();
             let category_id = get_category_id_from_command(&ctx, &command).await;
