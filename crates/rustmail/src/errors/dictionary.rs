@@ -189,7 +189,16 @@ impl DictionaryManager {
                     ("discord.shard_manager_not_found".to_string(), None)
                 }
                 DiscordError::CategoryFull => ("discord.category_full".to_string(), None),
-                _ => ("discord.api_error".to_string(), None),
+                DiscordError::ApiError(msg) => {
+                    let mut params = HashMap::new();
+                    params.insert("error".to_string(), msg.clone());
+                    ("discord.api_error".to_string(), Some(params))
+                }
+                err => {
+                    let mut params = HashMap::new();
+                    params.insert("error".to_string(), err.to_string());
+                    ("discord.api_error".to_string(), Some(params))
+                }
             },
             ModmailError::Command(cmd_err) => match cmd_err {
                 CommandError::InvalidFormat => ("command.invalid_format".to_string(), None),
@@ -291,6 +300,11 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("reminder_id".to_string(), reminder_id.clone());
                     ("reminder.already_complete".to_string(), Some(params))
+                }
+                CommandError::CommandFailed(msg) => {
+                    let mut params = HashMap::new();
+                    params.insert("error".to_string(), msg.clone());
+                    ("command.command_failed".to_string(), Some(params))
                 }
                 _ => ("command.invalid_format".to_string(), None),
             },
