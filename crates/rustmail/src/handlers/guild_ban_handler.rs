@@ -175,7 +175,11 @@ impl EventHandler for GuildBanHandler {
     }
 }
 
-pub async fn backfill_tracked_members(ctx: &Context, config: &Config) {
+pub async fn backfill_tracked_members(
+    ctx: &Context,
+    config: &Config,
+    shutdown: &mut tokio::sync::watch::Receiver<bool>,
+) {
     const PAGE_LIMIT: u64 = 1000;
 
     let Some(pool) = config.db_pool.as_ref() else {
@@ -189,6 +193,11 @@ pub async fn backfill_tracked_members(ctx: &Context, config: &Config) {
     let mut total: usize = 0;
 
     loop {
+        if *shutdown.borrow() {
+            println!("Tracked member backfill cancelled due to shutdown.");
+            return;
+        }
+
         let page = match guild_id.members(&ctx.http, Some(PAGE_LIMIT), after).await {
             Ok(p) => p,
             Err(e) => {
@@ -207,14 +216,15 @@ pub async fn backfill_tracked_members(ctx: &Context, config: &Config) {
         let tracked_batch: Vec<TrackedMember> =
             page.iter().map(|m| member_to_tracked(m, now)).collect();
 
-        if let Err(e) = bulk_upsert_tracked_members(&tracked_batch, pool).await {
-            eprintln!(
-                "Failed to backfill tracked members page in guild {}: {:?}",
-                guild_id, e
-            );
+        match bulk_upsert_tracked_members(&tracked_batch, pool).await {
+            Ok(()) => total += page_len,
+            Err(e) => {
+                eprintln!(
+                    "Failed to backfill tracked members page in guild {}: {:?}",
+                    guild_id, e
+                );
+            }
         }
-
-        total += page_len;
 
         if page_len < PAGE_LIMIT as usize {
             break;

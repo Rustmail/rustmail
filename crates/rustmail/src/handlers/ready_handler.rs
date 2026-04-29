@@ -12,6 +12,7 @@ use serenity::{
 };
 use sqlx::SqlitePool;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::sync::{Mutex, watch::Receiver};
 use tokio::time::interval;
@@ -22,6 +23,7 @@ pub struct ReadyHandler {
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
     pub bot_state: Arc<Mutex<BotState>>,
+    backfill_started: Arc<AtomicBool>,
 }
 
 impl ReadyHandler {
@@ -36,6 +38,7 @@ impl ReadyHandler {
             registry,
             shutdown: Arc::new(shutdown),
             bot_state,
+            backfill_started: Arc::new(AtomicBool::new(false)),
         }
     }
 }
@@ -76,14 +79,21 @@ impl EventHandler for ReadyHandler {
             }
         });
 
-        tokio::spawn({
-            let ctx = ctx.clone();
-            let config = config.clone();
+        if self
+            .backfill_started
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+        {
+            tokio::spawn({
+                let ctx = ctx.clone();
+                let config = config.clone();
+                let mut shutdown = (*self.shutdown).clone();
 
-            async move {
-                backfill_tracked_members(&ctx, &config).await;
-            }
-        });
+                async move {
+                    backfill_tracked_members(&ctx, &config, &mut shutdown).await;
+                }
+            });
+        }
 
         load_reminders(&ctx, &self.config, &pool.clone(), self.shutdown.clone()).await;
 
