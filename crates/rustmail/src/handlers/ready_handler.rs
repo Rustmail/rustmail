@@ -1,4 +1,5 @@
 use crate::db::get_all_thread_status;
+use crate::handlers::guild_ban_handler::backfill_tracked_members;
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::features::*;
@@ -72,6 +73,15 @@ impl EventHandler for ReadyHandler {
                 sync_features(&ctx, &config).await;
                 hydrate_scheduled_closures(&ctx, &config).await;
                 hydrate_pending_category_selections(&ctx, &config).await;
+            }
+        });
+
+        tokio::spawn({
+            let ctx = ctx.clone();
+            let config = config.clone();
+
+            async move {
+                backfill_tracked_members(&ctx, &config).await;
             }
         });
 
