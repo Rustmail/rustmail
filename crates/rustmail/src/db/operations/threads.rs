@@ -197,7 +197,7 @@ pub async fn is_thread_silent(thread_id: &str, pool: &SqlitePool) -> bool {
         .ok()
         .flatten()
         .map(|v| v != 0)
-        .unwrap_or(false)
+        .unwrap_or(true)
 }
 
 pub async fn mark_thread_engaged(thread_id: &str, pool: &SqlitePool) {

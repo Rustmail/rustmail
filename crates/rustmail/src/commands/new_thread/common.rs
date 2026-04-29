@@ -68,7 +68,7 @@ pub async fn send_welcome_message(
             .translated_content(
                 "new_thread.welcome_message",
                 Some(&params),
-                None,
+                Some(user.id),
                 Some(channel.guild_id.get()),
             )
             .await
