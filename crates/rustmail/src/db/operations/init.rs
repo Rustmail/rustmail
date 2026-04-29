@@ -1,6 +1,11 @@
-use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
+use sqlx::{
+    SqlitePool,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
+};
 use std::fs;
 use std::path::Path;
+use std::str::FromStr;
+use std::time::Duration;
 
 pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
     let db_path = "db/db.sqlite";
@@ -12,10 +17,14 @@ pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
         println!("Database file created at: {}", db_path);
     }
 
-    let db_url = format!("sqlite://{}", db_path);
+    let connect_options = SqliteConnectOptions::from_str(&format!("sqlite://{}", db_path))?
+        .journal_mode(SqliteJournalMode::Wal)
+        .synchronous(SqliteSynchronous::Normal)
+        .busy_timeout(Duration::from_secs(5));
+
     let pool = SqlitePoolOptions::new()
         .max_connections(30)
-        .connect(&db_url)
+        .connect_with(connect_options)
         .await?;
 
     sqlx::migrate!("../../migrations").run(&pool).await?;
