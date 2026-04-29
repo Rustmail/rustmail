@@ -166,7 +166,7 @@ pub async fn handle_external_ticket_create(
             )
         })?;
 
-    create_thread_for_user(&channel, user_id_u64 as i64, &username, &db_pool)
+    create_thread_for_user(&channel, user_id_u64 as i64, &username, false, &db_pool)
         .await
         .map_err(|e| {
             let http_clone = bot_http.clone();
@@ -244,7 +244,7 @@ pub async fn handle_external_ticket_create(
                 staff_user.id
             );
         } else {
-            send_welcome_message(&ctx, &channel, &config, &user).await;
+            send_welcome_message(&ctx, &channel, &config, &user, true).await;
 
             if let Err(e) = MessageBuilder::system_message(&ctx, &config)
                 .mention(vec![staff_user.id])

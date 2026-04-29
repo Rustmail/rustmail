@@ -576,8 +576,8 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_without_dm".to_string(),
-        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n⚠️ Impossible d'envoyer la notification DM (l'utilisateur peut avoir désactivé les DMs).")
-            .with_description("Message de succès quand le thread est créé mais le DM échoue"),
+        DictionaryMessage::new("✅ Thread de support créé pour {user} dans <#{channel_id}> par {staff}\n\n🔇 Ouvert en silencieux — aucune notification envoyée à l'utilisateur.")
+            .with_description("Message de succès quand le thread est ouvert silencieusement (pas de DM)"),
     );
     dict.messages.insert(
         "delete.not_in_thread".to_string(),

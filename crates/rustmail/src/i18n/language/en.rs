@@ -554,8 +554,8 @@ pub fn load_english_messages(dict: &mut ErrorDictionary) {
     );
     dict.messages.insert(
         "new_thread.success_without_dm".to_string(),
-        DictionaryMessage::new("✅ Support thread created for {user} in <#{channel_id}> by {staff}\n\n⚠️ Could not send DM notification (user may have DMs disabled).")
-            .with_description("Success message when thread is created but DM fails"),
+        DictionaryMessage::new("✅ Support thread created for {user} in <#{channel_id}> by {staff}\n\n🔇 Opened silently — no notification sent to the user.")
+            .with_description("Success message when thread is opened silently (no DM)"),
     );
     dict.messages.insert(
         "delete.not_in_thread".to_string(),

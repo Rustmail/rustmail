@@ -63,7 +63,9 @@ pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at:
                             }
                         }
 
-                        if !current.silent {
+                        let effective_silent =
+                            current.silent || is_thread_silent(&thread_id, pool).await;
+                        if !effective_silent {
                             let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
                                 .content(&config_clone.bot.close_message)
                                 .to_user(user_id)
@@ -140,7 +142,8 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
                     }
                 }
 
-                if !sc.silent {
+                let effective_silent = sc.silent || is_thread_silent(&thread.id, pool).await;
+                if !effective_silent {
                     let _ = MessageBuilder::system_message(ctx, config)
                         .content(&config.bot.close_message)
                         .to_user(user_id)

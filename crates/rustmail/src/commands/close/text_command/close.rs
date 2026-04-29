@@ -154,7 +154,9 @@ pub async fn close(
         let mut params = HashMap::new();
         params.insert("time".to_string(), human);
 
-        let _ = if silent {
+        let display_silent = silent || is_thread_silent(&thread.id, db_pool).await;
+
+        let _ = if display_silent {
             MessageBuilder::system_message(&ctx, config)
                 .translated_content(
                     "close.silent_closing",
@@ -244,6 +246,10 @@ pub async fn close(
     }
 
     let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
+
+    if !silent && is_thread_silent(&thread.id, db_pool).await {
+        silent = true;
+    }
 
     let closed_by = msg.author.id.to_string();
     let category_id = get_category_id_from_message(&ctx, &msg).await;

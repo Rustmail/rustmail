@@ -120,29 +120,22 @@ pub async fn new_thread(
         .send(true)
         .await;
 
-    let _ = match create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, pool)
-        .await
-    {
-        Ok(thread_id) => thread_id,
-        Err(e) => {
-            eprintln!("Failed to create thread in database: {}", e);
-            let _ = guild_channel.delete(&ctx.http).await;
-            send_error_message(&ctx, &msg, config, "new_thread.database_error", None).await;
-            return Ok(());
-        }
-    };
+    let _ =
+        match create_thread_for_user(&guild_channel, user_id.get() as i64, &user.name, true, pool)
+            .await
+        {
+            Ok(thread_id) => thread_id,
+            Err(e) => {
+                eprintln!("Failed to create thread in database: {}", e);
+                let _ = guild_channel.delete(&ctx.http).await;
+                send_error_message(&ctx, &msg, config, "new_thread.database_error", None).await;
+                return Ok(());
+            }
+        };
 
-    send_welcome_message(&ctx, &guild_channel, config, &user).await;
+    send_welcome_message(&ctx, &guild_channel, config, &user, false).await;
 
-    match send_dm_to_user(&ctx, &user, config).await {
-        Ok(_) => {
-            send_success_message(&ctx, &msg, config, &user, &guild_channel, true).await;
-        }
-        Err(dm_error) => {
-            eprintln!("Failed to send DM to user: {}", dm_error);
-            send_success_message(&ctx, &msg, config, &user, &guild_channel, false).await;
-        }
-    }
+    send_success_message(&ctx, &msg, config, &user, &guild_channel, false).await;
 
     Ok(())
 }

@@ -159,6 +159,7 @@ impl RegistrableCommand for NewThreadCommand {
                 &guild_channel,
                 user_id.get() as i64,
                 &user.name,
+                true,
                 pool,
             )
             .await
@@ -209,7 +210,7 @@ impl RegistrableCommand for NewThreadCommand {
                 .send(true)
                 .await;
 
-            send_welcome_message(&ctx, &guild_channel, &config, &user).await;
+            send_welcome_message(&ctx, &guild_channel, &config, &user, false).await;
 
             let mut params = HashMap::new();
             params.insert("user".to_string(), user.name.clone());
@@ -223,7 +224,7 @@ impl RegistrableCommand for NewThreadCommand {
             );
 
             let _ = MessageBuilder::system_message(&ctx, &config)
-                .translated_content("new_thread.success_with_dm", Some(&params), None, None)
+                .translated_content("new_thread.success_without_dm", Some(&params), None, None)
                 .await
                 .to_channel(command.channel_id)
                 .send_interaction_followup(&command, true)
