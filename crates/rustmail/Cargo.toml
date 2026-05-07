@@ -29,7 +29,7 @@ sha2 = "0.11.0"
 hex = "0.4.3"
 base64 = "0.22"
 moka = { version = "0.12.15", features = ["future"] }
-tower-http = { version = "0.6.9", features = ["compression-gzip", "compression-br"] }
+tower-http = { version = "0.6.10", features = ["compression-gzip", "compression-br"] }
 strum = { version = "0.28.0", features = ["derive"] }
 
 [dependencies.uuid]
