@@ -416,7 +416,8 @@ pub async fn mark_alerts_as_used_batch(
         placeholders
     );
 
-    let mut query_builder = sqlx::query(&query);
+    let query_static: &'static str = Box::leak(query.into_boxed_str());
+    let mut query_builder = sqlx::query(query_static);
     for staff_id in staff_user_ids {
         query_builder = query_builder.bind(staff_id);
     }

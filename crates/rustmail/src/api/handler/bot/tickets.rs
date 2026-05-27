@@ -307,7 +307,11 @@ pub async fn handle_tickets_bot(
         "SELECT COUNT(*) as count FROM threads WHERE {}",
         where_clause
     );
-    let _total: i64 = match sqlx::query_scalar(&count_query).fetch_one(&db_pool).await {
+    let count_query_static: &'static str = Box::leak(count_query.into_boxed_str());
+    let _total: i64 = match sqlx::query_scalar(count_query_static)
+        .fetch_one(&db_pool)
+        .await
+    {
         Ok(count) => count,
         Err(err) => {
             eprintln!("Erreur SQL count: {:?}", err);
@@ -344,6 +348,7 @@ pub async fn handle_tickets_bot(
         where_clause, sort_column, sort_order, page_size, offset
     );
 
+    let query_str_static: &'static str = Box::leak(query_str.into_boxed_str());
     let threads_query = match sqlx::query_as::<
         _,
         (
@@ -361,7 +366,7 @@ pub async fn handle_tickets_bot(
             Option<String>,
             Option<String>,
         ),
-    >(&query_str)
+    >(query_str_static)
     .fetch_all(&db_pool)
     .await
     {
@@ -403,6 +408,7 @@ pub async fn handle_tickets_bot(
         placeholders
     );
 
+    let messages_query_str_static: &'static str = Box::leak(messages_query_str.into_boxed_str());
     let mut messages_query = sqlx::query_as::<
         _,
         (
@@ -418,7 +424,7 @@ pub async fn handle_tickets_bot(
             String,
             bool,
         ),
-    >(&messages_query_str);
+    >(messages_query_str_static);
 
     for thread_id in &thread_ids {
         messages_query = messages_query.bind(thread_id);
