@@ -41,7 +41,7 @@ jobs:
         run: trunk build --release --dist ../rustmail/static --config Trunk.toml
 
       - name: Upload frontend artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-static
           path: crates/rustmail/static
@@ -60,7 +60,7 @@ jobs:
         run: rustup update stable && rustup default stable
 
       - name: Download frontend
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: frontend-static
           path: crates/rustmail/static
@@ -132,7 +132,7 @@ jobs:
         run: rustup update stable && rustup default stable
 
       - name: Download frontend
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: frontend-static
           path: crates/rustmail/static
