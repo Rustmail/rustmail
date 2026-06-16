@@ -4,6 +4,7 @@ pub mod auth;
 pub mod bot;
 pub mod categories;
 pub mod externals;
+pub mod health;
 pub mod panel;
 pub mod user;
 
@@ -13,5 +14,6 @@ pub use auth::*;
 pub use bot::*;
 pub use categories::*;
 pub use externals::*;
+pub use health::*;
 pub use panel::*;
 pub use user::*;
