@@ -21,3 +21,4 @@ ammonia = "4.1.2"
 pulldown-cmark = "0.13.4"
 chrono = { version = "0.4.45", features = ["serde", "wasmbind"] }
 chrono-tz = { version = "0.10.4", features = ["serde"] }
+gloo-timers = { version = "0.4.0", features = ["futures"] }

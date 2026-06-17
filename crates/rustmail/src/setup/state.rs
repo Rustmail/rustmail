@@ -4,6 +4,7 @@ use rustmail_types::{
 };
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio::sync::mpsc::Sender;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SetupStep {
@@ -46,6 +47,7 @@ pub struct PartialConfig {
 pub struct SetupState {
     pub step: SetupStep,
     pub config: PartialConfig,
+    pub shutdown_tx: Option<Sender<()>>,
 }
 
 impl SetupState {
@@ -53,6 +55,7 @@ impl SetupState {
         Self {
             step: SetupStep::Token,
             config: PartialConfig::default(),
+            shutdown_tx: None,
         }
     }
 }

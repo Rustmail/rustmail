@@ -118,6 +118,12 @@ async fn run_setup_mode() {
 
     let setup_state = new_setup_state();
 
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel(1);
+    {
+        let mut state = setup_state.lock().await;
+        state.shutdown_tx = Some(shutdown_tx);
+    }
+
     let app = create_setup_router(setup_state)
         .route("/", axum::routing::get(static_handler))
         .route("/{*path}", axum::routing::get(static_handler))
@@ -136,7 +142,17 @@ async fn run_setup_mode() {
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
-    .with_graceful_shutdown(shutdown_signal())
+    .with_graceful_shutdown(async move {
+        tokio::select! {
+            _ = shutdown_rx.recv() => {
+                println!("Setup complete, transitioning to bot mode...");
+            }
+            _ = shutdown_signal() => {
+                println!("Shutdown signal received during setup");
+                process::exit(0);
+            }
+        }
+    })
     .await
     .unwrap();
 }
@@ -164,7 +180,7 @@ async fn main() {
     }
 
     let config_path = resolve_config_path("config.toml");
-    let bot_state = init_bot_state(&config_path).await;
+    let mut bot_state = init_bot_state(&config_path).await;
 
     let has_config = {
         let state = bot_state.lock().await;
@@ -173,7 +189,7 @@ async fn main() {
 
     if !has_config {
         run_setup_mode().await;
-        return;
+        bot_state = init_bot_state(&config_path).await;
     }
 
     let _ = start_bot_if_config_valid(bot_state.clone()).await;
@@ -194,7 +210,7 @@ async fn main() {
                     .layer(CompressionLayer::new());
 
                 let bind_address = resolve_bind_address("0.0.0.0");
-                let port = resolve_port(3002);
+                let port = resolve_port(config.bot.panel_port);
 
                 let listener =
                     match tokio::net::TcpListener::bind(format!("{}:{}", bind_address, port)).await

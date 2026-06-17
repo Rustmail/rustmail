@@ -22,6 +22,7 @@ pub struct WizardData {
     pub api_port: u16,
     pub client_id: String,
     pub client_secret: String,
+    pub redirect_url: String,
     pub locale: String,
     pub timezone: String,
     pub status: String,
@@ -51,6 +52,7 @@ impl Default for WizardData {
             api_port: 8080,
             client_id: String::new(),
             client_secret: String::new(),
+            redirect_url: String::new(),
             locale: "en".to_string(),
             timezone: "Europe/Paris".to_string(),
             status: "Need help? DM me!".to_string(),
@@ -107,16 +109,28 @@ pub struct ValidateChannelRequest {
     pub channel_id: String,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ChannelInfo {
     pub id: String,
     pub name: String,
     pub kind: u8, // 4 is GUILD_CATEGORY
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ValidateChannelResponse {
     pub valid: bool,
     pub channel: Option<ChannelInfo>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ValidateOAuth2Request {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct ValidateOAuth2Response {
+    pub valid: bool,
     pub error: Option<String>,
 }

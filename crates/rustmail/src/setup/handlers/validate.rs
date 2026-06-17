@@ -22,6 +22,12 @@ pub struct ValidateChannelRequest {
     pub channel_id: String,
 }
 
+#[derive(Deserialize)]
+pub struct ValidateOAuth2Request {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
 #[derive(Serialize)]
 pub struct BotInfo {
     pub id: String,
@@ -265,4 +271,56 @@ pub async fn handle_validate_channel(
             error: None,
         }),
     )
+}
+
+pub async fn handle_validate_oauth2(
+    Json(payload): Json<ValidateOAuth2Request>,
+) -> impl IntoResponse {
+    let client = Client::new();
+
+    let res = client
+        .post("https://discord.com/api/v10/oauth2/token")
+        .basic_auth(&payload.client_id, Some(&payload.client_secret))
+        .form(&[("grant_type", "client_credentials"), ("scope", "identify")])
+        .send()
+        .await;
+
+    match res {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({ "valid": true, "error": None::<String> })),
+                )
+            } else {
+                let err_msg = match resp.json::<serde_json::Value>().await {
+                    Ok(json) => {
+                        if let Some(desc) = json.get("error_description").and_then(|d| d.as_str()) {
+                            desc.to_string()
+                        } else if let Some(err) = json.get("error").and_then(|e| e.as_str()) {
+                            err.to_string()
+                        } else {
+                            "Invalid credentials".to_string()
+                        }
+                    }
+                    Err(_) => "Invalid credentials".to_string(),
+                };
+
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "valid": false,
+                        "error": err_msg
+                    })),
+                )
+            }
+        }
+        Err(e) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "valid": false,
+                "error": format!("Network error: {}", e)
+            })),
+        ),
+    }
 }

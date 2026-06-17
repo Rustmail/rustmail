@@ -32,6 +32,7 @@ pub struct SaveConfigRequest {
     pub enable_features: bool,
     pub features_channel_id: Option<u64>,
     pub enable_panel: bool,
+    pub api_port: u16,
     pub client_id: Option<u64>,
     pub client_secret: Option<String>,
     pub redirect_url: Option<String>,
@@ -125,6 +126,7 @@ pub async fn handle_setup_save(
         ip: None,
         panel_super_admin_users: payload.panel_super_admin_users,
         panel_super_admin_roles: vec![],
+        panel_port: payload.api_port,
     };
 
     let config = Config {
