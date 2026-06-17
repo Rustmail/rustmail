@@ -1,4 +1,5 @@
 use crate::components::wizard::types::{ValidateGuildRequest, ValidateGuildResponse, WizardData};
+use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -13,6 +14,7 @@ pub struct Step2Props {
 
 #[function_component(Step2Guilds)]
 pub fn step2_guilds(props: &Step2Props) -> Html {
+    let (i18n, _) = use_translation();
     let server_mode = use_state(|| {
         if props.data.server_mode.is_empty() {
             "single".to_string()
@@ -213,7 +215,7 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
                         if *is_validating {
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         } else {
-                            { "Validate" }
+                            { i18n.t("wizard.common.verify") }
                         }
                     </button>
                 </div>
@@ -240,7 +242,7 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
     html! {
         <div class="flex flex-col gap-6 animate-fade-in">
             <div class="flex flex-col gap-4">
-                <label class="text-sm font-medium text-gray-300">{ "Select Server Mode" }</label>
+                <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step2.mode_label") }</label>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label class={format!("relative flex cursor-pointer rounded-lg border bg-slate-900/50 p-4 shadow-sm focus:outline-none transition-all {}",
@@ -248,8 +250,7 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
                         <input type="radio" name="server_mode" value="single" class="sr-only" checked={*server_mode == "single"} onchange={on_mode_change.clone()} />
                         <span class="flex flex-1">
                             <span class="flex flex-col">
-                                <span class="block text-sm font-medium text-white">{ "Single Server" }</span>
-                                <span class="mt-1 flex items-center text-sm text-gray-400">{ "Community and staff use the same server." }</span>
+                                <span class="block text-sm font-medium text-white">{ i18n.t("wizard.steps.step2.mode_single") }</span>
                             </span>
                         </span>
                         if *server_mode == "single" {
@@ -262,8 +263,7 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
                         <input type="radio" name="server_mode" value="dual" class="sr-only" checked={*server_mode == "dual"} onchange={on_mode_change} />
                         <span class="flex flex-1">
                             <span class="flex flex-col">
-                                <span class="block text-sm font-medium text-white">{ "Dual Server" }</span>
-                                <span class="mt-1 flex items-center text-sm text-gray-400">{ "Tickets open in a separate staff server." }</span>
+                                <span class="block text-sm font-medium text-white">{ i18n.t("wizard.steps.step2.mode_dual") }</span>
                             </span>
                         </span>
                         if *server_mode == "dual" {
@@ -275,8 +275,8 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
 
             if *server_mode == "single" {
                 { render_guild_input(
-                    "Guild ID",
-                    "The ID of your server where tickets will be managed.",
+                    &i18n.t("wizard.steps.step2.guilds_label"),
+                    &i18n.t("wizard.steps.step2.main_server"),
                     single_guild_id.clone(),
                     single_guild_result.clone(),
                     is_validating_single.clone(),
@@ -285,16 +285,16 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
             } else {
                 <div class="flex flex-col gap-4">
                     { render_guild_input(
-                        "Community Guild ID",
-                        "The main server where users will DM the bot.",
+                        &i18n.t("wizard.steps.step2.guilds_label"),
+                        &i18n.t("wizard.steps.step2.community_server"),
                         community_guild_id.clone(),
                         community_guild_result.clone(),
                         is_validating_community.clone(),
                         on_validate_community
                     ) }
                     { render_guild_input(
-                        "Staff Guild ID",
-                        "The separate server where staff will answer tickets.",
+                        &i18n.t("wizard.steps.step2.guilds_label"),
+                        &i18n.t("wizard.steps.step2.staff_server"),
                         staff_guild_id.clone(),
                         staff_guild_result.clone(),
                         is_validating_staff.clone(),
@@ -308,14 +308,14 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
                     class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
                     onclick={on_prev}
                 >
-                    { "Back" }
+                    { i18n.t("wizard.common.back") }
                 </button>
                 <button
                     class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={on_next}
                     disabled={!is_valid}
                 >
-                    { "Next Step" }
+                    { i18n.t("wizard.common.next") }
                 </button>
             </div>
         </div>

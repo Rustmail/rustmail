@@ -6,6 +6,7 @@ use crate::components::wizard::step4_panel::Step4Panel;
 use crate::components::wizard::step5_language::Step5Language;
 use crate::components::wizard::step6_review::Step6Review;
 use crate::components::wizard::types::WizardData;
+use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
@@ -20,6 +21,7 @@ struct StatusResponse {
 
 #[function_component(Setup)]
 pub fn setup() -> Html {
+    let (i18n, _) = use_translation();
     let current_step = use_state(|| 0);
     let wizard_data = use_state(|| WizardData::default());
     let is_loading = use_state(|| true);
@@ -80,26 +82,27 @@ pub fn setup() -> Html {
     if *is_loading {
         return html! {
             <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-                <div class="text-gray-400 animate-pulse">{ "Loading setup..." }</div>
+                <div class="text-gray-400 animate-pulse">{ i18n.t("wizard.loading") }</div>
             </div>
         };
     }
 
     let title = match *current_step {
-        0 => "Step 1: Discord Bot Token",
-        1 => "Step 2: Servers Mode",
-        2 => "Step 3: Thread Configuration",
-        3 => "Step 4: Web Panel",
-        4 => "Step 5: Language",
-        _ => "Review & Save",
+        0 => i18n.t("wizard.steps.step1.title"),
+        1 => i18n.t("wizard.steps.step2.title"),
+        2 => i18n.t("wizard.steps.step3.title"),
+        3 => i18n.t("wizard.steps.step4.title"),
+        4 => i18n.t("wizard.steps.step5.title"),
+        _ => i18n.t("wizard.steps.step6.title"),
     };
 
     let description = match *current_step {
-        0 => {
-            "Let's start by linking your Discord bot. You can find your token in the Discord Developer Portal."
-        }
-        1 => "Choose how your bot should operate across your Discord servers.",
-        _ => "Configure your bot settings.",
+        0 => i18n.t("wizard.steps.step1.description"),
+        1 => i18n.t("wizard.steps.step2.description"),
+        2 => i18n.t("wizard.steps.step3.description"),
+        3 => i18n.t("wizard.steps.step4.description"),
+        4 => i18n.t("wizard.steps.step5.description"),
+        _ => i18n.t("wizard.steps.step6.description"),
     };
 
     html! {

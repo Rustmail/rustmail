@@ -1,4 +1,5 @@
 use crate::components::wizard::types::{ValidateOAuth2Request, ValidateOAuth2Response, WizardData};
+use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -13,6 +14,7 @@ pub struct Step4Props {
 
 #[function_component(Step4Panel)]
 pub fn step4_panel(props: &Step4Props) -> Html {
+    let (i18n, _) = use_translation();
     let panel_url = use_state(|| props.data.panel_url.clone());
     let api_port = use_state(|| props.data.api_port.to_string());
     let client_id = use_state(|| props.data.client_id.clone());
@@ -146,19 +148,17 @@ pub fn step4_panel(props: &Step4Props) -> Html {
             <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex gap-3 text-sm text-indigo-300">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <p>
-                    { "The web panel requires Discord OAuth2 to authenticate staff members. Make sure to add the " }
-                    <strong class="text-indigo-200">{ "Redirect URL" }</strong>
-                    { " below to your OAuth2 Redirect URIs in the Discord Developer Portal." }
+                    { i18n.t("wizard.steps.step4.oauth_help") }
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "External Panel URL" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step4.panel_url_label") }</label>
                     <input
                         type="url"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. http://192.168.1.10:8080 or https://panel.domain.com"
+                        placeholder={i18n.t("wizard.steps.step4.panel_url_placeholder")}
                         value={(*panel_url).clone()}
                         onchange={
                             let state = panel_url.clone();
@@ -176,12 +176,12 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Internal API Port (Docker Bind)" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step4.api_port_label") }</label>
                     <input
                         type="number"
                         min="1" max="65535"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. 3002 (Default)"
+                        placeholder={i18n.t("wizard.steps.step4.api_port_placeholder")}
                         value={(*api_port).clone()}
                         onchange={
                             let state = api_port.clone();
@@ -194,11 +194,11 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Discord OAuth2 Client ID" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step4.client_id_label") }</label>
                     <input
                         type="text"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="Found in Developer Portal"
+                        placeholder={i18n.t("wizard.steps.step4.client_id_placeholder")}
                         value={(*client_id).clone()}
                         onchange={
                             let state = client_id.clone();
@@ -213,12 +213,12 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Discord OAuth2 Client Secret" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step4.client_secret_label") }</label>
                     <div class="flex gap-3">
                         <input
                             type="password"
                             class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                            placeholder="Found in Developer Portal"
+                            placeholder={i18n.t("wizard.steps.step4.client_secret_placeholder")}
                             value={(*client_secret).clone()}
                             onchange={
                                 let state = client_secret.clone();
@@ -241,7 +241,7 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             } else {
-                                { "Verify" }
+                                { i18n.t("wizard.common.verify") }
                             }
                         </button>
                     </div>
@@ -252,13 +252,13 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                         if result.valid {
                             <div class="bg-green-500/10 border border-green-500/20 rounded-xl p-3 flex items-center gap-3">
                                 <svg class="w-5 h-5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                <p class="text-green-400 text-sm font-medium">{ "OAuth2 credentials verified successfully!" }</p>
+                                <p class="text-green-400 text-sm font-medium">{ i18n.t("wizard.common.verified_success") }</p>
                             </div>
                         } else if let Some(error) = &result.error {
                             <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-3">
                                 <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <div>
-                                    <p class="text-red-400 text-sm font-medium">{ "Verification Failed" }</p>
+                                    <p class="text-red-400 text-sm font-medium">{ i18n.t("wizard.common.verification_failed") }</p>
                                     <p class="text-xs text-red-300/80 mt-0.5">{ error }</p>
                                 </div>
                             </div>
@@ -267,11 +267,11 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                 }
 
                 <div class="flex flex-col gap-2 md:col-span-2">
-                    <label class="text-sm font-medium text-gray-300">{ "OAuth2 Redirect URL" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step4.redirect_url_label") }</label>
                     <input
                         type="url"
                         class="bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. https://panel.rustmail.rs/api/auth/callback"
+                        placeholder={i18n.t("wizard.steps.step4.redirect_url_placeholder")}
                         value={(*redirect_url).clone()}
                         onchange={
                             let state = redirect_url.clone();
@@ -281,7 +281,7 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                             })
                         }
                     />
-                    <p class="text-xs text-gray-500">{ "This is automatically calculated based on your panel URL and port, but you can override it if you use a reverse proxy." }</p>
+                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step4.redirect_url_help") }</p>
                 </div>
             </div>
 
@@ -290,14 +290,14 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                     class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
                     onclick={on_prev}
                 >
-                    { "Back" }
+                    { i18n.t("wizard.common.back") }
                 </button>
                 <button
                     class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={on_next}
                     disabled={!is_valid}
                 >
-                    { "Next Step" }
+                    { i18n.t("wizard.common.next") }
                 </button>
             </div>
         </div>

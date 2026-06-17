@@ -1,4 +1,5 @@
 use crate::components::wizard::types::{ValidateTokenRequest, ValidateTokenResponse, WizardData};
+use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -12,6 +13,7 @@ pub struct Step1Props {
 
 #[function_component(Step1Token)]
 pub fn step1_token(props: &Step1Props) -> Html {
+    let (i18n, _) = use_translation();
     let token = use_state(|| props.data.token.clone());
     let is_validating = use_state(|| false);
     let validation_result = use_state(|| None::<ValidateTokenResponse>);
@@ -96,12 +98,12 @@ pub fn step1_token(props: &Step1Props) -> Html {
     html! {
         <div class="flex flex-col gap-6 animate-fade-in">
             <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-300">{ "Discord Bot Token" }</label>
+                <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step1.token_label") }</label>
                 <div class="flex gap-3">
                     <input
                         type="password"
                         class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="Paste your bot token here..."
+                        placeholder={i18n.t("wizard.steps.step1.token_placeholder")}
                         value={(*token).clone()}
                         onchange={on_token_change}
                     />
@@ -116,16 +118,12 @@ pub fn step1_token(props: &Step1Props) -> Html {
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         } else {
-                            { "Validate" }
+                            { i18n.t("wizard.common.verify") }
                         }
                     </button>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">
-                    { "You can get your token from the " }
-                    <a href="https://discord.com/developers/applications" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline decoration-indigo-400/30 underline-offset-2">
-                        { "Discord Developer Portal" }
-                    </a>
-                    { "." }
+                    { i18n.t("wizard.steps.step1.token_help") }
                 </p>
             </div>
 
@@ -142,8 +140,8 @@ pub fn step1_token(props: &Step1Props) -> Html {
                                 </div>
                             }
                             <div>
-                                <h3 class="text-green-400 font-medium">{ "Connected Successfully!" }</h3>
-                                <p class="text-sm text-gray-300">{ format!("Logged in as ") }<span class="font-semibold text-white">{ &bot.username }</span></p>
+                                <h3 class="text-green-400 font-medium">{ i18n.t("wizard.common.verified_success") }</h3>
+                                <p class="text-sm text-gray-300">{ i18n.t("wizard.steps.step1.logged_in_as") }<span class="font-semibold text-white">{ &bot.username }</span></p>
                             </div>
                         </div>
                     }
@@ -151,7 +149,7 @@ pub fn step1_token(props: &Step1Props) -> Html {
                     <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
                         <svg class="w-5 h-5 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
-                            <h3 class="text-red-400 font-medium">{ "Validation Failed" }</h3>
+                            <h3 class="text-red-400 font-medium">{ i18n.t("wizard.common.verification_failed") }</h3>
                             <p class="text-sm text-red-300/80 mt-0.5">{ error }</p>
                         </div>
                     </div>
@@ -164,7 +162,7 @@ pub fn step1_token(props: &Step1Props) -> Html {
                     onclick={on_next}
                     disabled={!is_valid}
                 >
-                    { "Next Step" }
+                    { i18n.t("wizard.common.next") }
                 </button>
             </div>
         </div>

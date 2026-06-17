@@ -1,6 +1,7 @@
 use crate::components::wizard::types::{
     ValidateChannelRequest, ValidateChannelResponse, WizardData,
 };
+use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -15,6 +16,7 @@ pub struct Step3Props {
 
 #[function_component(Step3Thread)]
 pub fn step3_thread(props: &Step3Props) -> Html {
+    let (i18n, _) = use_translation();
     let inbox_category_id = use_state(|| props.data.inbox_category_id.clone());
     let command_prefix = use_state(|| props.data.command_prefix.clone());
     let user_color = use_state(|| props.data.user_message_color.clone());
@@ -155,13 +157,12 @@ pub fn step3_thread(props: &Step3Props) -> Html {
         <div class="flex flex-col gap-6 animate-fade-in">
             // Inbox Category
             <div class="flex flex-col gap-2 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                <label class="text-sm font-medium text-gray-300">{ "Inbox Category ID" }</label>
-                <p class="text-xs text-gray-500 mb-1">{ "The Discord category ID where new tickets will be created." }</p>
+                <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step3.category_label") }</label>
                 <div class="flex gap-3">
                     <input
                         type="text"
                         class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. 123456789012345678"
+                        placeholder={i18n.t("wizard.steps.step3.category_placeholder")}
                         value={(*inbox_category_id).clone()}
                         onchange={
                             let inbox_category_id = inbox_category_id.clone();
@@ -181,7 +182,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                         if *is_validating {
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         } else {
-                            { "Validate" }
+                            { i18n.t("wizard.common.verify") }
                         }
                     </button>
                 </div>
@@ -207,9 +208,10 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                 // Left Column
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-300">{ "Command Prefix" }</label>
+                        <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step3.prefix_label") }</label>
                         <input
                             type="text"
+                            placeholder={i18n.t("wizard.steps.step3.prefix_placeholder")}
                             class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                             value={(*command_prefix).clone()}
                             onchange={
@@ -236,7 +238,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                                 })
                             }
                         />
-                        <label for="embedded_message" class="text-sm text-gray-300">{ "Use Embeds for Messages" }</label>
+                        <label for="embedded_message" class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.embed_label") }</label>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -253,14 +255,14 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                                 })
                             }
                         />
-                        <label for="block_quote" class="text-sm text-gray-300">{ "Use Block Quotes" }</label>
+                        <label for="block_quote" class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.use_block_quotes") }</label>
                     </div>
                 </div>
 
                 // Right Column (Colors)
                 <div class="flex flex-col gap-4">
-                    <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                        <label class="text-sm text-gray-300">{ "User Message Color" }</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.user_message_color") }</label>
                         <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*user_color).clone().replace("#", ""))}
                             onchange={let state = user_color.clone(); Callback::from(move |e: Event| {
                                 let input: web_sys::HtmlInputElement = e.target_unchecked_into();
@@ -268,8 +270,8 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                             })}
                         />
                     </div>
-                    <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                        <label class="text-sm text-gray-300">{ "Staff Message Color" }</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.staff_message_color") }</label>
                         <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*staff_color).clone().replace("#", ""))}
                             onchange={let state = staff_color.clone(); Callback::from(move |e: Event| {
                                 let input: web_sys::HtmlInputElement = e.target_unchecked_into();
@@ -277,8 +279,8 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                             })}
                         />
                     </div>
-                    <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                        <label class="text-sm text-gray-300">{ "System Message Color" }</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.system_message_color") }</label>
                         <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*system_color).clone().replace("#", ""))}
                             onchange={let state = system_color.clone(); Callback::from(move |e: Event| {
                                 let input: web_sys::HtmlInputElement = e.target_unchecked_into();
@@ -294,14 +296,14 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                     class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
                     onclick={on_prev}
                 >
-                    { "Back" }
+                    { i18n.t("wizard.common.back") }
                 </button>
                 <button
                     class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={on_next}
                     disabled={!is_valid}
                 >
-                    { "Next Step" }
+                    { i18n.t("wizard.common.next") }
                 </button>
             </div>
         </div>

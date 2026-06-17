@@ -1,4 +1,5 @@
 use crate::components::wizard::types::WizardData;
+use crate::i18n::yew::use_translation;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
@@ -11,6 +12,7 @@ pub struct Step5Props {
 
 #[function_component(Step5Language)]
 pub fn step5_language(props: &Step5Props) -> Html {
+    let (i18n, _) = use_translation();
     let locale = use_state(|| props.data.locale.clone());
     let timezone = use_state(|| props.data.timezone.clone());
     let status = use_state(|| props.data.status.clone());
@@ -51,7 +53,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
         <div class="flex flex-col gap-6 animate-fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Language" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.language_label") }</label>
                     <select
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none"
                         value={(*locale).clone()}
@@ -69,7 +71,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Timezone" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.timezone_label") }</label>
                     <select
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none"
                         value={(*timezone).clone()}
@@ -94,14 +96,14 @@ pub fn step5_language(props: &Step5Props) -> Html {
             </div>
 
             <div class="flex flex-col gap-4 bg-slate-800/30 p-5 rounded-xl border border-slate-700/50 mt-2">
-                <h3 class="text-white font-medium mb-1">{ "Bot Messages" }</h3>
+                <h3 class="text-white font-medium mb-1">{ i18n.t("wizard.steps.step5.bot_messages_title") }</h3>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-400">{ "Bot Status / Activity" }</label>
+                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.bot_status_label") }</label>
                     <input
                         type="text"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. Need help? DM me!"
+                        placeholder={i18n.t("wizard.steps.step5.bot_status_placeholder")}
                         value={(*status).clone()}
                         onchange={
                             let state = status.clone();
@@ -111,14 +113,14 @@ pub fn step5_language(props: &Step5Props) -> Html {
                             })
                         }
                     />
-                    <p class="text-xs text-gray-500">{ "Displayed under the bot's name in the member list." }</p>
+                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.bot_status_help") }</p>
                 </div>
 
                 <div class="flex flex-col gap-2 mt-2">
-                    <label class="text-sm font-medium text-gray-400">{ "Welcome Message (DM)" }</label>
+                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.welcome_label") }</label>
                     <textarea
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none h-24"
-                        placeholder="e.g. Thank you for contacting support! A staff member will be with you shortly."
+                        placeholder={i18n.t("wizard.steps.step5.welcome_placeholder")}
                         value={(*direct_message).clone()}
                         onchange={
                             let state = direct_message.clone();
@@ -128,7 +130,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
                             })
                         }
                     />
-                    <p class="text-xs text-gray-500">{ "This message is sent to the user when they open a new ticket." }</p>
+                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.welcome_help") }</p>
                 </div>
             </div>
 
@@ -137,14 +139,14 @@ pub fn step5_language(props: &Step5Props) -> Html {
                     class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
                     onclick={on_prev}
                 >
-                    { "Back" }
+                    { i18n.t("wizard.common.back") }
                 </button>
                 <button
                     class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={on_next}
                     disabled={!is_valid}
                 >
-                    { "Next Step" }
+                    { i18n.t("wizard.common.next") }
                 </button>
             </div>
         </div>

@@ -1,4 +1,6 @@
+use crate::components::language_switcher::LanguageSwitcher;
 use crate::components::wizard::progress_bar::ProgressBar;
+use crate::i18n::yew::use_translation;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
@@ -13,8 +15,15 @@ pub struct LayoutProps {
 
 #[function_component(WizardLayout)]
 pub fn wizard_layout(props: &LayoutProps) -> Html {
+    let (i18n, _) = use_translation();
     html! {
-        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans">
+        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans relative">
+
+            // Language Switcher in top right corner
+            <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-50">
+                <LanguageSwitcher placement="nav" />
+            </div>
+
             <div class="w-full max-w-4xl flex flex-col gap-8">
 
                 // Header with logo and title
@@ -27,9 +36,9 @@ pub fn wizard_layout(props: &LayoutProps) -> Html {
                     </div>
                     <div>
                         <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                            { "Rustmail Setup" }
+                            { i18n.t("wizard.title") }
                         </h1>
-                        <p class="text-gray-400 mt-2">{ "Configure your Discord modmail bot in a few easy steps" }</p>
+                        <p class="text-gray-400 mt-2">{ i18n.t("wizard.progress") }</p>
                     </div>
                 </div>
 
