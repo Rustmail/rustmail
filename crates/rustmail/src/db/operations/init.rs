@@ -1,3 +1,4 @@
+use crate::config::resolve_db_path;
 use sqlx::{
     SqlitePool,
     sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
@@ -8,12 +9,12 @@ use std::str::FromStr;
 use std::time::Duration;
 
 pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
-    let db_path = "db/db.sqlite";
+    let db_path = resolve_db_path("db/db.sqlite");
 
     fs::create_dir_all("db")?;
 
-    if !Path::new(db_path).exists() {
-        fs::File::create(db_path)?;
+    if !Path::new(&db_path).exists() {
+        fs::File::create(&db_path)?;
         println!("Database file created at: {}", db_path);
     }
 

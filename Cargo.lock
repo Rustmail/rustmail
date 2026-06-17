@@ -2690,6 +2690,7 @@ dependencies = [
  "base64",
  "cargo-husky",
  "chrono",
+ "chrono-tz",
  "futures",
  "hex",
  "hyper",
