@@ -49,12 +49,12 @@ pub fn setup() -> Html {
     }
 
     let step_names = vec![
-        "Bot Token",
-        "Guilds",
-        "Thread Config",
-        "Web Panel",
-        "Language",
-        "Review",
+        i18n.t("wizard.steps.step1.title").to_string(),
+        i18n.t("wizard.steps.step2.title").to_string(),
+        i18n.t("wizard.steps.step3.title").to_string(),
+        i18n.t("wizard.steps.step4.title").to_string(),
+        i18n.t("wizard.steps.step5.title").to_string(),
+        i18n.t("wizard.steps.step6.title").to_string(),
     ];
 
     let on_update_data = {

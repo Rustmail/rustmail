@@ -4,7 +4,7 @@ use yew::prelude::*;
 pub struct ProgressBarProps {
     pub current_step: usize,
     pub total_steps: usize,
-    pub step_names: Vec<&'static str>,
+    pub step_names: Vec<String>,
 }
 
 #[function_component(ProgressBar)]

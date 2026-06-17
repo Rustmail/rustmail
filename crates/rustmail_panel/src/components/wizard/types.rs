@@ -49,7 +49,7 @@ impl Default for WizardData {
             close_on_leave: true,
             auto_archive_duration: 1440,
             panel_url: String::new(),
-            api_port: 8080,
+            api_port: 3002,
             client_id: String::new(),
             client_secret: String::new(),
             redirect_url: String::new(),

@@ -7,7 +7,7 @@ use yew::prelude::*;
 pub struct LayoutProps {
     pub current_step: usize,
     pub total_steps: usize,
-    pub step_names: Vec<&'static str>,
+    pub step_names: Vec<String>,
     pub title: String,
     pub description: String,
     pub children: Children,

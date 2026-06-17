@@ -11,7 +11,11 @@ use std::time::Duration;
 pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
     let db_path = resolve_db_path("db/db.sqlite");
 
-    fs::create_dir_all("db")?;
+    if let Some(parent) = Path::new(&db_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
 
     if !Path::new(&db_path).exists() {
         fs::File::create(&db_path)?;

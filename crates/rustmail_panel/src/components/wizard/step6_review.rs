@@ -120,13 +120,29 @@ pub fn step6_review(props: &Step6Props) -> Html {
     let target_url = if panel_url.is_empty() {
         format!("http://localhost:{}", api_port)
     } else {
-        let has_port = panel_url.matches(':').count() > 1;
-        if !has_port
-            && (panel_url.contains("127.0.0.1")
-                || panel_url.contains("localhost")
-                || panel_url.matches('.').count() == 3)
-        {
-            format!("{}:{}", panel_url, api_port)
+        if let Some((scheme, rest)) = panel_url.split_once("://") {
+            let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+            let authority = &rest[..authority_end];
+            let suffix = &rest[authority_end..];
+            let host_port = authority.rsplit('@').next().unwrap_or(authority);
+
+            let (host, has_port) = if let Some((host, port)) = host_port.rsplit_once(':') {
+                if port.parse::<u16>().is_ok() {
+                    (host, true)
+                } else {
+                    (host_port, false)
+                }
+            } else {
+                (host_port, false)
+            };
+
+            let is_local_host = host == "localhost" || host.parse::<std::net::Ipv4Addr>().is_ok();
+
+            if is_local_host && !has_port {
+                format!("{}://{}:{}{}", scheme, authority, api_port, suffix)
+            } else {
+                panel_url.clone()
+            }
         } else {
             panel_url.clone()
         }

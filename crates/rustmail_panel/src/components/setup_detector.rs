@@ -38,13 +38,6 @@ pub fn setup_detector() -> Html {
         });
     }
 
-    if *is_checking {
-        html! {
-            <div class="flex items-center justify-center min-h-screen bg-slate-900 text-white">
-                <div class="text-gray-400 animate-pulse">{ "Checking setup mode..." }</div>
-            </div>
-        }
-    } else {
-        html! {}
-    }
+    let _ = is_checking;
+    html! {}
 }

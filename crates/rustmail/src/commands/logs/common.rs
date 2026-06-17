@@ -49,7 +49,7 @@ pub async fn render_logs_page(
         use std::fmt::Write;
         let _ = writeln!(
             desc,
-            "**#{}** | [`🎫 {}`]({}) | 🔒 {} \n",
+            "**#{}** | [`🎫 {}`]({}) | 🔒 {}",
             log.id,
             log.ticket_id,
             format!(

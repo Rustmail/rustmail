@@ -102,6 +102,19 @@ pub async fn handle_setup_save(
         }
     };
 
+    let timezone = match payload.timezone.parse() {
+        Ok(timezone) => timezone,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Invalid timezone: {}", payload.timezone)
+                })),
+            );
+        }
+    };
+
     let bot_config = BotConfig {
         token: payload.token,
         mode,
@@ -117,7 +130,7 @@ pub async fn handle_setup_save(
         client_id: payload.client_id.unwrap_or(0),
         client_secret: payload.client_secret.unwrap_or_default(),
         redirect_url: payload.redirect_url.unwrap_or_default(),
-        timezone: payload.timezone.parse().unwrap_or(chrono_tz::UTC),
+        timezone,
         logs_channel_id: payload.logs_channel_id,
         features_channel_id: payload.features_channel_id,
         ip: None,
