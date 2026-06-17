@@ -3,6 +3,7 @@ use crate::components::wizard::step1_token::Step1Token;
 use crate::components::wizard::step2_guilds::Step2Guilds;
 use crate::components::wizard::step3_thread::Step3Thread;
 use crate::components::wizard::step4_panel::Step4Panel;
+use crate::components::wizard::step5_language::Step5Language;
 use crate::components::wizard::types::WizardData;
 use gloo_net::http::Request;
 use serde::Deserialize;
@@ -130,6 +131,13 @@ pub fn setup() -> Html {
                 />
             } else if *current_step == 3 {
                 <Step4Panel
+                    data={(*wizard_data).clone()}
+                    on_update={on_update_data.clone()}
+                    on_next={on_next_step.clone()}
+                    on_prev={on_prev_step.clone()}
+                />
+            } else if *current_step == 4 {
+                <Step5Language
                     data={(*wizard_data).clone()}
                     on_update={on_update_data}
                     on_next={on_next_step}

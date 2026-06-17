@@ -22,6 +22,10 @@ pub struct WizardData {
     pub api_port: u16,
     pub client_id: String,
     pub client_secret: String,
+    pub locale: String,
+    pub timezone: String,
+    pub status: String,
+    pub direct_message: String,
 }
 
 impl Default for WizardData {
@@ -47,6 +51,12 @@ impl Default for WizardData {
             api_port: 8080,
             client_id: String::new(),
             client_secret: String::new(),
+            locale: "en".to_string(),
+            timezone: "Europe/Paris".to_string(),
+            status: "Need help? DM me!".to_string(),
+            direct_message:
+                "Thank you for contacting support! A staff member will be with you shortly."
+                    .to_string(),
         }
     }
 }
