@@ -49,8 +49,8 @@ pub async fn add_reminder(
 
     let re = Regex::new(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$").unwrap();
     let captures = re
-        .captures(&duration_str)
-        .ok_or_else(|| ModmailError::Command(CommandError::InvalidReminderFormat))?;
+        .captures(duration_str)
+        .ok_or(ModmailError::Command(CommandError::InvalidReminderFormat))?;
 
     let hours: u32 = captures
         .name("hour")
@@ -124,8 +124,8 @@ pub async fn add_reminder(
         &reminder,
         Some(reminder_id),
         &ctx,
-        &config,
-        &pool,
+        config,
+        pool,
         handler.shutdown.clone(),
     );
 

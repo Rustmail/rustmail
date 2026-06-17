@@ -56,17 +56,16 @@ async fn manage_creating_ticket_via_opening_thread(
         channel.id
     };
 
-    if let Some(pool) = &config.db_pool {
-        if get_thread_by_channel_id(&channel_id_inner.to_string(), pool)
+    if let Some(pool) = &config.db_pool
+        && get_thread_by_channel_id(&channel_id_inner.to_string(), pool)
             .await
             .is_some()
-        {
-            return;
-        }
+    {
+        return;
     }
 
-    let yes = get_translated_message(&config, "general.yes", None, None, None, None).await;
-    let no = get_translated_message(&config, "general.no", None, None, None, None).await;
+    let yes = get_translated_message(config, "general.yes", None, None, None, None).await;
+    let no = get_translated_message(config, "general.no", None, None, None, None).await;
     let res_button = make_buttons(&[
         (
             yes.as_ref(),
@@ -82,7 +81,7 @@ async fn manage_creating_ticket_via_opening_thread(
         ),
     ]);
 
-    let _ = MessageBuilder::system_message(&ctx, &config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content("thread.ask_create_ticket", None, None, None)
         .await
         .components(res_button)
@@ -99,15 +98,15 @@ impl EventHandler for GuildModerationHandler {
         entry: AuditLogEntry,
         guild_id: GuildId,
     ) {
-        if let Action::Channel(ChannelAction::Create) = entry.action {
-            if entry.user_id != ctx.cache.current_user().id {
-                let channel_id = match entry.target_id {
-                    Some(id) => ChannelId::new(id.get()),
-                    None => return,
-                };
-                manage_creating_ticket_via_opening_thread(&ctx, &self.config, guild_id, channel_id)
-                    .await;
-            }
+        if let Action::Channel(ChannelAction::Create) = entry.action
+            && entry.user_id != ctx.cache.current_user().id
+        {
+            let channel_id = match entry.target_id {
+                Some(id) => ChannelId::new(id.get()),
+                None => return,
+            };
+            manage_creating_ticket_via_opening_thread(&ctx, &self.config, guild_id, channel_id)
+                .await;
         }
 
         if !self.config.bot.enable_discord_logs {

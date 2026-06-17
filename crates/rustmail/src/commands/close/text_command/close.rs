@@ -102,27 +102,27 @@ pub async fn close(
         return Ok(());
     }
 
-    if duration.is_none() {
-        if let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await {
-            let remaining = existing.close_at - Utc::now().timestamp();
+    if duration.is_none()
+        && let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await
+    {
+        let remaining = existing.close_at - Utc::now().timestamp();
 
-            let mut params = HashMap::new();
-            params.insert("seconds".to_string(), remaining.to_string());
+        let mut params = HashMap::new();
+        params.insert("seconds".to_string(), remaining.to_string());
 
-            if remaining > 0 {
-                let _ = MessageBuilder::system_message(&ctx, config)
-                    .translated_content(
-                        "close.closure_already_scheduled",
-                        Some(&params),
-                        Some(msg.author.id),
-                        msg.guild_id.map(|g| g.get()),
-                    )
-                    .await
-                    .to_channel(msg.channel_id)
-                    .send(true)
-                    .await;
-                return Ok(());
-            }
+        if remaining > 0 {
+            let _ = MessageBuilder::system_message(&ctx, config)
+                .translated_content(
+                    "close.closure_already_scheduled",
+                    Some(&params),
+                    Some(msg.author.id),
+                    msg.guild_id.map(|g| g.get()),
+                )
+                .await
+                .to_channel(msg.channel_id)
+                .send(true)
+                .await;
+            return Ok(());
         }
     }
 
@@ -290,34 +290,34 @@ pub async fn close(
     .await?;
     let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
-    if config.bot.enable_rustmail_logs {
-        if let Some(logs_channel_id) = config.bot.logs_channel_id {
-            let base_url = config
-                .bot
-                .redirect_url
-                .trim_end_matches("/api/auth/callback")
-                .trim_end_matches('/');
+    if config.bot.enable_rustmail_logs
+        && let Some(logs_channel_id) = config.bot.logs_channel_id
+    {
+        let base_url = config
+            .bot
+            .redirect_url
+            .trim_end_matches("/api/auth/callback")
+            .trim_end_matches('/');
 
-            let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
 
-            let mut params = HashMap::new();
-            params.insert("staff".to_string(), msg.author.id.to_string());
-            params.insert("username".to_string(), thread.user_name.clone());
-            params.insert("user_id".to_string(), thread.user_id.to_string());
-            params.insert("panel_url".to_string(), panel_url);
+        let mut params = HashMap::new();
+        params.insert("staff".to_string(), msg.author.id.to_string());
+        params.insert("username".to_string(), thread.user_name.clone());
+        params.insert("user_id".to_string(), thread.user_id.to_string());
+        params.insert("panel_url".to_string(), panel_url);
 
-            let _ = MessageBuilder::system_message(&ctx, config)
-                .translated_content(
-                    "logs.ticket_closed",
-                    Some(&params),
-                    Some(msg.author.id),
-                    msg.guild_id.map(|g| g.get()),
-                )
-                .await
-                .to_channel(serenity::all::ChannelId::new(logs_channel_id))
-                .send(true)
-                .await;
-        }
+        let _ = MessageBuilder::system_message(&ctx, config)
+            .translated_content(
+                "logs.ticket_closed",
+                Some(&params),
+                Some(msg.author.id),
+                msg.guild_id.map(|g| g.get()),
+            )
+            .await
+            .to_channel(serenity::all::ChannelId::new(logs_channel_id))
+            .send(true)
+            .await;
     }
 
     let _ = msg.channel_id.delete(&ctx.http).await?;

@@ -278,22 +278,22 @@ async fn handle_create(
     let mut key = String::new();
     let mut content = String::new();
 
-    if let Some(subcommand) = options.first() {
-        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
-            for option in sub_options {
-                match option.name.as_str() {
-                    "key" => {
-                        if let CommandDataOptionValue::String(val) = &option.value {
-                            key = val.to_string();
-                        }
+    if let Some(subcommand) = options.first()
+        && let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value
+    {
+        for option in sub_options {
+            match option.name.as_str() {
+                "key" => {
+                    if let CommandDataOptionValue::String(val) = &option.value {
+                        key = val.to_string();
                     }
-                    "content" => {
-                        if let CommandDataOptionValue::String(val) = &option.value {
-                            content = val.to_string();
-                        }
-                    }
-                    _ => {}
                 }
+                "content" => {
+                    if let CommandDataOptionValue::String(val) = &option.value {
+                        content = val.to_string();
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -329,7 +329,7 @@ async fn handle_create(
         )
         .await
         .to_channel(command.channel_id)
-        .send_interaction_followup(&command, false)
+        .send_interaction_followup(command, false)
         .await;
 
     Ok(())
@@ -353,7 +353,7 @@ async fn handle_list(
             )
             .await
             .to_channel(command.channel_id)
-            .send_interaction_followup(&command, false)
+            .send_interaction_followup(command, false)
             .await;
 
         return Ok(());
@@ -377,7 +377,7 @@ async fn handle_list(
     let _ = MessageBuilder::system_message(ctx, config)
         .content(content)
         .to_channel(command.channel_id)
-        .send_interaction_followup(&command, true)
+        .send_interaction_followup(command, true)
         .await;
 
     Ok(())
@@ -392,14 +392,14 @@ async fn handle_show(
 ) -> ModmailResult<()> {
     let mut key = String::new();
 
-    if let Some(subcommand) = options.first() {
-        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
-            for option in sub_options {
-                if option.name == "key" {
-                    if let CommandDataOptionValue::String(val) = &option.value {
-                        key = val.to_string();
-                    }
-                }
+    if let Some(subcommand) = options.first()
+        && let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value
+    {
+        for option in sub_options {
+            if option.name == "key"
+                && let CommandDataOptionValue::String(val) = &option.value
+            {
+                key = val.to_string();
             }
         }
     }
@@ -449,7 +449,7 @@ async fn handle_show(
             let _ = MessageBuilder::system_message(ctx, config)
                 .content(content)
                 .to_channel(command.channel_id)
-                .send_interaction_followup(&command, true)
+                .send_interaction_followup(command, true)
                 .await;
         }
         None => {
@@ -472,22 +472,22 @@ async fn handle_edit(
     let mut key = String::new();
     let mut content = String::new();
 
-    if let Some(subcommand) = options.first() {
-        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
-            for option in sub_options {
-                match option.name.as_str() {
-                    "key" => {
-                        if let CommandDataOptionValue::String(val) = &option.value {
-                            key = val.to_string();
-                        }
+    if let Some(subcommand) = options.first()
+        && let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value
+    {
+        for option in sub_options {
+            match option.name.as_str() {
+                "key" => {
+                    if let CommandDataOptionValue::String(val) = &option.value {
+                        key = val.to_string();
                     }
-                    "content" => {
-                        if let CommandDataOptionValue::String(val) = &option.value {
-                            content = val.to_string();
-                        }
-                    }
-                    _ => {}
                 }
+                "content" => {
+                    if let CommandDataOptionValue::String(val) = &option.value {
+                        content = val.to_string();
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -517,7 +517,7 @@ async fn handle_edit(
         )
         .await
         .to_channel(command.channel_id)
-        .send_interaction_followup(&command, true)
+        .send_interaction_followup(command, true)
         .await;
 
     Ok(())
@@ -532,14 +532,14 @@ async fn handle_delete(
 ) -> ModmailResult<()> {
     let mut key = String::new();
 
-    if let Some(subcommand) = options.first() {
-        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
-            for option in sub_options {
-                if option.name == "key" {
-                    if let CommandDataOptionValue::String(val) = &option.value {
-                        key = val.to_string();
-                    }
-                }
+    if let Some(subcommand) = options.first()
+        && let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value
+    {
+        for option in sub_options {
+            if option.name == "key"
+                && let CommandDataOptionValue::String(val) = &option.value
+            {
+                key = val.to_string();
             }
         }
     }
@@ -565,7 +565,7 @@ async fn handle_delete(
         )
         .await
         .to_channel(command.channel_id)
-        .send_interaction_followup(&command, true)
+        .send_interaction_followup(command, true)
         .await;
 
     Ok(())
@@ -580,14 +580,14 @@ async fn handle_use(
 ) -> ModmailResult<()> {
     let mut key = String::new();
 
-    if let Some(subcommand) = options.first() {
-        if let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value {
-            for option in sub_options {
-                if option.name == "key" {
-                    if let CommandDataOptionValue::String(val) = &option.value {
-                        key = val.to_string();
-                    }
-                }
+    if let Some(subcommand) = options.first()
+        && let CommandDataOptionValue::SubCommand(sub_options) = &subcommand.value
+    {
+        for option in sub_options {
+            if option.name == "key"
+                && let CommandDataOptionValue::String(val) = &option.value
+            {
+                key = val.to_string();
             }
         }
     }
@@ -626,12 +626,12 @@ async fn handle_use(
                     )
                     .await
                     .ephemeral(true)
-                    .send_interaction_followup(&command, true)
+                    .send_interaction_followup(command, true)
                     .await;
             } else {
                 let _ = MessageBuilder::system_message(ctx, config)
                     .content(&snippet.content)
-                    .send_interaction_followup(&command, true)
+                    .send_interaction_followup(command, true)
                     .await;
             }
         }

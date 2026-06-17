@@ -5,6 +5,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 pub struct SetupStatusResponse {
     pub setup_required: bool,

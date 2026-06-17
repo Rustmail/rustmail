@@ -15,75 +15,69 @@ pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at:
         if delay_secs > 0 {
             sleep(Duration::from_secs(delay_secs)).await;
         }
-        if let Some(pool) = config_clone.db_pool.as_ref() {
-            if let Ok(Some(current)) = get_scheduled_closure(&thread_id, pool).await {
-                if current.close_at <= Utc::now().timestamp() {
-                    if let Some(thread) = get_thread_by_id(&thread_id, pool).await {
-                        let channel_id =
-                            ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
-                        let user_id = UserId::new(thread.user_id as u64);
+        if let Some(pool) = config_clone.db_pool.as_ref()
+            && let Ok(Some(current)) = get_scheduled_closure(&thread_id, pool).await
+        {
+            if current.close_at <= Utc::now().timestamp() {
+                if let Some(thread) = get_thread_by_id(&thread_id, pool).await {
+                    let channel_id = ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
+                    let user_id = UserId::new(thread.user_id as u64);
 
-                        let _ = close_thread(
-                            &thread_id,
-                            &current.closed_by,
-                            &current.category_id,
-                            &current.category_name,
-                            current.required_permissions.parse::<u64>().unwrap_or(0),
-                            pool,
-                        )
-                        .await;
-                        let _ = delete_scheduled_closure(&thread_id, pool).await;
+                    let _ = close_thread(
+                        &thread_id,
+                        &current.closed_by,
+                        &current.category_id,
+                        &current.category_name,
+                        current.required_permissions.parse::<u64>().unwrap_or(0),
+                        pool,
+                    )
+                    .await;
+                    let _ = delete_scheduled_closure(&thread_id, pool).await;
 
-                        if config_clone.bot.enable_rustmail_logs {
-                            if let Some(logs_channel_id) = config_clone.bot.logs_channel_id {
-                                let base_url = config_clone
-                                    .bot
-                                    .redirect_url
-                                    .trim_end_matches("/api/auth/callback")
-                                    .trim_end_matches('/');
+                    if config_clone.bot.enable_rustmail_logs
+                        && let Some(logs_channel_id) = config_clone.bot.logs_channel_id
+                    {
+                        let base_url = config_clone
+                            .bot
+                            .redirect_url
+                            .trim_end_matches("/api/auth/callback")
+                            .trim_end_matches('/');
 
-                                let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+                        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
 
-                                let mut params = std::collections::HashMap::new();
-                                params.insert("username".to_string(), thread.user_name.clone());
-                                params.insert("user_id".to_string(), thread.user_id.to_string());
-                                params.insert("panel_url".to_string(), panel_url);
+                        let mut params = std::collections::HashMap::new();
+                        params.insert("username".to_string(), thread.user_name.clone());
+                        params.insert("user_id".to_string(), thread.user_id.to_string());
+                        params.insert("panel_url".to_string(), panel_url);
 
-                                let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
-                                    .translated_content(
-                                        "logs.ticket_closed",
-                                        Some(&params),
-                                        None,
-                                        None,
-                                    )
-                                    .await
-                                    .to_channel(ChannelId::new(logs_channel_id))
-                                    .send(true)
-                                    .await;
-                            }
-                        }
-
-                        let effective_silent =
-                            current.silent || is_thread_silent(&thread_id, pool).await;
-                        if !effective_silent {
-                            let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
-                                .content(&config_clone.bot.close_message)
-                                .to_user(user_id)
-                                .send(true)
-                                .await;
-                        }
-                        let _ = channel_id.delete(&ctx_clone.http).await;
-                    } else {
-                        let _ = delete_scheduled_closure(&thread_id, pool).await;
+                        let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
+                            .translated_content("logs.ticket_closed", Some(&params), None, None)
+                            .await
+                            .to_channel(ChannelId::new(logs_channel_id))
+                            .send(true)
+                            .await;
                     }
+
+                    let effective_silent =
+                        current.silent || is_thread_silent(&thread_id, pool).await;
+                    if !effective_silent {
+                        let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
+                            .content(&config_clone.bot.close_message)
+                            .to_user(user_id)
+                            .send(true)
+                            .await;
+                    }
+                    let _ = channel_id.delete(&ctx_clone.http).await;
                 } else {
-                    schedule_one(
-                        &ctx_clone,
-                        &config_clone,
-                        thread_id.clone(),
-                        current.close_at,
-                    );
+                    let _ = delete_scheduled_closure(&thread_id, pool).await;
                 }
+            } else {
+                schedule_one(
+                    &ctx_clone,
+                    &config_clone,
+                    thread_id.clone(),
+                    current.close_at,
+                );
             }
         }
     });
@@ -118,28 +112,28 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
                 .await;
                 let _ = delete_scheduled_closure(&thread.id, pool).await;
 
-                if config.bot.enable_rustmail_logs {
-                    if let Some(logs_channel_id) = config.bot.logs_channel_id {
-                        let base_url = config
-                            .bot
-                            .redirect_url
-                            .trim_end_matches("/api/auth/callback")
-                            .trim_end_matches('/');
+                if config.bot.enable_rustmail_logs
+                    && let Some(logs_channel_id) = config.bot.logs_channel_id
+                {
+                    let base_url = config
+                        .bot
+                        .redirect_url
+                        .trim_end_matches("/api/auth/callback")
+                        .trim_end_matches('/');
 
-                        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+                    let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
 
-                        let mut params = std::collections::HashMap::new();
-                        params.insert("username".to_string(), thread.user_name.clone());
-                        params.insert("user_id".to_string(), thread.user_id.to_string());
-                        params.insert("panel_url".to_string(), panel_url);
+                    let mut params = std::collections::HashMap::new();
+                    params.insert("username".to_string(), thread.user_name.clone());
+                    params.insert("user_id".to_string(), thread.user_id.to_string());
+                    params.insert("panel_url".to_string(), panel_url);
 
-                        let _ = MessageBuilder::system_message(ctx, config)
-                            .translated_content("logs.ticket_closed", Some(&params), None, None)
-                            .await
-                            .to_channel(ChannelId::new(logs_channel_id))
-                            .send(true)
-                            .await;
-                    }
+                    let _ = MessageBuilder::system_message(ctx, config)
+                        .translated_content("logs.ticket_closed", Some(&params), None, None)
+                        .await
+                        .to_channel(ChannelId::new(logs_channel_id))
+                        .send(true)
+                        .await;
                 }
 
                 let effective_silent = sc.silent || is_thread_silent(&thread.id, pool).await;

@@ -35,35 +35,34 @@ pub async fn force_close(
                 return Err(ModmailError::Thread(ThreadError::UserStillInServer));
             }
 
-            if let Some(thread_info) = thread {
-                if config.bot.enable_rustmail_logs {
-                    if let Some(logs_channel_id) = config.bot.logs_channel_id {
-                        let base_url = config
-                            .bot
-                            .redirect_url
-                            .trim_end_matches("/api/auth/callback")
-                            .trim_end_matches('/');
+            if let Some(thread_info) = thread
+                && config.bot.enable_rustmail_logs
+                && let Some(logs_channel_id) = config.bot.logs_channel_id
+            {
+                let base_url = config
+                    .bot
+                    .redirect_url
+                    .trim_end_matches("/api/auth/callback")
+                    .trim_end_matches('/');
 
-                        let panel_url = format!("{}/panel/tickets/{}", base_url, thread_info.id);
+                let panel_url = format!("{}/panel/tickets/{}", base_url, thread_info.id);
 
-                        let mut params = std::collections::HashMap::new();
-                        params.insert("username".to_string(), thread_info.user_name.clone());
-                        params.insert("user_id".to_string(), thread_info.user_id.to_string());
-                        params.insert("panel_url".to_string(), panel_url);
+                let mut params = std::collections::HashMap::new();
+                params.insert("username".to_string(), thread_info.user_name.clone());
+                params.insert("user_id".to_string(), thread_info.user_id.to_string());
+                params.insert("panel_url".to_string(), panel_url);
 
-                        let _ = MessageBuilder::system_message(&ctx, config)
-                            .translated_content(
-                                "logs.ticket_closed",
-                                Some(&params),
-                                Some(msg.author.id),
-                                msg.guild_id.map(|g| g.get()),
-                            )
-                            .await
-                            .to_channel(serenity::all::ChannelId::new(logs_channel_id))
-                            .send(true)
-                            .await;
-                    }
-                }
+                let _ = MessageBuilder::system_message(&ctx, config)
+                    .translated_content(
+                        "logs.ticket_closed",
+                        Some(&params),
+                        Some(msg.author.id),
+                        msg.guild_id.map(|g| g.get()),
+                    )
+                    .await
+                    .to_channel(serenity::all::ChannelId::new(logs_channel_id))
+                    .send(true)
+                    .await;
             }
 
             delete_channel(&ctx, msg.channel_id).await

@@ -49,8 +49,6 @@ pub async fn fetch_server_categories(ctx: &Context, config: &Config) -> Vec<(Cha
 
 fn map_move_error(err: serenity::Error) -> ModmailError {
     if let serenity::Error::Http(HttpError::UnsuccessfulRequest(ref resp)) = err {
-        // 30013 = "Maximum number of guild channels reached"
-        // 30030 = "Maximum number of server categories reached"
         if resp.error.code == 30013 || resp.error.code == 30030 {
             return ModmailError::Discord(DiscordError::CategoryFull);
         }

@@ -64,7 +64,7 @@ pub async fn remove_reminder(
             let mut params = HashMap::new();
             params.insert("id".to_string(), reminder_id.to_string());
 
-            let _ = MessageBuilder::system_message(&ctx, &config)
+            let _ = MessageBuilder::system_message(&ctx, config)
                 .translated_content("remove_reminder.confirmation", Some(&params), None, None)
                 .await
                 .to_channel(msg.channel_id)

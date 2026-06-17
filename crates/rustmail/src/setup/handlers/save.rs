@@ -1,7 +1,4 @@
-use crate::config::{
-    Config, LanguageConfigExt, load_config, resolve_config_path, save_config_with_backup,
-    validate_config,
-};
+use crate::config::{Config, resolve_config_path, save_config_with_backup, validate_config};
 use crate::setup::state::SharedSetupState;
 use axum::Json;
 use axum::extract::State;

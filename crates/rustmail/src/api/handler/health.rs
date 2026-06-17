@@ -12,10 +12,10 @@ pub async fn handle_health(State(bot_state): State<Arc<Mutex<BotState>>>) -> imp
     let state_lock = bot_state.lock().await;
 
     let mut db_ok = false;
-    if let Some(pool) = &state_lock.db_pool {
-        if sqlx::query("SELECT 1").execute(pool).await.is_ok() {
-            db_ok = true;
-        }
+    if let Some(pool) = &state_lock.db_pool
+        && sqlx::query("SELECT 1").execute(pool).await.is_ok()
+    {
+        db_ok = true;
     }
 
     let bot_running = matches!(state_lock.status, BotStatus::Running { .. });

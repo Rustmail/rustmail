@@ -219,8 +219,7 @@ impl RegistrableCommand for NewThreadCommand {
 
             println!(
                 "Thread created for user {} in channel {}",
-                user.name,
-                guild_channel.to_string()
+                user.name, guild_channel
             );
 
             let _ = MessageBuilder::system_message(&ctx, &config)

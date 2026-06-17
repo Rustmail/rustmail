@@ -82,7 +82,6 @@ async fn handle_create(
     pool: &sqlx::SqlitePool,
     config: &Config,
 ) -> ModmailResult<()> {
-    // Format: <discord_category_id> <name> [| description] [| emoji]
     let mut parts = args.splitn(2, ' ');
     let discord_id_raw = parts.next().unwrap_or("").trim();
     let rest = parts.next().unwrap_or("").trim();
@@ -212,10 +211,10 @@ async fn handle_rename(
         Some(c) => c,
         None => return send_translated(ctx, config, msg, "category.not_found", None).await,
     };
-    if let Some(existing) = get_category_by_name(new, pool).await? {
-        if existing.id != cat.id {
-            return send_translated(ctx, config, msg, "category.already_exists", None).await;
-        }
+    if let Some(existing) = get_category_by_name(new, pool).await?
+        && existing.id != cat.id
+    {
+        return send_translated(ctx, config, msg, "category.already_exists", None).await;
     }
     update_category(&cat.id, Some(new), None, None, None, None, None, pool).await?;
     let mut params = HashMap::new();

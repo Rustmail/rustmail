@@ -58,20 +58,18 @@ pub async fn handle_list_permissions(
             row.try_get::<String, _>("permission"),
             row.try_get::<String, _>("granted_by"),
             row.try_get::<i64, _>("granted_at"),
+        ) && let (Some(st), Some(perm)) = (
+            SubjectType::from_str(&subject_type),
+            PanelPermission::from_str(&permission),
         ) {
-            if let (Some(st), Some(perm)) = (
-                SubjectType::from_str(&subject_type),
-                PanelPermission::from_str(&permission),
-            ) {
-                permissions.push(PanelPermissionEntry {
-                    id,
-                    subject_type: st,
-                    subject_id,
-                    permission: perm,
-                    granted_by,
-                    granted_at,
-                });
-            }
+            permissions.push(PanelPermissionEntry {
+                id,
+                subject_type: st,
+                subject_id,
+                permission: perm,
+                granted_by,
+                granted_at,
+            });
         }
     }
 

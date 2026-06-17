@@ -81,7 +81,7 @@ impl RegistrableCommand for RenameCommand {
 
             defer_response(&ctx, &command).await?;
 
-            if !is_a_ticket_channel(command.channel_id, &db_pool).await {
+            if !is_a_ticket_channel(command.channel_id, db_pool).await {
                 return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
             }
 
@@ -93,12 +93,11 @@ impl RegistrableCommand for RenameCommand {
 
             let mut new_label: Option<String> = None;
             for option in &command.data.options {
-                if option.name.as_str() == "label" {
-                    if let CommandDataOptionValue::String(val) = &option.value {
-                        if !val.trim().is_empty() {
-                            new_label = Some(val.trim().to_string());
-                        }
-                    }
+                if option.name.as_str() == "label"
+                    && let CommandDataOptionValue::String(val) = &option.value
+                    && !val.trim().is_empty()
+                {
+                    new_label = Some(val.trim().to_string());
                 }
             }
 

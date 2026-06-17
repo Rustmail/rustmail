@@ -139,10 +139,10 @@ impl RegistrableCommand for CloseCommand {
                 }
             }
 
-            if let Some(time_before_close) = time_before_close {
-                if let Some(dur) = parse_duration_spec(&time_before_close) {
-                    duration = Some(dur);
-                }
+            if let Some(time_before_close) = time_before_close
+                && let Some(dur) = parse_duration_spec(&time_before_close)
+            {
+                duration = Some(dur);
             }
 
             let thread = fetch_thread(db_pool, &command.channel_id.to_string()).await?;
@@ -175,16 +175,16 @@ impl RegistrableCommand for CloseCommand {
                 };
             }
 
-            if duration.is_none() {
-                if let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await {
-                    let remaining = existing.close_at - Utc::now().timestamp();
+            if duration.is_none()
+                && let Ok(Some(existing)) = get_scheduled_closure(&thread.id, db_pool).await
+            {
+                let remaining = existing.close_at - Utc::now().timestamp();
 
-                    let mut params = HashMap::new();
-                    params.insert("seconds".to_string(), remaining.to_string());
+                let mut params = HashMap::new();
+                params.insert("seconds".to_string(), remaining.to_string());
 
-                    if remaining > 0 {
-                        return Err(ModmailError::Command(CommandError::ClosureAlreadyScheduled));
-                    }
+                if remaining > 0 {
+                    return Err(ModmailError::Command(CommandError::ClosureAlreadyScheduled));
                 }
             }
 
@@ -350,34 +350,34 @@ impl RegistrableCommand for CloseCommand {
             .await?;
             let _ = delete_scheduled_closure(&thread.id, db_pool).await;
 
-            if config.bot.enable_rustmail_logs {
-                if let Some(logs_channel_id) = config.bot.logs_channel_id {
-                    let base_url = config
-                        .bot
-                        .redirect_url
-                        .trim_end_matches("/api/auth/callback")
-                        .trim_end_matches('/');
+            if config.bot.enable_rustmail_logs
+                && let Some(logs_channel_id) = config.bot.logs_channel_id
+            {
+                let base_url = config
+                    .bot
+                    .redirect_url
+                    .trim_end_matches("/api/auth/callback")
+                    .trim_end_matches('/');
 
-                    let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+                let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
 
-                    let mut params = HashMap::new();
-                    params.insert("staff".to_string(), command.user.id.to_string());
-                    params.insert("username".to_string(), thread.user_name.clone());
-                    params.insert("user_id".to_string(), thread.user_id.to_string());
-                    params.insert("panel_url".to_string(), panel_url);
+                let mut params = HashMap::new();
+                params.insert("staff".to_string(), command.user.id.to_string());
+                params.insert("username".to_string(), thread.user_name.clone());
+                params.insert("user_id".to_string(), thread.user_id.to_string());
+                params.insert("panel_url".to_string(), panel_url);
 
-                    let _ = MessageBuilder::system_message(&ctx, &config)
-                        .translated_content(
-                            "logs.ticket_closed",
-                            Some(&params),
-                            Some(command.user.id),
-                            command.guild_id.map(|g| g.get()),
-                        )
-                        .await
-                        .to_channel(serenity::all::ChannelId::new(logs_channel_id))
-                        .send(true)
-                        .await;
-                }
+                let _ = MessageBuilder::system_message(&ctx, &config)
+                    .translated_content(
+                        "logs.ticket_closed",
+                        Some(&params),
+                        Some(command.user.id),
+                        command.guild_id.map(|g| g.get()),
+                    )
+                    .await
+                    .to_channel(serenity::all::ChannelId::new(logs_channel_id))
+                    .send(true)
+                    .await;
             }
 
             let _ = command.channel_id.delete(&ctx.http).await?;

@@ -12,6 +12,7 @@ use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct StatusResponse {
     setup_required: bool,

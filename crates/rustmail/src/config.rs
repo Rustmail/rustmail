@@ -53,22 +53,22 @@ pub fn resolve_port(default: u16) -> u16 {
 }
 
 fn apply_env_overrides(config: &mut ConfigResponse) {
-    if let Ok(token) = std::env::var("RUSTMAIL_BOT_TOKEN") {
-        if !token.is_empty() {
-            config.bot.token = token;
-        }
+    if let Ok(token) = std::env::var("RUSTMAIL_BOT_TOKEN")
+        && !token.is_empty()
+    {
+        config.bot.token = token;
     }
 
-    if let Ok(client_secret) = std::env::var("RUSTMAIL_BOT_CLIENT_SECRET") {
-        if !client_secret.is_empty() {
-            config.bot.client_secret = client_secret;
-        }
+    if let Ok(client_secret) = std::env::var("RUSTMAIL_BOT_CLIENT_SECRET")
+        && !client_secret.is_empty()
+    {
+        config.bot.client_secret = client_secret;
     }
 
-    if let Ok(client_id) = std::env::var("RUSTMAIL_BOT_CLIENT_ID") {
-        if let Ok(id) = client_id.parse::<u64>() {
-            config.bot.client_id = id;
-        }
+    if let Ok(client_id) = std::env::var("RUSTMAIL_BOT_CLIENT_ID")
+        && let Ok(id) = client_id.parse::<u64>()
+    {
+        config.bot.client_id = id;
     }
 }
 

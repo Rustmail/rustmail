@@ -38,7 +38,7 @@ mod utils;
 struct Assets;
 
 async fn static_handler(path: Option<Path<String>>) -> Response {
-    let path = path.map(|p| p.0).unwrap_or_else(|| "".to_string());
+    let path = path.map(|p| p.0).unwrap_or_default();
 
     let path = if path.is_empty() || path == "/" {
         "index.html".to_string()
@@ -161,7 +161,7 @@ async fn run_setup_mode() {
 async fn main() {
     let args: Vec<String> = env::args().collect();
 
-    for arg in args.iter().skip(1) {
+    if let Some(arg) = args.get(1) {
         match arg.as_str() {
             "-v" | "--version" => {
                 print_version();
@@ -242,14 +242,8 @@ async fn main() {
                 _ = tokio::signal::ctrl_c() => { println!("Shutting down"); }
             }
         } else {
-            loop {
-                tokio::select! {
-                    _ = tokio::signal::ctrl_c() => {
-                        println!("Shutting down");
-                        break;
-                    }
-                }
-            }
+            let _ = tokio::signal::ctrl_c().await;
+            println!("Shutting down");
         }
     }
 }

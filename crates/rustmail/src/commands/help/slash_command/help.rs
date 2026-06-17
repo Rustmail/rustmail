@@ -74,13 +74,10 @@ impl RegistrableCommand for HelpCommand {
             let mut command_name: Option<String> = None;
 
             for option in &command.data.options {
-                match option.name.as_str() {
-                    "command" => {
-                        if let CommandDataOptionValue::String(val) = &option.value {
-                            command_name.replace(val.clone());
-                        }
-                    }
-                    _ => {}
+                if option.name.as_str() == "command"
+                    && let CommandDataOptionValue::String(val) = &option.value
+                {
+                    command_name.replace(val.clone());
                 }
             }
 

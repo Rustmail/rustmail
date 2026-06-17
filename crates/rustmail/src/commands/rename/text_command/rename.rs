@@ -18,7 +18,7 @@ pub async fn rename_ticket(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    if !is_a_ticket_channel(msg.channel_id, &db_pool).await {
+    if !is_a_ticket_channel(msg.channel_id, db_pool).await {
         return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
     }
 

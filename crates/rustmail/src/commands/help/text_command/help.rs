@@ -6,7 +6,7 @@ use serenity::all::{Context, Message};
 use std::sync::Arc;
 
 fn extract_request_command_name(command: &str) -> &str {
-    let parts: Vec<&str> = command.trim().split_whitespace().collect();
+    let parts: Vec<&str> = command.split_whitespace().collect();
     if parts.len() > 1 { parts[1] } else { "" }
 }
 

@@ -165,10 +165,10 @@ impl RegistrableCommand for StatusCommand {
             defer_response(&ctx, &command).await?;
 
             let mode = command.data.options.iter().find_map(|opt| {
-                if opt.name == "mode" {
-                    if let CommandDataOptionValue::String(s) = &opt.value {
-                        return Some(s.clone());
-                    }
+                if opt.name == "mode"
+                    && let CommandDataOptionValue::String(s) = &opt.value
+                {
+                    return Some(s.clone());
                 }
                 None
             });

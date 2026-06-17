@@ -26,7 +26,7 @@ pub async fn render_logs_page(
     page: usize,
     per_page: usize,
 ) -> String {
-    let total_pages = (logs.len() + per_page - 1) / per_page;
+    let total_pages = logs.len().div_ceil(per_page);
     let start = page * per_page;
     let end = usize::min(start + per_page, logs.len());
     let no_logs = get_translated_message(
@@ -45,11 +45,11 @@ pub async fn render_logs_page(
         return no_logs;
     }
 
-    for (_, log) in logs[start..end].iter().enumerate() {
+    for log in logs[start..end].iter() {
         use std::fmt::Write;
         let _ = writeln!(
             desc,
-            "**#{}** | [`🎫 {}`]({}) | 🔒 {} {}",
+            "**#{}** | [`🎫 {}`]({}) | 🔒 {} \n",
             log.id,
             log.ticket_id,
             format!(
@@ -58,7 +58,6 @@ pub async fn render_logs_page(
                 log.ticket_id
             ),
             log.created_at,
-            "\n".to_string(),
         );
     }
 
@@ -83,7 +82,7 @@ pub async fn get_response(
     channel_id: ChannelId,
     command: Option<CommandInteraction>,
 ) -> Result<Message, ModmailError> {
-    if !command.is_none() {
+    if command.is_some() {
         let command = command.unwrap();
 
         MessageBuilder::system_message(&ctx.clone(), &config.clone())

@@ -1,7 +1,4 @@
-use rustmail_types::{
-    BotConfig, CommandConfig, ErrorHandlingConfig, LanguageConfig, LogsConfig, NotificationsConfig,
-    ReminderConfig, ServerMode, ThreadConfig,
-};
+use rustmail_types::{CommandConfig, LanguageConfig, ServerMode, ThreadConfig};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::mpsc::Sender;

@@ -1,6 +1,4 @@
-use crate::config::{
-    Config, LanguageConfigExt, load_config, save_config_with_backup, validate_config,
-};
+use crate::config::{Config, load_config, save_config_with_backup, validate_config};
 use crate::prelude::types::*;
 use axum::Json;
 use axum::extract::State;

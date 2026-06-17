@@ -24,7 +24,7 @@ pub async fn handle_logout(
 
     if let Some(session_cookie) = session_cookie {
         let session_id = session_cookie.value();
-        let user_id = get_user_id_from_session(&session_id, &db_pool).await;
+        let user_id = get_user_id_from_session(session_id, &db_pool).await;
 
         if let Some(db_pool) = &state_lock.db_pool {
             let _ = sqlx::query("DELETE FROM sessions_panel WHERE session_id = ? AND user_id = ?")

@@ -90,13 +90,13 @@ pub async fn get_user_permissions_in_category(
         .unwrap_or(0u64);
 
     for overwrite in &category.permission_overwrites {
-        if let PermissionOverwriteType::Role(role_id) = overwrite.kind {
-            if role_id == everyone_role_id {
-                let deny = overwrite.deny.bits();
-                let allow = overwrite.allow.bits();
-                permissions = (permissions & !deny) | allow;
-                break;
-            }
+        if let PermissionOverwriteType::Role(role_id) = overwrite.kind
+            && role_id == everyone_role_id
+        {
+            let deny = overwrite.deny.bits();
+            let allow = overwrite.allow.bits();
+            permissions = (permissions & !deny) | allow;
+            break;
         }
     }
 
@@ -105,11 +105,11 @@ pub async fn get_user_permissions_in_category(
 
     for role_id in &member.roles {
         for overwrite in &category.permission_overwrites {
-            if let PermissionOverwriteType::Role(overwrite_role_id) = overwrite.kind {
-                if overwrite_role_id == *role_id {
-                    combined_allow |= overwrite.allow.bits();
-                    combined_deny |= overwrite.deny.bits();
-                }
+            if let PermissionOverwriteType::Role(overwrite_role_id) = overwrite.kind
+                && overwrite_role_id == *role_id
+            {
+                combined_allow |= overwrite.allow.bits();
+                combined_deny |= overwrite.deny.bits();
             }
         }
     }
@@ -117,13 +117,13 @@ pub async fn get_user_permissions_in_category(
     permissions = (permissions & !combined_deny) | combined_allow;
 
     for overwrite in &category.permission_overwrites {
-        if let PermissionOverwriteType::Member(member_id) = overwrite.kind {
-            if member_id == user_id_obj {
-                let deny = overwrite.deny.bits();
-                let allow = overwrite.allow.bits();
-                permissions = (permissions & !deny) | allow;
-                break;
-            }
+        if let PermissionOverwriteType::Member(member_id) = overwrite.kind
+            && member_id == user_id_obj
+        {
+            let deny = overwrite.deny.bits();
+            let allow = overwrite.allow.bits();
+            permissions = (permissions & !deny) | allow;
+            break;
         }
     }
 

@@ -88,6 +88,7 @@ pub struct ValidateGuildRequest {
     pub guild_id: String,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Clone)]
 pub struct GuildInfo {
     pub id: String,
@@ -113,7 +114,7 @@ pub struct ValidateChannelRequest {
 pub struct ChannelInfo {
     pub id: String,
     pub name: String,
-    pub kind: u8, // 4 is GUILD_CATEGORY
+    pub kind: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]

@@ -1096,7 +1096,7 @@ pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> 
                 true,
             ))
         }
-        Change::Unknown { .. } => None,
+        Change::Unknown => None,
         _ => None,
     }
 }
