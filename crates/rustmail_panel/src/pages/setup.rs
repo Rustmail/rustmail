@@ -4,6 +4,7 @@ use crate::components::wizard::step2_guilds::Step2Guilds;
 use crate::components::wizard::step3_thread::Step3Thread;
 use crate::components::wizard::step4_panel::Step4Panel;
 use crate::components::wizard::step5_language::Step5Language;
+use crate::components::wizard::step6_review::Step6Review;
 use crate::components::wizard::types::WizardData;
 use gloo_net::http::Request;
 use serde::Deserialize;
@@ -141,22 +142,13 @@ pub fn setup() -> Html {
                     data={(*wizard_data).clone()}
                     on_update={on_update_data}
                     on_next={on_next_step}
-                    on_prev={on_prev_step}
+                    on_prev={on_prev_step.clone()}
                 />
             } else {
-                <div class="flex flex-col gap-4">
-                    <p class="text-sm text-gray-500 text-center py-12">
-                        { "This step will be implemented soon." }
-                    </p>
-                    <div class="flex justify-start pt-4 mt-2 border-t border-slate-800/50">
-                        <button
-                            class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
-                            onclick={move |_| current_step.set(*current_step - 1)}
-                        >
-                            { "Back" }
-                        </button>
-                    </div>
-                </div>
+                <Step6Review
+                    data={(*wizard_data).clone()}
+                    on_prev={on_prev_step}
+                />
             }
         </WizardLayout>
     }
