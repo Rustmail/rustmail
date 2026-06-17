@@ -1,5 +1,6 @@
 use crate::components::wizard::layout::WizardLayout;
 use crate::components::wizard::step1_token::Step1Token;
+use crate::components::wizard::step2_guilds::Step2Guilds;
 use crate::components::wizard::types::WizardData;
 use gloo_net::http::Request;
 use serde::Deserialize;
@@ -63,6 +64,15 @@ pub fn setup() -> Html {
         })
     };
 
+    let on_prev_step = {
+        let current_step = current_step.clone();
+        Callback::from(move |_| {
+            if *current_step > 0 {
+                current_step.set(*current_step - 1);
+            }
+        })
+    };
+
     if *is_loading {
         return html! {
             <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
@@ -99,8 +109,15 @@ pub fn setup() -> Html {
             if *current_step == 0 {
                 <Step1Token
                     data={(*wizard_data).clone()}
+                    on_update={on_update_data.clone()}
+                    on_next={on_next_step.clone()}
+                />
+            } else if *current_step == 1 {
+                <Step2Guilds
+                    data={(*wizard_data).clone()}
                     on_update={on_update_data}
                     on_next={on_next_step}
+                    on_prev={on_prev_step}
                 />
             } else {
                 <div class="flex flex-col gap-4">
