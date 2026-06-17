@@ -115,6 +115,21 @@ pub fn step6_review(props: &Step6Props) -> Html {
     let panel_url = props.data.panel_url.clone();
     let api_port = props.data.api_port;
 
+    let target_url = if panel_url.is_empty() {
+        format!("http://localhost:{}", api_port)
+    } else {
+        let has_port = panel_url.matches(':').count() > 1;
+        if !has_port
+            && (panel_url.contains("127.0.0.1")
+                || panel_url.contains("localhost")
+                || panel_url.matches('.').count() == 3)
+        {
+            format!("{}:{}", panel_url, api_port)
+        } else {
+            panel_url.clone()
+        }
+    };
+
     if *save_success {
         return html! {
             <div class="flex flex-col items-center justify-center py-12 animate-fade-in text-center gap-4">
@@ -130,27 +145,23 @@ pub fn step6_review(props: &Step6Props) -> Html {
                     <ol class="text-sm text-gray-400 text-left list-decimal pl-5 space-y-2">
                         <li>{ "Click the Restart Bot button below." }</li>
                         <li>{ "The bot will start using the new configuration." }</li>
-                        <li>{ format!("Access the panel at {} to manage your bot.", if props.data.panel_url.is_empty() { "your configured URL" } else { &props.data.panel_url }) }</li>
+                        <li>{ format!("Access the panel at {} to manage your bot.", target_url) }</li>
                     </ol>
                 </div>
                 <button
                     class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
                     onclick={Callback::from(move |_| {
-                        let target_url = if panel_url.is_empty() {
-                            format!("http://localhost:{}", api_port)
-                        } else {
-                            panel_url.clone()
-                        };
-
+                        let target = target_url.clone();
                         spawn_local(async move {
                             let _ = Request::post("/api/setup/restart").send().await;
 
                             // Wait a moment before redirecting to let the server restart
                             gloo_timers::future::TimeoutFuture::new(2000).await;
-                            let _ = web_sys::window().unwrap().location().set_href(&target_url);
+                            let _ = web_sys::window().unwrap().location().set_href(&target);
                         });
                     })}
                 >
+
                     { "Restart Bot" }
                 </button>
             </div>
