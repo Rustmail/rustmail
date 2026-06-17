@@ -22,28 +22,29 @@ pub fn step4_panel(props: &Step4Props) -> Html {
     let is_validating = use_state(|| false);
     let validation_result = use_state(|| None::<ValidateOAuth2Response>);
 
-    // Auto-update redirect_url when panel_url or api_port changes, if the user hasn't heavily modified it manually
+    // Auto-update redirect_url when panel_url changes
     {
         let panel_url = panel_url.clone();
-        let api_port = api_port.clone();
         let redirect_url = redirect_url.clone();
 
         use_effect_with((*panel_url).clone(), move |url| {
             if !url.is_empty() {
-                let port = (*api_port).clone();
-                let has_port = url.matches(':').count() > 1; // simple check if there's a port besides http://
+                redirect_url.set(format!("{}/api/auth/callback", url));
+            }
+            || ()
+        });
+    }
 
-                let base = if !has_port
-                    && (url.contains("127.0.0.1")
-                        || url.contains("localhost")
-                        || url.matches('.').count() == 3)
-                {
-                    format!("{}:{}", url, port)
-                } else {
-                    url.to_string()
-                };
-
-                redirect_url.set(format!("{}/api/auth/callback", base));
+    // Auto-fill panel_url with window.location.origin on mount if empty
+    {
+        let panel_url = panel_url.clone();
+        use_effect_with((), move |_| {
+            if (*panel_url).is_empty() {
+                if let Some(window) = web_sys::window() {
+                    if let Ok(origin) = window.location().origin() {
+                        panel_url.set(origin);
+                    }
+                }
             }
             || ()
         });
@@ -153,11 +154,11 @@ pub fn step4_panel(props: &Step4Props) -> Html {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "Panel Base URL" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ "External Panel URL" }</label>
                     <input
                         type="url"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. https://panel.rustmail.rs"
+                        placeholder="e.g. http://192.168.1.10:8080 or https://panel.domain.com"
                         value={(*panel_url).clone()}
                         onchange={
                             let state = panel_url.clone();
@@ -175,12 +176,12 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ "API Server Port" }</label>
+                    <label class="text-sm font-medium text-gray-300">{ "Internal API Port (Docker Bind)" }</label>
                     <input
                         type="number"
                         min="1" max="65535"
                         class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder="e.g. 8080"
+                        placeholder="e.g. 3002 (Default)"
                         value={(*api_port).clone()}
                         onchange={
                             let state = api_port.clone();
