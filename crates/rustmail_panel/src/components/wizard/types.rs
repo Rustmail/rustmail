@@ -18,6 +18,10 @@ pub struct WizardData {
     pub create_ticket_by_create_channel: bool,
     pub close_on_leave: bool,
     pub auto_archive_duration: u16,
+    pub panel_url: String,
+    pub api_port: u16,
+    pub client_id: String,
+    pub client_secret: String,
 }
 
 impl Default for WizardData {
@@ -39,6 +43,10 @@ impl Default for WizardData {
             create_ticket_by_create_channel: false,
             close_on_leave: true,
             auto_archive_duration: 1440,
+            panel_url: String::new(),
+            api_port: 8080,
+            client_id: String::new(),
+            client_secret: String::new(),
         }
     }
 }
