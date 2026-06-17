@@ -1,8 +1,45 @@
 use crate::components::wizard::layout::WizardLayout;
+use crate::components::wizard::step1_token::Step1Token;
+use crate::components::wizard::types::WizardData;
+use gloo_net::http::Request;
+use serde::Deserialize;
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+
+#[derive(Deserialize)]
+struct StatusResponse {
+    setup_required: bool,
+    step: String,
+    token_prefill: Option<String>,
+}
 
 #[function_component(Setup)]
 pub fn setup() -> Html {
+    let current_step = use_state(|| 0);
+    let wizard_data = use_state(|| WizardData::default());
+    let is_loading = use_state(|| true);
+
+    {
+        let wizard_data = wizard_data.clone();
+        let is_loading = is_loading.clone();
+
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = Request::get("/api/setup/status").send().await {
+                    if let Ok(status) = resp.json::<StatusResponse>().await {
+                        if let Some(token) = status.token_prefill {
+                            let mut data = (*wizard_data).clone();
+                            data.token = token;
+                            wizard_data.set(data);
+                        }
+                    }
+                }
+                is_loading.set(false);
+            });
+            || ()
+        });
+    }
+
     let step_names = vec![
         "Bot Token",
         "Guilds",
@@ -12,31 +49,74 @@ pub fn setup() -> Html {
         "Review",
     ];
 
+    let on_update_data = {
+        let wizard_data = wizard_data.clone();
+        Callback::from(move |new_data: WizardData| {
+            wizard_data.set(new_data);
+        })
+    };
+
+    let on_next_step = {
+        let current_step = current_step.clone();
+        Callback::from(move |_| {
+            current_step.set(*current_step + 1);
+        })
+    };
+
+    if *is_loading {
+        return html! {
+            <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+                <div class="text-gray-400 animate-pulse">{ "Loading setup..." }</div>
+            </div>
+        };
+    }
+
+    let title = match *current_step {
+        0 => "Step 1: Discord Bot Token",
+        1 => "Step 2: Servers Mode",
+        2 => "Step 3: Thread Configuration",
+        3 => "Step 4: Web Panel",
+        4 => "Step 5: Language",
+        _ => "Review & Save",
+    };
+
+    let description = match *current_step {
+        0 => {
+            "Let's start by linking your Discord bot. You can find your token in the Discord Developer Portal."
+        }
+        1 => "Choose how your bot should operate across your Discord servers.",
+        _ => "Configure your bot settings.",
+    };
+
     html! {
         <WizardLayout
-            current_step={0}
+            current_step={*current_step}
             total_steps={step_names.len()}
             step_names={step_names}
-            title={"Step 1: Discord Bot Token"}
-            description={"Let's start by linking your Discord bot. You can find your token in the Discord Developer Portal."}
+            title={title.to_string()}
+            description={description.to_string()}
         >
-            <div class="flex flex-col gap-4">
-                <div class="animate-pulse flex space-x-4">
-                    <div class="flex-1 space-y-6 py-1">
-                        <div class="h-2 bg-slate-700 rounded"></div>
-                        <div class="space-y-3">
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="h-2 bg-slate-700 rounded col-span-2"></div>
-                                <div class="h-2 bg-slate-700 rounded col-span-1"></div>
-                            </div>
-                            <div class="h-2 bg-slate-700 rounded"></div>
-                        </div>
+            if *current_step == 0 {
+                <Step1Token
+                    data={(*wizard_data).clone()}
+                    on_update={on_update_data}
+                    on_next={on_next_step}
+                />
+            } else {
+                <div class="flex flex-col gap-4">
+                    <p class="text-sm text-gray-500 text-center py-12">
+                        { "This step will be implemented soon." }
+                    </p>
+                    <div class="flex justify-start pt-4 mt-2 border-t border-slate-800/50">
+                        <button
+                            class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                            onclick={move |_| current_step.set(*current_step - 1)}
+                        >
+                            { "Back" }
+                        </button>
                     </div>
                 </div>
-                <p class="text-sm text-gray-500 text-center mt-8">
-                    { "The first step will be implemented in the next issue." }
-                </p>
-            </div>
+            }
         </WizardLayout>
     }
 }
