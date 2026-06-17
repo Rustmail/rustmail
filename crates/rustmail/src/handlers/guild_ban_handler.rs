@@ -70,10 +70,10 @@ async fn fetch_ban_audit(
     };
 
     for entry in entries.entries.iter() {
-        if let Some(target) = entry.target_id {
-            if target.get() == target_user_id {
-                return (Some(entry.user_id.to_string()), entry.reason.clone());
-            }
+        if let Some(target) = entry.target_id
+            && target.get() == target_user_id
+        {
+            return (Some(entry.user_id.to_string()), entry.reason.clone());
         }
     }
     (None, None)

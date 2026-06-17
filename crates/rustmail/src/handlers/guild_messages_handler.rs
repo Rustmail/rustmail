@@ -179,22 +179,21 @@ async fn manage_incoming_message(
                 return Err(error);
             }
 
-            if let Ok(thread) = fetch_thread(pool, &channel_id_str).await {
-                if let Ok(existed) = delete_scheduled_closure(&thread.id, pool).await {
-                    if existed {
-                        let _ = MessageBuilder::system_message(ctx, config)
-                            .translated_content(
-                                "close.auto_canceled_on_message",
-                                None,
-                                Some(msg.author.id),
-                                None,
-                            )
-                            .await
-                            .to_channel(channel_id)
-                            .send(true)
-                            .await;
-                    }
-                }
+            if let Ok(thread) = fetch_thread(pool, &channel_id_str).await
+                && let Ok(existed) = delete_scheduled_closure(&thread.id, pool).await
+                && existed
+            {
+                let _ = MessageBuilder::system_message(ctx, config)
+                    .translated_content(
+                        "close.auto_canceled_on_message",
+                        None,
+                        Some(msg.author.id),
+                        None,
+                    )
+                    .await
+                    .to_channel(channel_id)
+                    .send(true)
+                    .await;
             }
         }
     } else {
@@ -291,16 +290,16 @@ impl EventHandler for GuildMessagesHandler {
                 command_name = &message_content[self.config.command.prefix.len()..i];
             }
 
-            if self.maintenance_mode.load(Ordering::Relaxed) {
-                if !is_user_maintenance_exempt(&ctx, &msg, &self.config).await {
-                    let _ = MessageBuilder::system_message(&ctx, &self.config)
-                        .translated_content("status.maintenance_mode_active", None, None, None)
-                        .await
-                        .to_channel(msg.channel_id)
-                        .send(true)
-                        .await;
-                    return;
-                }
+            if self.maintenance_mode.load(Ordering::Relaxed)
+                && !is_user_maintenance_exempt(&ctx, &msg, &self.config).await
+            {
+                let _ = MessageBuilder::system_message(&ctx, &self.config)
+                    .translated_content("status.maintenance_mode_active", None, None, None)
+                    .await
+                    .to_channel(msg.channel_id)
+                    .send(true)
+                    .await;
+                return;
             }
 
             let commands_lock = self.commands.lock().await;
@@ -327,17 +326,16 @@ impl EventHandler for GuildMessagesHandler {
 
         if let Some(guild_id) = msg.guild_id {
             let staff_guild_id = self.config.bot.get_staff_guild_id();
-            if guild_id.get() == staff_guild_id && !msg.author.bot {
-                if let Some(pool) = &self.config.db_pool {
-                    let channel_id_str = msg.channel_id.to_string();
-                    if let Some(_thread) = get_thread_by_channel_id(&channel_id_str, pool).await {
-                        if let Err(e) =
-                            insert_internal_message(&ctx, &msg, &_thread.id, pool, &self.config)
-                                .await
-                        {
-                            eprintln!("Failed to record internal message: {}", e);
-                        }
-                    }
+            if guild_id.get() == staff_guild_id
+                && !msg.author.bot
+                && let Some(pool) = &self.config.db_pool
+            {
+                let channel_id_str = msg.channel_id.to_string();
+                if let Some(_thread) = get_thread_by_channel_id(&channel_id_str, pool).await
+                    && let Err(e) =
+                        insert_internal_message(&ctx, &msg, &_thread.id, pool, &self.config).await
+                {
+                    eprintln!("Failed to record internal message: {}", e);
                 }
             }
         }

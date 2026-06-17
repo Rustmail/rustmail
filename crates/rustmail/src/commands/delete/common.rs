@@ -9,14 +9,14 @@ pub async fn get_thread_info(
     channel_id: &str,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<(i64, Thread)> {
-    let user_id = match get_user_id_from_channel_id(&channel_id, pool).await {
+    let user_id = match get_user_id_from_channel_id(channel_id, pool).await {
         Some(uid) => uid,
         None => {
             return Err(validation_failed("Not in a thread"));
         }
     };
 
-    let thread = match get_thread_by_channel_id(&channel_id, pool).await {
+    let thread = match get_thread_by_channel_id(channel_id, pool).await {
         Some(thread) => thread,
         None => {
             return Err(validation_failed("Thread not found"));

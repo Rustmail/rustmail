@@ -17,7 +17,7 @@ pub async fn id(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    if is_a_ticket_channel(msg.channel_id, &db_pool).await {
+    if is_a_ticket_channel(msg.channel_id, db_pool).await {
         let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), db_pool).await {
             Some(thread) => thread,
             None => return Err(thread_not_found()),
@@ -25,10 +25,7 @@ pub async fn id(
 
         let mut params = std::collections::HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", thread.user_id));
-        params.insert(
-            "id".to_string(),
-            format!("||{}||", thread.user_id.to_string()),
-        );
+        params.insert("id".to_string(), format!("||{}||", thread.user_id));
 
         let _ = MessageBuilder::system_message(&ctx, config)
             .translated_content("id.show_id", Some(&params), None, None)

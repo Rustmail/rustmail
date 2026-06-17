@@ -22,11 +22,11 @@ impl TypeMapKey for ShardManagerKey {
     type Value = Arc<ShardManager>;
 }
 
-pub async fn init_bot_state() -> Arc<Mutex<BotState>> {
+pub async fn init_bot_state(config_path: &str) -> Arc<Mutex<BotState>> {
     let pool = init_database().await.expect("An error occurred!");
     println!("Database connected!");
 
-    let config = load_config("config.toml");
+    let config = load_config(config_path);
 
     let (command_tx, _command_rx) = tokio::sync::mpsc::channel(32);
 

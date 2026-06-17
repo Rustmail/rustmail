@@ -48,10 +48,9 @@ pub async fn format_new_message<'a>(
         .0
         .map(|m| m.guild_id)
         .or_else(|| msg.1.map(|i| i.guild_id))
+        && let Some(gid) = raw_guild_id
     {
-        if let Some(gid) = raw_guild_id {
-            guild_id = gid;
-        }
+        guild_id = gid;
     }
 
     if let Some(raw_user) = msg

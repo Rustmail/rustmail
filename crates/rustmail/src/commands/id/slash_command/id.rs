@@ -77,10 +77,7 @@ impl RegistrableCommand for IdCommand {
 
             let mut params = std::collections::HashMap::new();
             params.insert("user".to_string(), format!("<@{}>", thread.user_id));
-            params.insert(
-                "id".to_string(),
-                format!("||{}||", thread.user_id.to_string()),
-            );
+            params.insert("id".to_string(), format!("||{}||", thread.user_id));
 
             let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content("id.show_id", Some(&params), None, None)

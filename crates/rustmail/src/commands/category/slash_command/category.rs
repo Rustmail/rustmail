@@ -324,10 +324,10 @@ fn get_string(opts: &[CommandDataOption], key: &str) -> Option<String> {
     let sub = opts.first()?;
     if let CommandDataOptionValue::SubCommand(sub_opts) = &sub.value {
         for o in sub_opts {
-            if o.name == key {
-                if let CommandDataOptionValue::String(s) = &o.value {
-                    return Some(s.clone());
-                }
+            if o.name == key
+                && let CommandDataOptionValue::String(s) = &o.value
+            {
+                return Some(s.clone());
             }
         }
     }
@@ -338,10 +338,10 @@ fn get_int(opts: &[CommandDataOption], key: &str) -> Option<i64> {
     let sub = opts.first()?;
     if let CommandDataOptionValue::SubCommand(sub_opts) = &sub.value {
         for o in sub_opts {
-            if o.name == key {
-                if let CommandDataOptionValue::Integer(v) = &o.value {
-                    return Some(*v);
-                }
+            if o.name == key
+                && let CommandDataOptionValue::Integer(v) = &o.value
+            {
+                return Some(*v);
             }
         }
     }
@@ -533,10 +533,10 @@ async fn sub_rename(
         Some(c) => c,
         None => return reply(ctx, command, config, "category.not_found", None).await,
     };
-    if let Some(existing) = get_category_by_name(&new, pool).await? {
-        if existing.id != cat.id {
-            return reply(ctx, command, config, "category.already_exists", None).await;
-        }
+    if let Some(existing) = get_category_by_name(&new, pool).await?
+        && existing.id != cat.id
+    {
+        return reply(ctx, command, config, "category.already_exists", None).await;
     }
     update_category(&cat.id, Some(&new), None, None, None, None, None, pool).await?;
     let mut params = HashMap::new();
@@ -667,10 +667,10 @@ fn get_sub_group_options(options: &[CommandDataOption]) -> Option<(&str, &Vec<Co
 
 fn leaf_string(opts: &[CommandDataOption], key: &str) -> Option<String> {
     for o in opts {
-        if o.name == key {
-            if let CommandDataOptionValue::String(s) = &o.value {
-                return Some(s.clone());
-            }
+        if o.name == key
+            && let CommandDataOptionValue::String(s) = &o.value
+        {
+            return Some(s.clone());
         }
     }
     None
@@ -678,10 +678,10 @@ fn leaf_string(opts: &[CommandDataOption], key: &str) -> Option<String> {
 
 fn leaf_role(opts: &[CommandDataOption], key: &str) -> Option<u64> {
     for o in opts {
-        if o.name == key {
-            if let CommandDataOptionValue::Role(r) = &o.value {
-                return Some(r.get());
-            }
+        if o.name == key
+            && let CommandDataOptionValue::Role(r) = &o.value
+        {
+            return Some(r.get());
         }
     }
     None

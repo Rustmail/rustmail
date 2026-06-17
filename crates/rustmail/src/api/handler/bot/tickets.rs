@@ -240,36 +240,35 @@ pub async fn handle_tickets_bot(
             messages,
         };
 
-        if !is_admin {
-            if let Some(ref category_id) = complete.category_id {
-                if !category_id.is_empty() {
-                    match get_user_permissions_in_category(
-                        &user_id,
-                        guild_id,
-                        category_id,
-                        bot_http.clone(),
-                    )
-                    .await
-                    {
-                        Some(perms) => {
-                            if !can_view_channel(perms) {
-                                return (
-                                    StatusCode::FORBIDDEN,
-                                    Json(serde_json::json!({
-                                        "error": "You don't have permission to view this ticket"
-                                    })),
-                                );
-                            }
-                        }
-                        None => {
-                            return (
-                                StatusCode::FORBIDDEN,
-                                Json(serde_json::json!({
-                                    "error": "Failed to check permissions"
-                                })),
-                            );
-                        }
+        if !is_admin
+            && let Some(ref category_id) = complete.category_id
+            && !category_id.is_empty()
+        {
+            match get_user_permissions_in_category(
+                &user_id,
+                guild_id,
+                category_id,
+                bot_http.clone(),
+            )
+            .await
+            {
+                Some(perms) => {
+                    if !can_view_channel(perms) {
+                        return (
+                            StatusCode::FORBIDDEN,
+                            Json(serde_json::json!({
+                                "error": "You don't have permission to view this ticket"
+                            })),
+                        );
                     }
+                }
+                None => {
+                    return (
+                        StatusCode::FORBIDDEN,
+                        Json(serde_json::json!({
+                            "error": "Failed to check permissions"
+                        })),
+                    );
                 }
             }
         }
@@ -444,7 +443,7 @@ pub async fn handle_tickets_bot(
     for msg in all_messages {
         messages_by_thread
             .entry(msg.1.clone())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(ThreadMessage {
                 id: msg.0,
                 thread_id: msg.1.clone(),

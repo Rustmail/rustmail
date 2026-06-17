@@ -80,13 +80,10 @@ impl RegistrableCommand for RemoveReminderCommand {
             let mut reminder_id: Option<i64> = None;
 
             for option in &command.data.options {
-                match option.name.as_str() {
-                    "id" => {
-                        if let CommandDataOptionValue::Number(val) = &option.value {
-                            reminder_id.replace(*val as i64);
-                        }
-                    }
-                    _ => {}
+                if option.name.as_str() == "id"
+                    && let CommandDataOptionValue::Number(val) = &option.value
+                {
+                    reminder_id.replace(*val as i64);
                 }
             }
 

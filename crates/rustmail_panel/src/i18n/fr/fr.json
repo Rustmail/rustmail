@@ -381,5 +381,118 @@
       "show_all": "Voir tout",
       "show_less": "Voir moins"
     }
+  },
+  "wizard": {
+    "title": "Assistant de Configuration Rustmail",
+    "progress": "Progression",
+    "loading": "Chargement...",
+    "common": {
+      "back": "Retour",
+      "next": "Étape Suivante",
+      "verify": "Vérifier",
+      "verified_success": "Vérifié avec succès !",
+      "verification_failed": "Échec de la vérification"
+    },
+    "steps": {
+      "step1": {
+        "title": "Étape 1 : Token du Bot Discord",
+        "description": "Commençons par lier votre bot Discord. Vous pouvez trouver votre token dans le Discord Developer Portal.",
+        "token_label": "Token du Bot Discord",
+        "token_placeholder": "ex: MTIz... (votre token)",
+        "token_help": "Gardez ceci secret ! Cela donne un accès complet à votre bot.",
+        "verify_token": "Vérifier le Token",
+        "logged_in_as": "Bot vérifié avec succès ! Connecté en tant que "
+      },
+      "step2": {
+        "title": "Étape 2 : Mode Serveurs",
+        "description": "Choisissez comment votre bot doit fonctionner sur vos serveurs Discord.",
+        "mode_label": "Mode de Configuration Serveur",
+        "mode_single": "Serveur Unique (Communauté & Staff ensemble)",
+        "mode_dual": "Deux Serveurs (Serveur Communauté et Serveur Staff séparés)",
+        "guilds_label": "Serveurs / Guildes",
+        "main_server": "Serveur Principal (Communauté & Staff)",
+        "community_server": "Serveur Communauté",
+        "staff_server": "Serveur Staff",
+        "loading_servers": "Chargement des serveurs..."
+      },
+      "step3": {
+        "title": "Étape 3 : Configuration des Tickets",
+        "description": "Configurez les paramètres de votre bot.",
+        "category_label": "ID de Catégorie pour les Tickets",
+        "category_placeholder": "Requis pour créer des tickets",
+        "prefix_label": "Préfixe des Commandes du Bot",
+        "prefix_placeholder": "ex: ! ou ?",
+        "embed_label": "Utiliser des Messages Intégrés (Embeds)",
+        "embed_yes": "Oui",
+        "embed_no": "Non",
+        "embed_help": "Si Oui, les messages du bot utiliseront des embeds Discord.",
+        "autoclose_label": "Fermeture Automatique au Départ",
+        "autoclose_help": "Fermer automatiquement les tickets lorsque l'utilisateur quitte le serveur.",
+        "close_timer_label": "Délai de fermeture du ticket (Minutes)",
+        "close_timer_placeholder": "0 pour désactiver la fermeture automatique",
+        "use_block_quotes": "Utiliser les citations (Block Quotes)",
+        "user_message_color": "Couleur du message utilisateur",
+        "staff_message_color": "Couleur du message staff",
+        "system_message_color": "Couleur du message système"
+      },
+      "step4": {
+        "title": "Étape 4 : Panel Web",
+        "description": "Configurez les paramètres de votre panel.",
+        "oauth_help": "Le panel web nécessite Discord OAuth2 pour authentifier les membres du staff. Assurez-vous d'ajouter l'URL de Redirection ci-dessous à vos URIs de Redirection OAuth2 dans le Discord Developer Portal.",
+        "panel_url_label": "URL Externe du Panel",
+        "panel_url_placeholder": "ex: http://192.168.1.10:8080 ou https://panel.domaine.fr",
+        "api_port_label": "Port API Interne (Docker Bind)",
+        "api_port_placeholder": "ex: 3002 (Défaut)",
+        "client_id_label": "Client ID Discord OAuth2",
+        "client_id_placeholder": "Trouvé dans le Developer Portal",
+        "client_secret_label": "Client Secret Discord OAuth2",
+        "client_secret_placeholder": "Trouvé dans le Developer Portal",
+        "redirect_url_label": "URL de Redirection OAuth2",
+        "redirect_url_placeholder": "ex: https://panel.rustmail.fr/api/auth/callback",
+        "redirect_url_help": "Ceci est calculé automatiquement d'après l'URL de votre panel, mais vous pouvez le modifier si vous utilisez un proxy inverse."
+      },
+      "step5": {
+        "title": "Étape 5 : Langue",
+        "description": "Configurez votre langue et vos messages.",
+        "language_label": "Langue",
+        "timezone_label": "Fuseau Horaire",
+        "timezone_placeholder": "Sélectionnez un fuseau horaire...",
+        "bot_status_label": "Statut / Activité du Bot",
+        "bot_status_placeholder": "ex: Besoin d'aide ? Envoyez-moi un MP !",
+        "bot_status_help": "Affiché sous le nom du bot dans la liste des membres.",
+        "welcome_label": "Message de Bienvenue (MP)",
+        "welcome_placeholder": "ex: Merci d'avoir contacté le support ! Un membre du staff va vous répondre sous peu.",
+        "welcome_help": "Ce message est envoyé à l'utilisateur lorsqu'il ouvre un nouveau ticket.",
+        "bot_messages_title": "Messages du Bot"
+      },
+      "step6": {
+        "title": "Vérification & Sauvegarde",
+        "description": "Presque terminé ! Veuillez vérifier vos paramètres.",
+        "bot_config": "Configuration du Bot",
+        "token": "Token",
+        "mode": "Mode",
+        "category_id": "ID Catégorie",
+        "panel_config": "Configuration du Panel",
+        "base_url": "URL de Base",
+        "port": "Port",
+        "client_id": "Client ID OAuth2",
+        "save_finish": "Sauvegarder & Terminer",
+        "save_success": "Configuration Sauvegardée avec Succès !",
+        "apply_changes": "Pour appliquer ces changements :",
+        "instruction_1": "Cliquez sur le bouton Redémarrer le Bot ci-dessous.",
+        "instruction_2": "Le bot va commencer à utiliser la nouvelle configuration.",
+        "instruction_3": "Accédez au panel sur {url} pour gérer votre bot.",
+        "success_desc": "Votre configuration a été sauvegardée avec succès.",
+        "go_to_panel": "Aller au Panel",
+        "restart_bot": "Redémarrer le Bot",
+        "save_failed": "Échec de la sauvegarde de la configuration",
+        "dual_server": "Serveur Double",
+        "single_server": "Serveur Unique",
+        "guild_id": "ID du Serveur",
+        "community_guild": "Serveur Communautaire",
+        "staff_guild": "Serveur Staff",
+        "saving": "Sauvegarde..."
+      }
+    }
   }
 }

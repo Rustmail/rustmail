@@ -42,14 +42,12 @@ pub fn create_bot_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<Bo
             },
         ));
 
-    let bot_router = Router::new()
+    Router::new()
         .merge(manage_bot_routes)
         .merge(manage_config_routes)
         .merge(view_routes)
         .layer(axum::middleware::from_fn_with_state(
             bot_state,
             auth_middleware,
-        ));
-
-    bot_router
+        ))
 }

@@ -15,15 +15,15 @@ pub async fn display_commands_list(
 ) -> ModmailResult<()> {
     let mut docs_message = String::new();
 
-    let welcome_msg = get_translated_message(&config, "help.message", None, None, None, None).await;
+    let welcome_msg = get_translated_message(config, "help.message", None, None, None, None).await;
     docs_message.push_str(&welcome_msg);
 
-    for (name, _) in &registry.commands {
+    for name in registry.commands.keys() {
         docs_message.push_str(&format!("- **{}**\n", name))
     }
 
     if let Some(msg) = msg {
-        let _ = MessageBuilder::system_message(&ctx, config)
+        let _ = MessageBuilder::system_message(ctx, config)
             .content(docs_message)
             .to_channel(msg.channel_id)
             .send(true)
@@ -33,10 +33,10 @@ pub async fn display_commands_list(
     }
 
     if let Some(command) = command {
-        let _ = MessageBuilder::system_message(&ctx, config)
+        let _ = MessageBuilder::system_message(ctx, config)
             .content(docs_message)
             .to_channel(command.channel_id)
-            .send_interaction_followup(&command, true)
+            .send_interaction_followup(command, true)
             .await;
 
         return Ok(());
@@ -61,7 +61,7 @@ pub async fn display_command_help(
         docs_message.push_str(&command_doc);
 
         if let Some(msg) = msg {
-            let _ = MessageBuilder::system_message(&ctx, config)
+            let _ = MessageBuilder::system_message(ctx, config)
                 .content(docs_message)
                 .to_channel(msg.channel_id)
                 .send(true)
@@ -71,10 +71,10 @@ pub async fn display_command_help(
         }
 
         if let Some(command) = command {
-            let _ = MessageBuilder::system_message(&ctx, config)
+            let _ = MessageBuilder::system_message(ctx, config)
                 .content(docs_message)
                 .to_channel(command.channel_id)
-                .send_interaction_followup(&command, true)
+                .send_interaction_followup(command, true)
                 .await;
 
             return Ok(());
@@ -84,7 +84,7 @@ pub async fn display_command_help(
         Ok(())
     } else {
         Err(ModmailError::Command(CommandError::UnknownCommand(
-            format!("{}", command_name),
+            command_name.to_string(),
         )))
     }
 }

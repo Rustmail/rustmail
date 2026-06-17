@@ -156,7 +156,7 @@ impl RegistrableCommand for AddReminderCommand {
             let re = Regex::new(r"^(?P<hour>[01]?\d|2[0-3]):(?P<minute>[0-5]\d)$").unwrap();
             let captures = re
                 .captures(&time_str)
-                .ok_or_else(|| ModmailError::Command(CommandError::InvalidReminderFormat))?;
+                .ok_or(ModmailError::Command(CommandError::InvalidReminderFormat))?;
 
             let hours: u32 = captures
                 .name("hour")
@@ -232,7 +232,7 @@ impl RegistrableCommand for AddReminderCommand {
                 Some(reminder_id),
                 &ctx,
                 &config,
-                &pool,
+                pool,
                 handler.shutdown.clone(),
             );
 
@@ -260,12 +260,12 @@ async fn resolve_role_names_to_ids(
     let mut role_ids: Vec<u64> = Vec::new();
 
     for caps in mention_regex.captures_iter(roles_str) {
-        if let Some(id_match) = caps.get(1) {
-            if let Ok(id) = id_match.as_str().parse::<u64>() {
-                if guild.roles.contains_key(&RoleId::new(id)) && !role_ids.contains(&id) {
-                    role_ids.push(id);
-                }
-            }
+        if let Some(id_match) = caps.get(1)
+            && let Ok(id) = id_match.as_str().parse::<u64>()
+            && guild.roles.contains_key(&RoleId::new(id))
+            && !role_ids.contains(&id)
+        {
+            role_ids.push(id);
         }
     }
 
@@ -282,10 +282,9 @@ async fn resolve_role_names_to_ids(
                 .roles
                 .values()
                 .find(|r| r.name.to_lowercase() == role_name_lower)
+                && !role_ids.contains(&role.id.get())
             {
-                if !role_ids.contains(&role.id.get()) {
-                    role_ids.push(role.id.get());
-                }
+                role_ids.push(role.id.get());
             }
         }
     }

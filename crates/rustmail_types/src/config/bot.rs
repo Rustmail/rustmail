@@ -33,6 +33,8 @@ pub struct BotConfig {
     pub panel_super_admin_users: Vec<u64>,
     #[serde(default)]
     pub panel_super_admin_roles: Vec<u64>,
+    #[serde(default = "default_panel_port")]
+    pub panel_port: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -125,4 +127,8 @@ where
 
 fn default_timezone() -> Tz {
     chrono_tz::UTC
+}
+
+fn default_panel_port() -> u16 {
+    3002
 }

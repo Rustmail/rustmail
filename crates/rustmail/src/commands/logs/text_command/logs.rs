@@ -20,17 +20,17 @@ pub async fn handle_logs_in_thread(
     pool: &SqlitePool,
     pagination: PaginationStore,
 ) -> ModmailResult<()> {
-    let thread = match get_thread_by_channel_id(&channel_id.to_string(), &pool).await {
+    let thread = match get_thread_by_channel_id(&channel_id.to_string(), pool).await {
         Some(thread) => thread,
         None => return Err(ModmailError::Thread(ThreadError::ThreadNotFound)),
     };
 
     handle_logs_from_user_id(
-        &ctx,
+        ctx,
         channel_id,
         command,
-        &config,
-        &pool,
+        config,
+        pool,
         &thread.user_id.to_string(),
         pagination,
     )
@@ -46,7 +46,7 @@ pub async fn handle_logs_from_user_id(
     user_id: &str,
     pagination_store: PaginationStore,
 ) -> ModmailResult<()> {
-    let logs = match get_logs_from_user_id(&user_id, &pool).await {
+    let logs = match get_logs_from_user_id(user_id, pool).await {
         Ok(logs) => logs,
         Err(e) => {
             eprintln!("Error retrieving logs for user ID {}: {:?}", user_id, e);
@@ -61,9 +61,9 @@ pub async fn handle_logs_from_user_id(
     let session_id = Uuid::new_v4().to_string();
 
     let next_button =
-        get_translated_message(&config, "logs_command.next", None, None, None, None).await;
+        get_translated_message(config, "logs_command.next", None, None, None, None).await;
     let prev_button =
-        get_translated_message(&config, "logs_command.prev", None, None, None, None).await;
+        get_translated_message(config, "logs_command.prev", None, None, None, None).await;
 
     let components = make_buttons(&[
         (
@@ -114,14 +114,14 @@ pub async fn logs(
         None => return Err(ModmailError::Database(DatabaseError::ConnectionFailed)),
     };
 
-    let user_id = extract_user_id_for_logs(&msg, &config);
+    let user_id = extract_user_id_for_logs(&msg, config);
 
     if user_id.is_empty() {
         handle_logs_in_thread(
             &ctx,
             &msg.channel_id,
             None,
-            &config,
+            config,
             &pool,
             handler.pagination.clone(),
         )

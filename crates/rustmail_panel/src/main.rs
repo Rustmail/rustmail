@@ -5,6 +5,7 @@ mod router;
 mod types;
 mod utils;
 
+use crate::components::setup_detector::SetupDetector;
 use crate::router::{Route, switch};
 use i18n::config::StorageType;
 use i18n::yew::I18nProvider;
@@ -27,6 +28,7 @@ fn App() -> Html {
             default_language={"en".to_string()}
         >
             <BrowserRouter>
+                <SetupDetector />
                 <Switch<Route> render={switch} />
             </BrowserRouter>
         </I18nProvider>

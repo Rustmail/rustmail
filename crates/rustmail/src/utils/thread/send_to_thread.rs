@@ -132,7 +132,7 @@ pub async fn send_to_thread(
         }
     };
 
-    let mut ticket_status = match get_thread_status(&thread_id.clone(), &pool).await {
+    let mut ticket_status = match get_thread_status(&thread_id.clone(), pool).await {
         Some(status) => status,
         None => {
             return Err(validation_failed("Failed to get thread status"));

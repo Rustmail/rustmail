@@ -66,9 +66,7 @@ pub async fn handle_cancel_alert_from_msg(
     user_id: i64,
     pool: &sqlx::SqlitePool,
 ) -> ModmailResult<()> {
-    if let Err(e) = cancel_alert_for_staff(msg.author.id, user_id, pool).await {
-        return Err(e);
-    }
+    cancel_alert_for_staff(msg.author.id, user_id, pool).await?;
 
     let mut params = HashMap::new();
     params.insert("user".to_string(), format!("<@{}>", user_id));

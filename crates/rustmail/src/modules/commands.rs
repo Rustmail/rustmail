@@ -23,9 +23,9 @@ async fn handle_logs_action(
     let mut store = pagination.lock().await;
 
     let next_button =
-        get_translated_message(&config, "logs_command.next", None, None, None, None).await;
+        get_translated_message(config, "logs_command.next", None, None, None, None).await;
     let prev_button =
-        get_translated_message(&config, "logs_command.prev", None, None, None, None).await;
+        get_translated_message(config, "logs_command.prev", None, None, None, None).await;
 
     if let Some(ctx_data) = store.get_mut(session_id) {
         if page == 0 && ctx_data.current_page > 0 {
@@ -63,7 +63,7 @@ async fn handle_logs_action(
             ),
         ]);
 
-        let response = MessageBuilder::system_message(&ctx, &config)
+        let response = MessageBuilder::system_message(ctx, config)
             .content(new_content)
             .components(components)
             .to_channel(ctx_data.channel_id)

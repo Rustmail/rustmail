@@ -118,11 +118,9 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                 }
             }
 
-            let action =
-                action.ok_or_else(|| ModmailError::Command(CommandError::MissingArguments))?;
+            let action = action.ok_or(ModmailError::Command(CommandError::MissingArguments))?;
 
-            let role_id =
-                role_id.ok_or_else(|| ModmailError::Command(CommandError::MissingArguments))?;
+            let role_id = role_id.ok_or(ModmailError::Command(CommandError::MissingArguments))?;
 
             let is_subscribe = action == "subscribe";
 

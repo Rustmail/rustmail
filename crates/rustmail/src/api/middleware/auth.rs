@@ -51,10 +51,7 @@ async fn check_user_with_api(
         Err(_) => return false,
     };
 
-    match guild_id.member(bot_http, user_id).await {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    guild_id.member(bot_http, user_id).await.is_ok()
 }
 
 async fn verify_user(user_id: &str, guild_id: u64, bot_state: Arc<Mutex<BotState>>) -> bool {
@@ -101,32 +98,32 @@ pub async fn auth_middleware(
         }
     };
 
-    if let Some(api_key_header) = req.headers().get("x-api-key") {
-        if let Ok(api_key_str) = api_key_header.to_str() {
-            let key_hash = hash_api_key(api_key_str);
+    if let Some(api_key_header) = req.headers().get("x-api-key")
+        && let Ok(api_key_str) = api_key_header.to_str()
+    {
+        let key_hash = hash_api_key(api_key_str);
 
-            return match get_api_key_by_hash(&db_pool, &key_hash).await {
-                Ok(Some(api_key)) => {
-                    if api_key.is_valid() {
-                        let pool_clone = db_pool.clone();
-                        let key_id = api_key.id;
-                        tokio::spawn(async move {
-                            let _ = update_last_used(&pool_clone, key_id).await;
-                        });
+        return match get_api_key_by_hash(&db_pool, &key_hash).await {
+            Ok(Some(api_key)) => {
+                if api_key.is_valid() {
+                    let pool_clone = db_pool.clone();
+                    let key_id = api_key.id;
+                    tokio::spawn(async move {
+                        let _ = update_last_used(&pool_clone, key_id).await;
+                    });
 
-                        req.extensions_mut().insert(api_key);
-                        next.run(req).await
-                    } else {
-                        (StatusCode::UNAUTHORIZED, "API key expired or inactive").into_response()
-                    }
+                    req.extensions_mut().insert(api_key);
+                    next.run(req).await
+                } else {
+                    (StatusCode::UNAUTHORIZED, "API key expired or inactive").into_response()
                 }
-                Ok(None) => (StatusCode::UNAUTHORIZED, "Invalid API key").into_response(),
-                Err(e) => {
-                    eprintln!("Error fetching API key: {}", e);
-                    (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error").into_response()
-                }
-            };
-        }
+            }
+            Ok(None) => (StatusCode::UNAUTHORIZED, "Invalid API key").into_response(),
+            Err(e) => {
+                eprintln!("Error fetching API key: {}", e);
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error").into_response()
+            }
+        };
     }
 
     let session_cookie = jar.get("session_id");

@@ -100,12 +100,11 @@ pub async fn get_user_panel_permissions(
     .await
     {
         for row in rows {
-            if let Ok(perm_str) = row.try_get::<String, _>("permission") {
-                if let Some(perm) = PanelPermission::from_str(&perm_str) {
-                    if !permissions.contains(&perm) {
-                        permissions.push(perm);
-                    }
-                }
+            if let Ok(perm_str) = row.try_get::<String, _>("permission")
+                && let Some(perm) = PanelPermission::from_str(&perm_str)
+                && !permissions.contains(&perm)
+            {
+                permissions.push(perm);
             }
         }
     }
@@ -130,12 +129,11 @@ pub async fn get_user_panel_permissions(
     .await
     {
         for row in rows {
-            if let Ok(perm_str) = row.try_get::<String, _>("permission") {
-                if let Some(perm) = PanelPermission::from_str(&perm_str) {
-                    if !permissions.contains(&perm) {
-                        permissions.push(perm);
-                    }
-                }
+            if let Ok(perm_str) = row.try_get::<String, _>("permission")
+                && let Some(perm) = PanelPermission::from_str(&perm_str)
+                && !permissions.contains(&perm)
+            {
+                permissions.push(perm);
             }
         }
     }
@@ -151,13 +149,11 @@ pub async fn get_user_panel_permissions(
             .await
             {
                 for row in rows {
-                    if let Ok(perm_str) = row.try_get::<String, _>("permission") {
-                        if let Some(perm) = PanelPermission::from_str(&perm_str) {
-                            if !permissions.contains(&perm) {
+                    if let Ok(perm_str) = row.try_get::<String, _>("permission")
+                        && let Some(perm) = PanelPermission::from_str(&perm_str)
+                            && !permissions.contains(&perm) {
                                 permissions.push(perm);
                             }
-                        }
-                    }
                 }
             }
         }

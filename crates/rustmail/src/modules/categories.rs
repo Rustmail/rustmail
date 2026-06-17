@@ -26,10 +26,10 @@ fn build_category_components(
         let mut btn = CreateButton::new(format!("category:pick:{}", cat.id))
             .label(cat.name.clone())
             .style(ButtonStyle::Primary);
-        if let Some(emoji) = cat.emoji.as_deref() {
-            if let Some(react) = parse_emoji(emoji) {
-                btn = btn.emoji(react);
-            }
+        if let Some(emoji) = cat.emoji.as_deref()
+            && let Some(react) = parse_emoji(emoji)
+        {
+            btn = btn.emoji(react);
         }
         buttons.push(btn);
     }
@@ -169,24 +169,16 @@ pub fn schedule_category_timeout(ctx: &Context, config: &Config, user_id: i64, e
             Some(p) => p,
             None => return,
         };
-        match get_pending_selection(user_id, pool).await {
-            Ok(Some(pending)) => {
-                if pending.expires_at <= Utc::now().timestamp() {
-                    if let Err(e) =
-                        finalize_with_category(&ctx_clone, &config_clone, user_id, None).await
-                    {
-                        eprintln!("Failed to finalize expired selection: {e:?}");
-                    }
-                } else {
-                    schedule_category_timeout(
-                        &ctx_clone,
-                        &config_clone,
-                        user_id,
-                        pending.expires_at,
-                    );
+        if let Ok(Some(pending)) = get_pending_selection(user_id, pool).await {
+            if pending.expires_at <= Utc::now().timestamp() {
+                if let Err(e) =
+                    finalize_with_category(&ctx_clone, &config_clone, user_id, None).await
+                {
+                    eprintln!("Failed to finalize expired selection: {e:?}");
                 }
+            } else {
+                schedule_category_timeout(&ctx_clone, &config_clone, user_id, pending.expires_at);
             }
-            _ => {}
         }
     });
 }
@@ -237,22 +229,20 @@ pub async fn finalize_with_category(
     )
     .await?;
 
-    if is_new {
-        if let Some(cat_id) = ticket_cat_id.as_deref() {
-            if let Err(e) = mention_category_roles(ctx, pool, target_channel_id, cat_id).await {
-                eprintln!("Failed to mention category roles: {e:?}");
-            }
-        }
+    if is_new
+        && let Some(cat_id) = ticket_cat_id.as_deref()
+        && let Err(e) = mention_category_roles(ctx, pool, target_channel_id, cat_id).await
+    {
+        eprintln!("Failed to mention category roles: {e:?}");
     }
 
     let dm_channel = ChannelId::new(pending.dm_channel_id.parse::<u64>().unwrap_or(0));
     for mid in &pending.queued_msg_ids {
-        if let Ok(id_u64) = mid.parse::<u64>() {
-            if let Ok(m) = dm_channel.message(&ctx.http, id_u64).await {
-                if let Err(e) = send_to_thread(ctx, target_channel_id, &m, config, false).await {
-                    eprintln!("Failed to forward queued DM message: {e:?}");
-                }
-            }
+        if let Ok(id_u64) = mid.parse::<u64>()
+            && let Ok(m) = dm_channel.message(&ctx.http, id_u64).await
+            && let Err(e) = send_to_thread(ctx, target_channel_id, &m, config, false).await
+        {
+            eprintln!("Failed to forward queued DM message: {e:?}");
         }
     }
 
