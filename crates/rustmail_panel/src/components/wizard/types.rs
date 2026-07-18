@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct WizardData {
     pub token: String,
     pub server_mode: String,
@@ -27,6 +27,7 @@ pub struct WizardData {
     pub timezone: String,
     pub status: String,
     pub direct_message: String,
+    pub close_message: String,
 }
 
 impl Default for WizardData {
@@ -59,6 +60,7 @@ impl Default for WizardData {
             direct_message:
                 "Thank you for contacting support! A staff member will be with you shortly."
                     .to_string(),
+            close_message: "Your ticket has been closed.".to_string(),
         }
     }
 }

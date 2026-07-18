@@ -17,8 +17,11 @@ pub fn step5_language(props: &Step5Props) -> Html {
     let timezone = use_state(|| props.data.timezone.clone());
     let status = use_state(|| props.data.status.clone());
     let direct_message = use_state(|| props.data.direct_message.clone());
+    let close_message = use_state(|| props.data.close_message.clone());
 
-    let is_valid = !(*status).trim().is_empty() && !(*direct_message).trim().is_empty();
+    let is_valid = !(*status).trim().is_empty()
+        && !(*direct_message).trim().is_empty()
+        && !(*close_message).trim().is_empty();
 
     let on_next = {
         let props_on_next = props.on_next.clone();
@@ -29,6 +32,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
         let timezone = timezone.clone();
         let status = status.clone();
         let direct_message = direct_message.clone();
+        let close_message = close_message.clone();
 
         Callback::from(move |_| {
             let mut new_data = data.clone();
@@ -36,6 +40,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
             new_data.timezone = (*timezone).clone();
             new_data.status = (*status).clone();
             new_data.direct_message = (*direct_message).clone();
+            new_data.close_message = (*close_message).clone();
 
             props_on_update.emit(new_data);
             props_on_next.emit(());
@@ -131,6 +136,23 @@ pub fn step5_language(props: &Step5Props) -> Html {
                         }
                     />
                     <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.welcome_help") }</p>
+                </div>
+
+                <div class="flex flex-col gap-2 mt-2">
+                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.close_label") }</label>
+                    <textarea
+                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none h-24"
+                        placeholder={i18n.t("wizard.steps.step5.close_placeholder")}
+                        value={(*close_message).clone()}
+                        onchange={
+                            let state = close_message.clone();
+                            Callback::from(move |e: Event| {
+                                let input: web_sys::HtmlTextAreaElement = e.target_unchecked_into();
+                                state.set(input.value());
+                            })
+                        }
+                    />
+                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.close_help") }</p>
                 </div>
             </div>
 

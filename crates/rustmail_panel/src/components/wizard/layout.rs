@@ -10,14 +10,39 @@ pub struct LayoutProps {
     pub step_names: Vec<String>,
     pub title: String,
     pub description: String,
+    pub on_restart: Callback<()>,
     pub children: Children,
 }
 
 #[function_component(WizardLayout)]
 pub fn wizard_layout(props: &LayoutProps) -> Html {
     let (i18n, _) = use_translation();
+
+    let on_restart_click = {
+        let on_restart = props.on_restart.clone();
+        let confirm_message = i18n.t("wizard.restart_confirm").to_string();
+        Callback::from(move |_| {
+            let confirmed = web_sys::window()
+                .and_then(|w| w.confirm_with_message(&confirm_message).ok())
+                .unwrap_or(false);
+            if confirmed {
+                on_restart.emit(());
+            }
+        })
+    };
+
     html! {
         <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans relative">
+
+            <div class="absolute top-4 left-4 sm:top-8 sm:left-8 z-50">
+                <button
+                    class="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5"
+                    onclick={on_restart_click}
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    { i18n.t("wizard.restart") }
+                </button>
+            </div>
 
             // Language Switcher in top right corner
             <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-50">

@@ -1,6 +1,7 @@
+use crate::components::wizard::auth::authed_post;
+use crate::components::wizard::success::SuccessScreen;
 use crate::components::wizard::types::WizardData;
 use crate::i18n::yew::use_translation;
-use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -8,6 +9,7 @@ use yew::prelude::*;
 pub struct Step6Props {
     pub data: WizardData,
     pub on_prev: Callback<()>,
+    pub on_unauthorized: Callback<()>,
 }
 
 #[function_component(Step6Review)]
@@ -22,6 +24,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
         let is_saving = is_saving.clone();
         let save_success = save_success.clone();
         let save_error = save_error.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
 
         Callback::from(move |_| {
             is_saving.set(true);
@@ -31,6 +34,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
             let save_success = save_success.clone();
             let save_error = save_error.clone();
             let data = data.clone();
+            let on_unauthorized = on_unauthorized.clone();
 
             spawn_local(async move {
                 // Map WizardData to SaveConfigRequest format expected by backend
@@ -38,7 +42,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
                     "token": data.token,
                     "bot_status": data.status,
                     "welcome_message": data.direct_message,
-                    "close_message": "Your ticket has been closed.",
+                    "close_message": data.close_message,
                     "typing_proxy_from_user": true,
                     "typing_proxy_from_staff": true,
                     "server_mode": data.server_mode,
@@ -72,13 +76,14 @@ pub fn step6_review(props: &Step6Props) -> Html {
                     "timezone": data.timezone,
                 });
 
-                let res = Request::post("/api/setup/save")
+                let res = authed_post("/api/setup/save")
                     .json(&req_body)
                     .unwrap()
                     .send()
                     .await;
 
                 match res {
+                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
                     Ok(resp) => {
                         if resp.ok() {
                             save_success.set(true);
@@ -114,75 +119,9 @@ pub fn step6_review(props: &Step6Props) -> Html {
         })
     };
 
-    let panel_url = props.data.panel_url.clone();
-    let api_port = props.data.api_port;
-
-    let target_url = if panel_url.is_empty() {
-        format!("http://localhost:{}", api_port)
-    } else {
-        if let Some((scheme, rest)) = panel_url.split_once("://") {
-            let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
-            let authority = &rest[..authority_end];
-            let suffix = &rest[authority_end..];
-            let host_port = authority.rsplit('@').next().unwrap_or(authority);
-
-            let (host, has_port) = if let Some((host, port)) = host_port.rsplit_once(':') {
-                if port.parse::<u16>().is_ok() {
-                    (host, true)
-                } else {
-                    (host_port, false)
-                }
-            } else {
-                (host_port, false)
-            };
-
-            let is_local_host = host == "localhost" || host.parse::<std::net::Ipv4Addr>().is_ok();
-
-            if is_local_host && !has_port {
-                format!("{}://{}:{}{}", scheme, authority, api_port, suffix)
-            } else {
-                panel_url.clone()
-            }
-        } else {
-            panel_url.clone()
-        }
-    };
-
     if *save_success {
         return html! {
-            <div class="flex flex-col items-center justify-center py-12 animate-fade-in text-center gap-4">
-                <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 mb-2 ring-4 ring-green-500/10">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-2xl font-bold text-white">{ i18n.t("wizard.steps.step6.save_success") }</h2>
-                <p class="text-gray-400 max-w-md">
-                    { i18n.t("wizard.steps.step6.success_desc") }
-                </p>
-                <div class="mt-6 p-4 bg-slate-900 border border-slate-700 rounded-lg max-w-md w-full">
-                    <p class="text-sm text-indigo-300 font-medium mb-2">{ i18n.t("wizard.steps.step6.apply_changes") }</p>
-                    <ol class="text-sm text-gray-400 text-left list-decimal pl-5 space-y-2">
-                        <li>{ i18n.t("wizard.steps.step6.instruction_1") }</li>
-                        <li>{ i18n.t("wizard.steps.step6.instruction_2") }</li>
-                        <li>{ i18n.t("wizard.steps.step6.instruction_3").replace("{url}", &target_url) }</li>
-                    </ol>
-                </div>
-                <button
-                    class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
-                    onclick={Callback::from(move |_| {
-                        let target = target_url.clone();
-                        spawn_local(async move {
-                            let _ = Request::post("/api/setup/restart").send().await;
-
-                            // Wait a moment before redirecting to let the server restart
-                            gloo_timers::future::TimeoutFuture::new(2000).await;
-                            let _ = web_sys::window().unwrap().location().set_href(&target);
-                        });
-                    })}
-                >
-
-                    { i18n.t("wizard.steps.step6.restart_bot") }
-                </button>
-            </div>
+            <SuccessScreen panel_url={props.data.panel_url.clone()} api_port={props.data.api_port} />
         };
     }
 

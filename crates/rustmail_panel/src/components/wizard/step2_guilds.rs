@@ -1,6 +1,6 @@
+use crate::components::wizard::auth::authed_post;
 use crate::components::wizard::types::{ValidateGuildRequest, ValidateGuildResponse, WizardData};
 use crate::i18n::yew::use_translation;
-use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -10,6 +10,7 @@ pub struct Step2Props {
     pub on_update: Callback<WizardData>,
     pub on_next: Callback<()>,
     pub on_prev: Callback<()>,
+    pub on_unauthorized: Callback<()>,
 }
 
 #[function_component(Step2Guilds)]
@@ -43,65 +44,68 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
         })
     };
 
-    let validate_guild =
-        |id_val: String,
-         token_val: String,
-         is_validating: UseStateHandle<bool>,
-         result_state: UseStateHandle<Option<ValidateGuildResponse>>| {
-            if id_val.trim().is_empty() {
-                return;
-            }
+    let validate_guild = |id_val: String,
+                          token_val: String,
+                          is_validating: UseStateHandle<bool>,
+                          result_state: UseStateHandle<Option<ValidateGuildResponse>>,
+                          on_unauthorized: Callback<()>| {
+        if id_val.trim().is_empty() {
+            return;
+        }
 
-            is_validating.set(true);
+        is_validating.set(true);
 
-            spawn_local(async move {
-                let req_body = ValidateGuildRequest {
-                    token: token_val,
-                    guild_id: id_val,
-                };
+        spawn_local(async move {
+            let req_body = ValidateGuildRequest {
+                token: token_val,
+                guild_id: id_val,
+            };
 
-                let res = Request::post("/api/setup/validate-guild")
-                    .json(&req_body)
-                    .unwrap()
-                    .send()
-                    .await;
+            let res = authed_post("/api/setup/validate-guild")
+                .json(&req_body)
+                .unwrap()
+                .send()
+                .await;
 
-                match res {
-                    Ok(resp) => {
-                        if let Ok(data) = resp.json::<ValidateGuildResponse>().await {
-                            result_state.set(Some(data));
-                        } else {
-                            result_state.set(Some(ValidateGuildResponse {
-                                valid: false,
-                                guild: None,
-                                error: Some("Invalid response from server".to_string()),
-                            }));
-                        }
-                    }
-                    Err(_) => {
+            match res {
+                Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
+                Ok(resp) => {
+                    if let Ok(data) = resp.json::<ValidateGuildResponse>().await {
+                        result_state.set(Some(data));
+                    } else {
                         result_state.set(Some(ValidateGuildResponse {
                             valid: false,
                             guild: None,
-                            error: Some("Network error".to_string()),
+                            error: Some("Invalid response from server".to_string()),
                         }));
                     }
                 }
+                Err(_) => {
+                    result_state.set(Some(ValidateGuildResponse {
+                        valid: false,
+                        guild: None,
+                        error: Some("Network error".to_string()),
+                    }));
+                }
+            }
 
-                is_validating.set(false);
-            });
-        };
+            is_validating.set(false);
+        });
+    };
 
     let on_validate_single = {
         let id = single_guild_id.clone();
         let token = props.data.token.clone();
         let is_validating = is_validating_single.clone();
         let result_state = single_guild_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
         Callback::from(move |_| {
             validate_guild(
                 (*id).clone(),
                 token.clone(),
                 is_validating.clone(),
                 result_state.clone(),
+                on_unauthorized.clone(),
             )
         })
     };
@@ -111,12 +115,14 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
         let token = props.data.token.clone();
         let is_validating = is_validating_community.clone();
         let result_state = community_guild_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
         Callback::from(move |_| {
             validate_guild(
                 (*id).clone(),
                 token.clone(),
                 is_validating.clone(),
                 result_state.clone(),
+                on_unauthorized.clone(),
             )
         })
     };
@@ -126,12 +132,14 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
         let token = props.data.token.clone();
         let is_validating = is_validating_staff.clone();
         let result_state = staff_guild_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
         Callback::from(move |_| {
             validate_guild(
                 (*id).clone(),
                 token.clone(),
                 is_validating.clone(),
                 result_state.clone(),
+                on_unauthorized.clone(),
             )
         })
     };
@@ -197,8 +205,8 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
 
         html! {
             <div class="flex flex-col gap-2 mt-4 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                <label class="text-sm font-medium text-gray-300">{ label }</label>
-                <p class="text-xs text-gray-500 mb-2">{ desc }</p>
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-500">{ label }</p>
+                <label class="text-base font-semibold text-white mb-1">{ desc }</label>
                 <div class="flex gap-3">
                     <input
                         type="text"
