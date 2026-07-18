@@ -2,6 +2,7 @@ use crate::setup::state::SharedSetupState;
 use axum::Json;
 use axum::extract::State;
 use axum::http::HeaderMap;
+use rustmail_types::SETUP_TOKEN_HEADER;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -20,7 +21,7 @@ pub async fn handle_setup_status(
     let step = format!("{:?}", state.step).to_lowercase();
 
     let has_valid_setup_token = headers
-        .get("x-setup-token")
+        .get(SETUP_TOKEN_HEADER)
         .and_then(|value| value.to_str().ok())
         .is_some_and(|token| token == state.token);
 

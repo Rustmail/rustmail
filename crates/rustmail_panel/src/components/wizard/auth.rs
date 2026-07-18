@@ -1,7 +1,7 @@
 use gloo_net::http::{Request, RequestBuilder};
+use rustmail_types::SETUP_TOKEN_HEADER;
 
 const TOKEN_PARAM: &str = "token";
-const TOKEN_HEADER: &str = "x-setup-token";
 
 pub fn setup_token() -> Option<String> {
     let search = web_sys::window()?.location().search().ok()?;
@@ -11,7 +11,7 @@ pub fn setup_token() -> Option<String> {
 
 fn with_token(mut builder: RequestBuilder) -> RequestBuilder {
     if let Some(token) = setup_token() {
-        builder = builder.header(TOKEN_HEADER, &token);
+        builder = builder.header(SETUP_TOKEN_HEADER, &token);
     }
     builder
 }

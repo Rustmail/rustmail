@@ -3,6 +3,7 @@ use axum::extract::{Request, State};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
+use rustmail_types::SETUP_TOKEN_HEADER;
 
 pub async fn require_setup_token(
     State(setup_state): State<SharedSetupState>,
@@ -16,7 +17,7 @@ pub async fn require_setup_token(
 
     let provided_token = req
         .headers()
-        .get("x-setup-token")
+        .get(SETUP_TOKEN_HEADER)
         .and_then(|value| value.to_str().ok());
 
     match provided_token {
