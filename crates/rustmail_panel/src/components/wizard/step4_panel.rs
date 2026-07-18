@@ -1,6 +1,6 @@
+use crate::components::wizard::auth::authed_post;
 use crate::components::wizard::types::{ValidateOAuth2Request, ValidateOAuth2Response, WizardData};
 use crate::i18n::yew::use_translation;
-use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -10,6 +10,7 @@ pub struct Step4Props {
     pub on_update: Callback<WizardData>,
     pub on_next: Callback<()>,
     pub on_prev: Callback<()>,
+    pub on_unauthorized: Callback<()>,
 }
 
 #[function_component(Step4Panel)]
@@ -57,6 +58,7 @@ pub fn step4_panel(props: &Step4Props) -> Html {
         let client_secret = client_secret.clone();
         let is_validating = is_validating.clone();
         let validation_result = validation_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
 
         Callback::from(move |_| {
             let cid = (*client_id).clone();
@@ -67,6 +69,7 @@ pub fn step4_panel(props: &Step4Props) -> Html {
 
             let is_validating = is_validating.clone();
             let validation_result = validation_result.clone();
+            let on_unauthorized = on_unauthorized.clone();
 
             is_validating.set(true);
 
@@ -76,13 +79,14 @@ pub fn step4_panel(props: &Step4Props) -> Html {
                     client_secret: csec,
                 };
 
-                let res = Request::post("/api/setup/validate-oauth2")
+                let res = authed_post("/api/setup/validate-oauth2")
                     .json(&req_body)
                     .unwrap()
                     .send()
                     .await;
 
                 match res {
+                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
                     Ok(resp) => {
                         if let Ok(data) = resp.json::<ValidateOAuth2Response>().await {
                             validation_result.set(Some(data));

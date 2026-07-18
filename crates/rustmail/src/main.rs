@@ -119,10 +119,11 @@ async fn run_setup_mode() {
     let setup_state = new_setup_state();
 
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel(1);
-    {
+    let setup_token = {
         let mut state = setup_state.lock().await;
         state.shutdown_tx = Some(shutdown_tx);
-    }
+        state.token.clone()
+    };
 
     let app = create_setup_router(setup_state)
         .route("/", axum::routing::get(static_handler))
@@ -135,8 +136,12 @@ async fn run_setup_mode() {
         .unwrap_or_else(|_| panic!("Failed to bind to {}", addr));
 
     println!("No configuration found.");
-    println!("Setup wizard available at http://{}:{}", bind_address, port);
+    println!(
+        "Setup wizard available at http://{}:{}/setup?token={}",
+        bind_address, port, setup_token
+    );
     println!("Open this URL in your browser to configure Rustmail.");
+    println!("This link contains a one-time secret: do not share it.");
 
     axum::serve(
         listener,

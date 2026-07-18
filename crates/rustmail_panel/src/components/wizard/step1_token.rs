@@ -1,6 +1,6 @@
+use crate::components::wizard::auth::authed_post;
 use crate::components::wizard::types::{ValidateTokenRequest, ValidateTokenResponse, WizardData};
 use crate::i18n::yew::use_translation;
-use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -9,6 +9,7 @@ pub struct Step1Props {
     pub data: WizardData,
     pub on_update: Callback<WizardData>,
     pub on_next: Callback<()>,
+    pub on_unauthorized: Callback<()>,
 }
 
 #[function_component(Step1Token)]
@@ -32,6 +33,7 @@ pub fn step1_token(props: &Step1Props) -> Html {
         let token = token.clone();
         let is_validating = is_validating.clone();
         let validation_result = validation_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
 
         Callback::from(move |_| {
             let token_val = (*token).clone();
@@ -41,19 +43,21 @@ pub fn step1_token(props: &Step1Props) -> Html {
 
             let is_validating = is_validating.clone();
             let validation_result = validation_result.clone();
+            let on_unauthorized = on_unauthorized.clone();
 
             is_validating.set(true);
 
             spawn_local(async move {
                 let req_body = ValidateTokenRequest { token: token_val };
 
-                let res = Request::post("/api/setup/validate-token")
+                let res = authed_post("/api/setup/validate-token")
                     .json(&req_body)
                     .unwrap()
                     .send()
                     .await;
 
                 match res {
+                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
                     Ok(resp) => {
                         if let Ok(data) = resp.json::<ValidateTokenResponse>().await {
                             validation_result.set(Some(data));

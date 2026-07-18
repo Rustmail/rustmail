@@ -45,6 +45,7 @@ pub struct SetupState {
     pub step: SetupStep,
     pub config: PartialConfig,
     pub shutdown_tx: Option<Sender<()>>,
+    pub token: String,
 }
 
 impl SetupState {
@@ -53,6 +54,7 @@ impl SetupState {
             step: SetupStep::Token,
             config: PartialConfig::default(),
             shutdown_tx: None,
+            token: uuid::Uuid::new_v4().simple().to_string(),
         }
     }
 }

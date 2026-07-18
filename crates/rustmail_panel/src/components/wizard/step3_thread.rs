@@ -1,8 +1,8 @@
+use crate::components::wizard::auth::authed_post;
 use crate::components::wizard::types::{
     ValidateChannelRequest, ValidateChannelResponse, WizardData,
 };
 use crate::i18n::yew::use_translation;
-use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -12,6 +12,7 @@ pub struct Step3Props {
     pub on_update: Callback<WizardData>,
     pub on_next: Callback<()>,
     pub on_prev: Callback<()>,
+    pub on_unauthorized: Callback<()>,
 }
 
 #[function_component(Step3Thread)]
@@ -44,6 +45,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
         let guild_id = target_guild_id.clone();
         let is_validating = is_validating.clone();
         let validation_result = validation_result.clone();
+        let on_unauthorized = props.on_unauthorized.clone();
 
         Callback::from(move |_| {
             let cat_id = (*category_id).clone();
@@ -56,6 +58,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
             let guild_id = guild_id.clone();
             let validation_result = validation_result.clone();
             let is_validating = is_validating.clone();
+            let on_unauthorized = on_unauthorized.clone();
 
             spawn_local(async move {
                 let req_body = ValidateChannelRequest {
@@ -64,13 +67,14 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                     channel_id: cat_id,
                 };
 
-                let res = Request::post("/api/setup/validate-channel")
+                let res = authed_post("/api/setup/validate-channel")
                     .json(&req_body)
                     .unwrap()
                     .send()
                     .await;
 
                 match res {
+                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
                     Ok(resp) => {
                         if let Ok(data) = resp.json::<ValidateChannelResponse>().await {
                             if data.valid {
