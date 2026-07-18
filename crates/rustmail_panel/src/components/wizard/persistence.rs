@@ -10,19 +10,16 @@ struct StoredProgress {
 }
 
 fn storage() -> Option<web_sys::Storage> {
-    web_sys::window()?.local_storage().ok()?
+    web_sys::window()?.session_storage().ok()?
 }
 
 pub fn save_progress(step: usize, data: &WizardData) {
     let Some(storage) = storage() else {
         return;
     };
-    let mut redacted = data.clone();
-    redacted.token = String::new();
-    redacted.client_secret = String::new();
     if let Ok(json) = serde_json::to_string(&StoredProgress {
         step,
-        data: redacted,
+        data: data.clone(),
     }) {
         let _ = storage.set_item(STORAGE_KEY, &json);
     }

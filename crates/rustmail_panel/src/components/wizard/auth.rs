@@ -28,10 +28,6 @@ pub fn authed_get(url: &str) -> RequestBuilder {
     with_token(Request::get(url))
 }
 
-/// Shared response handling for the wizard's validate-* endpoints: emits
-/// `on_unauthorized` on a 401 and returns `None`, otherwise always returns
-/// a `T` (parsed on success, or a `T::from_error(..)` placeholder on a
-/// network/parse failure) for the caller to store as the validation result.
 pub async fn handle_validation_response<T>(
     res: Result<Response, Error>,
     on_unauthorized: &Callback<()>,
