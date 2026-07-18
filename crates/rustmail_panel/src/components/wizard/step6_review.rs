@@ -55,6 +55,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
                     "enable_features": false,
                     "features_channel_id": null,
                     "enable_panel": true,
+                    "panel_url": data.panel_url,
                     "api_port": data.api_port,
                     "client_id": data.client_id.parse::<u64>().ok(),
                     "client_secret": data.client_secret,

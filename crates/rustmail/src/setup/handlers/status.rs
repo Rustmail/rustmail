@@ -1,4 +1,4 @@
-use crate::setup::state::SharedSetupState;
+use crate::setup::state::{SetupStep, SharedSetupState};
 use axum::Json;
 use axum::extract::State;
 use axum::http::HeaderMap;
@@ -9,7 +9,10 @@ use serde::Serialize;
 pub struct SetupStatusResponse {
     pub setup_required: bool,
     pub step: String,
+    pub completed: bool,
     pub token_prefill: Option<String>,
+    pub panel_url: Option<String>,
+    pub api_port: Option<u16>,
 }
 
 pub async fn handle_setup_status(
@@ -19,6 +22,7 @@ pub async fn handle_setup_status(
     let state = setup_state.lock().await;
 
     let step = format!("{:?}", state.step).to_lowercase();
+    let completed = matches!(state.step, SetupStep::Review);
 
     let has_valid_setup_token = headers
         .get(SETUP_TOKEN_HEADER)
@@ -33,6 +37,9 @@ pub async fn handle_setup_status(
     Json(SetupStatusResponse {
         setup_required: true,
         step,
+        completed,
         token_prefill,
+        panel_url: state.panel_url.clone(),
+        api_port: state.api_port,
     })
 }

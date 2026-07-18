@@ -46,6 +46,8 @@ pub struct SetupState {
     pub config: PartialConfig,
     pub shutdown_tx: Option<Sender<()>>,
     pub token: String,
+    pub panel_url: Option<String>,
+    pub api_port: Option<u16>,
 }
 
 impl SetupState {
@@ -55,6 +57,8 @@ impl SetupState {
             config: PartialConfig::default(),
             shutdown_tx: None,
             token: uuid::Uuid::new_v4().simple().to_string(),
+            panel_url: None,
+            api_port: None,
         }
     }
 }

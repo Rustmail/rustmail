@@ -20,7 +20,10 @@ use yew::prelude::*;
 struct StatusResponse {
     setup_required: bool,
     step: String,
+    completed: bool,
     token_prefill: Option<String>,
+    panel_url: Option<String>,
+    api_port: Option<u16>,
 }
 
 #[function_component(Setup)]
@@ -37,6 +40,7 @@ pub fn setup() -> Html {
     let is_loading = use_state(|| true);
     let is_unauthorized = use_state(|| false);
     let is_completed = use_state(|| false);
+    let completed_target = use_state(|| None::<(String, u16)>);
     let has_started = use_state(|| saved_progress.is_some());
 
     let on_unauthorized = {
@@ -60,12 +64,17 @@ pub fn setup() -> Html {
         let wizard_data = wizard_data.clone();
         let is_loading = is_loading.clone();
         let is_completed = is_completed.clone();
+        let completed_target = completed_target.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
                 if let Ok(resp) = authed_get("/api/setup/status").send().await {
                     if let Ok(status) = resp.json::<StatusResponse>().await {
-                        if status.step == "review" {
+                        if status.completed {
+                            completed_target.set(Some((
+                                status.panel_url.unwrap_or_default(),
+                                status.api_port.unwrap_or(3002),
+                            )));
                             is_completed.set(true);
                         } else if let Some(token) = status.token_prefill {
                             let mut data = (*wizard_data).clone();
@@ -150,8 +159,11 @@ pub fn setup() -> Html {
     }
 
     if *is_completed {
+        let (panel_url, api_port) = (*completed_target)
+            .clone()
+            .unwrap_or_else(|| ((*wizard_data).panel_url.clone(), (*wizard_data).api_port));
         return html! {
-            <SuccessScreen panel_url={(*wizard_data).panel_url.clone()} api_port={(*wizard_data).api_port} />
+            <SuccessScreen panel_url={panel_url} api_port={api_port} />
         };
     }
 

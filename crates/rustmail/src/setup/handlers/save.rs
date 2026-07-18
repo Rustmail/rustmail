@@ -29,6 +29,7 @@ pub struct SaveConfigRequest {
     pub enable_features: bool,
     pub features_channel_id: Option<u64>,
     pub enable_panel: bool,
+    pub panel_url: String,
     pub api_port: u16,
     pub client_id: Option<u64>,
     pub client_secret: Option<String>,
@@ -188,6 +189,8 @@ pub async fn handle_setup_save(
 
     let mut state = setup_state.lock().await;
     state.step = crate::setup::state::SetupStep::Review;
+    state.panel_url = Some(payload.panel_url);
+    state.api_port = Some(payload.api_port);
 
     (StatusCode::OK, Json(serde_json::json!({ "success": true })))
 }
