@@ -163,7 +163,7 @@ pub fn setup() -> Html {
             .clone()
             .unwrap_or_else(|| ((*wizard_data).panel_url.clone(), (*wizard_data).api_port));
         return html! {
-            <SuccessScreen panel_url={panel_url} api_port={api_port} />
+            <SuccessScreen panel_url={panel_url} api_port={api_port} on_unauthorized={on_unauthorized.clone()} />
         };
     }
 

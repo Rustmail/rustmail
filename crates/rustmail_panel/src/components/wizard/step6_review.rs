@@ -122,7 +122,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
 
     if *save_success {
         return html! {
-            <SuccessScreen panel_url={props.data.panel_url.clone()} api_port={props.data.api_port} />
+            <SuccessScreen panel_url={props.data.panel_url.clone()} api_port={props.data.api_port} on_unauthorized={props.on_unauthorized.clone()} />
         };
     }
 

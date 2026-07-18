@@ -8,6 +8,7 @@ use yew::prelude::*;
 pub struct SuccessScreenProps {
     pub panel_url: String,
     pub api_port: u16,
+    pub on_unauthorized: Callback<()>,
 }
 
 fn build_target_url(panel_url: &str, api_port: u16) -> String {
@@ -47,6 +48,8 @@ fn build_target_url(panel_url: &str, api_port: u16) -> String {
 pub fn success_screen(props: &SuccessScreenProps) -> Html {
     let (i18n, _) = use_translation();
     let target_url = build_target_url(&props.panel_url, props.api_port);
+    let is_restarting = use_state(|| false);
+    let restart_error = use_state(|| None::<String>);
 
     html! {
         <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans">
@@ -67,21 +70,50 @@ pub fn success_screen(props: &SuccessScreenProps) -> Html {
                     </ol>
                 </div>
                 <button
-                    class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
-                    onclick={Callback::from(move |_| {
-                        let target = target_url.clone();
-                        spawn_local(async move {
-                            let _ = authed_post("/api/setup/restart").send().await;
+                    class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={*is_restarting}
+                    onclick={
+                        let on_unauthorized = props.on_unauthorized.clone();
+                        let is_restarting = is_restarting.clone();
+                        let restart_error = restart_error.clone();
+                        Callback::from(move |_| {
+                            let target = target_url.clone();
+                            let on_unauthorized = on_unauthorized.clone();
+                            let is_restarting = is_restarting.clone();
+                            let restart_error = restart_error.clone();
 
-                            gloo_timers::future::TimeoutFuture::new(2000).await;
-                            clear_progress();
-                            let _ = web_sys::window().unwrap().location().set_href(&target);
-                        });
-                    })}
+                            is_restarting.set(true);
+                            restart_error.set(None);
+
+                            spawn_local(async move {
+                                match authed_post("/api/setup/restart").send().await {
+                                    Ok(resp) if resp.status() == 401 => {
+                                        on_unauthorized.emit(());
+                                    }
+                                    Ok(resp) if resp.ok() => {
+                                        gloo_timers::future::TimeoutFuture::new(2000).await;
+                                        clear_progress();
+                                        let _ = web_sys::window().unwrap().location().set_href(&target);
+                                        return;
+                                    }
+                                    _ => {
+                                        restart_error.set(Some(
+                                            "Failed to restart the bot. Please try again.".to_string(),
+                                        ));
+                                    }
+                                }
+
+                                is_restarting.set(false);
+                            });
+                        })
+                    }
                 >
 
                     { i18n.t("wizard.steps.step6.restart_bot") }
                 </button>
+                if let Some(error) = (*restart_error).as_ref() {
+                    <p class="text-sm text-red-400">{ error }</p>
+                }
             </div>
         </div>
     }
