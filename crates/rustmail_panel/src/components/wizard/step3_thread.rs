@@ -1,4 +1,4 @@
-use crate::components::wizard::auth::authed_post;
+use crate::components::wizard::auth::{authed_post, handle_validation_response};
 use crate::components::wizard::types::{
     ValidateChannelRequest, ValidateChannelResponse, WizardData,
 };
@@ -73,41 +73,24 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                     .send()
                     .await;
 
-                match res {
-                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
-                    Ok(resp) => {
-                        if let Ok(data) = resp.json::<ValidateChannelResponse>().await {
-                            if data.valid {
-                                if let Some(chan) = &data.channel {
-                                    if chan.kind != 4 {
-                                        validation_result.set(Some(ValidateChannelResponse {
-                                            valid: false,
-                                            channel: Some(chan.clone()),
-                                            error: Some(
-                                                "The specified ID is not a category".to_string(),
-                                            ),
-                                        }));
-                                    } else {
-                                        validation_result.set(Some(data));
-                                    }
-                                }
+                if let Some(data) =
+                    handle_validation_response::<ValidateChannelResponse>(res, &on_unauthorized)
+                        .await
+                {
+                    if data.valid {
+                        if let Some(chan) = &data.channel {
+                            if chan.kind != 4 {
+                                validation_result.set(Some(ValidateChannelResponse {
+                                    valid: false,
+                                    channel: Some(chan.clone()),
+                                    error: Some("The specified ID is not a category".to_string()),
+                                }));
                             } else {
                                 validation_result.set(Some(data));
                             }
-                        } else {
-                            validation_result.set(Some(ValidateChannelResponse {
-                                valid: false,
-                                channel: None,
-                                error: Some("Invalid response".to_string()),
-                            }));
                         }
-                    }
-                    Err(_) => {
-                        validation_result.set(Some(ValidateChannelResponse {
-                            valid: false,
-                            channel: None,
-                            error: Some("Network error".to_string()),
-                        }));
+                    } else {
+                        validation_result.set(Some(data));
                     }
                 }
 

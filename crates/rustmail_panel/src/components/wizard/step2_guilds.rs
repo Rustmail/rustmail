@@ -1,4 +1,4 @@
-use crate::components::wizard::auth::authed_post;
+use crate::components::wizard::auth::{authed_post, handle_validation_response};
 use crate::components::wizard::types::{ValidateGuildRequest, ValidateGuildResponse, WizardData};
 use crate::i18n::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
@@ -67,26 +67,10 @@ pub fn step2_guilds(props: &Step2Props) -> Html {
                 .send()
                 .await;
 
-            match res {
-                Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
-                Ok(resp) => {
-                    if let Ok(data) = resp.json::<ValidateGuildResponse>().await {
-                        result_state.set(Some(data));
-                    } else {
-                        result_state.set(Some(ValidateGuildResponse {
-                            valid: false,
-                            guild: None,
-                            error: Some("Invalid response from server".to_string()),
-                        }));
-                    }
-                }
-                Err(_) => {
-                    result_state.set(Some(ValidateGuildResponse {
-                        valid: false,
-                        guild: None,
-                        error: Some("Network error".to_string()),
-                    }));
-                }
+            if let Some(data) =
+                handle_validation_response::<ValidateGuildResponse>(res, &on_unauthorized).await
+            {
+                result_state.set(Some(data));
             }
 
             is_validating.set(false);

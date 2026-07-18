@@ -65,6 +65,10 @@ impl Default for WizardData {
     }
 }
 
+pub trait ValidationResponse {
+    fn from_error(message: &str) -> Self;
+}
+
 #[derive(Serialize)]
 pub struct ValidateTokenRequest {
     pub token: String,
@@ -82,6 +86,16 @@ pub struct ValidateTokenResponse {
     pub valid: bool,
     pub bot: Option<BotInfo>,
     pub error: Option<String>,
+}
+
+impl ValidationResponse for ValidateTokenResponse {
+    fn from_error(message: &str) -> Self {
+        Self {
+            valid: false,
+            bot: None,
+            error: Some(message.to_string()),
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -105,6 +119,16 @@ pub struct ValidateGuildResponse {
     pub error: Option<String>,
 }
 
+impl ValidationResponse for ValidateGuildResponse {
+    fn from_error(message: &str) -> Self {
+        Self {
+            valid: false,
+            guild: None,
+            error: Some(message.to_string()),
+        }
+    }
+}
+
 #[derive(Serialize)]
 pub struct ValidateChannelRequest {
     pub token: String,
@@ -126,6 +150,16 @@ pub struct ValidateChannelResponse {
     pub error: Option<String>,
 }
 
+impl ValidationResponse for ValidateChannelResponse {
+    fn from_error(message: &str) -> Self {
+        Self {
+            valid: false,
+            channel: None,
+            error: Some(message.to_string()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ValidateOAuth2Request {
     pub client_id: String,
@@ -136,4 +170,13 @@ pub struct ValidateOAuth2Request {
 pub struct ValidateOAuth2Response {
     pub valid: bool,
     pub error: Option<String>,
+}
+
+impl ValidationResponse for ValidateOAuth2Response {
+    fn from_error(message: &str) -> Self {
+        Self {
+            valid: false,
+            error: Some(message.to_string()),
+        }
+    }
 }

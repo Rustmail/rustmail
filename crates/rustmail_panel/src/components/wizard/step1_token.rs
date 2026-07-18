@@ -1,4 +1,4 @@
-use crate::components::wizard::auth::authed_post;
+use crate::components::wizard::auth::{authed_post, handle_validation_response};
 use crate::components::wizard::types::{ValidateTokenRequest, ValidateTokenResponse, WizardData};
 use crate::i18n::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
@@ -56,26 +56,10 @@ pub fn step1_token(props: &Step1Props) -> Html {
                     .send()
                     .await;
 
-                match res {
-                    Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
-                    Ok(resp) => {
-                        if let Ok(data) = resp.json::<ValidateTokenResponse>().await {
-                            validation_result.set(Some(data));
-                        } else {
-                            validation_result.set(Some(ValidateTokenResponse {
-                                valid: false,
-                                bot: None,
-                                error: Some("Invalid response from server".to_string()),
-                            }));
-                        }
-                    }
-                    Err(_) => {
-                        validation_result.set(Some(ValidateTokenResponse {
-                            valid: false,
-                            bot: None,
-                            error: Some("Network error".to_string()),
-                        }));
-                    }
+                if let Some(data) =
+                    handle_validation_response::<ValidateTokenResponse>(res, &on_unauthorized).await
+                {
+                    validation_result.set(Some(data));
                 }
 
                 is_validating.set(false);
