@@ -386,6 +386,13 @@
     "title": "Rustmail Setup Wizard",
     "progress": "Setup Progress",
     "loading": "Loading setup...",
+    "unauthorized_title": "Unauthorized",
+    "unauthorized_description": "This setup session is invalid or has expired. Open the setup wizard using the exact link printed in the server console, including the token.",
+    "welcome_title": "Welcome to Rustmail",
+    "welcome_description": "Let's get your modmail bot configured. This will only take a few minutes.",
+    "welcome_start": "Start Setup",
+    "restart": "Restart setup",
+    "restart_confirm": "This will erase everything you've entered so far and start the wizard over. Continue?",
     "common": {
       "back": "Back",
       "next": "Next Step",
@@ -463,6 +470,9 @@
         "welcome_label": "Welcome Message (DM)",
         "welcome_placeholder": "e.g. Thank you for contacting support! A staff member will be with you shortly.",
         "welcome_help": "This message is sent to the user when they open a new ticket.",
+        "close_label": "Close Message (DM)",
+        "close_placeholder": "e.g. Your ticket has been closed.",
+        "close_help": "This message is sent to the user when their ticket is closed.",
         "bot_messages_title": "Bot Messages"
       },
       "step6": {
