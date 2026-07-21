@@ -53,7 +53,7 @@ pub async fn ping(
         format!("{:?}", msg_send_ping),
     );
 
-    let edited_msg = MessageBuilder::system_message(&ctx, &config)
+    let edited_msg = MessageBuilder::system_message(&ctx, config)
         .translated_content("slash_command.ping_command", Some(&params), None, None)
         .await
         .to_channel(msg.channel_id)

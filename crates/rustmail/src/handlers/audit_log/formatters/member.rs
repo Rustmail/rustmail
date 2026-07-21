@@ -53,29 +53,29 @@ impl AuditLogFormatter for MemberFormatter {
     async fn description(&self, alc: &AuditLogContext<'_>) -> String {
         match self.0 {
             MemberAction::MemberMove => {
-                if let Some(opts) = &alc.entry.options {
-                    if let Some(channel_id) = opts.channel_id {
-                        let mut params = HashMap::new();
-                        params.insert("channel".to_string(), format!("<#{}>", channel_id.get()));
-                        if let Some(count) = opts.count {
-                            params.insert("count".to_string(), count.to_string());
-                        }
-                        return alc
-                            .translate("audit_log.member.moved_to", Some(&params))
-                            .await;
+                if let Some(opts) = &alc.entry.options
+                    && let Some(channel_id) = opts.channel_id
+                {
+                    let mut params = HashMap::new();
+                    params.insert("channel".to_string(), format!("<#{}>", channel_id.get()));
+                    if let Some(count) = opts.count {
+                        params.insert("count".to_string(), count.to_string());
                     }
+                    return alc
+                        .translate("audit_log.member.moved_to", Some(&params))
+                        .await;
                 }
                 return String::new();
             }
             MemberAction::MemberDisconnect => {
-                if let Some(opts) = &alc.entry.options {
-                    if let Some(count) = opts.count {
-                        let mut params = HashMap::new();
-                        params.insert("count".to_string(), count.to_string());
-                        return alc
-                            .translate("audit_log.member.disconnected_count", Some(&params))
-                            .await;
-                    }
+                if let Some(opts) = &alc.entry.options
+                    && let Some(count) = opts.count
+                {
+                    let mut params = HashMap::new();
+                    params.insert("count".to_string(), count.to_string());
+                    return alc
+                        .translate("audit_log.member.disconnected_count", Some(&params))
+                        .await;
                 }
                 return String::new();
             }
@@ -105,15 +105,15 @@ impl AuditLogFormatter for MemberFormatter {
                     }
                 }
                 MemberAction::BanAdd => {
-                    if let Some(days) = opts.delete_member_days {
-                        if days > 0 {
-                            let mut params = HashMap::new();
-                            params.insert("days".to_string(), days.to_string());
-                            let deleted = alc
-                                .translate("audit_log.member.messages_deleted", Some(&params))
-                                .await;
-                            desc.push_str(&format!("\n{}", deleted));
-                        }
+                    if let Some(days) = opts.delete_member_days
+                        && days > 0
+                    {
+                        let mut params = HashMap::new();
+                        params.insert("days".to_string(), days.to_string());
+                        let deleted = alc
+                            .translate("audit_log.member.messages_deleted", Some(&params))
+                            .await;
+                        desc.push_str(&format!("\n{}", deleted));
                     }
                 }
                 _ => {}

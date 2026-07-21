@@ -103,7 +103,7 @@ pub async fn new_thread(
     };
 
     let logs_info = get_translated_message(
-        &config,
+        config,
         "new_thread.show_logs",
         Some(&params),
         None,
@@ -114,7 +114,7 @@ pub async fn new_thread(
 
     let recap = get_user_recap(user_id, &user.name, &member_join_date, &logs_info);
 
-    let _ = MessageBuilder::system_message(&ctx, &config)
+    let _ = MessageBuilder::system_message(&ctx, config)
         .content(recap)
         .to_channel(guild_channel.id)
         .send(true)

@@ -51,7 +51,7 @@ pub async fn send_register_confirmation_from_message(
         (false, false) => "reminder.registered_without_content",
     };
 
-    let _ = MessageBuilder::system_message(&ctx, &config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(key, Some(&params), None, None)
         .await
         .to_channel(msg.channel_id)
@@ -100,12 +100,12 @@ pub async fn send_register_confirmation_from_command(
         (false, false) => "reminder.registered_without_content",
     };
 
-    let _ = MessageBuilder::system_message(&ctx, &config)
+    let _ = MessageBuilder::system_message(ctx, config)
         .translated_content(key, Some(&params), None, None)
         .await
         .to_channel(command.channel_id)
         .footer(format!("{}: {}", "ID", reminder_id))
-        .send_interaction_followup(&command, true)
+        .send_interaction_followup(command, true)
         .await;
 }
 

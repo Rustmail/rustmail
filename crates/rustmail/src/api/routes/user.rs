@@ -6,13 +6,11 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub fn create_user_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<BotState>>> {
-    let user_router = Router::new()
+    Router::new()
         .route("/avatar", get(handle_get_user_avatar))
         .route("/permissions", get(handle_get_user_permissions))
         .layer(axum::middleware::from_fn_with_state(
             bot_state,
             auth_middleware,
-        ));
-
-    user_router
+        ))
 }

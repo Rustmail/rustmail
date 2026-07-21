@@ -18,7 +18,7 @@ pub async fn release(
         .as_ref()
         .ok_or_else(database_connection_failed)?;
 
-    if is_a_ticket_channel(msg.channel_id, &db_pool).await {
+    if is_a_ticket_channel(msg.channel_id, db_pool).await {
         let thread = match get_thread_by_channel_id(&msg.channel_id.to_string(), db_pool).await {
             Some(thread) => thread,
             None => return Err(thread_not_found()),

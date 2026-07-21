@@ -88,13 +88,10 @@ impl RegistrableCommand for DeleteCommand {
             let mut message_number: i64 = -1;
 
             for option in &command.data.options {
-                match option.name.as_str() {
-                    "message_id" => {
-                        if let CommandDataOptionValue::Number(val) = &option.value {
-                            message_number = *val as i64;
-                        }
-                    }
-                    _ => {}
+                if option.name.as_str() == "message_id"
+                    && let CommandDataOptionValue::Number(val) = &option.value
+                {
+                    message_number = *val as i64;
                 }
             }
 

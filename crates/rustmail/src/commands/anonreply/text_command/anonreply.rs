@@ -23,18 +23,18 @@ pub async fn anonreply(
     let mut content =
         extract_reply_content(&msg.content, &config.command.prefix, &["anonreply", "ar"]);
 
-    if let Some(text) = &content {
-        if let Some(stripped) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
-            let snippet_key = stripped.trim();
-            match get_snippet_by_key(snippet_key, db_pool).await? {
-                Some(snippet) => {
-                    content = Some(snippet.content);
-                }
-                None => {
-                    return Err(ModmailError::Command(CommandError::SnippetNotFound(
-                        snippet_key.to_string(),
-                    )));
-                }
+    if let Some(text) = &content
+        && let Some(stripped) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}"))
+    {
+        let snippet_key = stripped.trim();
+        match get_snippet_by_key(snippet_key, db_pool).await? {
+            Some(snippet) => {
+                content = Some(snippet.content);
+            }
+            None => {
+                return Err(ModmailError::Command(CommandError::SnippetNotFound(
+                    snippet_key.to_string(),
+                )));
             }
         }
     }

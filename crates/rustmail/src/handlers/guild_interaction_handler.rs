@@ -119,31 +119,29 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
-                if self.maintenance_mode.load(Ordering::Relaxed) {
-                    if let Some(guild_id) = command.guild_id {
-                        if !is_interaction_user_maintenance_exempt(
-                            &ctx,
-                            guild_id,
-                            command.user.id,
-                            &self.config,
+                if self.maintenance_mode.load(Ordering::Relaxed)
+                    && let Some(guild_id) = command.guild_id
+                    && !is_interaction_user_maintenance_exempt(
+                        &ctx,
+                        guild_id,
+                        command.user.id,
+                        &self.config,
+                    )
+                    .await
+                {
+                    defer_response(&ctx, &command).await.ok();
+
+                    let _ = MessageBuilder::system_message(&ctx, &self.config)
+                        .translated_content(
+                            "status.maintenance_mode_active",
+                            None,
+                            Some(command.user.id),
+                            command.guild_id.map(|g| g.get()),
                         )
                         .await
-                        {
-                            defer_response(&ctx, &command).await.ok();
-
-                            let _ = MessageBuilder::system_message(&ctx, &self.config)
-                                .translated_content(
-                                    "status.maintenance_mode_active",
-                                    None,
-                                    Some(command.user.id),
-                                    command.guild_id.map(|g| g.get()),
-                                )
-                                .await
-                                .send_interaction_followup(&command, true)
-                                .await;
-                            return;
-                        }
-                    }
+                        .send_interaction_followup(&command, true)
+                        .await;
+                    return;
                 }
 
                 let ctx = ctx.clone();
@@ -156,12 +154,12 @@ impl EventHandler for InteractionHandler {
                         .run(&ctx, &command, &options, &config, Arc::new(self.clone()))
                         .await;
 
-                    if let Err(e) = result {
-                        if let Some(error_handler) = &self.config.error_handler {
-                            let _ = error_handler
-                                .reply_to_command_with_error(&ctx, &command, &e)
-                                .await;
-                        }
+                    if let Err(e) = result
+                        && let Some(error_handler) = &self.config.error_handler
+                    {
+                        let _ = error_handler
+                            .reply_to_command_with_error(&ctx, &command, &e)
+                            .await;
                     }
                 } else {
                     eprintln!("Command {} not found", command.data.name);

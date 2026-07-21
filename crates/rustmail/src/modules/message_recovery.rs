@@ -167,10 +167,10 @@ async fn recover_messages_for_thread(
             continue;
         }
 
-        let _ = MessageBuilder::begin_user_incoming(&ctx, config, thread.id.clone(), &message)
+        let _ = MessageBuilder::begin_user_incoming(ctx, config, thread.id.clone(), &message)
             .to_thread(channel_id)
             .content(content.clone())
-            .send_and_record(&pool)
+            .send_and_record(pool)
             .await;
 
         recovered_count += 1;

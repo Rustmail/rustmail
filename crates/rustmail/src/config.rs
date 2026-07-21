@@ -31,19 +31,62 @@ fn get_local_ip() -> Option<String> {
     Some(socket.local_addr().ok()?.ip().to_string())
 }
 
+pub fn resolve_config_path(default: &str) -> String {
+    std::env::var("RUSTMAIL_CONFIG_PATH").unwrap_or_else(|_| default.to_string())
+}
+
+pub fn resolve_db_path(default: &str) -> String {
+    std::env::var("RUSTMAIL_DATABASE_URL")
+        .or_else(|_| std::env::var("RUSTMAIL_DB_PATH"))
+        .unwrap_or_else(|_| default.to_string())
+}
+
+pub fn resolve_bind_address(default: &str) -> String {
+    std::env::var("RUSTMAIL_BIND_ADDRESS").unwrap_or_else(|_| default.to_string())
+}
+
+pub fn resolve_port(default: u16) -> u16 {
+    std::env::var("RUSTMAIL_PORT")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(default)
+}
+
+fn apply_env_overrides(config: &mut ConfigResponse) {
+    if let Ok(token) = std::env::var("RUSTMAIL_BOT_TOKEN")
+        && !token.is_empty()
+    {
+        config.bot.token = token;
+    }
+
+    if let Ok(client_secret) = std::env::var("RUSTMAIL_BOT_CLIENT_SECRET")
+        && !client_secret.is_empty()
+    {
+        config.bot.client_secret = client_secret;
+    }
+
+    if let Ok(client_id) = std::env::var("RUSTMAIL_BOT_CLIENT_ID")
+        && let Ok(id) = client_id.parse::<u64>()
+    {
+        config.bot.client_id = id;
+    }
+}
+
 pub fn load_config(path: &str) -> Option<Config> {
     let content = match fs::read_to_string(path) {
         Ok(c) => c,
         Err(_) => return None,
     };
 
-    let config_response: ConfigResponse = match toml::from_str(&content) {
+    let mut config_response: ConfigResponse = match toml::from_str(&content) {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Failed to parse config.toml: {}", e);
             return None;
         }
     };
+
+    apply_env_overrides(&mut config_response);
 
     let mut bot = config_response.bot;
     if bot.ip.is_none() {
@@ -108,6 +151,60 @@ pub fn load_config(path: &str) -> Option<Config> {
         error_handler: Some(error_handler),
         thread_locks: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
     })
+}
+
+pub fn validate_config(config: &Config) -> Result<(), String> {
+    if u64::from_str_radix(&config.thread.user_message_color, 16).is_err() {
+        return Err("Invalid user message color format (must be hex)".to_string());
+    }
+
+    if u64::from_str_radix(&config.thread.staff_message_color, 16).is_err() {
+        return Err("Invalid staff message color format (must be hex)".to_string());
+    }
+
+    if u64::from_str_radix(&config.reminders.embed_color, 16).is_err() {
+        return Err("Invalid reminder embed color format (must be hex)".to_string());
+    }
+
+    config.bot.validate_logs_config()?;
+    config.bot.validate_features_config()?;
+
+    if !config
+        .language
+        .is_language_supported(config.language.get_default_language())
+    {
+        return Err(format!(
+            "Default language '{}' is not in supported languages list",
+            config.language.default_language
+        ));
+    }
+
+    Ok(())
+}
+
+pub async fn save_config_with_backup(config: &Config, path: &str) -> Result<(), String> {
+    if std::path::Path::new(path).exists() {
+        let backup_path = format!("{}.backup", path);
+        fs::copy(path, &backup_path).map_err(|e| format!("Failed to create backup: {}", e))?;
+    }
+
+    let config_response = ConfigResponse {
+        bot: config.bot.clone(),
+        command: config.command.clone(),
+        thread: config.thread.clone(),
+        language: config.language.clone(),
+        error_handling: config.error_handling.clone(),
+        notifications: config.notifications.clone(),
+        reminders: config.reminders.clone(),
+        logs: config.logs.clone(),
+    };
+
+    let toml_content = toml::to_string_pretty(&config_response)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+
+    fs::write(path, toml_content).map_err(|e| format!("Failed to write config file: {}", e))?;
+
+    Ok(())
 }
 
 pub trait LanguageConfigExt {

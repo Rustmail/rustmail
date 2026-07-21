@@ -14,7 +14,7 @@ pub fn create_api_router(bot_state: Arc<Mutex<BotState>>) -> Router {
     let user_router = create_user_router(bot_state.clone());
     let external_router = create_external_router(bot_state.clone());
 
-    let app = Router::new()
+    Router::new()
         .route("/api/health", axum::routing::get(handle_health))
         .nest("/api/admin", admin_router)
         .nest("/api/apikeys", apikeys_router)
@@ -24,7 +24,5 @@ pub fn create_api_router(bot_state: Arc<Mutex<BotState>>) -> Router {
         .nest("/api/panel", panel_router)
         .nest("/api/user", user_router)
         .nest("/api/externals", external_router)
-        .with_state(bot_state.clone());
-
-    app
+        .with_state(bot_state.clone())
 }

@@ -8,12 +8,10 @@ use tokio::sync::Mutex;
 pub fn create_external_ticket_router(
     bot_state: Arc<Mutex<BotState>>,
 ) -> Router<Arc<Mutex<BotState>>> {
-    let bot_router = Router::new()
+    Router::new()
         .route("/create", post(handle_external_ticket_create))
         .layer(axum::middleware::from_fn_with_state(
             bot_state,
             auth_middleware,
-        ));
-
-    bot_router
+        ))
 }

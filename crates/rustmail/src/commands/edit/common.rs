@@ -36,6 +36,7 @@ mod tests {
                 client_secret: "secret".to_string(),
                 redirect_url: "http://localhost:3002/api/auth/callback".to_string(),
                 ip: Option::from("0.0.0.0".to_string()),
+                panel_port: 8080,
                 timezone: "Europe/Paris".to_string().parse().unwrap(),
                 panel_super_admin_roles: vec![],
                 panel_super_admin_users: vec![],

@@ -345,7 +345,7 @@ async fn handle_delete(
         return Ok(());
     }
 
-    match delete_snippet(&key, pool).await {
+    match delete_snippet(key, pool).await {
         Ok(_) => {}
         Err(_) => {
             return Err(ModmailError::Command(CommandError::SnippetNotFound(

@@ -405,7 +405,7 @@ impl<'a> MessageBuilder<'a> {
         let message = match target {
             MessageTarget::Channel(channel_id) => {
                 let db_thread_id =
-                    match get_thread_by_channel_id(&channel_id.to_string(), &pool).await {
+                    match get_thread_by_channel_id(&channel_id.to_string(), pool).await {
                         Some(thread) => Some(thread.id.clone()),
                         None => None,
                     };
@@ -420,7 +420,7 @@ impl<'a> MessageBuilder<'a> {
                 Ok(message)
             }
             MessageTarget::User(user_id) => {
-                let db_thread_id = match get_thread_by_user_id(user_id, &pool).await {
+                let db_thread_id = match get_thread_by_user_id(user_id, pool).await {
                     Some(thread) => Some(thread.id.clone()),
                     None => None,
                 };
@@ -440,7 +440,7 @@ impl<'a> MessageBuilder<'a> {
             }
             MessageTarget::Reply(original_message) => {
                 let db_thread_id =
-                    match get_thread_by_channel_id(&original_message.channel_id.to_string(), &pool)
+                    match get_thread_by_channel_id(&original_message.channel_id.to_string(), pool)
                         .await
                     {
                         Some(thread) => Some(thread.id.clone()),
@@ -469,13 +469,13 @@ impl<'a> MessageBuilder<'a> {
 
         if to_be_recorded {
             let _ = insert_staff_message(
-                &self.ctx,
+                self.ctx,
                 &message,
                 dm_message_id,
                 &thread_id.unwrap_or_default(),
                 self.bot_user_id,
                 false,
-                &pool,
+                pool,
                 self.config,
                 None,
             )
@@ -572,7 +572,7 @@ impl<'a> MessageBuilder<'a> {
             }
         }
 
-        if self.attachments.is_empty() == false {
+        if !self.attachments.is_empty() {
             for attachment in &self.attachments {
                 message = message.add_file(attachment.clone());
             }
@@ -837,7 +837,7 @@ impl<'a> StaffReply<'a> {
 
         let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
         if let Err(e) = insert_staff_message(
-            &self.ctx,
+            self.ctx,
             &thread_msg,
             dm_id_opt,
             &self.thread_id,
@@ -905,7 +905,7 @@ impl<'a> StaffReply<'a> {
 
         let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
         if let Err(e) = insert_staff_message(
-            &self.ctx,
+            self.ctx,
             &thread_msg,
             dm_id_opt,
             &self.thread_id,

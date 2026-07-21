@@ -1,10 +1,9 @@
-use crate::config::{Config, LanguageConfigExt, load_config};
+use crate::config::{Config, load_config, save_config_with_backup, validate_config};
 use crate::prelude::types::*;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use rustmail_types::ConfigResponse;
-use std::fs;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -104,58 +103,4 @@ pub async fn handle_update_config(
         "success": true,
         "message": "Configuration saved successfully. Restart the bot to apply changes."
     })))
-}
-
-fn validate_config(config: &Config) -> Result<(), String> {
-    if u64::from_str_radix(&config.thread.user_message_color, 16).is_err() {
-        return Err("Invalid user message color format (must be hex)".to_string());
-    }
-
-    if u64::from_str_radix(&config.thread.staff_message_color, 16).is_err() {
-        return Err("Invalid staff message color format (must be hex)".to_string());
-    }
-
-    if u64::from_str_radix(&config.reminders.embed_color, 16).is_err() {
-        return Err("Invalid reminder embed color format (must be hex)".to_string());
-    }
-
-    config.bot.validate_logs_config()?;
-    config.bot.validate_features_config()?;
-
-    if !config
-        .language
-        .is_language_supported(config.language.get_default_language())
-    {
-        return Err(format!(
-            "Default language '{}' is not in supported languages list",
-            config.language.default_language
-        ));
-    }
-
-    Ok(())
-}
-
-async fn save_config_with_backup(config: &Config, path: &str) -> Result<(), String> {
-    if std::path::Path::new(path).exists() {
-        let backup_path = format!("{}.backup", path);
-        fs::copy(path, &backup_path).map_err(|e| format!("Failed to create backup: {}", e))?;
-    }
-
-    let config_response = ConfigResponse {
-        bot: config.bot.clone(),
-        command: config.command.clone(),
-        thread: config.thread.clone(),
-        language: config.language.clone(),
-        error_handling: config.error_handling.clone(),
-        notifications: config.notifications.clone(),
-        reminders: config.reminders.clone(),
-        logs: config.logs.clone(),
-    };
-
-    let toml_content = toml::to_string_pretty(&config_response)
-        .map_err(|e| format!("Failed to serialize config: {}", e))?;
-
-    fs::write(path, toml_content).map_err(|e| format!("Failed to write config file: {}", e))?;
-
-    Ok(())
 }

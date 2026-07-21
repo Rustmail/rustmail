@@ -75,17 +75,14 @@ impl RegistrableCommand for LogsCommand {
             let mut user_id: Option<UserId> = None;
 
             for option in &command.data.options {
-                match option.name.as_str() {
-                    "id" => {
-                        if let CommandDataOptionValue::User(val) = &option.value {
-                            user_id.replace(val.clone());
-                        }
+                if option.name.as_str() == "id" {
+                    if let CommandDataOptionValue::User(val) = &option.value {
+                        user_id.replace(*val);
                     }
-                    _ => {}
                 }
             }
 
-            if !user_id.is_some() {
+            if user_id.is_none() {
                 handle_logs_in_thread(
                     &ctx,
                     &command.clone().channel_id,

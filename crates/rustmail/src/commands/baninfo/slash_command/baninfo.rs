@@ -82,18 +82,17 @@ impl RegistrableCommand for BaninfoCommand {
 
             let mut query: Option<String> = None;
             for option in &command.data.options {
-                if option.name.as_str() == "query" {
-                    if let CommandDataOptionValue::String(val) = &option.value {
-                        let trimmed = val.trim();
-                        if !trimmed.is_empty() {
-                            query = Some(trimmed.to_string());
-                        }
+                if option.name.as_str() == "query"
+                    && let CommandDataOptionValue::String(val) = &option.value
+                {
+                    let trimmed = val.trim();
+                    if !trimmed.is_empty() {
+                        query = Some(trimmed.to_string());
                     }
                 }
             }
 
-            let query =
-                query.ok_or_else(|| ModmailError::Command(CommandError::MissingArguments))?;
+            let query = query.ok_or(ModmailError::Command(CommandError::MissingArguments))?;
             let guild_id = config.bot.get_community_guild_id().to_string();
             let matches = resolve_banned_users(&guild_id, &query, pool).await?;
 

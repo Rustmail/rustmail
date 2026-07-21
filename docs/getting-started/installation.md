@@ -79,11 +79,11 @@ After extraction, your installation directory should contain:
 
 ```
 rustmail/
-├── rustmail          # Main executable (rustmail.exe on Windows)
-└── config.toml       # Configuration file (create this)
+└── rustmail          # Main executable (rustmail.exe on Windows)
 ```
 
-On first run, the bot creates:
+Run the executable with no `config.toml` present and Rustmail launches its built-in setup wizard to generate one for
+you. After setup, the directory looks like:
 
 ```
 rustmail/
@@ -97,4 +97,4 @@ rustmail/
 
 ## Next Steps
 
-Proceed to [Configuration](configuration.md) to set up your `config.toml` file.
+Proceed to [Configuration](configuration.md) to set up your `config.toml` file via the setup wizard (or manually).

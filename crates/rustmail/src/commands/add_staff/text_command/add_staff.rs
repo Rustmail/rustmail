@@ -30,7 +30,7 @@ pub async fn add_staff(
     }
 
     let parsed =
-        parse_add_target(&raw).ok_or_else(|| ModmailError::Command(CommandError::InvalidFormat))?;
+        parse_add_target(&raw).ok_or(ModmailError::Command(CommandError::InvalidFormat))?;
 
     let guild_id = msg
         .guild_id

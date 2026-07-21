@@ -7,5 +7,7 @@ pub mod home;
 pub mod language_switcher;
 pub mod logout_button;
 pub mod navbar;
+pub mod setup_detector;
 pub mod statistics;
 pub mod ticket;
+pub mod wizard;

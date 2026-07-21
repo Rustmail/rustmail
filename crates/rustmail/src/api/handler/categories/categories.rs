@@ -150,35 +150,35 @@ pub async fn update_category_handler(
             return Err((StatusCode::BAD_REQUEST, "Name required".to_string()));
         }
 
-        if let Some(conflict) = get_category_by_name(name, &p).await.map_err(internal)? {
-            if conflict.id != existing.id {
-                return Err((
-                    StatusCode::CONFLICT,
-                    "Category with this name already exists".to_string(),
-                ));
-            }
-        }
-    }
-
-    if let Some(true) = req.enabled {
-        if !existing.enabled {
-            let enabled_count = count_enabled_categories(&p).await.map_err(internal)?;
-            if enabled_count as usize >= CATEGORY_BUTTON_HARD_LIMIT {
-                return Err((
-                    StatusCode::BAD_REQUEST,
-                    format!("Maximum {} enabled categories", CATEGORY_BUTTON_HARD_LIMIT),
-                ));
-            }
-        }
-    }
-
-    if let Some(ref did) = req.discord_category_id {
-        if did.parse::<u64>().is_err() {
+        if let Some(conflict) = get_category_by_name(name, &p).await.map_err(internal)?
+            && conflict.id != existing.id
+        {
             return Err((
-                StatusCode::BAD_REQUEST,
-                "Invalid discord_category_id".to_string(),
+                StatusCode::CONFLICT,
+                "Category with this name already exists".to_string(),
             ));
         }
+    }
+
+    if let Some(true) = req.enabled
+        && !existing.enabled
+    {
+        let enabled_count = count_enabled_categories(&p).await.map_err(internal)?;
+        if enabled_count as usize >= CATEGORY_BUTTON_HARD_LIMIT {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                format!("Maximum {} enabled categories", CATEGORY_BUTTON_HARD_LIMIT),
+            ));
+        }
+    }
+
+    if let Some(ref did) = req.discord_category_id
+        && did.parse::<u64>().is_err()
+    {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "Invalid discord_category_id".to_string(),
+        ));
     }
 
     update_category(

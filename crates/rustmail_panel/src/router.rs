@@ -2,6 +2,7 @@ use crate::pages::administration::Administration;
 use crate::pages::error::Error;
 use crate::pages::home::Home;
 use crate::pages::panel::Panel;
+use crate::pages::setup::Setup;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -11,6 +12,8 @@ pub enum Route {
     Home,
     #[at("/panel")]
     PanelRoot,
+    #[at("/setup")]
+    Setup,
     #[at("/panel/*")]
     Panel,
     #[at("/admin")]
@@ -26,6 +29,7 @@ pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
         Route::PanelRoot | Route::Panel => html! { <Panel /> },
+        Route::Setup => html! { <Setup /> },
         Route::Administration => html! { <Administration /> },
         Route::Error => html! { <Error /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },

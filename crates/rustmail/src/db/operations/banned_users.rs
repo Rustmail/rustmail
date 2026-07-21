@@ -89,7 +89,6 @@ pub async fn bulk_upsert_tracked_members(
         return Ok(());
     }
 
-    // Pre-serialize all roles to JSON up front so errors surface before the transaction opens.
     let roles_jsons: Vec<String> = members
         .iter()
         .map(|m| {
@@ -98,9 +97,6 @@ pub async fn bulk_upsert_tracked_members(
         })
         .collect::<ModmailResult<Vec<_>>>()?;
 
-    // Pair each member with its serialized roles, then chunk. SQLite's default
-    // SQLITE_MAX_VARIABLE_NUMBER is 999; with 10 bind parameters per row we stay
-    // safely under that limit by capping each statement at 99 rows.
     let pairs: Vec<(&TrackedMember, &String)> = members.iter().zip(roles_jsons.iter()).collect();
     const CHUNK_SIZE: usize = 99;
 

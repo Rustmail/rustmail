@@ -65,6 +65,5 @@ For contributors and developers:
 ## Quick Links
 
 - [GitHub Repository](https://github.com/Rustmail/rustmail)
-- [Configuration Generator](https://config.rustmail.rs)
 - [Discord Support Server](https://discord.gg/9Bzma6SwtW)
 - [Releases](https://github.com/Rustmail/rustmail/releases)
