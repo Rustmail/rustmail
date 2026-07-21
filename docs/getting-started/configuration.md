@@ -4,14 +4,27 @@ This guide explains how to configure Rustmail using the `config.toml` file.
 
 ---
 
-## Using the Configuration Generator
+## Using the Setup Wizard
 
-The easiest way to create your configuration is the online generator:
+The easiest way to create your configuration is the built-in setup wizard. When Rustmail starts and finds no
+`config.toml`, it launches a local web server and prints a one-time URL to the console:
 
-**[config.rustmail.rs](https://config.rustmail.rs)**
+```
+No configuration found.
+Setup wizard available at http://0.0.0.0:3002/setup?token=...
+```
 
-The generator walks you through each setting and produces a valid `config.toml` file. You can also build the
-configurator locally from the [rustmail_configurator](https://github.com/Rustmail/rustmail_configurator) repository.
+Open that URL in your browser. The wizard walks you through:
+
+1. **Bot token** - Your Discord bot token, validated live against the Discord API
+2. **Server mode & guilds** - Single or dual-server mode, with guild IDs validated as you type
+3. **Thread settings** - Inbox category, message colors, and other ticket behavior
+4. **Web panel** - OAuth2 client ID/secret and redirect URL, if you want the admin panel enabled
+5. **Language** - Default and fallback language
+6. **Review** - A summary of all settings before saving
+
+Once you confirm, the wizard writes `config.toml` (keeping a backup of any previous file) and restarts the bot in
+normal mode automatically. See [First Steps](first-steps.md) for what happens next.
 
 ---
 

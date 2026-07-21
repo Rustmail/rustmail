@@ -20,6 +20,12 @@ On Windows:
 rustmail.exe
 ```
 
+### First Run Without a Configuration
+
+If no `config.toml` is present, Rustmail launches the setup wizard instead of starting the bot. See
+[Configuration](configuration.md#using-the-setup-wizard) for the wizard walkthrough. Once you complete it, the bot
+restarts automatically in normal mode.
+
 ### Expected Output
 
 On successful startup, you will see:

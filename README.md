@@ -34,22 +34,25 @@ send direct messages to the bot, which creates dedicated channels for staff to r
 
 ## Quick Start
 
-### 1. Generate your configuration
+### 1. Download and run
 
-Use the online configurator to create your `config.toml` file:
-
-**[config.rustmail.rs](https://config.rustmail.rs)**
-
-The configurator guides you through all required settings and generates a ready-to-use configuration file.
-
-### 2. Download and run
-
-Download the latest release for your platform from [Releases](https://github.com/Rustmail/rustmail/releases), then:
+Download the latest release for your platform from [Releases](https://github.com/Rustmail/rustmail/releases), then run the executable:
 
 ```bash
-# Place config.toml in the same directory as the executable
 ./rustmail
 ```
+
+### 2. Follow the setup wizard
+
+If no `config.toml` is found, Rustmail launches a built-in setup wizard and prints a one-time URL to the console:
+
+```
+No configuration found.
+Setup wizard available at http://0.0.0.0:3002/setup?token=...
+```
+
+Open that URL in your browser to configure your bot token, server mode, ticket settings, web panel, and language — the
+wizard writes a ready-to-use `config.toml` for you and restarts the bot automatically once you're done.
 
 The bot creates its SQLite database automatically on first run.
 
