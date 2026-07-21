@@ -136,9 +136,14 @@ async fn run_setup_mode() {
         .unwrap_or_else(|_| panic!("Failed to bind to {}", addr));
 
     println!("No configuration found.");
+    let display_host = if bind_address == "0.0.0.0" || bind_address == "::" {
+        "localhost"
+    } else {
+        bind_address.as_str()
+    };
     println!(
         "Setup wizard available at http://{}:{}/setup?token={}",
-        bind_address, port, setup_token
+        display_host, port, setup_token
     );
     println!("Open this URL in your browser to configure Rustmail.");
     println!("This link contains a one-time secret: do not share it.");
