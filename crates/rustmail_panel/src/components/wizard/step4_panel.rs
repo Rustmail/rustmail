@@ -117,7 +117,7 @@ pub fn step4_panel(props: &Step4Props) -> Html {
         Callback::from(move |_| {
             let mut new_data = data.clone();
             new_data.panel_url = (*panel_url).clone();
-            new_data.api_port = (*api_port).parse().unwrap_or(8080);
+            new_data.api_port = (*api_port).parse().unwrap_or(3002);
             new_data.client_id = (*client_id).clone();
             new_data.client_secret = (*client_secret).clone();
             new_data.redirect_url = (*redirect_url).clone();
