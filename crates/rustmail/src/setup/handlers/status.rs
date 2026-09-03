@@ -4,6 +4,7 @@ use axum::extract::State;
 use axum::http::HeaderMap;
 use rustmail_types::SETUP_TOKEN_HEADER;
 use serde::Serialize;
+use subtle::ConstantTimeEq;
 
 #[derive(Serialize)]
 pub struct SetupStatusResponse {
@@ -27,7 +28,7 @@ pub async fn handle_setup_status(
     let has_valid_setup_token = headers
         .get(SETUP_TOKEN_HEADER)
         .and_then(|value| value.to_str().ok())
-        .is_some_and(|token| token == state.token);
+        .is_some_and(|token| bool::from(token.as_bytes().ct_eq(state.token.as_bytes())));
 
     let token_prefill = has_valid_setup_token
         .then(|| std::env::var("RUSTMAIL_BOT_TOKEN").ok())
