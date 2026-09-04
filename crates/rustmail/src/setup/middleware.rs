@@ -4,6 +4,7 @@ use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use rustmail_types::SETUP_TOKEN_HEADER;
+use subtle::ConstantTimeEq;
 
 pub async fn require_setup_token(
     State(setup_state): State<SharedSetupState>,
@@ -21,7 +22,9 @@ pub async fn require_setup_token(
         .and_then(|value| value.to_str().ok());
 
     match provided_token {
-        Some(token) if token == expected_token => next.run(req).await,
+        Some(token) if bool::from(token.as_bytes().ct_eq(expected_token.as_bytes())) => {
+            next.run(req).await
+        }
         _ => (
             StatusCode::UNAUTHORIZED,
             axum::Json(serde_json::json!({
