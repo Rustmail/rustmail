@@ -39,7 +39,7 @@ pub async fn remove_reminder(
 
     let reminder = match get_reminder_by_id(reminder_id as i64, pool).await {
         Ok(Some(r)) => {
-            if r.completed {
+            if r.data.completed {
                 return Err(ModmailError::Command(
                     CommandError::ReminderAlreadyCompleted(reminder_id.to_string()),
                 ));
