@@ -87,7 +87,7 @@ pub async fn add_reminder(
     let (target_roles, reminder_content) =
         parse_roles_and_content(&ctx, config.bot.get_staff_guild_id(), rest_after_time).await;
 
-    let reminder: Reminder = Reminder {
+    let reminder = ReminderData {
         thread_id: thread.id,
         user_id: msg.author.id.get() as i64,
         channel_id: msg.channel_id.get() as i64,
@@ -99,7 +99,7 @@ pub async fn add_reminder(
         target_roles: target_roles.clone(),
     };
 
-    let reminder_id = match insert_reminder(&reminder, pool).await {
+    let reminder = match insert_reminder(&reminder, pool).await {
         Ok(id) => id,
         Err(e) => {
             eprintln!("Failed to insert reminder: {}", e);
@@ -108,7 +108,7 @@ pub async fn add_reminder(
     };
 
     send_register_confirmation_from_message(
-        reminder_id,
+        reminder.id,
         &reminder_content,
         &ctx,
         &msg,
@@ -122,7 +122,7 @@ pub async fn add_reminder(
 
     spawn_reminder(
         &reminder,
-        Some(reminder_id),
+        Some(reminder.id),
         &ctx,
         config,
         pool,

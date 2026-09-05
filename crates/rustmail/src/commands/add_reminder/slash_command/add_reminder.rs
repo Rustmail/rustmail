@@ -183,7 +183,8 @@ impl RegistrableCommand for AddReminderCommand {
 
             let trigger_timestamp = trigger_dt.with_timezone(&config.bot.timezone).timestamp();
 
-            let thread = match get_thread_by_user_id(command.user.id, pool).await {
+            let thread = match get_thread_by_channel_id(&command.channel_id.to_string(), pool).await
+            {
                 Some(t) => t,
                 None => {
                     return Err(ModmailError::Thread(ThreadError::ThreadNotFound));
@@ -196,7 +197,7 @@ impl RegistrableCommand for AddReminderCommand {
                 None
             };
 
-            let reminder: Reminder = Reminder {
+            let reminder = ReminderData {
                 thread_id: thread.id,
                 user_id: command.user.id.get() as i64,
                 channel_id: command.channel_id.get() as i64,
@@ -208,7 +209,7 @@ impl RegistrableCommand for AddReminderCommand {
                 target_roles: target_roles.clone(),
             };
 
-            let reminder_id = match insert_reminder(&reminder, pool).await {
+            let reminder = match insert_reminder(&reminder, pool).await {
                 Ok(id) => id,
                 Err(e) => {
                     eprintln!("Failed to insert reminder: {}", e);
@@ -217,7 +218,7 @@ impl RegistrableCommand for AddReminderCommand {
             };
 
             send_register_confirmation_from_command(
-                reminder_id,
+                reminder.id,
                 &content,
                 &ctx,
                 &command,
@@ -229,7 +230,7 @@ impl RegistrableCommand for AddReminderCommand {
 
             spawn_reminder(
                 &reminder,
-                Some(reminder_id),
+                Some(reminder.id),
                 &ctx,
                 &config,
                 pool,

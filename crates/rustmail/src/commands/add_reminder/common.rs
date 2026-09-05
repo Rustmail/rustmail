@@ -125,8 +125,8 @@ pub fn spawn_reminder(
 
     tokio::spawn(async move {
         let now = Local::now().timestamp();
-        let delay_duration = if reminder.trigger_time > now {
-            reminder.trigger_time - now
+        let delay_duration = if reminder.data.trigger_time > now {
+            reminder.data.trigger_time - now
         } else {
             0
         };
@@ -154,17 +154,21 @@ pub fn spawn_reminder(
         let mut params = HashMap::new();
         params.insert(
             "time".to_string(),
-            format!("<t:{}:F>", reminder.trigger_time),
+            format!("<t:{}:F>", reminder.data.trigger_time),
         );
         params.insert(
             "remaining_time".to_string(),
-            format!("<t:{}:R>", reminder.trigger_time),
+            format!("<t:{}:R>", reminder.data.trigger_time),
         );
 
-        params.insert("user".to_string(), reminder.user_id.to_string());
-        params.insert("content".to_string(), reminder.reminder_content.to_string());
+        params.insert("user".to_string(), reminder.data.user_id.to_string());
+        params.insert(
+            "content".to_string(),
+            reminder.data.reminder_content.to_string(),
+        );
 
-        let (mentions, is_role_targeted) = if let Some(ref target_roles_str) = reminder.target_roles
+        let (mentions, is_role_targeted) = if let Some(ref target_roles_str) =
+            reminder.data.target_roles
         {
             let role_mentions: String = target_roles_str
                 .split(',')
@@ -175,11 +179,11 @@ pub fn spawn_reminder(
             params.insert("roles".to_string(), role_mentions);
 
             let members =
-                get_targeted_mentions(&ctx, &pool, reminder.guild_id as u64, target_roles_str)
+                get_targeted_mentions(&ctx, &pool, reminder.data.guild_id as u64, target_roles_str)
                     .await;
             (members, true)
         } else {
-            (vec![UserId::new(reminder.user_id as u64)], false)
+            (vec![UserId::new(reminder.data.user_id as u64)], false)
         };
 
         if mentions.is_empty() {
@@ -201,11 +205,11 @@ pub fn spawn_reminder(
             )
         };
 
-        if !reminder.reminder_content.is_empty() {
+        if !reminder.data.reminder_content.is_empty() {
             let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content(key_with_content, Some(&params), None, None)
                 .await
-                .to_channel(ChannelId::new(reminder.channel_id as u64))
+                .to_channel(ChannelId::new(reminder.data.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
                 .send(true)
@@ -214,7 +218,7 @@ pub fn spawn_reminder(
             let _ = MessageBuilder::system_message(&ctx, &config)
                 .translated_content(key_without_content, Some(&params), None, None)
                 .await
-                .to_channel(ChannelId::new(reminder.channel_id as u64))
+                .to_channel(ChannelId::new(reminder.data.channel_id as u64))
                 .color(hex_string_to_int(&config.reminders.embed_color) as u32)
                 .mention(mentions)
                 .send(true)
