@@ -1,0 +1,134 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id, thread_id, user_id, channel_id, guild_id, reminder_content, trigger_time, created_at, completed, target_roles\n        FROM reminders\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "name": "thread_id",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "thread_id"
+          }
+        }
+      },
+      {
+        "name": "user_id",
+        "ordinal": 2,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "name": "channel_id",
+        "ordinal": 3,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "channel_id"
+          }
+        }
+      },
+      {
+        "name": "guild_id",
+        "ordinal": 4,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "guild_id"
+          }
+        }
+      },
+      {
+        "name": "reminder_content",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "reminder_content"
+          }
+        }
+      },
+      {
+        "name": "trigger_time",
+        "ordinal": 6,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "trigger_time"
+          }
+        }
+      },
+      {
+        "name": "created_at",
+        "ordinal": 7,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "name": "completed",
+        "ordinal": 8,
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "completed"
+          }
+        }
+      },
+      {
+        "name": "target_roles",
+        "ordinal": 9,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reminders",
+            "name": "target_roles"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "625c235fb8eaa737a3c95e6a9ae3c1007405f8962b1b75bf67826a0f75f6fcc5"
+}

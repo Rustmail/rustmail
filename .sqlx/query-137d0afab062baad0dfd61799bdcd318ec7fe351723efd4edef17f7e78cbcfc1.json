@@ -6,7 +6,13 @@
       {
         "name": "user_id",
         "ordinal": 0,
-        "type_info": "Integer"
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "reminder_optouts",
+            "name": "user_id"
+          }
+        }
       }
     ],
     "parameters": {

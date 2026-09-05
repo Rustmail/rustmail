@@ -6,7 +6,13 @@
       {
         "name": "user_left",
         "ordinal": 0,
-        "type_info": "Bool"
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "threads",
+            "name": "user_left"
+          }
+        }
       }
     ],
     "parameters": {
