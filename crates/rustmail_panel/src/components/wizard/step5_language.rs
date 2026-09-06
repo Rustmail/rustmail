@@ -18,6 +18,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
     let status = use_state(|| props.data.status.clone());
     let direct_message = use_state(|| props.data.direct_message.clone());
     let close_message = use_state(|| props.data.close_message.clone());
+    let check_updates = use_state(|| props.data.check_updates);
 
     let is_valid = !(*status).trim().is_empty()
         && !(*direct_message).trim().is_empty()
@@ -33,6 +34,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
         let status = status.clone();
         let direct_message = direct_message.clone();
         let close_message = close_message.clone();
+        let check_updates = check_updates.clone();
 
         Callback::from(move |_| {
             let mut new_data = data.clone();
@@ -41,6 +43,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
             new_data.status = (*status).clone();
             new_data.direct_message = (*direct_message).clone();
             new_data.close_message = (*close_message).clone();
+            new_data.check_updates = *check_updates;
 
             props_on_update.emit(new_data);
             props_on_next.emit(());
@@ -154,6 +157,25 @@ pub fn step5_language(props: &Step5Props) -> Html {
                     />
                     <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.close_help") }</p>
                 </div>
+            </div>
+
+            <div class="flex flex-col gap-2 bg-slate-800/30 p-5 rounded-xl border border-slate-700/50">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        class="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                        checked={*check_updates}
+                        onchange={
+                            let state = check_updates.clone();
+                            Callback::from(move |e: Event| {
+                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
+                                state.set(input.checked());
+                            })
+                        }
+                    />
+                    <span class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.check_updates_label") }</span>
+                </label>
+                <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.check_updates_help") }</p>
             </div>
 
             <div class="flex justify-between pt-4 mt-2 border-t border-slate-800/50">

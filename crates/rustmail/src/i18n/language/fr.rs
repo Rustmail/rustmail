@@ -1085,6 +1085,12 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
         DictionaryMessage::new("Permet d'afficher la latence actuelle du bot."),
     );
     dict.messages.insert(
+        "help.version".to_string(),
+        DictionaryMessage::new(
+            "Affiche la version de Rustmail actuellement en cours d'exécution. Utilisez `!version` ou `!v`.",
+        ),
+    );
+    dict.messages.insert(
         "add_reminder.helper".to_string(),
         DictionaryMessage::new("Format incorrect. Utilisation : `{prefix}remind ou {prefix}rem <HH:MM> [contenu du rappel]`"),
     );
@@ -1227,6 +1233,20 @@ pub fn load_french_messages(dict: &mut ErrorDictionary) {
     dict.messages.insert(
         "slash_command.ping_command_desc".to_string(),
         DictionaryMessage::new("Afficher la latence actuelle du bot."),
+    );
+    dict.messages.insert(
+        "slash_command.version_command_desc".to_string(),
+        DictionaryMessage::new(
+            "Afficher la version de Rustmail actuellement en cours d'exécution.",
+        ),
+    );
+    dict.messages.insert(
+        "version_command.current".to_string(),
+        DictionaryMessage::new("## Rustmail\n\nVersion en cours d'exécution : **v{version}**\nCode source : {repository}"),
+    );
+    dict.messages.insert(
+        "update.available".to_string(),
+        DictionaryMessage::new("-# Une nouvelle version de Rustmail est disponible : **{latest}** (version actuelle **v{current}**) - {url}"),
     );
     dict.messages.insert(
         "slash_command.ping_command".to_string(),

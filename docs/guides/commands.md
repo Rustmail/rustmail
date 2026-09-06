@@ -33,6 +33,18 @@ Check bot responsiveness.
 |---------|---------|
 | `/ping` | `!ping` |
 
+### version
+
+Show the Rustmail version currently running, along with a link to the source repository.
+
+| Slash      | Text               |
+|------------|--------------------|
+| `/version` | `!version` / `!v`  |
+
+New releases are not announced here: when the update check is enabled (see
+[`[updates]`](../reference/configuration.md#updates-section)), a new version is announced once in the logs channel and
+shown as a banner in the web panel.
+
 ---
 
 ## Ticket Management

@@ -61,6 +61,7 @@ mod tests {
             language: LanguageConfig::default(),
             reminders: ReminderConfig::default(),
             error_handling: ErrorHandlingConfig::default(),
+            updates: UpdateConfig::default(),
             db_pool: None,
             error_handler: None,
             thread_locks: Arc::new(Mutex::new(Default::default())),

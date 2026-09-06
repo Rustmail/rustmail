@@ -5,6 +5,7 @@ pub mod reminders;
 pub mod scheduled_closures;
 pub mod threads;
 pub mod threads_status;
+pub mod update_checker;
 
 pub use categories::*;
 pub use commands::*;
@@ -13,3 +14,4 @@ pub use reminders::*;
 pub use scheduled_closures::*;
 pub use threads::*;
 pub use threads_status::*;
+pub use update_checker::*;

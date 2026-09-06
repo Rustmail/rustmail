@@ -35,6 +35,7 @@ pub fn create_bot_router(bot_state: Arc<Mutex<BotState>>) -> Router<Arc<Mutex<Bo
         .route("/config", get(handle_get_config))
         .route("/statistics", get(handle_statistics))
         .route("/profile", get(handle_get_profile))
+        .route("/version", get(handle_get_version))
         .layer(axum::middleware::from_fn_with_state(
             bot_state.clone(),
             move |state, jar, req, next| {

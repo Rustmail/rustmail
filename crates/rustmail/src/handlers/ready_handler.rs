@@ -24,6 +24,7 @@ pub struct ReadyHandler {
     pub shutdown: Arc<Receiver<bool>>,
     pub bot_state: Arc<Mutex<BotState>>,
     backfill_started: Arc<AtomicBool>,
+    update_checker_started: Arc<AtomicBool>,
 }
 
 impl ReadyHandler {
@@ -39,6 +40,7 @@ impl ReadyHandler {
             shutdown: Arc::new(shutdown),
             bot_state,
             backfill_started: Arc::new(AtomicBool::new(false)),
+            update_checker_started: Arc::new(AtomicBool::new(false)),
         }
     }
 }
@@ -91,6 +93,23 @@ impl EventHandler for ReadyHandler {
 
                 async move {
                     backfill_tracked_members(&ctx, &config, &mut shutdown).await;
+                }
+            });
+        }
+
+        if self.config.updates.enabled
+            && self
+                .update_checker_started
+                .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+                .is_ok()
+        {
+            tokio::spawn({
+                let ctx = ctx.clone();
+                let config = config.clone();
+                let shutdown = (*self.shutdown).clone();
+
+                async move {
+                    run_update_checker(ctx, config, shutdown).await;
                 }
             });
         }

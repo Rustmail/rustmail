@@ -42,6 +42,7 @@ pub async fn handle_get_config(
         notifications: config.notifications.clone(),
         reminders: config.reminders.clone(),
         logs: config.logs.clone(),
+        updates: config.updates.clone(),
     };
 
     Ok(Json(response))
@@ -83,6 +84,7 @@ pub async fn handle_update_config(
         notifications: update.notifications,
         reminders: update.reminders,
         logs: update.logs,
+        updates: update.updates,
         db_pool: None,
         error_handler: None,
         thread_locks: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
