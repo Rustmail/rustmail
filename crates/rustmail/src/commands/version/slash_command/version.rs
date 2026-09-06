@@ -5,7 +5,7 @@ use crate::prelude::handlers::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
 use serenity::FutureExt;
-use serenity::all::{CommandInteraction, Context, CreateCommand, ResolvedOption};
+use serenity::all::{CommandInteraction, CommandType, Context, CreateCommand, ResolvedOption};
 use std::sync::Arc;
 
 pub struct VersionCommand;
@@ -39,7 +39,10 @@ impl RegistrableCommand for VersionCommand {
             )
             .await;
 
-            vec![CreateCommand::new(self.name()).description(cmd_desc)]
+            vec![
+                CreateCommand::new(self.name()).description(cmd_desc),
+                CreateCommand::new(self.name()).kind(CommandType::User),
+            ]
         })
     }
 
@@ -63,7 +66,7 @@ impl RegistrableCommand for VersionCommand {
             let _ = MessageBuilder::system_message(&ctx, &config)
                 .content(content)
                 .to_channel(command.channel_id)
-                .send_interaction_followup(&command, true)
+                .send_interaction_followup(&command, false)
                 .await;
 
             Ok(())

@@ -17,7 +17,7 @@ pub async fn version(
     let _ = MessageBuilder::system_message(&ctx, config)
         .content(content)
         .to_channel(msg.channel_id)
-        .send(true)
+        .send(false)
         .await;
 
     Ok(())
