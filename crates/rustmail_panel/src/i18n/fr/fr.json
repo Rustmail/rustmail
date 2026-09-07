@@ -43,7 +43,8 @@
         "languages": "Langues",
         "notifications": "Notifications",
         "error_handling": "Gestion d'erreurs",
-        "logs_reminders": "Logs & Rappels"
+        "logs_reminders": "Logs & Rappels",
+        "updates": "Mises à jour"
       },
       "bot": {
         "token": "Token du bot",
@@ -166,6 +167,13 @@
         "dnd": "Ne pas déranger",
         "invisible": "Invisible",
         "maintenance": "Maintenance"
+      },
+      "updates": {
+        "enabled": "Vérifier les mises à jour",
+        "check_interval_hours": "Intervalle de vérification (heures)",
+        "check_interval_hours_help": "Fréquence à laquelle Rustmail interroge le dépôt officiel. Minimum 1 heure.",
+        "notify_channel_id": "ID du salon de notification",
+        "notify_channel_id_help": "Salon recevant l'annonce unique de chaque nouvelle version. Laissez vide pour utiliser le salon de logs."
       }
     },
     "tickets": {
@@ -380,6 +388,11 @@
       "tickets_closed": "Tickets fermés",
       "show_all": "Voir tout",
       "show_less": "Voir moins"
+    },
+    "update": {
+      "available": "Une nouvelle version de Rustmail est disponible.",
+      "view_release": "Voir la release",
+      "dismiss": "Masquer"
     }
   },
   "wizard": {
@@ -473,7 +486,9 @@
         "close_label": "Message de fermeture (MP)",
         "close_placeholder": "ex: Votre ticket a été fermé.",
         "close_help": "Ce message est envoyé à l'utilisateur lorsque son ticket est fermé.",
-        "bot_messages_title": "Messages du bot"
+        "bot_messages_title": "Messages du bot",
+        "check_updates_label": "Vérifier les mises à jour",
+        "check_updates_help": "Rustmail interroge périodiquement le dépôt officiel et annonce une nouvelle version une seule fois, discrètement. Modifiable ensuite depuis le panel."
       },
       "step6": {
         "title": "Vérification & Sauvegarde",

@@ -10,4 +10,5 @@ pub mod navbar;
 pub mod setup_detector;
 pub mod statistics;
 pub mod ticket;
+pub mod update_banner;
 pub mod wizard;

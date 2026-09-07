@@ -43,7 +43,8 @@
         "languages": "Languages",
         "notifications": "Notifications",
         "error_handling": "Error Handling",
-        "logs_reminders": "Logs & Reminders"
+        "logs_reminders": "Logs & Reminders",
+        "updates": "Updates"
       },
       "bot": {
         "token": "Bot Token",
@@ -165,6 +166,13 @@
         "dnd": "Do Not Disturb",
         "invisible": "Invisible",
         "maintenance": "Maintenance"
+      },
+      "updates": {
+        "enabled": "Check for updates",
+        "check_interval_hours": "Check interval (hours)",
+        "check_interval_hours_help": "How often Rustmail checks the official repository for a new release. Minimum 1 hour.",
+        "notify_channel_id": "Notification channel ID",
+        "notify_channel_id_help": "Channel receiving the one-time announcement for each new version. Leave empty to use the logs channel."
       }
     },
     "tickets": {
@@ -380,6 +388,11 @@
       "tickets_closed": "Tickets Closed",
       "show_all": "Show all",
       "show_less": "Show less"
+    },
+    "update": {
+      "available": "A new Rustmail version is available.",
+      "view_release": "View the release",
+      "dismiss": "Dismiss"
     }
   },
   "wizard": {
@@ -473,7 +486,9 @@
         "close_label": "Close Message (DM)",
         "close_placeholder": "e.g. Your ticket has been closed.",
         "close_help": "This message is sent to the user when their ticket is closed.",
-        "bot_messages_title": "Bot Messages"
+        "bot_messages_title": "Bot Messages",
+        "check_updates_label": "Check for updates",
+        "check_updates_help": "Rustmail periodically checks the official repository and announces a new version once, discreetly. Can be changed later in the panel."
       },
       "step6": {
         "title": "Review & Save",

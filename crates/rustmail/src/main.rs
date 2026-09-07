@@ -15,7 +15,7 @@ use std::{env, process};
 use tokio::signal;
 use tower_http::compression::CompressionLayer;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+use crate::modules::update_checker::CURRENT_VERSION as VERSION;
 
 mod api;
 mod bot;

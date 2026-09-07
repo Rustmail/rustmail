@@ -237,6 +237,34 @@ Control what actions are logged.
 
 ---
 
+## Updates Section
+
+```toml
+[updates]
+```
+
+Controls the periodic check against the official repository
+([Rustmail/rustmail](https://github.com/Rustmail/rustmail)). The whole section is optional: if it is missing from
+`config.toml`, the defaults below apply.
+
+| Option                 | Type | Required | Default | Description                                                                                        |
+|------------------------|------|----------|---------|----------------------------------------------------------------------------------------------------|
+| `enabled`              | bool | No       | `true`  | Enable the periodic update check. When `false`, no request is ever sent to GitHub                   |
+| `check_interval_hours` | u64  | No       | `6`     | Hours between two checks. Must be at least `1`                                                      |
+| `notify_channel_id`    | u64  | No       | -       | Channel receiving the announcement. Falls back to `bot.logs_channel_id` when not set                |
+
+Behaviour:
+
+- Only stable releases are considered (drafts and pre-releases are ignored).
+- The first check runs when the bot becomes ready, then every `check_interval_hours`.
+- A given version is announced **once**: the announced tag is stored in the `system_metadata` table, so a restart
+  never re-posts the same message.
+- If neither `notify_channel_id` nor `bot.logs_channel_id` is set, the new version is only printed to the console.
+- Network or GitHub API failures are logged and ignored; they never interrupt the bot.
+- The latest known version is also exposed to the web panel, which displays a dismissible banner.
+
+---
+
 ## Error Handling Section
 
 ```toml
@@ -323,6 +351,10 @@ send_error_embeds = true
 auto_delete_error_messages = true
 error_message_ttl = 30
 display_errors = true
+
+[updates]
+enabled = true
+check_interval_hours = 6
 ```
 
 ---

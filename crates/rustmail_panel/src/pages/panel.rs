@@ -5,6 +5,7 @@ use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
 use crate::components::navbar::RustmailNavbar;
 use crate::components::ticket::{TicketDetails, TicketsList};
+use crate::components::update_banner::UpdateBanner;
 use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
@@ -122,6 +123,7 @@ pub fn panel() -> Html {
                         <BrowserRouter>
                             <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.clone()} />
                             <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
+                                <UpdateBanner />
                                 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                                     <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />
                                 </main>

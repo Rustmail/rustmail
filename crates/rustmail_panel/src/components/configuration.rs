@@ -21,7 +21,7 @@ pub fn configuration_page() -> Html {
     let save_message = use_state(|| None::<(bool, String)>);
 
     let expanded_sections =
-        use_state(|| vec![true, false, false, false, false, false, false, false]);
+        use_state(|| vec![true, false, false, false, false, false, false, false, false]);
 
     let permissions = use_state(|| None::<Vec<PanelPermission>>);
     {
@@ -531,6 +531,17 @@ fn config_form(props: &ConfigFormProps) -> Html {
                 }}
             >
                 <LogsReminderSection config={config.clone()} />
+            </AccordionSection>
+
+            <AccordionSection
+                title={i18n.t("panel.configuration.sections.updates")}
+                is_expanded={props.expanded_sections[8]}
+                on_toggle={{
+                    let cb = props.on_toggle_section.clone();
+                    Callback::from(move |_| cb.emit(8))
+                }}
+            >
+                <UpdatesSection config={config.clone()} />
             </AccordionSection>
         </div>
 
@@ -1637,6 +1648,76 @@ fn logs_reminder_section(props: &LogsReminderSectionProps) -> Html {
                         let mut cfg = (*config).clone();
                         cfg.reminders.embed_color = val;
                         config.set(cfg);
+                    })
+                }}
+            />
+        </div>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct UpdatesSectionProps {
+    config: UseStateHandle<ConfigResponse>,
+}
+
+#[function_component(UpdatesSection)]
+fn updates_section(props: &UpdatesSectionProps) -> Html {
+    let (i18n, _set_language) = use_translation();
+    let config = props.config.clone();
+
+    html! {
+        <div class="space-y-4">
+            <CheckboxInput
+                label={i18n.t("panel.configuration.updates.enabled")}
+                checked={config.updates.enabled}
+                on_change={{
+                    let config = config.clone();
+                    Callback::from(move |val: bool| {
+                        let mut cfg = (*config).clone();
+                        cfg.updates.enabled = val;
+                        config.set(cfg);
+                    })
+                }}
+            />
+
+            <TextInput
+                label={i18n.t("panel.configuration.updates.check_interval_hours")}
+                value={config.updates.check_interval_hours.to_string()}
+                input_type={Some("number".to_string())}
+                help={Some(i18n.t("panel.configuration.updates.check_interval_hours_help"))}
+                on_change={{
+                    let config = config.clone();
+                    Callback::from(move |val: String| {
+                        if let Ok(hours) = val.parse::<u64>()
+                            && hours > 0
+                        {
+                            let mut cfg = (*config).clone();
+                            cfg.updates.check_interval_hours = hours;
+                            config.set(cfg);
+                        }
+                    })
+                }}
+            />
+
+            <TextInput
+                label={i18n.t("panel.configuration.updates.notify_channel_id")}
+                value={config.updates.notify_channel_id.map(|id| id.to_string()).unwrap_or_default()}
+                help={Some(i18n.t("panel.configuration.updates.notify_channel_id_help"))}
+                on_change={{
+                    let config = config.clone();
+                    Callback::from(move |val: String| {
+                        let trimmed = val.trim().to_string();
+                        let parsed = if trimmed.is_empty() {
+                            Some(None)
+                        } else {
+                            trimmed.parse::<u64>().ok().map(Some)
+                        };
+
+                        if let Some(channel_id) = parsed {
+                            let mut cfg = (*config).clone();
+                            cfg.updates.notify_channel_id = channel_id;
+                            config.set(cfg);
+                        }
                     })
                 }}
             />

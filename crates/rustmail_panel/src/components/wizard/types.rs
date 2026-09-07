@@ -28,6 +28,7 @@ pub struct WizardData {
     pub status: String,
     pub direct_message: String,
     pub close_message: String,
+    pub check_updates: bool,
 }
 
 impl Default for WizardData {
@@ -61,6 +62,7 @@ impl Default for WizardData {
                 "Thank you for contacting support! A staff member will be with you shortly."
                     .to_string(),
             close_message: "Your ticket has been closed.".to_string(),
+            check_updates: true,
         }
     }
 }

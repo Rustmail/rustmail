@@ -18,6 +18,7 @@ pub struct Config {
     pub notifications: NotificationsConfig,
     pub reminders: ReminderConfig,
     pub logs: LogsConfig,
+    pub updates: UpdateConfig,
 
     pub db_pool: Option<SqlitePool>,
     pub error_handler: Option<Arc<ErrorHandler>>,
@@ -147,6 +148,7 @@ pub fn load_config(path: &str) -> Option<Config> {
         notifications: config_response.notifications,
         reminders: config_response.reminders,
         logs: config_response.logs,
+        updates: config_response.updates,
         db_pool: None,
         error_handler: Some(error_handler),
         thread_locks: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
@@ -168,6 +170,10 @@ pub fn validate_config(config: &Config) -> Result<(), String> {
 
     config.bot.validate_logs_config()?;
     config.bot.validate_features_config()?;
+
+    if config.updates.check_interval_hours == 0 {
+        return Err("Update check interval must be at least 1 hour".to_string());
+    }
 
     if !config
         .language
@@ -197,6 +203,7 @@ pub async fn save_config_with_backup(config: &Config, path: &str) -> Result<(), 
         notifications: config.notifications.clone(),
         reminders: config.reminders.clone(),
         logs: config.logs.clone(),
+        updates: config.updates.clone(),
     };
 
     let toml_content = toml::to_string_pretty(&config_response)
@@ -272,5 +279,98 @@ impl Config {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const CONFIG_WITHOUT_UPDATES: &str = r#"
+[bot]
+token = "token"
+status = "status"
+welcome_message = "welcome"
+close_message = "close"
+typing_proxy_from_user = true
+typing_proxy_from_staff = true
+enable_rustmail_logs = false
+enable_discord_logs = false
+enable_features = false
+enable_panel = true
+client_id = 1
+client_secret = "secret"
+redirect_url = "http://localhost/api/auth/callback"
+
+[bot.mode]
+type = "single"
+guild_id = 1
+
+[command]
+prefix = "!"
+
+[thread]
+inbox_category_id = 1
+embedded_message = true
+user_message_color = "5865F2"
+staff_message_color = "ED4245"
+system_message_color = "FEE75C"
+block_quote = true
+time_to_close_thread = 0
+create_ticket_by_create_channel = false
+close_on_leave = true
+auto_archive_duration = 1440
+
+[language]
+default_language = "en"
+fallback_language = "en"
+supported_languages = ["en"]
+
+[error_handling]
+show_detailed_errors = true
+log_errors = true
+send_error_embeds = true
+auto_delete_error_messages = false
+display_errors = true
+
+[notifications]
+show_success_on_edit = true
+show_partial_success_on_edit = true
+show_failure_on_edit = true
+show_success_on_reply = true
+show_success_on_delete = true
+show_success = true
+show_error = true
+
+[reminders]
+embed_color = "ffcc00"
+
+[logs]
+show_log_on_edit = true
+show_log_on_delete = true
+"#;
+
+    #[test]
+    fn config_without_updates_section_uses_defaults() {
+        let config: ConfigResponse =
+            toml::from_str(CONFIG_WITHOUT_UPDATES).expect("config without [updates] must parse");
+
+        assert_eq!(config.updates, UpdateConfig::default());
+        assert!(config.updates.enabled);
+        assert_eq!(config.updates.check_interval_hours, 6);
+        assert_eq!(config.updates.notify_channel_id, None);
+    }
+
+    #[test]
+    fn updates_section_round_trips_through_toml() {
+        let mut config: ConfigResponse = toml::from_str(CONFIG_WITHOUT_UPDATES).unwrap();
+        config.updates.enabled = false;
+        config.updates.check_interval_hours = 24;
+        config.updates.notify_channel_id = Some(42);
+
+        let serialized = toml::to_string_pretty(&config).expect("config must serialize");
+        let reparsed: ConfigResponse = toml::from_str(&serialized).expect("config must reparse");
+
+        assert_eq!(reparsed.updates, config.updates);
     }
 }

@@ -15,6 +15,18 @@ pub struct ConfigResponse {
     pub notifications: NotificationsConfig,
     pub reminders: ReminderConfig,
     pub logs: LogsConfig,
+    #[serde(default)]
+    pub updates: UpdateConfig,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct VersionInfo {
+    pub current: String,
+    pub latest: Option<String>,
+    pub update_available: bool,
+    pub release_url: Option<String>,
+    pub check_enabled: bool,
+    pub last_checked: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

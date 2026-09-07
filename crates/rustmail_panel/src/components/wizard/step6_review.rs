@@ -75,6 +75,7 @@ pub fn step6_review(props: &Step6Props) -> Html {
                     "default_language": data.locale.clone(),
                     "fallback_language": data.locale,
                     "timezone": data.timezone,
+                    "check_updates": data.check_updates,
                 });
 
                 let res = authed_post("/api/setup/save")

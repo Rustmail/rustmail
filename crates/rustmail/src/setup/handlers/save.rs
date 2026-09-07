@@ -6,7 +6,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use rustmail_types::{
     BotConfig, CommandConfig, ErrorHandlingConfig, LanguageConfig, LogsConfig, NotificationsConfig,
-    ReminderConfig, ServerMode, ThreadConfig,
+    ReminderConfig, ServerMode, ThreadConfig, UpdateConfig,
 };
 use serde::Deserialize;
 use std::sync::Arc;
@@ -49,6 +49,12 @@ pub struct SaveConfigRequest {
     pub default_language: String,
     pub fallback_language: String,
     pub timezone: String,
+    #[serde(default = "default_check_updates")]
+    pub check_updates: bool,
+}
+
+fn default_check_updates() -> bool {
+    true
 }
 
 pub async fn handle_setup_save(
@@ -166,6 +172,10 @@ pub async fn handle_setup_save(
         notifications: NotificationsConfig::default(),
         reminders: ReminderConfig::default(),
         logs: LogsConfig::default(),
+        updates: UpdateConfig {
+            enabled: payload.check_updates,
+            ..UpdateConfig::default()
+        },
         db_pool: None,
         error_handler: None,
         thread_locks: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),

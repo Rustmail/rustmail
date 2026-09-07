@@ -6,6 +6,7 @@ pub mod statistics;
 pub mod status;
 pub mod stop;
 pub mod tickets;
+pub mod version;
 
 pub use config::*;
 pub use profile::*;
@@ -15,3 +16,4 @@ pub use statistics::*;
 pub use status::*;
 pub use stop::*;
 pub use tickets::*;
+pub use version::*;

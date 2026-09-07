@@ -70,3 +70,8 @@ embed_color = "ffb800"
 [logs]
 show_log_on_edit = true
 show_log_on_delete = true
+
+[updates]
+enabled = true
+check_interval_hours = 6
+notify_channel_id = 14043597305635899
