@@ -14,9 +14,9 @@ pub const REPOSITORY_URL: &str = "https://github.com/Rustmail/rustmail";
 
 const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/Rustmail/rustmail/releases/latest";
 
-const LATEST_KNOWN_VERSION_KEY: &str = "latest_known_version";
-const LATEST_RELEASE_URL_KEY: &str = "latest_release_url";
-const LAST_UPDATE_CHECK_KEY: &str = "last_update_check";
+pub const LATEST_KNOWN_VERSION_KEY: &str = "latest_known_version";
+pub const LATEST_RELEASE_URL_KEY: &str = "latest_release_url";
+pub const LAST_UPDATE_CHECK_KEY: &str = "last_update_check";
 const ANNOUNCED_UPDATE_VERSION_KEY: &str = "announced_update_version";
 
 #[derive(Debug, Deserialize)]

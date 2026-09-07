@@ -1,4 +1,7 @@
-use crate::modules::update_checker::{CURRENT_VERSION, is_newer};
+use crate::modules::update_checker::{
+    CURRENT_VERSION, LAST_UPDATE_CHECK_KEY, LATEST_KNOWN_VERSION_KEY, LATEST_RELEASE_URL_KEY,
+    is_newer,
+};
 use crate::prelude::db::*;
 use crate::prelude::types::*;
 use axum::Json;
@@ -27,15 +30,15 @@ pub async fn handle_get_version(
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     };
 
-    let latest = get_system_metadata("latest_known_version", &pool)
+    let latest = get_system_metadata(LATEST_KNOWN_VERSION_KEY, &pool)
         .await
         .ok()
         .flatten();
-    let release_url = get_system_metadata("latest_release_url", &pool)
+    let release_url = get_system_metadata(LATEST_RELEASE_URL_KEY, &pool)
         .await
         .ok()
         .flatten();
-    let last_checked = get_system_metadata("last_update_check", &pool)
+    let last_checked = get_system_metadata(LAST_UPDATE_CHECK_KEY, &pool)
         .await
         .ok()
         .flatten();

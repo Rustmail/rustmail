@@ -151,7 +151,6 @@ pub async fn run_bot(
     registry.register_command(RenameCommand);
     registry.register_command(BaninfoCommand);
     registry.register_command(VersionCommand);
-    registry.register_command(VersionCommand);
 
     let registry = Arc::new(registry);
 

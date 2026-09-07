@@ -48,7 +48,7 @@ pub fn update_banner() -> Html {
         return html! {};
     };
 
-    if !info.update_available {
+    if !info.check_enabled || !info.update_available {
         return html! {};
     }
 
