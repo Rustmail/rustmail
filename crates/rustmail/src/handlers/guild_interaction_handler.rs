@@ -6,6 +6,7 @@ use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use crate::utils::{
     MessageBuilder, defer_response, defer_response_ephemeral, is_staff_member, is_staff_user,
+    responds_ephemerally,
 };
 use serenity::all::{Context, EventHandler, Interaction, Permissions};
 use std::sync::Arc;
@@ -126,10 +127,7 @@ impl EventHandler for InteractionHandler {
                 // in single mode everything lives in the shared guild, and community commands
                 // are visible to every community member. Community commands may be run from
                 // either guild, the others only from the staff guild.
-                let community_command = self
-                    .registry
-                    .get(command.data.name.as_str())
-                    .is_some_and(|c| c.as_community().is_some());
+                let community_command = self.registry.is_community(command.data.name.as_str());
                 let is_staff = match command.guild_id {
                     Some(_) if community_command => {
                         is_staff_user(&ctx, &self.config, command.user.id).await
@@ -180,20 +178,39 @@ impl EventHandler for InteractionHandler {
                 let options = command.data.options().clone();
                 let config = self.config.clone();
 
-                if let Some(handler) = self.registry.get(command.data.name.as_str()) {
-                    let result = handler
-                        .run(&ctx, &command, &options, &config, Arc::new(self.clone()))
-                        .await;
+                match self.registry.slash(command.data.name.as_str()) {
+                    Some(SlashEntry::Command(handler)) => {
+                        // The dispatcher defers, so the visibility rule lives in one place and
+                        // guard errors from the command can always be answered with a followup.
+                        let ephemeral = responds_ephemerally(&command, &config);
+                        if let Err(e) = defer_response(&ctx, &command, &config).await {
+                            eprintln!("Failed to defer command {}: {}", command.data.name, e);
+                            return;
+                        }
 
-                    if let Err(e) = result
-                        && let Some(error_handler) = &self.config.error_handler
-                    {
-                        let _ = error_handler
-                            .reply_to_command_with_error(&ctx, &command, &e)
-                            .await;
+                        let slash_options = SlashOptions::from_interaction(&command);
+                        let invocation = Invocation::slash(ctx, command, ephemeral);
+                        if let Err(e) = handler
+                            .run_slash(&slash_options, &invocation, &config)
+                            .await
+                        {
+                            invocation.reply_error(&config, &e).await;
+                        }
                     }
-                } else {
-                    eprintln!("Command {} not found", command.data.name);
+                    Some(SlashEntry::Legacy(handler)) => {
+                        let result = handler
+                            .run(&ctx, &command, &options, &config, Arc::new(self.clone()))
+                            .await;
+
+                        if let Err(e) = result
+                            && let Some(error_handler) = &self.config.error_handler
+                        {
+                            let _ = error_handler
+                                .reply_to_command_with_error(&ctx, &command, &e)
+                                .await;
+                        }
+                    }
+                    None => eprintln!("Command {} not found", command.data.name),
                 }
             }
             _ => {}

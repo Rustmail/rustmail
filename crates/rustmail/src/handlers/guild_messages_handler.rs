@@ -236,7 +236,7 @@ impl EventHandler for GuildMessagesHandler {
             return;
         }
 
-        if let Some((command_name, _)) =
+        if let Some((command_name, args)) =
             split_text_command(&msg.content, &self.config.command.prefix)
         {
             // Text commands are staff-only, like the slash commands (which are not even
@@ -259,22 +259,32 @@ impl EventHandler for GuildMessagesHandler {
                 return;
             }
 
-            if let Some(command_func) = self.registry.text_command(command_name)
-                && let Err(error) = command_func(
-                    ctx.clone(),
-                    msg.clone(),
-                    &self.config.clone(),
-                    Arc::new(self.clone()),
-                )
-                .await
-            {
-                if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler
-                        .reply_to_msg_with_error(&ctx, &msg, &error)
-                        .await;
-                } else {
-                    eprintln!("Command error: {}", error);
+            match self.registry.text(command_name) {
+                Some(TextEntry::Command(command)) => {
+                    let invocation = Invocation::text(ctx.clone(), msg.clone());
+                    if let Err(error) = command.run_text(args, &invocation, &self.config).await {
+                        invocation.reply_error(&self.config, &error).await;
+                    }
                 }
+                Some(TextEntry::Legacy(command_func)) => {
+                    if let Err(error) = command_func(
+                        ctx.clone(),
+                        msg.clone(),
+                        &self.config.clone(),
+                        Arc::new(self.clone()),
+                    )
+                    .await
+                    {
+                        if let Some(error_handler) = &self.config.error_handler {
+                            let _ = error_handler
+                                .reply_to_msg_with_error(&ctx, &msg, &error)
+                                .await;
+                        } else {
+                            eprintln!("Command error: {}", error);
+                        }
+                    }
+                }
+                None => {}
             }
             return;
         }

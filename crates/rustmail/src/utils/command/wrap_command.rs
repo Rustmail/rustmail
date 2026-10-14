@@ -6,7 +6,7 @@ macro_rules! wrap_command {
             std::sync::Arc::new(|ctx, msg, config, handler| {
                 Box::pin(async move { $func(ctx, msg, config, handler).await })
             });
-        $registry.register_text_command(&[$($name),+], command);
+        $registry.register_legacy_text_command(&[$($name),+], command);
     }};
     ($registry:expr, $name:expr, $func:expr) => {{
         wrap_command!($registry, [$name], $func);

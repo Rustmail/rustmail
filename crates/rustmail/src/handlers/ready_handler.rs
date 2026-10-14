@@ -5,7 +5,7 @@ use crate::prelude::config::*;
 use crate::prelude::features::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
-use serenity::all::{ActivityData, CreateCommand, GuildId};
+use serenity::all::{ActivityData, GuildId};
 use serenity::{
     all::{Context, EventHandler, Ready},
     async_trait,
@@ -121,18 +121,8 @@ impl EventHandler for ReadyHandler {
         let staff_guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
         let community_guild_id = GuildId::new(self.config.bot.get_community_guild_id());
 
-        let mut guild_commands: Vec<CreateCommand> = Vec::new();
-        let mut community_commands: Vec<CreateCommand> = Vec::new();
-
-        for command in self.registry.all() {
-            let mut cmds = command.register(&self.config).await;
-            guild_commands.append(&mut cmds);
-
-            if let Some(commu) = command.as_community() {
-                let mut commu_cmds = commu.register_community(&self.config).await;
-                community_commands.append(&mut commu_cmds);
-            }
-        }
+        let (guild_commands, community_commands) =
+            self.registry.slash_definitions(&self.config).await;
 
         if staff_guild_id == community_guild_id {
             if let Err(e) = staff_guild_id.set_commands(&ctx.http, guild_commands).await {

@@ -18,7 +18,7 @@ pub async fn display_commands_list(
     let welcome_msg = get_translated_message(config, "help.message", None, None, None, None).await;
     docs_message.push_str(&welcome_msg);
 
-    for name in registry.commands.keys() {
+    for name in registry.names() {
         docs_message.push_str(&format!("- **{}**\n", name))
     }
 
@@ -54,8 +54,7 @@ pub async fn display_command_help(
     command: Option<&CommandInteraction>,
     command_name: &str,
 ) -> ModmailResult<()> {
-    if let Some(cmd) = registry.commands.get(command_name) {
-        let command_doc = cmd.doc(config).await;
+    if let Some(command_doc) = registry.doc(command_name, config).await {
         let mut docs_message = String::new();
         docs_message.push_str(&format!("**{}**\n\n", command_name));
         docs_message.push_str(&command_doc);
