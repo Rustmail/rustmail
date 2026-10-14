@@ -98,7 +98,11 @@ impl RegistrableCommand for TakeCommand {
                             }
                         };
                         ticket_status.taken_by = Some(command.user.id.to_string());
-                        let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
+                        if let Err(e) =
+                            update_thread_status_db(&thread.id, &ticket_status, &db_pool).await
+                        {
+                            eprintln!("Failed to update thread status for {}: {e:?}", thread.id);
+                        }
 
                         let applied = update_thread_status_ui(&ctx, &ticket_status)
                             .await

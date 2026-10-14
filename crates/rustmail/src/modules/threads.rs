@@ -28,7 +28,7 @@ pub async fn create_or_get_thread_for_user(
         }
     };
 
-    let username = match user_id.to_user(&ctx.http).await {
+    let username = match user_id.to_user(ctx).await {
         Ok(u) => u.name.clone(),
         Err(_) => user_id.get().to_string(),
     };
@@ -43,12 +43,23 @@ pub async fn create_or_get_thread_for_user(
         .create_channel(&ctx.http, channel_builder)
         .await?;
 
-    let thread_id = create_thread_for_user(&channel, user_id.get() as i64, &username, false, pool)
-        .await
-        .map_err(|e| {
+    let thread_id = match create_thread_for_user(
+        &channel,
+        user_id.get() as i64,
+        &username,
+        false,
+        pool,
+    )
+    .await
+    {
+        Ok(id) => id,
+        Err(e) => {
             eprintln!("Error creating thread: {}", e);
-            e
-        })?;
+            // Don't leave an orphan channel behind in the inbox category.
+            let _ = channel.delete(&ctx.http).await;
+            return Err(e.into());
+        }
+    };
 
     if let Some(cat_id) = ticket_category_id
         && let Err(e) = set_thread_category(&thread_id, Some(cat_id), pool).await
@@ -276,7 +287,7 @@ pub async fn handle_thread_modal_interaction(
                 }
             };
 
-            let user = match user_id.to_user(&ctx.http).await {
+            let user = match user_id.to_user(ctx).await {
                 Ok(user) => user,
                 Err(_) => {
                     eprintln!("Failed to fetch user by ID: {}", user_id);

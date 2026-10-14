@@ -25,6 +25,17 @@ pub struct ReadyHandler {
     pub bot_state: Arc<Mutex<BotState>>,
     backfill_started: Arc<AtomicBool>,
     update_checker_started: Arc<AtomicBool>,
+    startup_tasks_started: Arc<AtomicBool>,
+    recovery_running: Arc<AtomicBool>,
+}
+
+/// Clears an `AtomicBool` when dropped, so the flag is released even if the task panics.
+struct FlagGuard(Arc<AtomicBool>);
+
+impl Drop for FlagGuard {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
+    }
 }
 
 impl ReadyHandler {
@@ -41,6 +52,8 @@ impl ReadyHandler {
             bot_state,
             backfill_started: Arc::new(AtomicBool::new(false)),
             update_checker_started: Arc::new(AtomicBool::new(false)),
+            startup_tasks_started: Arc::new(AtomicBool::new(false)),
+            recovery_running: Arc::new(AtomicBool::new(false)),
         }
     }
 }
@@ -68,16 +81,35 @@ impl EventHandler for ReadyHandler {
 
         ctx.set_activity(Option::from(ActivityData::playing(&self.config.bot.status)));
 
+        // Discord sends READY again on every new gateway session (invalidated session,
+        // reconnect...). Long-lived tasks must only be started once per bot run, otherwise
+        // each reconnect adds another copy of every loop and timer.
+        let first_ready = self
+            .startup_tasks_started
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok();
+
+        // Message recovery is useful after every reconnect, but must not overlap.
+        let recovery_guard = self
+            .recovery_running
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+            .then(|| FlagGuard(self.recovery_running.clone()));
+
         tokio::spawn({
             let ctx = ctx.clone();
             let config = config.clone();
 
             async move {
-                let recovery_results = recover_missing_messages(&ctx, &config).await;
-                send_recovery_summary(&ctx, &config, &recovery_results).await;
-                sync_features(&ctx, &config).await;
-                hydrate_scheduled_closures(&ctx, &config).await;
-                hydrate_pending_category_selections(&ctx, &config).await;
+                if let Some(_guard) = recovery_guard {
+                    let recovery_results = recover_missing_messages(&ctx, &config).await;
+                    send_recovery_summary(&ctx, &config, &recovery_results).await;
+                }
+                if first_ready {
+                    sync_features(&ctx, &config).await;
+                    hydrate_scheduled_closures(&ctx, &config).await;
+                    hydrate_pending_category_selections(&ctx, &config).await;
+                }
             }
         });
 
@@ -114,9 +146,13 @@ impl EventHandler for ReadyHandler {
             });
         }
 
-        load_reminders(&ctx, &self.config, &pool.clone(), self.shutdown.clone()).await;
-
-        update_threads_status(&ctx, &pool.clone());
+        if first_ready {
+            println!("[startup] Starting background tasks");
+            load_reminders(&ctx, &self.config, &pool.clone(), self.shutdown.clone()).await;
+            update_threads_status(&ctx, &pool.clone(), (*self.shutdown).clone());
+        } else {
+            println!("[startup] New gateway session, background tasks already running");
+        }
 
         let staff_guild_id = GuildId::new(self.config.bot.get_staff_guild_id());
         let community_guild_id = GuildId::new(self.config.bot.get_community_guild_id());
@@ -157,36 +193,46 @@ impl EventHandler for ReadyHandler {
     }
 }
 
-fn update_threads_status(ctx: &Context, pool: &SqlitePool) {
+fn update_threads_status(ctx: &Context, pool: &SqlitePool, mut shutdown: Receiver<bool>) {
     tokio::spawn({
         let ctx = ctx.clone();
         let pool = pool.clone();
 
         async move {
-            let mut interval = interval(Duration::from_secs(60 * 10));
+            let mut interval = interval(STATUS_REFRESH_INTERVAL);
 
             interval.tick().await;
 
             loop {
+                if *shutdown.borrow() {
+                    return;
+                }
+
                 let tickets_status = get_all_thread_status(&pool).await;
 
                 for ticket in tickets_status.iter() {
                     let ctx = ctx.clone();
                     let ticket = ticket.clone();
 
-                    if let Err(e) = update_thread_status_ui(&ctx, &ticket).await {
+                    if let Err(e) = refresh_thread_status_ui(&ctx, &ticket).await {
                         eprintln!(
                             "Failed to update thread status for channel {}: {:?}",
                             ticket.channel_id, e
                         );
                     }
 
-                    tokio::time::sleep(Duration::from_millis(500)).await;
+                    tokio::select! {
+                        _ = tokio::time::sleep(Duration::from_millis(500)) => {}
+                        _ = shutdown.changed() => return,
+                    }
                 }
 
                 println!("Updated {} ticket statuses", tickets_status.len());
 
-                interval.tick().await;
+                tokio::select! {
+                    _ = interval.tick() => {}
+                    _ = shutdown.changed() => return,
+                }
             }
         }
     });

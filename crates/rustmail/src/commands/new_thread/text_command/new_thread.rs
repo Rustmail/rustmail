@@ -28,7 +28,7 @@ pub async fn new_thread(
 
     let user_id = user_id.unwrap();
 
-    let user = match ctx.http.get_user(user_id).await {
+    let user = match user_id.to_user(&ctx).await {
         Ok(user) => user,
         Err(_) => return Err(ModmailError::Discord(DiscordError::UserNotFound)),
     };

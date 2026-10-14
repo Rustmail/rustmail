@@ -17,7 +17,14 @@ pub async fn load_reminders(
     });
 
     for reminder in reminders {
-        spawn_reminder(&reminder, None, ctx, config, pool, shutdown.clone());
+        spawn_reminder(
+            &reminder,
+            Some(reminder.id),
+            ctx,
+            config,
+            pool,
+            shutdown.clone(),
+        );
     }
     println!("All pending reminders have been scheduled.");
 }

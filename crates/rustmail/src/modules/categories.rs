@@ -11,6 +11,7 @@ use serenity::all::{
 };
 use serenity::builder::{CreateActionRow, CreateButton};
 use std::collections::HashMap;
+use std::sync::LazyLock;
 use tokio::time::{Duration, sleep};
 
 pub const CATEGORY_BUTTON_MAX_PER_ROW: usize = 5;
@@ -155,13 +156,16 @@ pub async fn maybe_start_category_selection(ctx: &Context, config: &Config, msg:
     true
 }
 
+/// One selection timeout per user id.
+static CATEGORY_TIMEOUTS: LazyLock<KeyedTasks<i64>> = LazyLock::new(KeyedTasks::new);
+
 pub fn schedule_category_timeout(ctx: &Context, config: &Config, user_id: i64, expires_at: i64) {
     let ctx_clone = ctx.clone();
     let config_clone = config.clone();
     let now = Utc::now().timestamp();
     let delay = (expires_at - now).max(0) as u64;
 
-    tokio::spawn(async move {
+    CATEGORY_TIMEOUTS.spawn(user_id, async move {
         if delay > 0 {
             sleep(Duration::from_secs(delay)).await;
         }

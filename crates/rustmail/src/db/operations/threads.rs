@@ -119,7 +119,7 @@ pub async fn create_thread_for_user(
     let thread_id = Uuid::new_v4().to_string();
     let silent_int: i64 = if silent { 1 } else { 0 };
 
-    let res = match sqlx::query(
+    match sqlx::query(
         "INSERT INTO threads (id, user_id, user_name, channel_id, silent) VALUES (?, ?, ?, ?, ?)",
     )
     .bind(&thread_id)
@@ -127,32 +127,28 @@ pub async fn create_thread_for_user(
     .bind(user_name)
     .bind(&channel_id)
     .bind(silent_int)
-    .execute(&pool.clone())
+    .execute(pool)
     .await
     {
-        Ok(_) => Ok(thread_id.clone()),
+        Ok(_) => {}
         Err(Error::Database(db_err))
             if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
         {
-            if let Some(existing_thread_id) =
-                sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                    .bind(user_id)
-                    .fetch_optional(pool)
-                    .await?
-            {
-                Ok(existing_thread_id)
-            } else {
-                Err(Error::Database(db_err))
-            }
+            // The user already has an open thread: reuse it. Its status row already exists.
+            return sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?
+                .ok_or(Error::Database(db_err));
         }
-        Err(e) => Err(e),
-    };
+        Err(e) => return Err(e),
+    }
 
     let channel_id = channel.id.get() as i64;
     let user_id_str = user_id.to_string();
     let timestamp = Utc::now().timestamp();
 
-    let _ = match sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO thread_status (thread_id, channel_id, owner_id, taken_by, last_message_by, last_message_at) VALUES (?, ?, ?, ?, ?, ?)",
         thread_id,
         channel_id,
@@ -161,28 +157,14 @@ pub async fn create_thread_for_user(
         "user",
         timestamp
     )
-        .execute(&pool.clone())
+        .execute(pool)
         .await
     {
-        Ok(_) => Ok(thread_id),
-        Err(Error::Database(db_err))
-        if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
-            {
-                if let Some(existing_thread_id) =
-                    sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                        .bind(user_id)
-                        .fetch_optional(pool)
-                        .await?
-                {
-                    Ok(existing_thread_id)
-                } else {
-                    Err(Error::Database(db_err))
-                }
-            }
-        Err(e) => Err(e),
-    };
+        // The thread itself is usable; only the channel-name status is missing.
+        eprintln!("Failed to create status for thread {thread_id}: {e:?}");
+    }
 
-    res
+    Ok(thread_id)
 }
 
 pub async fn is_thread_silent(thread_id: &str, pool: &SqlitePool) -> bool {
@@ -210,6 +192,9 @@ pub async fn mark_thread_engaged(thread_id: &str, pool: &SqlitePool) {
     }
 }
 
+/// Marks an open thread as closed. Returns `false` if it was already closed, so
+/// concurrent close paths (command, scheduled closure, channel deletion) don't
+/// overwrite each other's closing metadata.
 pub async fn close_thread(
     thread_id: &str,
     closed_by: &str,
@@ -217,11 +202,11 @@ pub async fn close_thread(
     category_name: &str,
     required_permissions: u64,
     pool: &SqlitePool,
-) -> ModmailResult<()> {
+) -> ModmailResult<bool> {
     let closed_at = Utc::now().timestamp();
-    let required_permissions = required_permissions.clone().to_string();
+    let required_permissions = required_permissions.to_string();
 
-    sqlx::query!(
+    let res = sqlx::query(
         r#"
         UPDATE threads
         SET
@@ -231,19 +216,19 @@ pub async fn close_thread(
             category_id = ?,
             category_name = ?,
             required_permissions = ?
-        WHERE id = ?
+        WHERE id = ? AND status = 1
         "#,
-        closed_at,
-        closed_by,
-        category_id,
-        category_name,
-        required_permissions,
-        thread_id
     )
+    .bind(closed_at)
+    .bind(closed_by)
+    .bind(category_id)
+    .bind(category_name)
+    .bind(required_permissions)
+    .bind(thread_id)
     .execute(pool)
     .await?;
 
-    Ok(())
+    Ok(res.rows_affected() > 0)
 }
 
 pub async fn thread_exists_by_user(user_id: UserId, pool: &SqlitePool) -> bool {
@@ -432,26 +417,17 @@ pub async fn allocate_next_message_number(
     thread_id: &str,
     pool: &SqlitePool,
 ) -> Result<u64, Error> {
-    let mut tx = pool.begin().await?;
-
-    let current: Option<i64> =
-        sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
-            .bind(thread_id)
-            .fetch_optional(&mut *tx)
-            .await?;
-
-    let num = current.unwrap_or(1);
-
-    sqlx::query!(
-        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ?",
-        thread_id
+    // A single statement is atomic in SQLite. A deferred read-then-write transaction
+    // fails immediately with SQLITE_BUSY (ignoring busy_timeout) when another
+    // connection writes between the read and the write.
+    let current: Option<i64> = sqlx::query_scalar(
+        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ? RETURNING next_message_number - 1",
     )
-    .execute(&mut *tx)
+    .bind(thread_id)
+    .fetch_optional(pool)
     .await?;
 
-    tx.commit().await?;
-
-    Ok(num as u64)
+    Ok(current.unwrap_or(1) as u64)
 }
 
 pub async fn is_orphaned_thread_channel(
@@ -579,4 +555,105 @@ pub async fn update_thread_status_db(
     .await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
+    use std::collections::HashSet;
+    use std::time::Duration;
+
+    struct TestDb {
+        pool: SqlitePool,
+        path: std::path::PathBuf,
+    }
+
+    impl TestDb {
+        async fn cleanup(self) {
+            self.pool.close().await;
+            for suffix in ["", "-wal", "-shm"] {
+                let _ = std::fs::remove_file(format!("{}{suffix}", self.path.display()));
+            }
+        }
+    }
+
+    async fn test_db() -> TestDb {
+        let path = std::env::temp_dir().join(format!("rustmail-test-{}.sqlite", Uuid::new_v4()));
+        let options = SqliteConnectOptions::new()
+            .filename(&path)
+            .create_if_missing(true)
+            .journal_mode(SqliteJournalMode::Wal)
+            .busy_timeout(Duration::from_secs(5));
+        let pool = SqlitePoolOptions::new()
+            .max_connections(10)
+            .connect_with(options)
+            .await
+            .expect("open test database");
+        sqlx::migrate!("../../migrations")
+            .run(&pool)
+            .await
+            .expect("run migrations");
+        TestDb { pool, path }
+    }
+
+    async fn insert_open_thread(pool: &SqlitePool, thread_id: &str, user_id: i64) {
+        sqlx::query(
+            "INSERT INTO threads (id, user_id, user_name, channel_id, silent) VALUES (?, ?, 'user', ?, 0)",
+        )
+        .bind(thread_id)
+        .bind(user_id)
+        .bind(format!("{}", 1000 + user_id))
+        .execute(pool)
+        .await
+        .expect("insert thread");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn concurrent_message_numbers_are_unique() {
+        let db = test_db().await;
+        let pool = db.pool.clone();
+        insert_open_thread(&pool, "thread-a", 1).await;
+
+        let tasks: Vec<_> = (0..40)
+            .map(|_| {
+                let pool = pool.clone();
+                tokio::spawn(async move { allocate_next_message_number("thread-a", &pool).await })
+            })
+            .collect();
+
+        let mut numbers = HashSet::new();
+        for task in tasks {
+            let number = task.await.unwrap().expect("allocation must not fail");
+            assert!(numbers.insert(number), "duplicate message number {number}");
+        }
+        assert_eq!(numbers, (1..=40).collect::<HashSet<u64>>());
+        db.cleanup().await;
+    }
+
+    #[tokio::test]
+    async fn closing_twice_only_closes_once() {
+        let db = test_db().await;
+        let pool = db.pool.clone();
+        insert_open_thread(&pool, "thread-b", 2).await;
+
+        assert!(
+            close_thread("thread-b", "staff-1", "", "", 0, &pool)
+                .await
+                .unwrap()
+        );
+        assert!(
+            !close_thread("thread-b", "staff-2", "", "", 0, &pool)
+                .await
+                .unwrap()
+        );
+
+        let closed_by: String = sqlx::query_scalar("SELECT closed_by FROM threads WHERE id = ?")
+            .bind("thread-b")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(closed_by, "staff-1");
+        db.cleanup().await;
+    }
 }
