@@ -160,7 +160,7 @@ impl EventHandler for InteractionHandler {
                     )
                     .await
                 {
-                    defer_response(&ctx, &command).await.ok();
+                    defer_response(&ctx, &command, &self.config).await.ok();
 
                     let _ = MessageBuilder::system_message(&ctx, &self.config)
                         .translated_content(

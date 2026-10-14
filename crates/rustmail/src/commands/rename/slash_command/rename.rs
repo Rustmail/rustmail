@@ -79,7 +79,7 @@ impl RegistrableCommand for RenameCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if !is_a_ticket_channel(command.channel_id, db_pool).await {
                 return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));

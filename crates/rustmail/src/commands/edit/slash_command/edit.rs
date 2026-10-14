@@ -99,7 +99,7 @@ impl RegistrableCommand for EditCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut msg_id: i64 = 0;
             let mut new_content: String = String::new();

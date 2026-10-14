@@ -70,7 +70,7 @@ impl RegistrableCommand for LogsCommand {
                 None => return Err(ModmailError::Database(DatabaseError::ConnectionFailed)),
             };
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut user_id: Option<UserId> = None;
 

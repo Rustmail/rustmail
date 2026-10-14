@@ -111,7 +111,7 @@ impl RegistrableCommand for AddReminderCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            let _ = defer_response(&ctx, &command).await;
+            let _ = defer_response(&ctx, &command, &config).await;
 
             let mut time: Option<String> = None;
             let mut content: Option<String> = None;

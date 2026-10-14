@@ -59,7 +59,7 @@ impl RegistrableCommand for RecoverCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut params = HashMap::new();
             params.insert("user".to_string(), command.user.name.clone());

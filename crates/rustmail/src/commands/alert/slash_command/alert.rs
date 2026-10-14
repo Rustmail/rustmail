@@ -76,7 +76,7 @@ impl RegistrableCommand for AlertCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let user_id = get_thread_user_id_from_command(&ctx, &command, &config, pool).await?;
 

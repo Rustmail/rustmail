@@ -162,7 +162,7 @@ impl RegistrableCommand for StatusCommand {
         let config = config.clone();
 
         Box::pin(async move {
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mode = command.data.options.iter().find_map(|opt| {
                 if opt.name == "mode"

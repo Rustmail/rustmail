@@ -111,7 +111,7 @@ impl RegistrableCommand for CloseCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut time_before_close: Option<String> = None;
             let mut silent: bool = false;

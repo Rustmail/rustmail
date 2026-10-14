@@ -75,7 +75,7 @@ impl RegistrableCommand for RemoveReminderCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            let _ = defer_response(&ctx, &command).await;
+            let _ = defer_response(&ctx, &command, &config).await;
 
             let mut reminder_id: Option<i64> = None;
 

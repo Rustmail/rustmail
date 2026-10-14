@@ -61,7 +61,7 @@ impl RegistrableCommand for IdCommand {
                 }
             };
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if !is_a_ticket_channel(command.channel_id, pool).await {
                 return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));

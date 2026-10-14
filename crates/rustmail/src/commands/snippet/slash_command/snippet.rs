@@ -232,7 +232,7 @@ impl RegistrableCommand for SnippetCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let subcommand = &command.data.options[0];
             let subcommand_name = &subcommand.name;

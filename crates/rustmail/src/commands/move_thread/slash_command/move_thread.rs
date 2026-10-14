@@ -82,7 +82,7 @@ impl RegistrableCommand for MoveCommand {
                 }
             };
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if get_user_id_from_channel_id(&command.channel_id.to_string(), pool)
                 .await

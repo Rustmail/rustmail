@@ -78,7 +78,7 @@ impl RegistrableCommand for AddStaffCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if !thread_exists_by_channel(command.channel_id, pool).await {
                 return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));

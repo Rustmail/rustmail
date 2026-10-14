@@ -97,7 +97,7 @@ impl RegistrableCommand for ReminderSubscriptionCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            let _ = defer_response(&ctx, &command).await;
+            let _ = defer_response(&ctx, &command, &config).await;
 
             let mut action: Option<String> = None;
             let mut role_id: Option<RoleId> = None;

@@ -60,7 +60,7 @@ impl RegistrableCommand for PingCommand {
         let config = config.clone();
 
         Box::pin(async move {
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let response = MessageBuilder::system_message(&ctx, &config)
                 .content("...")
