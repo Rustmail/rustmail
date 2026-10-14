@@ -28,7 +28,7 @@ pub async fn create_or_get_thread_for_user(
         }
     };
 
-    let username = match user_id.to_user(&ctx.http).await {
+    let username = match user_id.to_user(ctx).await {
         Ok(u) => u.name.clone(),
         Err(_) => user_id.get().to_string(),
     };
@@ -276,7 +276,7 @@ pub async fn handle_thread_modal_interaction(
                 }
             };
 
-            let user = match user_id.to_user(&ctx.http).await {
+            let user = match user_id.to_user(ctx).await {
                 Ok(user) => user,
                 Err(_) => {
                     eprintln!("Failed to fetch user by ID: {}", user_id);

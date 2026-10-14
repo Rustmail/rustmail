@@ -223,7 +223,7 @@ impl<'a> MessageBuilder<'a> {
     }
 
     async fn get_user_avatar_url(&self, user_id: UserId) -> String {
-        match user_id.to_user(&self.ctx.http).await {
+        match user_id.to_user(&self.ctx).await {
             Ok(user) => user
                 .avatar_url()
                 .unwrap_or_else(|| user.default_avatar_url()),

@@ -82,7 +82,7 @@ pub async fn delete_dm_message(ctx: &Context, user_id: i64, message_ids: &Messag
     if let Some(dm_msg_id) = &message_ids.dm_message_id
         && let Ok(msg_id) = dm_msg_id.parse::<u64>()
     {
-        if let Ok(user) = ctx.http.get_user(UserId::new(user_id as u64)).await {
+        if let Ok(user) = UserId::new(user_id as u64).to_user(ctx).await {
             if let Ok(dm_channel) = user.create_dm_channel(&ctx.http).await {
                 match dm_channel.message(&ctx.http, msg_id).await {
                     Ok(dm_message) => {

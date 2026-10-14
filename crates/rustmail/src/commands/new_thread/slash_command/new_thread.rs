@@ -112,7 +112,7 @@ impl RegistrableCommand for NewThreadCommand {
                 }
             };
 
-            let user = match ctx.http.get_user(user_id).await {
+            let user = match user_id.to_user(&ctx).await {
                 Ok(user) => user,
                 Err(_) => return Err(ModmailError::Discord(DiscordError::UserNotFound)),
             };
