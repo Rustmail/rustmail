@@ -291,6 +291,14 @@ impl EventHandler for GuildMessagesHandler {
                 command_name = &message_content[self.config.command.prefix.len()..i];
             }
 
+            // Text commands are staff-only, like the slash commands (which are not even
+            // registered in the community guild). Ignore everyone else silently.
+            if let Some(guild_id) = msg.guild_id
+                && !is_staff_member(&ctx, &self.config, guild_id, msg.author.id).await
+            {
+                return;
+            }
+
             if self.maintenance_mode.load(Ordering::Relaxed)
                 && !is_user_maintenance_exempt(&ctx, &msg, &self.config).await
             {
