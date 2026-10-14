@@ -28,7 +28,10 @@ pub async fn init_database() -> Result<SqlitePool, sqlx::Error> {
         .busy_timeout(Duration::from_secs(5));
 
     let pool = SqlitePoolOptions::new()
-        .max_connections(30)
+        // SQLite has a single writer; extra connections only add lock contention.
+        .max_connections(10)
+        // Fail fast instead of piling up callers for 30s when the pool is exhausted.
+        .acquire_timeout(Duration::from_secs(10))
         .connect_with(connect_options)
         .await?;
 
