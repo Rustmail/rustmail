@@ -59,7 +59,7 @@ impl RegistrableCommand for ForceCloseCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if !is_a_ticket_channel(command.channel_id, db_pool).await {
                 match command.channel_id.to_channel(&ctx.http).await {

@@ -69,7 +69,7 @@ impl RegistrableCommand for HelpCommand {
         let config = config.clone();
 
         Box::pin(async move {
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut command_name: Option<String> = None;
 

@@ -59,7 +59,7 @@ impl RegistrableCommand for TakeCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             if is_a_ticket_channel(command.channel_id, db_pool).await {
                 let thread = match get_thread_by_channel_id(

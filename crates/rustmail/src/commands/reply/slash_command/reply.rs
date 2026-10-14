@@ -132,7 +132,7 @@ impl RegistrableCommand for ReplyCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let mut content: Option<String> = None;
             let mut snippet_key: Option<String> = None;

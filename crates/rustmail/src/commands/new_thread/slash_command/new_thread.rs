@@ -85,7 +85,7 @@ impl RegistrableCommand for NewThreadCommand {
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
 
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let user_id = match command
                 .data

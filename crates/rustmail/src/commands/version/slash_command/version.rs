@@ -59,7 +59,7 @@ impl RegistrableCommand for VersionCommand {
         let config = config.clone();
 
         Box::pin(async move {
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let content = build_version_content(&config).await;
 

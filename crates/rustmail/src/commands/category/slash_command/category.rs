@@ -288,7 +288,7 @@ impl RegistrableCommand for CategoryCommand {
                 .db_pool
                 .as_ref()
                 .ok_or_else(database_connection_failed)?;
-            defer_response(&ctx, &command).await?;
+            defer_response(&ctx, &command, &config).await?;
 
             let subcommand = match command.data.options.first() {
                 Some(s) => s,
