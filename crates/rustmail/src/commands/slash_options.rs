@@ -16,6 +16,8 @@ pub enum OptionValue {
 }
 
 /// What a context menu command was used on.
+// Read once the context menu commands migrate to `Command`.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum SlashTarget {
     User(UserId),
