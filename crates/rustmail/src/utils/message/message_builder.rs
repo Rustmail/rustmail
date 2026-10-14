@@ -562,7 +562,9 @@ impl<'a> MessageBuilder<'a> {
     pub async fn build_interaction_message_followup(&self) -> CreateInteractionResponseFollowup {
         let mut message = CreateInteractionResponseFollowup::new();
 
-        if self.should_use_embed().await {
+        if let Some(embed) = &self.custom_embed {
+            message = message.embed(embed.clone());
+        } else if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
             message = message.content("");
         } else {

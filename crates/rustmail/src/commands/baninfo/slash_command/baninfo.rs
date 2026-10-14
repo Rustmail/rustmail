@@ -1,4 +1,6 @@
-use crate::commands::baninfo::text_command::{resolve_banned_users, send_baninfo_response};
+use crate::commands::baninfo::text_command::{
+    BaninfoReplyTarget, resolve_banned_users, send_baninfo_response,
+};
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
 use crate::prelude::errors::*;
@@ -96,8 +98,14 @@ impl RegistrableCommand for BaninfoCommand {
             let guild_id = config.bot.get_community_guild_id().to_string();
             let matches = resolve_banned_users(&guild_id, &query, pool).await?;
 
-            send_baninfo_response(&ctx, &config, command.channel_id, &query, &matches).await;
-            Ok(())
+            send_baninfo_response(
+                &ctx,
+                &config,
+                BaninfoReplyTarget::Interaction(&command),
+                &query,
+                &matches,
+            )
+            .await
         })
     }
 }
