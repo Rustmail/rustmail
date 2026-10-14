@@ -306,9 +306,10 @@ impl EventHandler for GuildMessagesHandler {
                 return;
             }
 
-            let commands_lock = self.commands.lock().await;
+            // Clone the entry so the map isn't locked while the command runs.
+            let command_func = self.commands.lock().await.get(command_name).cloned();
 
-            if let Some(command_func) = commands_lock.get(command_name)
+            if let Some(command_func) = command_func
                 && let Err(error) = command_func(
                     ctx.clone(),
                     msg.clone(),
