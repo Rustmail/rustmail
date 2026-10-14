@@ -82,26 +82,30 @@ Create a new ticket for a user. Use when you need to initiate contact.
 
 Close the current ticket.
 
-| Slash                             | Text                                          |
-|-----------------------------------|-----------------------------------------------|
-| `/close [time] [silent] [cancel]` | `!close [time] [-s\|--silent] [-c\|--cancel]` |
+| Slash                                          | Text                                          |
+|------------------------------------------------|-----------------------------------------------|
+| `/close [time_before_close] [silent] [cancel]` | `!close [time] [-s\|--silent] [-c\|--cancel]` |
+
+Aliases: `!close`, `!c`
 
 **Parameters:**
-- `time` - Schedule closure after duration (e.g., `1h`, `30m`, `2d`)
+- `time` / `time_before_close` - Schedule closure after duration (e.g., `1h`, `30m`, `2d`). An invalid duration is rejected instead of closing immediately.
 - `silent` - Close without notifying the user
-- `cancel` - Cancel a scheduled closure
+- `cancel` - Cancel a scheduled closure (takes precedence over a duration)
+
+Closing immediately while a closure is scheduled is refused: cancel it first, or give a new duration to replace it.
 
 **Examples:**
 ```
-/close                    # Close immediately
-/close time:2h            # Close in 2 hours
-/close silent:true        # Close without notification
-/close cancel:true        # Cancel scheduled closure
+/close                         # Close immediately
+/close time_before_close:2h    # Close in 2 hours
+/close silent:true             # Close without notification
+/close cancel:true             # Cancel scheduled closure
 
-!close                    # Close immediately
-!close 2h                 # Close in 2 hours
-!close -s                 # Close silently
-!close cancel             # Cancel scheduled closure
+!close                         # Close immediately
+!close 2h                      # Close in 2 hours
+!close -s                      # Close silently
+!close cancel                  # Cancel scheduled closure
 ```
 
 ### force_close
