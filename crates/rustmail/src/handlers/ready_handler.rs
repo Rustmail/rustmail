@@ -199,7 +199,7 @@ fn update_threads_status(ctx: &Context, pool: &SqlitePool, mut shutdown: Receive
         let pool = pool.clone();
 
         async move {
-            let mut interval = interval(Duration::from_secs(60 * 10));
+            let mut interval = interval(STATUS_REFRESH_INTERVAL);
 
             interval.tick().await;
 
@@ -214,7 +214,7 @@ fn update_threads_status(ctx: &Context, pool: &SqlitePool, mut shutdown: Receive
                     let ctx = ctx.clone();
                     let ticket = ticket.clone();
 
-                    if let Err(e) = update_thread_status_ui(&ctx, &ticket).await {
+                    if let Err(e) = refresh_thread_status_ui(&ctx, &ticket).await {
                         eprintln!(
                             "Failed to update thread status for channel {}: {:?}",
                             ticket.channel_id, e
