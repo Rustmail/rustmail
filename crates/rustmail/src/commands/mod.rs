@@ -216,3 +216,16 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["baninfo", "bi"], baninfo);
     wrap_command!(registry, ["version", "v"], version);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_command_name_and_alias_is_unique() {
+        let (_tx, rx) = tokio::sync::watch::channel(false);
+        let mut registry = CommandRegistry::new(rx, PaginationStore::default());
+        // register_* panic on a duplicate name or alias.
+        register_all(&mut registry);
+    }
+}
