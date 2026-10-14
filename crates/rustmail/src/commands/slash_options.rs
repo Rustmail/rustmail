@@ -1,10 +1,11 @@
 use serenity::all::{
-    ChannelId, CommandInteraction, Message, ResolvedTarget, ResolvedValue, RoleId, UserId,
+    Attachment, ChannelId, CommandInteraction, Message, ResolvedTarget, ResolvedValue, RoleId,
+    UserId,
 };
 use std::collections::HashMap;
 
 /// A slash option value, owned so `Command::parse_slash` can be tested without serenity types.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum OptionValue {
     String(String),
     Integer(i64),
@@ -13,6 +14,7 @@ pub enum OptionValue {
     User(UserId),
     Channel(ChannelId),
     Role(RoleId),
+    Attachment(Box<Attachment>),
 }
 
 /// What a context menu command was used on.
@@ -46,6 +48,9 @@ impl SlashOptions {
                 ResolvedValue::User(user, _) => OptionValue::User(user.id),
                 ResolvedValue::Channel(channel) => OptionValue::Channel(channel.id),
                 ResolvedValue::Role(role) => OptionValue::Role(role.id),
+                ResolvedValue::Attachment(attachment) => {
+                    OptionValue::Attachment(Box::new(attachment.clone()))
+                }
                 _ => continue,
             };
             options.values.insert(option.name.to_string(), value);
@@ -117,6 +122,13 @@ impl SlashOptions {
     pub fn role(&self, name: &str) -> Option<RoleId> {
         match self.values.get(name) {
             Some(OptionValue::Role(v)) => Some(*v),
+            _ => None,
+        }
+    }
+
+    pub fn attachment(&self, name: &str) -> Option<&Attachment> {
+        match self.values.get(name) {
+            Some(OptionValue::Attachment(v)) => Some(v),
             _ => None,
         }
     }
