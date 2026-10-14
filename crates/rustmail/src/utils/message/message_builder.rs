@@ -592,12 +592,6 @@ impl<'a> MessageBuilder<'a> {
         self.build_create_message().await
     }
 
-    pub async fn send_and_forget(self) {
-        if let Err(e) = self.send(true).await {
-            eprintln!("Failed to send message: {}", e);
-        }
-    }
-
     pub async fn send_interaction_followup(
         self,
         command: &CommandInteraction,

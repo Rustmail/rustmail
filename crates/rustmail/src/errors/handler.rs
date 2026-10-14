@@ -147,48 +147,6 @@ impl ErrorHandler {
             .await
     }
 
-    pub async fn create_success_message(
-        &self,
-        key: &str,
-        params: Option<HashMap<String, String>>,
-        user_id: Option<UserId>,
-        guild_id: Option<u64>,
-    ) -> FormattedMessage {
-        let language = if let Some(uid) = user_id {
-            self.get_user_language(uid, guild_id).await
-        } else {
-            self.default_language
-        };
-
-        let dict_manager = self.dictionary_manager.read().await;
-        let message = dict_manager.get_message(language, key, params.as_ref(), None);
-
-        FormattedMessage {
-            message,
-            language,
-            _message_type: MessageType::Success,
-        }
-    }
-
-    pub async fn send_success_message(
-        &self,
-        ctx: &Context,
-        channel_id: ChannelId,
-        key: &str,
-        params: Option<HashMap<String, String>>,
-        user_id: Option<UserId>,
-        guild_id: Option<u64>,
-    ) -> Result<Message, serenity::Error> {
-        let formatted_message = self
-            .create_success_message(key, params, user_id, guild_id)
-            .await;
-
-        let embed = self.create_success_embed(&formatted_message).await;
-        channel_id
-            .send_message(&ctx.http, CreateMessage::new().embed(embed))
-            .await
-    }
-
     async fn create_error_embed(&self, formatted_error: &FormattedError) -> CreateEmbed {
         let color = match formatted_error.severity {
             ErrorSeverity::High => Colour::RED,
@@ -210,18 +168,6 @@ impl ErrorHandler {
                 "Error Type: {} | Language: {}",
                 formatted_error.error_type,
                 formatted_error.language.code()
-            )))
-            .timestamp(serenity::all::Timestamp::now())
-    }
-
-    async fn create_success_embed(&self, formatted_message: &FormattedMessage) -> CreateEmbed {
-        CreateEmbed::new()
-            .title("✅ Success")
-            .description(&formatted_message.message)
-            .color(Colour::DARK_GREEN)
-            .footer(serenity::all::CreateEmbedFooter::new(format!(
-                "Language: {}",
-                formatted_message.language.code()
             )))
             .timestamp(serenity::all::Timestamp::now())
     }
@@ -317,26 +263,11 @@ pub struct FormattedError {
     pub _user_facing: bool,
 }
 
-#[derive(Debug, Clone)]
-pub struct FormattedMessage {
-    pub message: String,
-    pub language: Language,
-    pub _message_type: MessageType,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorSeverity {
     High,
     Medium,
     Low,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MessageType {
-    Success,
-    _Info,
-    _Warning,
-    _Error,
 }
 
 #[async_trait::async_trait]
@@ -404,20 +335,6 @@ macro_rules! handle_error {
                 return;
             }
         }
-    };
-}
-
-#[macro_export]
-macro_rules! send_success {
-    ($ctx:expr, $channel:expr, $key:expr, $error_handler:expr) => {
-        $error_handler
-            .send_success_message($ctx, $channel, $key, None, None, None)
-            .await
-    };
-    ($ctx:expr, $channel:expr, $key:expr, $params:expr, $error_handler:expr) => {
-        $error_handler
-            .send_success_message($ctx, $channel, $key, Some($params), None, None)
-            .await
     };
 }
 
