@@ -376,7 +376,9 @@ Combinations are supported: `1d12h` = 1 day and 12 hours.
 Commands (text and slash) are reserved to staff:
 
 - **Dual-server mode**: commands only work in the staff server. Slash commands are not registered in the community
-  server, and text commands sent there are ignored.
+  server, and text commands sent there are ignored. The one exception is the *New Thread* user context menu
+  (right-click a member → Apps), which is available in the community server too, but only for members of the staff
+  server.
 - **Single-server mode**: staff are the members who can see the inbox category (`inbox_category_id`), which is also
   who can see the tickets. Other members are ignored by text commands and get a "permission denied" reply to slash
   commands. To also hide slash commands from them, restrict the bot's commands in *Server Settings → Integrations*.
