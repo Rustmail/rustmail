@@ -210,6 +210,9 @@ pub async fn mark_thread_engaged(thread_id: &str, pool: &SqlitePool) {
     }
 }
 
+/// Marks an open thread as closed. Returns `false` if it was already closed, so
+/// concurrent close paths (command, scheduled closure, channel deletion) don't
+/// overwrite each other's closing metadata.
 pub async fn close_thread(
     thread_id: &str,
     closed_by: &str,
@@ -217,11 +220,11 @@ pub async fn close_thread(
     category_name: &str,
     required_permissions: u64,
     pool: &SqlitePool,
-) -> ModmailResult<()> {
+) -> ModmailResult<bool> {
     let closed_at = Utc::now().timestamp();
-    let required_permissions = required_permissions.clone().to_string();
+    let required_permissions = required_permissions.to_string();
 
-    sqlx::query!(
+    let res = sqlx::query(
         r#"
         UPDATE threads
         SET
@@ -231,19 +234,19 @@ pub async fn close_thread(
             category_id = ?,
             category_name = ?,
             required_permissions = ?
-        WHERE id = ?
+        WHERE id = ? AND status = 1
         "#,
-        closed_at,
-        closed_by,
-        category_id,
-        category_name,
-        required_permissions,
-        thread_id
     )
+    .bind(closed_at)
+    .bind(closed_by)
+    .bind(category_id)
+    .bind(category_name)
+    .bind(required_permissions)
+    .bind(thread_id)
     .execute(pool)
     .await?;
 
-    Ok(())
+    Ok(res.rows_affected() > 0)
 }
 
 pub async fn thread_exists_by_user(user_id: UserId, pool: &SqlitePool) -> bool {
@@ -579,4 +582,83 @@ pub async fn update_thread_status_db(
     .await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
+    use std::collections::HashSet;
+    use std::time::Duration;
+
+    struct TestDb {
+        pool: SqlitePool,
+        path: std::path::PathBuf,
+    }
+
+    impl TestDb {
+        async fn cleanup(self) {
+            self.pool.close().await;
+            for suffix in ["", "-wal", "-shm"] {
+                let _ = std::fs::remove_file(format!("{}{suffix}", self.path.display()));
+            }
+        }
+    }
+
+    async fn test_db() -> TestDb {
+        let path = std::env::temp_dir().join(format!("rustmail-test-{}.sqlite", Uuid::new_v4()));
+        let options = SqliteConnectOptions::new()
+            .filename(&path)
+            .create_if_missing(true)
+            .journal_mode(SqliteJournalMode::Wal)
+            .busy_timeout(Duration::from_secs(5));
+        let pool = SqlitePoolOptions::new()
+            .max_connections(10)
+            .connect_with(options)
+            .await
+            .expect("open test database");
+        sqlx::migrate!("../../migrations")
+            .run(&pool)
+            .await
+            .expect("run migrations");
+        TestDb { pool, path }
+    }
+
+    async fn insert_open_thread(pool: &SqlitePool, thread_id: &str, user_id: i64) {
+        sqlx::query(
+            "INSERT INTO threads (id, user_id, user_name, channel_id, silent) VALUES (?, ?, 'user', ?, 0)",
+        )
+        .bind(thread_id)
+        .bind(user_id)
+        .bind(format!("{}", 1000 + user_id))
+        .execute(pool)
+        .await
+        .expect("insert thread");
+    }
+
+    #[tokio::test]
+    async fn closing_twice_only_closes_once() {
+        let db = test_db().await;
+        let pool = db.pool.clone();
+        insert_open_thread(&pool, "thread-b", 2).await;
+
+        assert!(
+            close_thread("thread-b", "staff-1", "", "", 0, &pool)
+                .await
+                .unwrap()
+        );
+        assert!(
+            !close_thread("thread-b", "staff-2", "", "", 0, &pool)
+                .await
+                .unwrap()
+        );
+
+        let closed_by: String = sqlx::query_scalar("SELECT closed_by FROM threads WHERE id = ?")
+            .bind("thread-b")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(closed_by, "staff-1");
+        db.cleanup().await;
+    }
 }
