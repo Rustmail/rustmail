@@ -5,7 +5,9 @@ use crate::prelude::errors::*;
 use crate::prelude::handlers::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
-use serenity::all::{Colour, Context, CreateEmbed, GuildId, Message, RoleId};
+use serenity::all::{
+    ChannelId, Colour, CommandInteraction, Context, CreateEmbed, GuildId, Message, RoleId,
+};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -38,8 +40,14 @@ pub async fn baninfo(
     let guild_id = config.bot.get_community_guild_id().to_string();
     let matches = resolve_banned_users(&guild_id, &query, pool).await?;
 
-    send_baninfo_response(&ctx, config, msg.channel_id, &query, &matches).await;
-    Ok(())
+    send_baninfo_response(
+        &ctx,
+        config,
+        BaninfoReplyTarget::Channel(msg.channel_id),
+        &query,
+        &matches,
+    )
+    .await
 }
 
 pub async fn resolve_banned_users(
@@ -108,26 +116,27 @@ async fn resolve_role_labels(ctx: &Context, config: &Config, role_ids: &[String]
         .collect()
 }
 
+pub enum BaninfoReplyTarget<'a> {
+    Channel(ChannelId),
+    Interaction(&'a CommandInteraction),
+}
+
 pub async fn send_baninfo_response(
     ctx: &Context,
     config: &Config,
-    channel: serenity::all::ChannelId,
+    target: BaninfoReplyTarget<'_>,
     query: &str,
     matches: &[BannedUser],
-) {
-    if matches.is_empty() {
+) -> ModmailResult<()> {
+    let builder = MessageBuilder::system_message(ctx, config);
+
+    let builder = if matches.is_empty() {
         let mut params = HashMap::new();
         params.insert("query".to_string(), query.to_string());
-        let _ = MessageBuilder::system_message(ctx, config)
+        builder
             .translated_content("baninfo.not_found", Some(&params), None, None)
             .await
-            .to_channel(channel)
-            .send(true)
-            .await;
-        return;
-    }
-
-    if matches.len() > 1 {
+    } else if matches.len() > 1 {
         let header =
             get_translated_message(config, "baninfo.multiple_matches", None, None, None, None)
                 .await;
@@ -140,21 +149,20 @@ pub async fn send_baninfo_response(
                 user.username, user.user_id, user.user_id
             ));
         }
-        let _ = MessageBuilder::system_message(ctx, config)
-            .content(body)
-            .to_channel(channel)
-            .send(true)
-            .await;
-        return;
-    }
+        builder.content(body)
+    } else {
+        let embed = build_baninfo_embed(ctx, config, &matches[0]).await;
+        builder.build_embed_only(embed)
+    };
 
-    let user = &matches[0];
-    let embed = build_baninfo_embed(ctx, config, user).await;
-    let _ = MessageBuilder::system_message(ctx, config)
-        .build_embed_only(embed)
-        .to_channel(channel)
-        .send(true)
-        .await;
+    match target {
+        BaninfoReplyTarget::Channel(channel) => builder.to_channel(channel).send(true).await?,
+        BaninfoReplyTarget::Interaction(command) => {
+            builder.send_interaction_followup(command, true).await?
+        }
+    };
+
+    Ok(())
 }
 
 pub async fn build_baninfo_embed(ctx: &Context, config: &Config, user: &BannedUser) -> CreateEmbed {
