@@ -3,7 +3,12 @@ use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::all::{ChannelId, Context, UserId};
+use sqlx::SqlitePool;
+use std::sync::LazyLock;
 use tokio::time::{Duration, sleep};
+
+/// One closure timer per thread id.
+static CLOSURE_TIMERS: LazyLock<KeyedTasks<String>> = LazyLock::new(KeyedTasks::new);
 
 pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at: i64) {
     let now = Utc::now().timestamp();
@@ -11,78 +16,126 @@ pub fn schedule_one(ctx: &Context, config: &Config, thread_id: String, close_at:
     let ctx_clone = ctx.clone();
     let config_clone = config.clone();
 
-    tokio::spawn(async move {
+    CLOSURE_TIMERS.spawn(thread_id.clone(), async move {
         if delay_secs > 0 {
             sleep(Duration::from_secs(delay_secs)).await;
         }
-        if let Some(pool) = config_clone.db_pool.as_ref()
-            && let Ok(Some(current)) = get_scheduled_closure(&thread_id, pool).await
-        {
-            if current.close_at <= Utc::now().timestamp() {
-                if let Some(thread) = get_thread_by_id(&thread_id, pool).await {
-                    let channel_id = ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
-                    let user_id = UserId::new(thread.user_id as u64);
+        let Some(pool) = config_clone.db_pool.as_ref() else {
+            return;
+        };
+        let current = match get_scheduled_closure(&thread_id, pool).await {
+            Ok(Some(current)) => current,
+            Ok(None) => return,
+            Err(e) => {
+                eprintln!("Failed to load scheduled closure for thread {thread_id}: {e:?}");
+                return;
+            }
+        };
 
-                    let _ = close_thread(
-                        &thread_id,
-                        &current.closed_by,
-                        &current.category_id,
-                        &current.category_name,
-                        current.required_permissions.parse::<u64>().unwrap_or(0),
-                        pool,
-                    )
-                    .await;
-                    let _ = delete_scheduled_closure(&thread_id, pool).await;
+        if current.close_at > Utc::now().timestamp() {
+            schedule_one(
+                &ctx_clone,
+                &config_clone,
+                thread_id.clone(),
+                current.close_at,
+            );
+            return;
+        }
 
-                    if config_clone.bot.enable_rustmail_logs
-                        && let Some(logs_channel_id) = config_clone.bot.logs_channel_id
-                    {
-                        let base_url = config_clone
-                            .bot
-                            .redirect_url
-                            .trim_end_matches("/api/auth/callback")
-                            .trim_end_matches('/');
-
-                        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
-
-                        let mut params = std::collections::HashMap::new();
-                        params.insert("username".to_string(), thread.user_name.clone());
-                        params.insert("user_id".to_string(), thread.user_id.to_string());
-                        params.insert("panel_url".to_string(), panel_url);
-
-                        let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
-                            .translated_content("logs.ticket_closed", Some(&params), None, None)
-                            .await
-                            .to_channel(ChannelId::new(logs_channel_id))
-                            .send(true)
-                            .await;
-                    }
-
-                    let effective_silent =
-                        current.silent || is_thread_silent(&thread_id, pool).await;
-                    if !effective_silent {
-                        let _ = MessageBuilder::system_message(&ctx_clone, &config_clone)
-                            .content(&config_clone.bot.close_message)
-                            .to_user(user_id)
-                            .send(true)
-                            .await;
-                    }
-                    let _ = channel_id.delete(&ctx_clone.http).await;
-                } else {
-                    let _ = delete_scheduled_closure(&thread_id, pool).await;
+        match get_thread_by_id(&thread_id, pool).await {
+            Some(thread) => {
+                execute_scheduled_closure(&ctx_clone, &config_clone, &thread, &current, pool).await
+            }
+            None => {
+                if let Err(e) = delete_scheduled_closure(&thread_id, pool).await {
+                    eprintln!("Failed to delete scheduled closure for thread {thread_id}: {e:?}");
                 }
-            } else {
-                schedule_one(
-                    &ctx_clone,
-                    &config_clone,
-                    thread_id.clone(),
-                    current.close_at,
-                );
             }
         }
     });
 }
 
+async fn execute_scheduled_closure(
+    ctx: &Context,
+    config: &Config,
+    thread: &Thread,
+    closure: &ScheduledClosure,
+    pool: &SqlitePool,
+) {
+    let closed = match close_thread(
+        &thread.id,
+        &closure.closed_by,
+        &closure.category_id,
+        &closure.category_name,
+        closure.required_permissions.parse::<u64>().unwrap_or(0),
+        pool,
+    )
+    .await
+    {
+        Ok(closed) => closed,
+        Err(e) => {
+            // The closure stays in the database and is retried on the next startup.
+            eprintln!(
+                "Failed to close thread {} for scheduled closure: {e:?}",
+                thread.id
+            );
+            return;
+        }
+    };
+
+    if let Err(e) = delete_scheduled_closure(&thread.id, pool).await {
+        eprintln!(
+            "Failed to delete scheduled closure for thread {}: {e:?}",
+            thread.id
+        );
+    }
+
+    if !closed {
+        // Already closed by another path, which handled the logs, message and channel.
+        return;
+    }
+
+    if config.bot.enable_rustmail_logs
+        && let Some(logs_channel_id) = config.bot.logs_channel_id
+    {
+        let base_url = config
+            .bot
+            .redirect_url
+            .trim_end_matches("/api/auth/callback")
+            .trim_end_matches('/');
+
+        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+
+        let mut params = std::collections::HashMap::new();
+        params.insert("username".to_string(), thread.user_name.clone());
+        params.insert("user_id".to_string(), thread.user_id.to_string());
+        params.insert("panel_url".to_string(), panel_url);
+
+        let _ = MessageBuilder::system_message(ctx, config)
+            .translated_content("logs.ticket_closed", Some(&params), None, None)
+            .await
+            .to_channel(ChannelId::new(logs_channel_id))
+            .send(true)
+            .await;
+    }
+
+    let effective_silent = closure.silent || is_thread_silent(&thread.id, pool).await;
+    if !effective_silent && thread.user_id > 0 {
+        let _ = MessageBuilder::system_message(ctx, config)
+            .content(&config.bot.close_message)
+            .to_user(UserId::new(thread.user_id as u64))
+            .send(true)
+            .await;
+    }
+
+    if let Ok(channel_id) = thread.channel_id.parse::<u64>()
+        && channel_id != 0
+    {
+        let _ = ChannelId::new(channel_id).delete(&ctx.http).await;
+    }
+}
+
+/// Re-arms every scheduled closure after startup; overdue ones fire immediately.
 pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
     let Some(pool) = config.db_pool.as_ref() else {
         return;
@@ -97,59 +150,6 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
     };
 
     for sc in list {
-        if let Some(thread) = get_thread_by_id(&sc.thread_id, pool).await {
-            if sc.close_at <= Utc::now().timestamp() {
-                let channel_id = ChannelId::new(thread.channel_id.parse::<u64>().unwrap_or(0));
-                let user_id = UserId::new(thread.user_id as u64);
-                let _ = close_thread(
-                    &thread.id,
-                    &sc.closed_by,
-                    &sc.category_id,
-                    &sc.category_name,
-                    sc.required_permissions.parse::<u64>().unwrap_or(0),
-                    pool,
-                )
-                .await;
-                let _ = delete_scheduled_closure(&thread.id, pool).await;
-
-                if config.bot.enable_rustmail_logs
-                    && let Some(logs_channel_id) = config.bot.logs_channel_id
-                {
-                    let base_url = config
-                        .bot
-                        .redirect_url
-                        .trim_end_matches("/api/auth/callback")
-                        .trim_end_matches('/');
-
-                    let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
-
-                    let mut params = std::collections::HashMap::new();
-                    params.insert("username".to_string(), thread.user_name.clone());
-                    params.insert("user_id".to_string(), thread.user_id.to_string());
-                    params.insert("panel_url".to_string(), panel_url);
-
-                    let _ = MessageBuilder::system_message(ctx, config)
-                        .translated_content("logs.ticket_closed", Some(&params), None, None)
-                        .await
-                        .to_channel(ChannelId::new(logs_channel_id))
-                        .send(true)
-                        .await;
-                }
-
-                let effective_silent = sc.silent || is_thread_silent(&thread.id, pool).await;
-                if !effective_silent {
-                    let _ = MessageBuilder::system_message(ctx, config)
-                        .content(&config.bot.close_message)
-                        .to_user(user_id)
-                        .send(true)
-                        .await;
-                }
-                let _ = channel_id.delete(&ctx.http).await;
-            } else {
-                schedule_one(ctx, config, sc.thread_id.clone(), sc.close_at);
-            }
-        } else {
-            let _ = delete_scheduled_closure(&sc.thread_id, pool).await;
-        }
+        schedule_one(ctx, config, sc.thread_id, sc.close_at);
     }
 }
