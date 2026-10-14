@@ -237,6 +237,23 @@ pub async fn save_banned_user(user: &BannedUser, pool: &SqlitePool) -> ModmailRe
     Ok(())
 }
 
+pub async fn delete_banned_user(
+    guild_id: &str,
+    user_id: &str,
+    pool: &SqlitePool,
+) -> ModmailResult<()> {
+    sqlx::query("DELETE FROM banned_users WHERE guild_id = ? AND user_id = ?")
+        .bind(guild_id)
+        .bind(user_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Failed to delete banned user: {e:?}");
+            validation_failed("Failed to delete banned user")
+        })?;
+    Ok(())
+}
+
 pub async fn get_banned_user_by_id(
     guild_id: &str,
     user_id: &str,
