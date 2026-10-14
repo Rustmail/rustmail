@@ -283,14 +283,9 @@ impl EventHandler for GuildMessagesHandler {
             return;
         }
 
-        let message_content = &msg.content;
-        if message_content.starts_with(&self.config.command.prefix) {
-            let mut command_name = &message_content[1..];
-
-            if let Some(i) = message_content.find(" ") {
-                command_name = &message_content[self.config.command.prefix.len()..i];
-            }
-
+        if let Some((command_name, _)) =
+            split_text_command(&msg.content, &self.config.command.prefix)
+        {
             // Text commands are staff-only, like the slash commands (which are not even
             // registered in the community guild). Ignore everyone else silently.
             if let Some(guild_id) = msg.guild_id
