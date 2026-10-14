@@ -222,8 +222,10 @@ impl DictionaryManager {
                         Some(params),
                     )
                 }
-                CommandError::ClosureAlreadyScheduled => {
-                    ("close.closure_already_scheduled".to_string(), None)
+                CommandError::ClosureAlreadyScheduled(seconds) => {
+                    let mut params = HashMap::new();
+                    params.insert("seconds".to_string(), seconds.to_string());
+                    ("close.closure_already_scheduled".to_string(), Some(params))
                 }
                 CommandError::NoSchedulableClosureToCancel => {
                     ("close.no_scheduled_closures_to_cancel".to_string(), None)

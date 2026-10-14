@@ -55,7 +55,7 @@ pub enum CommandError {
     NotInThread(),
     UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
-    ClosureAlreadyScheduled,
+    ClosureAlreadyScheduled(i64),
     NoSchedulableClosureToCancel,
     SendDmFailed,
     DiscordDeleteFailed,
@@ -172,7 +172,7 @@ impl fmt::Display for CommandError {
                 "The user {} already has an open thread: {}",
                 user, channel_id
             ),
-            CommandError::ClosureAlreadyScheduled => {
+            CommandError::ClosureAlreadyScheduled(_) => {
                 write!(f, "Thread closure is already scheduled")
             }
             CommandError::NoSchedulableClosureToCancel => {

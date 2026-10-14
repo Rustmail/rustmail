@@ -180,11 +180,10 @@ impl RegistrableCommand for CloseCommand {
             {
                 let remaining = existing.close_at - Utc::now().timestamp();
 
-                let mut params = HashMap::new();
-                params.insert("seconds".to_string(), remaining.to_string());
-
                 if remaining > 0 {
-                    return Err(ModmailError::Command(CommandError::ClosureAlreadyScheduled));
+                    return Err(ModmailError::Command(
+                        CommandError::ClosureAlreadyScheduled(remaining),
+                    ));
                 }
             }
 
