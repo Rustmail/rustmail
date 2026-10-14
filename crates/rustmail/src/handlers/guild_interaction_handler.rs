@@ -1,9 +1,10 @@
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
+use crate::prelude::errors::*;
 use crate::prelude::features::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
-use crate::utils::{MessageBuilder, defer_response};
+use crate::utils::{MessageBuilder, defer_response, defer_response_ephemeral, is_staff_member};
 use serenity::all::{Context, EventHandler, Interaction, Permissions};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -119,6 +120,26 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
+                // In single mode every slash command is registered in the shared guild, so
+                // staff-only commands need a runtime check there.
+                let community_command = self
+                    .registry
+                    .get(command.data.name.as_str())
+                    .is_some_and(|c| c.as_community().is_some());
+                if !community_command
+                    && let Some(guild_id) = command.guild_id
+                    && !is_staff_member(&ctx, &self.config, guild_id, command.user.id).await
+                {
+                    if defer_response_ephemeral(&ctx, &command).await.is_ok()
+                        && let Some(error_handler) = &self.config.error_handler
+                    {
+                        let _ = error_handler
+                            .reply_to_command_with_error(&ctx, &command, &permission_denied())
+                            .await;
+                    }
+                    return;
+                }
+
                 if self.maintenance_mode.load(Ordering::Relaxed)
                     && let Some(guild_id) = command.guild_id
                     && !is_interaction_user_maintenance_exempt(
