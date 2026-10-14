@@ -50,7 +50,10 @@ pub async fn release(
                     }
                 };
                 ticket_status.taken_by = None;
-                let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
+                if let Err(e) = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await
+                {
+                    eprintln!("Failed to update thread status for {}: {e:?}", thread.id);
+                }
 
                 let applied = update_thread_status_ui(&ctx, &ticket_status)
                     .await

@@ -46,7 +46,9 @@ pub async fn rename_ticket(
                 ticket_status.label = Some(new_label.clone());
             }
 
-            let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
+            if let Err(e) = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await {
+                eprintln!("Failed to update thread status for {}: {e:?}", thread.id);
+            }
 
             let has_label = ticket_status.label.is_some();
             let applied = update_thread_status_ui(&ctx, &ticket_status)

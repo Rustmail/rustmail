@@ -110,7 +110,11 @@ impl RegistrableCommand for RenameCommand {
                     };
 
                     ticket_status.label = new_label.clone();
-                    let _ = update_thread_status_db(&thread.id, &ticket_status, &db_pool).await;
+                    if let Err(e) =
+                        update_thread_status_db(&thread.id, &ticket_status, &db_pool).await
+                    {
+                        eprintln!("Failed to update thread status for {}: {e:?}", thread.id);
+                    }
 
                     let has_label = new_label.is_some();
                     let applied = update_thread_status_ui(&ctx, &ticket_status)
