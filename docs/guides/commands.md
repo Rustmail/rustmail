@@ -143,16 +143,19 @@ Manually trigger message recovery. Rustmail automatically recovers messages sent
 
 Send a message to the ticket user.
 
-| Slash                                       | Text               |
-|---------------------------------------------|--------------------|
-| `/reply <content> [attachment] [anonymous]` | `!reply <content>` |
+| Slash                                                  | Text               |
+|--------------------------------------------------------|--------------------|
+| `/reply [message] [snippet] [attachment] [anonymous]`  | `!reply <message>` |
+
+Aliases: `!reply`, `!r`
 
 **Parameters:**
-- `content` - Message text
+- `message` - Message text
+- `snippet` - Key of a snippet to send instead of `message` (text: `!reply {{key}}`)
 - `attachment` - Optional file attachment
-- `anonymous` - Send without revealing staff identity
+- `anonymous` - Send without revealing staff identity to the user (staff still see who sent it in the ticket)
 
-For text commands, attach files using Discord's upload feature. For anonymous replies, use `!anonreply`.
+A message, a snippet or an attachment is required. For text commands, attach files using Discord's upload feature. For anonymous replies, use `!anonreply`.
 
 ### anonreply
 
@@ -160,9 +163,11 @@ Send an anonymous reply (text command only).
 
 | Text                   |
 |------------------------|
-| `!anonreply <content>` |
+| `!anonreply <message>` |
 
-Equivalent to `/reply anonymous:true`.
+Aliases: `!anonreply`, `!ar`
+
+Equivalent to `/reply anonymous:true`; accepts snippets (`!ar {{key}}`) and attachments like `!reply`.
 
 ### edit
 
