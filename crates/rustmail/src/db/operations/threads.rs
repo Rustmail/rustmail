@@ -435,26 +435,17 @@ pub async fn allocate_next_message_number(
     thread_id: &str,
     pool: &SqlitePool,
 ) -> Result<u64, Error> {
-    let mut tx = pool.begin().await?;
-
-    let current: Option<i64> =
-        sqlx::query_scalar("SELECT next_message_number FROM threads WHERE id = ?")
-            .bind(thread_id)
-            .fetch_optional(&mut *tx)
-            .await?;
-
-    let num = current.unwrap_or(1);
-
-    sqlx::query!(
-        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ?",
-        thread_id
+    // A single statement is atomic in SQLite. A deferred read-then-write transaction
+    // fails immediately with SQLITE_BUSY (ignoring busy_timeout) when another
+    // connection writes between the read and the write.
+    let current: Option<i64> = sqlx::query_scalar(
+        "UPDATE threads SET next_message_number = next_message_number + 1 WHERE id = ? RETURNING next_message_number - 1",
     )
-    .execute(&mut *tx)
+    .bind(thread_id)
+    .fetch_optional(pool)
     .await?;
 
-    tx.commit().await?;
-
-    Ok(num as u64)
+    Ok(current.unwrap_or(1) as u64)
 }
 
 pub async fn is_orphaned_thread_channel(
@@ -634,6 +625,28 @@ mod tests {
         .execute(pool)
         .await
         .expect("insert thread");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn concurrent_message_numbers_are_unique() {
+        let db = test_db().await;
+        let pool = db.pool.clone();
+        insert_open_thread(&pool, "thread-a", 1).await;
+
+        let tasks: Vec<_> = (0..40)
+            .map(|_| {
+                let pool = pool.clone();
+                tokio::spawn(async move { allocate_next_message_number("thread-a", &pool).await })
+            })
+            .collect();
+
+        let mut numbers = HashSet::new();
+        for task in tasks {
+            let number = task.await.unwrap().expect("allocation must not fail");
+            assert!(numbers.insert(number), "duplicate message number {number}");
+        }
+        assert_eq!(numbers, (1..=40).collect::<HashSet<u64>>());
+        db.cleanup().await;
     }
 
     #[tokio::test]
