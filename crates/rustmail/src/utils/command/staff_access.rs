@@ -1,34 +1,39 @@
 use crate::prelude::config::*;
 use serenity::all::{ChannelId, Context, GuildId, UserId};
 
-/// Whether `user_id` may use staff commands in `guild_id`.
-///
-/// Dual mode: everyone in the staff guild is staff, nobody in the community guild is.
-/// Single mode: staff are the members who can see the inbox category (which is also who can see
-/// the tickets), plus the configured super admins.
+/// Whether `user_id` may use staff commands in `guild_id`: the staff guild only, and only for
+/// staff (see [`is_staff_user`]).
 pub async fn is_staff_member(
     ctx: &Context,
     config: &Config,
     guild_id: GuildId,
     user_id: UserId,
 ) -> bool {
-    if guild_id.get() != config.bot.get_staff_guild_id() {
-        return false;
-    }
+    guild_id.get() == config.bot.get_staff_guild_id() && is_staff_user(ctx, config, user_id).await
+}
 
-    if config.bot.is_dual_mode() || config.bot.panel_super_admin_users.contains(&user_id.get()) {
+/// Whether `user_id` is staff, wherever the command was invoked from.
+///
+/// Dual mode: staff are the members of the staff guild.
+/// Single mode: staff are the members who can see the inbox category (which is also who can see
+/// the tickets). Configured super admins are always staff.
+pub async fn is_staff_user(ctx: &Context, config: &Config, user_id: UserId) -> bool {
+    if config.bot.panel_super_admin_users.contains(&user_id.get()) {
         return true;
     }
+
+    let guild_id = GuildId::new(config.bot.get_staff_guild_id());
 
     let member = match guild_id.member(ctx, user_id).await {
         Ok(m) => m,
         Err(_) => return false,
     };
 
-    if member
-        .roles
-        .iter()
-        .any(|role_id| config.bot.panel_super_admin_roles.contains(&role_id.get()))
+    if config.bot.is_dual_mode()
+        || member
+            .roles
+            .iter()
+            .any(|role_id| config.bot.panel_super_admin_roles.contains(&role_id.get()))
     {
         return true;
     }
