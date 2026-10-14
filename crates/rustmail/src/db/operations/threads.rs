@@ -119,7 +119,7 @@ pub async fn create_thread_for_user(
     let thread_id = Uuid::new_v4().to_string();
     let silent_int: i64 = if silent { 1 } else { 0 };
 
-    let res = match sqlx::query(
+    match sqlx::query(
         "INSERT INTO threads (id, user_id, user_name, channel_id, silent) VALUES (?, ?, ?, ?, ?)",
     )
     .bind(&thread_id)
@@ -127,32 +127,28 @@ pub async fn create_thread_for_user(
     .bind(user_name)
     .bind(&channel_id)
     .bind(silent_int)
-    .execute(&pool.clone())
+    .execute(pool)
     .await
     {
-        Ok(_) => Ok(thread_id.clone()),
+        Ok(_) => {}
         Err(Error::Database(db_err))
             if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
         {
-            if let Some(existing_thread_id) =
-                sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                    .bind(user_id)
-                    .fetch_optional(pool)
-                    .await?
-            {
-                Ok(existing_thread_id)
-            } else {
-                Err(Error::Database(db_err))
-            }
+            // The user already has an open thread: reuse it. Its status row already exists.
+            return sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?
+                .ok_or(Error::Database(db_err));
         }
-        Err(e) => Err(e),
-    };
+        Err(e) => return Err(e),
+    }
 
     let channel_id = channel.id.get() as i64;
     let user_id_str = user_id.to_string();
     let timestamp = Utc::now().timestamp();
 
-    let _ = match sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO thread_status (thread_id, channel_id, owner_id, taken_by, last_message_by, last_message_at) VALUES (?, ?, ?, ?, ?, ?)",
         thread_id,
         channel_id,
@@ -161,28 +157,14 @@ pub async fn create_thread_for_user(
         "user",
         timestamp
     )
-        .execute(&pool.clone())
+        .execute(pool)
         .await
     {
-        Ok(_) => Ok(thread_id),
-        Err(Error::Database(db_err))
-        if db_err.code() == Some(std::borrow::Cow::Borrowed("2067")) =>
-            {
-                if let Some(existing_thread_id) =
-                    sqlx::query_scalar("SELECT id FROM threads WHERE user_id = ? AND status = 1")
-                        .bind(user_id)
-                        .fetch_optional(pool)
-                        .await?
-                {
-                    Ok(existing_thread_id)
-                } else {
-                    Err(Error::Database(db_err))
-                }
-            }
-        Err(e) => Err(e),
-    };
+        // The thread itself is usable; only the channel-name status is missing.
+        eprintln!("Failed to create status for thread {thread_id}: {e:?}");
+    }
 
-    res
+    Ok(thread_id)
 }
 
 pub async fn is_thread_silent(thread_id: &str, pool: &SqlitePool) -> bool {
