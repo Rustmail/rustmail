@@ -82,7 +82,8 @@ pub enum CommandError {
 #[derive(Debug, Clone)]
 pub enum ThreadError {
     ThreadNotFound,
-    UserNotInTheServer,
+    /// Carries the user's name.
+    UserNotInTheServer(String),
     UserStillInServer,
     NotAThreadChannel,
     CategoryNotFound,
@@ -220,7 +221,7 @@ impl fmt::Display for ThreadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ThreadError::ThreadNotFound => write!(f, "Thread not found"),
-            ThreadError::UserNotInTheServer => write!(f, "User has left the server"),
+            ThreadError::UserNotInTheServer(_) => write!(f, "User has left the server"),
             ThreadError::UserStillInServer => write!(
                 f,
                 "User still in the server. Use the 'close' command to close this ticket."

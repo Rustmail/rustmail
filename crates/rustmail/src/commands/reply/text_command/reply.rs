@@ -50,7 +50,9 @@ pub async fn reply(
     let user_still_member = community_guild_id.member(&ctx.http, user_id).await.is_ok();
 
     if !user_still_member {
-        return Err(ModmailError::Thread(ThreadError::UserNotInTheServer));
+        return Err(ModmailError::Thread(ThreadError::UserNotInTheServer(
+            thread.user_name.clone(),
+        )));
     }
 
     let next_message_number = allocate_next_message_number(&thread.id, db_pool)

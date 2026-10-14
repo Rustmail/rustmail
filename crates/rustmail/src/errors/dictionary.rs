@@ -315,7 +315,11 @@ impl DictionaryManager {
                 ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
                 ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
                 ThreadError::CategoryNotFound => ("thread.category_not_found".to_string(), None),
-                _ => ("thread.not_found".to_string(), None),
+                ThreadError::UserNotInTheServer(username) => {
+                    let mut params = HashMap::new();
+                    params.insert("username".to_string(), username.clone());
+                    ("user.left_server".to_string(), Some(params))
+                }
             },
             ModmailError::Message(msg_err) => match msg_err {
                 MessageError::MessageNotFound(msg) => {
