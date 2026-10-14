@@ -1,9 +1,12 @@
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
+use crate::prelude::errors::*;
 use crate::prelude::features::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
-use crate::utils::{MessageBuilder, defer_response};
+use crate::utils::{
+    MessageBuilder, defer_response, defer_response_ephemeral, is_staff_member, is_staff_user,
+};
 use serenity::all::{Context, EventHandler, Interaction, Permissions};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -119,6 +122,34 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
+                // Every command is staff-only. Discord registration alone doesn't enforce it:
+                // in single mode everything lives in the shared guild, and community commands
+                // are visible to every community member. Community commands may be run from
+                // either guild, the others only from the staff guild.
+                let community_command = self
+                    .registry
+                    .get(command.data.name.as_str())
+                    .is_some_and(|c| c.as_community().is_some());
+                let is_staff = match command.guild_id {
+                    Some(_) if community_command => {
+                        is_staff_user(&ctx, &self.config, command.user.id).await
+                    }
+                    Some(guild_id) => {
+                        is_staff_member(&ctx, &self.config, guild_id, command.user.id).await
+                    }
+                    None => true,
+                };
+                if !is_staff {
+                    if defer_response_ephemeral(&ctx, &command).await.is_ok()
+                        && let Some(error_handler) = &self.config.error_handler
+                    {
+                        let _ = error_handler
+                            .reply_to_command_with_error(&ctx, &command, &permission_denied())
+                            .await;
+                    }
+                    return;
+                }
+
                 if self.maintenance_mode.load(Ordering::Relaxed)
                     && let Some(guild_id) = command.guild_id
                     && !is_interaction_user_maintenance_exempt(
