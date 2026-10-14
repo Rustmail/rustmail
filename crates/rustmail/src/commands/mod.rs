@@ -279,6 +279,7 @@ impl CommandRegistry {
 /// Registers every command, slash and text. Called once when the bot starts.
 pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(CloseCommand);
+    registry.register(RemoveReminderCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -293,7 +294,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(RemoveStaffCommand);
     registry.register_legacy_command(ReplyCommand);
     registry.register_legacy_command(AddReminderCommand);
-    registry.register_legacy_command(RemoveReminderCommand);
     registry.register_legacy_command(ReminderSubscriptionCommand);
     registry.register_legacy_command(LogsCommand);
     registry.register_legacy_command(TakeCommand);
@@ -320,7 +320,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, "id", id);
     wrap_command!(registry, "help", help);
     wrap_command!(registry, ["remind", "rem"], add_reminder);
-    wrap_command!(registry, ["unremind", "urem"], remove_reminder);
     wrap_command!(registry, "logs", logs);
     wrap_command!(registry, "take", take);
     wrap_command!(registry, "release", release);
