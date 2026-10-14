@@ -265,14 +265,14 @@ Set a reminder for the current ticket. Reminders can target yourself or specific
 
 Cancel a scheduled reminder.
 
-| Slash                            | Text                             |
-|----------------------------------|----------------------------------|
-| `/remove_reminder <reminder_id>` | `!remove_reminder <reminder_id>` |
+| Slash            | Text                      |
+|------------------|---------------------------|
+| `/unremind <id>` | `!unremind <reminder_id>` |
 
 Aliases: `!unremind`, `!urem`
 
 **Parameters:**
-- `reminder_id` - ID of the reminder to cancel
+- `id` / `reminder_id` - ID of the reminder to cancel (a positive whole number)
 
 ### reminder_subscription
 
