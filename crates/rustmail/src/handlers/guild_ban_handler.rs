@@ -89,6 +89,19 @@ impl EventHandler for GuildBanHandler {
             return;
         };
         record_member(pool, &new_member).await;
+
+        if let Err(e) = delete_banned_user(
+            &new_member.guild_id.to_string(),
+            &new_member.user.id.to_string(),
+            pool,
+        )
+        .await
+        {
+            eprintln!(
+                "Failed to forget banned user {} after rejoining guild {}: {:?}",
+                new_member.user.id, new_member.guild_id, e
+            );
+        }
     }
 
     async fn guild_member_update(
