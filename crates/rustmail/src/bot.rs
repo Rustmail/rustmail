@@ -125,32 +125,7 @@ pub async fn run_bot(
     cache_settings.time_to_live = Duration::from_secs(6 * 60 * 60);
 
     let mut registry = CommandRegistry::new(shutdown_rx_command, pagination.clone());
-    registry.register_command(AddStaffCommand);
-    registry.register_command(AlertCommand);
-    registry.register_command(CloseCommand);
-    registry.register_command(DeleteCommand);
-    registry.register_command(EditCommand);
-    registry.register_command(ForceCloseCommand);
-    registry.register_command(HelpCommand);
-    registry.register_command(IdCommand);
-    registry.register_command(MoveCommand);
-    registry.register_command(NewThreadCommand);
-    registry.register_command(RecoverCommand);
-    registry.register_command(RemoveStaffCommand);
-    registry.register_command(ReplyCommand);
-    registry.register_command(AddReminderCommand);
-    registry.register_command(RemoveReminderCommand);
-    registry.register_command(ReminderSubscriptionCommand);
-    registry.register_command(LogsCommand);
-    registry.register_command(TakeCommand);
-    registry.register_command(ReleaseCommand);
-    registry.register_command(PingCommand);
-    registry.register_command(SnippetCommand);
-    registry.register_command(StatusCommand);
-    registry.register_command(CategoryCommand);
-    registry.register_command(RenameCommand);
-    registry.register_command(BaninfoCommand);
-    registry.register_command(VersionCommand);
+    register_all(&mut registry);
 
     let registry = Arc::new(registry);
 
@@ -162,16 +137,13 @@ pub async fn run_bot(
             shutdown_rx.clone(),
             bot_state.clone(),
         ))
-        .event_handler(
-            GuildMessagesHandler::new(
-                &config,
-                registry.clone(),
-                shutdown_rx.clone(),
-                pagination.clone(),
-                maintenance_mode.clone(),
-            )
-            .await,
-        )
+        .event_handler(GuildMessagesHandler::new(
+            &config,
+            registry.clone(),
+            shutdown_rx.clone(),
+            pagination.clone(),
+            maintenance_mode.clone(),
+        ))
         .event_handler(TypingProxyHandler::new(&config))
         .event_handler(GuildMembersHandler::new(&config))
         .event_handler(GuildMessageReactionsHandler::new(&config))

@@ -6,7 +6,6 @@ use crate::prelude::i18n::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use crate::prelude::utils::*;
-use crate::wrap_command;
 use serenity::all::{GuildId, MessageId, Permissions, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
@@ -15,28 +14,15 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use tokio::sync::Mutex as AsyncMutex;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::watch::Receiver;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
 
-type CommandFunc = Arc<StaticCommandFunc>;
-type StaticCommandFunc = dyn for<'a> Fn(
-        Context,
-        Message,
-        &'a Config,
-        Arc<GuildMessagesHandler>,
-    ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send + 'a>>
-    + Send
-    + Sync
-    + 'static;
-
 #[derive(Clone)]
 pub struct GuildMessagesHandler {
     pub config: Arc<Config>,
-    pub commands: Arc<AsyncMutex<HashMap<String, CommandFunc>>>,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
     pub pagination: PaginationStore,
@@ -44,53 +30,20 @@ pub struct GuildMessagesHandler {
 }
 
 impl GuildMessagesHandler {
-    pub async fn new(
+    pub fn new(
         config: &Config,
         registry: Arc<CommandRegistry>,
         shutdown: Receiver<bool>,
         pagination: PaginationStore,
         maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
-        let h = Self {
+        Self {
             config: Arc::new(config.clone()),
-            commands: Arc::new(AsyncMutex::new(HashMap::new())),
             registry,
             shutdown: Arc::new(shutdown),
             pagination,
             maintenance_mode,
-        };
-
-        let mut lock = h.commands.lock().await;
-
-        wrap_command!(lock, ["reply", "r"], reply);
-        wrap_command!(lock, ["edit", "e"], edit);
-        wrap_command!(lock, ["close", "c"], close);
-        wrap_command!(lock, "recover", recover);
-        wrap_command!(lock, "alert", alert);
-        wrap_command!(lock, ["move", "mv"], move_thread);
-        wrap_command!(lock, ["nt", "new_thread"], new_thread);
-        wrap_command!(lock, "delete", delete);
-        wrap_command!(lock, ["anonreply", "ar"], anonreply);
-        wrap_command!(lock, ["force_close", "fc"], force_close);
-        wrap_command!(lock, ["addmod", "am"], add_staff);
-        wrap_command!(lock, ["delmod", "dm"], remove_staff);
-        wrap_command!(lock, "id", id);
-        wrap_command!(lock, "help", help);
-        wrap_command!(lock, ["remind", "rem"], add_reminder);
-        wrap_command!(lock, ["unremind", "urem"], remove_reminder);
-        wrap_command!(lock, "logs", logs);
-        wrap_command!(lock, "take", take);
-        wrap_command!(lock, "release", release);
-        wrap_command!(lock, "ping", ping);
-        wrap_command!(lock, ["snippet", "s"], snippet_command);
-        wrap_command!(lock, "status", status_command);
-        wrap_command!(lock, "category", category_command);
-        wrap_command!(lock, ["rename", "rn"], rename_ticket);
-        wrap_command!(lock, ["baninfo", "bi"], baninfo);
-        wrap_command!(lock, ["version", "v"], version);
-
-        drop(lock);
-        h
+        }
     }
 }
 
@@ -306,10 +259,7 @@ impl EventHandler for GuildMessagesHandler {
                 return;
             }
 
-            // Clone the entry so the map isn't locked while the command runs.
-            let command_func = self.commands.lock().await.get(command_name).cloned();
-
-            if let Some(command_func) = command_func
+            if let Some(command_func) = self.registry.text_command(command_name)
                 && let Err(error) = command_func(
                     ctx.clone(),
                     msg.clone(),

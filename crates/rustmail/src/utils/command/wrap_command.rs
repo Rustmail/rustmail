@@ -1,27 +1,14 @@
+/// Registers a text command function under one or more names: `wrap_command!(registry, ["close", "c"], close)`.
 #[macro_export]
 macro_rules! wrap_command {
-    ($map:expr, [$($name:expr),+], $func:expr) => {{
-        let command: std::sync::Arc<
-            dyn for<'a> Fn(
-                serenity::prelude::Context,
-                serenity::model::prelude::Message,
-                &'a $crate::prelude::config::Config,
-                Arc<GuildMessagesHandler>,
-            ) -> std::pin::Pin<
-                Box<
-                    dyn std::future::Future<Output = $crate::errors::ModmailResult<()>> + Send + 'a
-                >
-            > + Send + Sync + 'static
-        > = std::sync::Arc::new(|ctx, msg, config, handler| {
-            Box::pin(async move {
-                $func(ctx, msg, config, handler).await
-            })
-        });
-        $(
-            $map.insert($name.to_string(), std::sync::Arc::clone(&command));
-        )+
+    ($registry:expr, [$($name:expr),+], $func:expr) => {{
+        let command: $crate::commands::TextCommandFunc =
+            std::sync::Arc::new(|ctx, msg, config, handler| {
+                Box::pin(async move { $func(ctx, msg, config, handler).await })
+            });
+        $registry.register_text_command(&[$($name),+], command);
     }};
-    ($map:expr, $name:expr, $func:expr) => {{
-        wrap_command!($map, [$name], $func);
+    ($registry:expr, $name:expr, $func:expr) => {{
+        wrap_command!($registry, [$name], $func);
     }};
 }
