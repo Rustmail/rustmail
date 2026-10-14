@@ -1,3 +1,4 @@
+use crate::prelude::commands::Invocation;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
@@ -794,17 +795,10 @@ impl<'a> StaffReply<'a> {
         }
     }
 
-    pub async fn send_msg_and_record(
-        self,
-        pool: &SqlitePool,
-    ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self
-            .thread_channel
-            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
-
-        let top_role_name: Option<String> = self.get_top_role_name(thread_channel).await;
-
-        let mut thread_builder = if self.is_anonymous {
+    /// The copy posted in the ticket channel. Anonymous replies still name the staff member
+    /// there, so other staff know who answered.
+    fn thread_message(&self, top_role_name: &Option<String>) -> MessageBuilder<'a> {
+        let mut builder = if self.is_anonymous {
             MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
                 .as_staff(
                     self.staff_user_id,
@@ -820,19 +814,24 @@ impl<'a> StaffReply<'a> {
         };
 
         if !self.is_anonymous
-            && let Some(role_name) = &top_role_name
+            && let Some(role_name) = top_role_name
         {
-            thread_builder = thread_builder.with_role(role_name.clone());
+            builder = builder.with_role(role_name.clone());
         }
 
-        thread_builder = thread_builder
+        builder
             .content(self.content.clone())
             .with_message_number(self.message_number)
             .add_attachments(self.attachments.clone())
-            .to_channel(thread_channel);
+    }
 
-        let thread_msg = thread_builder.send(false).await?;
-
+    /// Sends the DM once the ticket copy is posted, then records both.
+    async fn deliver_and_record(
+        self,
+        thread_msg: Message,
+        top_role_name: Option<String>,
+        pool: &SqlitePool,
+    ) -> (Message, Option<Message>) {
         let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
 
         let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
@@ -852,7 +851,48 @@ impl<'a> StaffReply<'a> {
             eprintln!("Error inserting staff message: {}", e);
         }
 
-        Ok((thread_msg, dm_msg_opt))
+        (thread_msg, dm_msg_opt)
+    }
+
+    fn thread_channel(&self) -> Result<ChannelId, ModmailError> {
+        self.thread_channel
+            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply").into())
+    }
+
+    /// Posts the ticket copy as the answer to the invocation, then DMs the user.
+    pub async fn send_and_record(
+        self,
+        invocation: &Invocation,
+        pool: &SqlitePool,
+    ) -> Result<(Message, Option<Message>), ModmailError> {
+        let thread_channel = self.thread_channel()?;
+        let top_role_name = self.get_top_role_name(thread_channel).await;
+
+        let thread_msg = invocation
+            .reply_unrecorded(self.thread_message(&top_role_name))
+            .await?;
+
+        Ok(self
+            .deliver_and_record(thread_msg, top_role_name, pool)
+            .await)
+    }
+
+    pub async fn send_msg_and_record(
+        self,
+        pool: &SqlitePool,
+    ) -> Result<(Message, Option<Message>), ModmailError> {
+        let thread_channel = self.thread_channel()?;
+        let top_role_name = self.get_top_role_name(thread_channel).await;
+
+        let thread_msg = self
+            .thread_message(&top_role_name)
+            .to_channel(thread_channel)
+            .send(false)
+            .await?;
+
+        Ok(self
+            .deliver_and_record(thread_msg, top_role_name, pool)
+            .await)
     }
 
     pub async fn send_command_and_record(
@@ -860,67 +900,21 @@ impl<'a> StaffReply<'a> {
         command: &CommandInteraction,
         pool: &SqlitePool,
     ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self
-            .thread_channel
-            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
+        let thread_channel = self.thread_channel()?;
+        let top_role_name = self.get_top_role_name(thread_channel).await;
 
-        let top_role_name: Option<String> = self.get_top_role_name(thread_channel).await;
-
-        let mut thread_builder = if self.is_anonymous {
-            MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
-        } else {
-            MessageBuilder::staff_message(
-                self.ctx,
-                self.config,
-                self.staff_user_id,
-                self.staff_username.clone(),
-            )
-        };
-        if !self.is_anonymous
-            && let Some(role_name) = &top_role_name
-        {
-            thread_builder = thread_builder.with_role(role_name.clone());
-        }
-
-        thread_builder = thread_builder
-            .content(self.content.clone())
-            .with_message_number(self.message_number)
-            .add_attachments(self.attachments.clone())
-            .to_channel(thread_channel);
-
-        let thread_msg_response = thread_builder.build_interaction_message_followup().await;
-
-        let thread_msg = match command
-            .create_followup(&self.ctx.http, thread_msg_response)
+        let response = self
+            .thread_message(&top_role_name)
+            .build_interaction_message_followup()
+            .await;
+        let thread_msg = command
+            .create_followup(&self.ctx.http, response)
             .await
-        {
-            Ok(m) => m,
-            Err(e) => {
-                println!("Failed to send follow-up message: {}", e);
-                return Err(ModmailError::from(e));
-            }
-        };
+            .map_err(ModmailError::from)?;
 
-        let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
-
-        let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
-        if let Err(e) = insert_staff_message(
-            self.ctx,
-            &thread_msg,
-            dm_id_opt,
-            &self.thread_id,
-            self.staff_user_id,
-            self.is_anonymous,
-            pool,
-            self.config,
-            Some(self.message_number as i64),
-        )
-        .await
-        {
-            eprintln!("Error inserting staff message: {}", e);
-        }
-
-        Ok((thread_msg, dm_msg_opt))
+        Ok(self
+            .deliver_and_record(thread_msg, top_role_name, pool)
+            .await)
     }
 }
 

@@ -87,14 +87,23 @@ impl Invocation {
     /// Answers the invocation: a followup for slash commands, a message in the invoking channel
     /// for text commands. The message is recorded in the ticket when the channel is one.
     pub async fn reply(&self, builder: MessageBuilder<'_>) -> ModmailResult<Message> {
+        self.post(builder, true).await
+    }
+
+    /// Like `reply`, for callers that record the message themselves (staff replies).
+    pub async fn reply_unrecorded(&self, builder: MessageBuilder<'_>) -> ModmailResult<Message> {
+        self.post(builder, false).await
+    }
+
+    async fn post(&self, builder: MessageBuilder<'_>, record: bool) -> ModmailResult<Message> {
         match &self.source {
             Source::Slash { command, ephemeral } => {
                 builder
                     .ephemeral(*ephemeral)
-                    .send_interaction_followup(command, true)
+                    .send_interaction_followup(command, record)
                     .await
             }
-            Source::Text(message) => builder.to_channel(message.channel_id).send(true).await,
+            Source::Text(message) => builder.to_channel(message.channel_id).send(record).await,
         }
     }
 
