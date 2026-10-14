@@ -143,18 +143,24 @@ Commands are defined in `rustmail/src/commands/`:
 
 ```
 commands/
-├── mod.rs               # Command registration
-├── help/
-├── reply/
-├── close/
-├── new_thread/
+├── mod.rs               # CommandRegistry and register_all
+├── command.rs           # Command trait
+├── invocation.rs        # Invocation: who ran a command, where, and how to reply
+├── slash_options.rs     # SlashOptions: owned slash options and context menu target
+├── close/               # Migrated: mod.rs (definition + run) and args.rs (parsers + tests)
+├── reply/               # Legacy: slash_command/, text_command/, common.rs
 └── ...
 ```
 
-Each command module contains:
-- Command definition (slash command builder)
-- Text command parser
-- Handler function
+A command implements the `Command` trait once for both surfaces (slash and text):
+
+- `parse_text` turns what follows the command name into a typed `Args`, and `parse_slash` does the same from `SlashOptions`. Both are pure and unit-tested.
+- `run(args, &Invocation, &Config)` holds the behaviour. It answers with `invocation.reply(...)` or `invocation.reply_translated(...)`, and reports problems by returning an error.
+- `name`, `aliases`, `surfaces` (both, slash only, text only), `community` and `slash_definitions` describe it.
+
+The dispatchers (`handlers/guild_interaction_handler.rs`, `handlers/guild_messages_handler.rs`) own everything around `run`: the staff check, maintenance mode, deferring slash commands (ephemerally outside the staff guild), and answering errors on either surface. Commands never defer.
+
+Commands not migrated yet still use the legacy `RegistrableCommand` trait (slash) and `wrap_command!` (text). `CommandRegistry` serves both kinds, and panics at startup if two commands share a name or alias.
 
 ---
 
@@ -349,9 +355,9 @@ GitHub Actions workflow:
 
 ### Adding Commands
 
-1. Create module in `rustmail/src/commands/`
-2. Implement slash and text command handlers
-3. Register in `commands/mod.rs`
+1. Create `rustmail/src/commands/<name>/` with `mod.rs` (a struct implementing `Command`) and `args.rs` (the `Args` type, `parse_text`/`parse_slash` and their tests). See `commands/close/`.
+2. Register it with `registry.register(...)` in `register_all` (`commands/mod.rs`) and re-export it from `commands/mod.rs`.
+3. Add the i18n keys to every file in `i18n/language/`, and document the command in `docs/guides/commands.md`.
 
 ### Adding API Endpoints
 

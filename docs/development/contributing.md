@@ -121,12 +121,12 @@ pub async fn create_ticket(user_id: u64, initial_message: Option<&str>) -> Resul
 
 ### New Commands
 
-1. Create a module in `rustmail/src/commands/`
-2. Implement the command handler
-3. Add slash command definition
-4. Add text command parser
-5. Register in `commands/mod.rs`
-6. Add to documentation
+1. Create a module in `rustmail/src/commands/` and implement the `Command` trait (see `commands/close/`)
+2. Parse each surface into a typed `Args` in `args.rs`, with unit tests
+3. Register it in `register_all` (`commands/mod.rs`)
+4. Add to documentation
+
+See [Architecture](architecture.md#commands-system) for what the dispatchers handle for you.
 
 ### New API Endpoints
 
