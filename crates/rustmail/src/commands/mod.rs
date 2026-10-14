@@ -13,7 +13,6 @@ use tokio::sync::watch::Receiver;
 pub mod add_reminder;
 pub mod add_staff;
 pub mod alert;
-pub mod anonreply;
 pub mod baninfo;
 pub mod category;
 pub mod close;
@@ -44,7 +43,6 @@ pub mod version;
 pub use add_reminder::*;
 pub use add_staff::*;
 pub use alert::*;
-pub use anonreply::*;
 pub use baninfo::*;
 pub use category::*;
 pub use close::*;
@@ -280,6 +278,8 @@ impl CommandRegistry {
 pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(CloseCommand);
     registry.register(RemoveReminderCommand);
+    registry.register(ReplyCommand);
+    registry.register(AnonReplyCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -292,7 +292,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(NewThreadCommand);
     registry.register_legacy_command(RecoverCommand);
     registry.register_legacy_command(RemoveStaffCommand);
-    registry.register_legacy_command(ReplyCommand);
     registry.register_legacy_command(AddReminderCommand);
     registry.register_legacy_command(ReminderSubscriptionCommand);
     registry.register_legacy_command(LogsCommand);
@@ -306,14 +305,12 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(BaninfoCommand);
     registry.register_legacy_command(VersionCommand);
 
-    wrap_command!(registry, ["reply", "r"], reply);
     wrap_command!(registry, ["edit", "e"], edit);
     wrap_command!(registry, "recover", recover);
     wrap_command!(registry, "alert", alert);
     wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
     wrap_command!(registry, "delete", delete);
-    wrap_command!(registry, ["anonreply", "ar"], anonreply);
     wrap_command!(registry, ["force_close", "fc"], force_close);
     wrap_command!(registry, ["addmod", "am"], add_staff);
     wrap_command!(registry, ["delmod", "dm"], remove_staff);
