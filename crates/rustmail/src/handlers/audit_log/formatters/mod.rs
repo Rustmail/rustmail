@@ -818,7 +818,7 @@ pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> 
                 let name = alc.translate("audit_log.change.roles_added", None).await;
                 let roles_str = roles
                     .iter()
-                    .map(|r| format!("<@&{}>", r.id.get()))
+                    .map(|r| format!("<@&{}> (`{}`)", r.id.get(), r.name))
                     .collect::<Vec<_>>()
                     .join(", ");
                 Some(EmbedField::new(name, roles_str, false))
@@ -831,7 +831,7 @@ pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> 
                 let name = alc.translate("audit_log.change.roles_removed", None).await;
                 let roles_str = roles
                     .iter()
-                    .map(|r| format!("<@&{}>", r.id.get()))
+                    .map(|r| format!("<@&{}> (`{}`)", r.id.get(), r.name))
                     .collect::<Vec<_>>()
                     .join(", ");
                 Some(EmbedField::new(name, roles_str, false))
