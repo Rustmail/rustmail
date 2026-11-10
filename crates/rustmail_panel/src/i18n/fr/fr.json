@@ -137,7 +137,8 @@
       "logs": {
         "title": "Logs",
         "show_edit": "Afficher log sur édition",
-        "show_delete": "Afficher log sur suppression"
+        "show_delete": "Afficher log sur suppression",
+        "hide_ticket_renames": "Masquer les logs de renommage des tickets"
       },
       "reminders": {
         "title": "Rappels",

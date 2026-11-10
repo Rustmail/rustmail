@@ -222,6 +222,7 @@ Control what actions are logged.
 |----------------------|------|----------|---------|-----------------------|
 | `show_log_on_edit`   | bool | Yes      | `true`  | Log message edits     |
 | `show_log_on_delete` | bool | Yes      | `true`  | Log message deletions |
+| `hide_ticket_rename_logs` | bool | No | `false` | Hide audit logs for ticket channel renames made by the bot (status and elapsed time) |
 
 ---
 
@@ -340,6 +341,7 @@ show_error = true
 [logs]
 show_log_on_edit = true
 show_log_on_delete = true
+hide_ticket_rename_logs = false
 
 [reminders]
 embed_color = "ffb800"

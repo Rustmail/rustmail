@@ -4,10 +4,10 @@ use crate::prelude::db::*;
 use crate::prelude::features::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
-use serenity::all::audit_log::Action;
+use serenity::all::audit_log::{Action, Change};
 use serenity::all::{ButtonStyle, ChannelAction};
 use serenity::{
-    all::{AuditLogEntry, ChannelId, Context, EventHandler, GuildId},
+    all::{AuditLogEntry, ChannelId, Context, EventHandler, GuildId, UserId},
     async_trait,
 };
 
@@ -90,6 +90,21 @@ async fn manage_creating_ticket_via_opening_thread(
         .await;
 }
 
+fn is_bot_channel_rename(entry: &AuditLogEntry, bot_id: UserId) -> bool {
+    let Action::Channel(ChannelAction::Update) = entry.action else {
+        return false;
+    };
+    if entry.user_id != bot_id {
+        return false;
+    }
+    match entry.changes.as_deref() {
+        Some(changes) if !changes.is_empty() => changes
+            .iter()
+            .all(|change| matches!(change, Change::Name { .. })),
+        _ => false,
+    }
+}
+
 #[async_trait]
 impl EventHandler for GuildModerationHandler {
     async fn guild_audit_log_entry_create(
@@ -117,6 +132,12 @@ impl EventHandler for GuildModerationHandler {
             Some(channel_id) => channel_id,
             None => return,
         };
+
+        if self.config.logs.hide_ticket_rename_logs
+            && is_bot_channel_rename(&entry, ctx.cache.current_user().id)
+        {
+            return;
+        }
 
         let user = match entry.user_id.to_user(ctx.clone()).await {
             Ok(user) => user,
