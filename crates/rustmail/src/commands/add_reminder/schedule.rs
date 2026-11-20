@@ -2,7 +2,7 @@ use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use chrono::Local;
-use serenity::all::{ChannelId, CommandInteraction, Context, GuildId, Message, RoleId, UserId};
+use serenity::all::{ChannelId, Context, GuildId, RoleId, UserId};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -10,104 +10,6 @@ use std::time::Duration;
 use tokio::select;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
-
-pub async fn send_register_confirmation_from_message(
-    reminder_id: i64,
-    reminder_content: &str,
-    ctx: &Context,
-    msg: &Message,
-    config: &Config,
-    trigger_timestamp: i64,
-    target_roles: &Option<String>,
-) {
-    let mut params = HashMap::new();
-    params.insert("time".to_string(), format!("<t:{}:t>", trigger_timestamp));
-    params.insert(
-        "remaining_time".to_string(),
-        format!("<t:{}:R>", trigger_timestamp),
-    );
-
-    if !reminder_content.is_empty() {
-        params.insert("content".to_string(), reminder_content.to_string());
-    }
-
-    let has_roles = if let Some(roles_str) = target_roles {
-        let role_mentions: String = roles_str
-            .split(',')
-            .filter_map(|s| s.trim().parse::<u64>().ok())
-            .map(|id| format!("<@&{}>", id))
-            .collect::<Vec<_>>()
-            .join(", ");
-        params.insert("roles".to_string(), role_mentions);
-        true
-    } else {
-        false
-    };
-
-    let key = match (has_roles, !reminder_content.is_empty()) {
-        (true, true) => "reminder.registered_with_content_roles",
-        (true, false) => "reminder.registered_without_content_roles",
-        (false, true) => "reminder.registered_with_content",
-        (false, false) => "reminder.registered_without_content",
-    };
-
-    let _ = MessageBuilder::system_message(ctx, config)
-        .translated_content(key, Some(&params), None, None)
-        .await
-        .to_channel(msg.channel_id)
-        .footer(format!("{}: {}", "ID", reminder_id))
-        .send(true)
-        .await;
-}
-
-pub async fn send_register_confirmation_from_command(
-    reminder_id: i64,
-    reminder_content: &str,
-    ctx: &Context,
-    command: &CommandInteraction,
-    config: &Config,
-    trigger_timestamp: i64,
-    target_roles: &Option<String>,
-) {
-    let mut params = HashMap::new();
-    params.insert("time".to_string(), format!("<t:{}:t>", trigger_timestamp));
-    params.insert(
-        "remaining_time".to_string(),
-        format!("<t:{}:R>", trigger_timestamp),
-    );
-
-    if !reminder_content.is_empty() {
-        params.insert("content".to_string(), reminder_content.to_string());
-    }
-
-    let has_roles = if let Some(roles_str) = target_roles {
-        let role_mentions: String = roles_str
-            .split(',')
-            .filter_map(|s| s.trim().parse::<u64>().ok())
-            .map(|id| format!("<@&{}>", id))
-            .collect::<Vec<_>>()
-            .join(", ");
-        params.insert("roles".to_string(), role_mentions);
-        true
-    } else {
-        false
-    };
-
-    let key = match (has_roles, !reminder_content.is_empty()) {
-        (true, true) => "reminder.registered_with_content_roles",
-        (true, false) => "reminder.registered_without_content_roles",
-        (false, true) => "reminder.registered_with_content",
-        (false, false) => "reminder.registered_without_content",
-    };
-
-    let _ = MessageBuilder::system_message(ctx, config)
-        .translated_content(key, Some(&params), None, None)
-        .await
-        .to_channel(command.channel_id)
-        .footer(format!("{}: {}", "ID", reminder_id))
-        .send_interaction_followup(command, true)
-        .await;
-}
 
 pub fn spawn_reminder(
     reminder: &Reminder,

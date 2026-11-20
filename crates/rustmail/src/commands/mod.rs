@@ -124,7 +124,7 @@ pub struct CommandRegistry {
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
     legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     legacy_text: HashMap<&'static str, TextCommandFunc>,
-    _shutdown: Arc<Receiver<bool>>,
+    shutdown: Arc<Receiver<bool>>,
     pagination: PaginationStore,
 }
 
@@ -135,7 +135,7 @@ impl CommandRegistry {
             text_names: HashMap::new(),
             legacy_slash: HashMap::new(),
             legacy_text: HashMap::new(),
-            _shutdown: Arc::new(shutdown),
+            shutdown: Arc::new(shutdown),
             pagination,
         }
     }
@@ -144,8 +144,8 @@ impl CommandRegistry {
         self.pagination.clone()
     }
 
-    pub fn _shutdown(&self) -> Arc<Receiver<bool>> {
-        self._shutdown.clone()
+    pub fn shutdown(&self) -> Arc<Receiver<bool>> {
+        self.shutdown.clone()
     }
 
     pub fn register<C: Command>(&mut self, command: C) {
@@ -285,13 +285,14 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(AddStaffCommand);
     registry.register(RemoveStaffCommand);
     registry.register(ReminderSubscriptionCommand);
+    let shutdown = registry.shutdown();
+    registry.register(AddReminderCommand { shutdown });
 
     registry.register_legacy_command(AlertCommand);
     registry.register_legacy_command(EditCommand);
     registry.register_legacy_command(HelpCommand);
     registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
-    registry.register_legacy_command(AddReminderCommand);
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
     registry.register_legacy_command(CategoryCommand);
@@ -301,7 +302,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
     wrap_command!(registry, "help", help);
-    wrap_command!(registry, ["remind", "rem"], add_reminder);
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
     wrap_command!(registry, "category", category_command);
