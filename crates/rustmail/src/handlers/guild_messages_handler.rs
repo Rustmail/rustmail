@@ -5,7 +5,7 @@ use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::modules::*;
 use crate::prelude::utils::*;
-use serenity::all::{GuildId, MessageId, Permissions, UserId};
+use serenity::all::{GuildId, MessageId, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
     async_trait,
@@ -158,49 +158,6 @@ async fn manage_incoming_message(
     Ok(())
 }
 
-async fn is_user_maintenance_exempt(ctx: &Context, msg: &Message, config: &Config) -> bool {
-    let user_id = msg.author.id.get();
-
-    if config.bot.panel_super_admin_users.contains(&user_id) {
-        return true;
-    }
-
-    let guild_id = match msg.guild_id {
-        Some(id) => id,
-        None => return false,
-    };
-
-    let member = match guild_id.member(&ctx.http, msg.author.id).await {
-        Ok(m) => m,
-        Err(_) => return false,
-    };
-
-    if !config.bot.panel_super_admin_roles.is_empty() {
-        for role_id in &member.roles {
-            if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
-                return true;
-            }
-        }
-    }
-
-    let guild = match guild_id.to_partial_guild(&ctx.http).await {
-        Ok(g) => g,
-        Err(_) => return false,
-    };
-
-    if guild.owner_id == msg.author.id {
-        return true;
-    }
-
-    member.roles.iter().any(|role_id| {
-        guild
-            .roles
-            .get(role_id)
-            .map(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
-            .unwrap_or(false)
-    })
-}
-
 #[async_trait]
 impl EventHandler for GuildMessagesHandler {
     async fn message(&self, ctx: Context, msg: Message) {
@@ -242,7 +199,7 @@ impl EventHandler for GuildMessagesHandler {
             }
 
             if self.maintenance_mode.load(Ordering::Relaxed)
-                && !is_user_maintenance_exempt(&ctx, &msg, &self.config).await
+                && !is_bot_admin(&ctx, &self.config, msg.guild_id, msg.author.id).await
             {
                 let _ = MessageBuilder::system_message(&ctx, &self.config)
                     .translated_content("status.maintenance_mode_active", None, None, None)

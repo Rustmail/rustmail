@@ -5,10 +5,10 @@ use crate::prelude::features::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
 use crate::utils::{
-    MessageBuilder, defer_response, defer_response_ephemeral, is_staff_member, is_staff_user,
-    responds_ephemerally,
+    MessageBuilder, defer_response, defer_response_ephemeral, is_bot_admin, is_staff_member,
+    is_staff_user, responds_ephemerally,
 };
-use serenity::all::{Context, EventHandler, Interaction, Permissions};
+use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::watch::Receiver;
@@ -38,47 +38,6 @@ impl InteractionHandler {
             maintenance_mode,
         }
     }
-}
-
-async fn is_interaction_user_maintenance_exempt(
-    ctx: &Context,
-    guild_id: serenity::all::GuildId,
-    user_id: serenity::all::UserId,
-    config: &Config,
-) -> bool {
-    if config.bot.panel_super_admin_users.contains(&user_id.get()) {
-        return true;
-    }
-
-    let member = match guild_id.member(&ctx.http, user_id).await {
-        Ok(m) => m,
-        Err(_) => return false,
-    };
-
-    if !config.bot.panel_super_admin_roles.is_empty() {
-        for role_id in &member.roles {
-            if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
-                return true;
-            }
-        }
-    }
-
-    let guild = match guild_id.to_partial_guild(&ctx.http).await {
-        Ok(g) => g,
-        Err(_) => return false,
-    };
-
-    if guild.owner_id == user_id {
-        return true;
-    }
-
-    member.roles.iter().any(|role_id| {
-        guild
-            .roles
-            .get(role_id)
-            .map(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
-            .unwrap_or(false)
-    })
 }
 
 #[async_trait::async_trait]
@@ -146,13 +105,7 @@ impl EventHandler for InteractionHandler {
 
                 if self.maintenance_mode.load(Ordering::Relaxed)
                     && let Some(guild_id) = command.guild_id
-                    && !is_interaction_user_maintenance_exempt(
-                        &ctx,
-                        guild_id,
-                        command.user.id,
-                        &self.config,
-                    )
-                    .await
+                    && !is_bot_admin(&ctx, &self.config, Some(guild_id), command.user.id).await
                 {
                     defer_response(&ctx, &command, &self.config).await.ok();
 
