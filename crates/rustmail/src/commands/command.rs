@@ -51,6 +51,13 @@ pub trait Command: Send + Sync + 'static {
         async { Vec::new() }
     }
 
+    fn community_definitions(
+        &self,
+        config: &Config,
+    ) -> impl Future<Output = Vec<CreateCommand>> + Send {
+        self.slash_definitions(config)
+    }
+
     fn parse_text(&self, _args: &str) -> ModmailResult<Self::Args> {
         Err(invalid_command())
     }
@@ -75,6 +82,8 @@ pub trait DynCommand: Send + Sync {
     fn ephemeral(&self) -> bool;
     fn doc<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, String>;
     fn slash_definitions<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, Vec<CreateCommand>>;
+    fn community_definitions<'a>(&'a self, config: &'a Config)
+    -> BoxFuture<'a, Vec<CreateCommand>>;
     fn run_text<'a>(
         &'a self,
         args: &'a str,
@@ -116,6 +125,13 @@ impl<C: Command> DynCommand for C {
 
     fn slash_definitions<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, Vec<CreateCommand>> {
         Box::pin(Command::slash_definitions(self, config))
+    }
+
+    fn community_definitions<'a>(
+        &'a self,
+        config: &'a Config,
+    ) -> BoxFuture<'a, Vec<CreateCommand>> {
+        Box::pin(Command::community_definitions(self, config))
     }
 
     fn run_text<'a>(

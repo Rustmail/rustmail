@@ -251,11 +251,10 @@ impl CommandRegistry {
             if !command.surfaces().slash() {
                 continue;
             }
-            let definitions = command.slash_definitions(config).await;
+            staff.extend(command.slash_definitions(config).await);
             if command.community() {
-                community.extend(definitions.iter().cloned());
+                community.extend(command.community_definitions(config).await);
             }
-            staff.extend(definitions);
         }
 
         for command in self.legacy_slash.values() {
