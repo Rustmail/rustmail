@@ -1,3 +1,4 @@
+mod affected_roles;
 mod automod;
 mod channel;
 mod channel_overwrite;
@@ -37,6 +38,7 @@ pub use voice_channel_status::*;
 pub use webhook::*;
 
 use super::{AuditLogContext, EmbedField};
+use affected_roles::format_affected_roles;
 use serenity::all::audit_log::Change;
 
 pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> Option<EmbedField> {
@@ -816,12 +818,7 @@ pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> 
         Change::RolesAdded { new, .. } => {
             if let Some(roles) = new {
                 let name = alc.translate("audit_log.change.roles_added", None).await;
-                let roles_str = roles
-                    .iter()
-                    .map(|r| format!("<@&{}> (`{}`)", r.id.get(), r.name))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                Some(EmbedField::new(name, roles_str, false))
+                Some(EmbedField::new(name, format_affected_roles(roles), false))
             } else {
                 None
             }
@@ -829,12 +826,7 @@ pub async fn format_change_value(alc: &AuditLogContext<'_>, change: &Change) -> 
         Change::RolesRemove { new, .. } => {
             if let Some(roles) = new {
                 let name = alc.translate("audit_log.change.roles_removed", None).await;
-                let roles_str = roles
-                    .iter()
-                    .map(|r| format!("<@&{}> (`{}`)", r.id.get(), r.name))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                Some(EmbedField::new(name, roles_str, false))
+                Some(EmbedField::new(name, format_affected_roles(roles), false))
             } else {
                 None
             }
