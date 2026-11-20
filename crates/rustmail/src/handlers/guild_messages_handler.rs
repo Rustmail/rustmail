@@ -403,9 +403,13 @@ impl EventHandler for GuildMessagesHandler {
                 };
 
                 if let Some(inbox_message_id) = message.inbox_message_id {
-                    if let Err(e) =
-                        edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
-                            .await
+                    let Ok(inbox_id) = inbox_message_id.parse::<u64>() else {
+                        eprintln!("Invalid inbox message id: {}", inbox_message_id);
+                        return;
+                    };
+                    if let Err(e) = channel_id_parse
+                        .edit_message(&ctx.http, MessageId::new(inbox_id), edit_msg)
+                        .await
                     {
                         eprintln!("Failed to edit mirrored staff message: {}", e);
                         return;
