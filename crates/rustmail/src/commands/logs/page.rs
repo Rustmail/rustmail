@@ -3,6 +3,7 @@ use crate::prelude::features::*;
 use crate::prelude::i18n::*;
 use crate::prelude::modules::*;
 use crate::prelude::types::*;
+use crate::prelude::utils::*;
 use serenity::all::{ButtonStyle, CreateActionRow};
 
 pub async fn render_logs_page(
@@ -37,17 +38,9 @@ pub async fn render_logs_page(
             "**#{}** | [`🎫 {}`]({}) | 🔒 {}",
             log.id,
             log.ticket_id,
-            format!(
-                "{}/panel/tickets/{}",
-                &config.bot.ip.clone().unwrap(),
-                log.ticket_id
-            ),
+            panel_ticket_url(config, &log.ticket_id),
             log.created_at,
         );
-    }
-
-    if desc.is_empty() {
-        desc = "_Aucun log trouvé pour cet utilisateur._".into();
     }
 
     format!(
