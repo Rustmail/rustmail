@@ -280,6 +280,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(RemoveReminderCommand);
     registry.register(ReplyCommand);
     registry.register(AnonReplyCommand);
+    registry.register(VersionCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -303,7 +304,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(CategoryCommand);
     registry.register_legacy_command(RenameCommand);
     registry.register_legacy_command(BaninfoCommand);
-    registry.register_legacy_command(VersionCommand);
 
     wrap_command!(registry, ["edit", "e"], edit);
     wrap_command!(registry, "recover", recover);
@@ -326,7 +326,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, "category", category_command);
     wrap_command!(registry, ["rename", "rn"], rename_ticket);
     wrap_command!(registry, ["baninfo", "bi"], baninfo);
-    wrap_command!(registry, ["version", "v"], version);
 }
 
 #[cfg(test)]
