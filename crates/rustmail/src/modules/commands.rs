@@ -23,7 +23,7 @@ async fn handle_logs_action(
     if let Some(ctx_data) = store.get_mut(session_id) {
         if page == 0 && ctx_data.current_page > 0 {
             ctx_data.current_page -= 1;
-        } else if page == 1 && ctx_data.current_page < LOGS_PAGE_SIZE {
+        } else if page == 1 && has_next_logs_page(ctx_data.current_page, ctx_data.logs.len()) {
             ctx_data.current_page += 1;
         } else {
             return Ok(());
