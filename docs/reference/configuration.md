@@ -122,9 +122,10 @@ staff_guild_id = 987654321098765432
 [command]
 ```
 
-| Option   | Type   | Required | Default | Description              |
-|----------|--------|----------|---------|--------------------------|
-| `prefix` | string | Yes      | `"!"`   | Prefix for text commands |
+| Option     | Type     | Required | Default | Description                                                                 |
+|------------|----------|----------|---------|-----------------------------------------------------------------------------|
+| `prefix`   | string   | Yes      | `"!"`   | Prefix for text commands                                                    |
+| `disabled` | string[] | No       | `[]`    | Command names (not aliases) to turn off, e.g. `["new_thread"]`. A disabled command is not registered: it disappears from slash commands, text commands and `help`. |
 
 ---
 
@@ -158,6 +159,7 @@ staff_guild_id = 987654321098765432
 | `create_ticket_by_create_channel` | bool | Yes      | -       | Allow ticket creation by making a channel       |
 | `close_on_leave`                  | bool | No       | `false` | Auto-close when user leaves server              |
 | `auto_archive_duration`           | u16  | No       | `10080` | Thread auto-archive time in minutes             |
+| `inactivity_timeout`              | u64  | No       | `0`     | Minutes without any message before an open ticket is closed automatically (0 = disabled). Tickets with a scheduled closure are left alone. |
 
 ---
 
@@ -323,6 +325,7 @@ time_to_close_thread = 0
 create_ticket_by_create_channel = false
 close_on_leave = false
 auto_archive_duration = 10080
+inactivity_timeout = 0
 
 [language]
 default_language = "en"

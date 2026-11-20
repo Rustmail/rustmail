@@ -24,6 +24,7 @@ guild_id = 7118802972311856
 
 [command]
 prefix = "!"
+disabled = []
 
 [thread]
 inbox_category_id = 1376460638505960
@@ -36,6 +37,7 @@ time_to_close_thread = 5
 create_ticket_by_create_channel = true
 close_on_leave = false
 auto_archive_duration = 10080
+inactivity_timeout = 0
 
 [language]
 default_language = "fr"

@@ -1,5 +1,6 @@
 pub mod categories;
 pub mod commands;
+pub mod inactive_tickets;
 pub mod message_recovery;
 pub mod reminders;
 pub mod scheduled_closures;
@@ -9,6 +10,7 @@ pub mod update_checker;
 
 pub use categories::*;
 pub use commands::*;
+pub use inactive_tickets::*;
 pub use message_recovery::*;
 pub use reminders::*;
 pub use scheduled_closures::*;

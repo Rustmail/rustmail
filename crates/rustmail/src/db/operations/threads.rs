@@ -1,9 +1,9 @@
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::types::*;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serenity::all::{ChannelId, GuildChannel, UserId};
-use sqlx::{Error, SqlitePool};
+use sqlx::{Error, Row, SqlitePool};
 use uuid::Uuid;
 
 pub async fn get_thread_channel_by_user_id(user_id: UserId, pool: &SqlitePool) -> Option<String> {
@@ -80,6 +80,37 @@ pub async fn get_thread_by_id(thread_id: &str, pool: &SqlitePool) -> Option<Thre
     })
     .ok()
     .flatten()
+}
+
+pub async fn get_inactive_threads(
+    inactive_since: DateTime<Utc>,
+    pool: &SqlitePool,
+) -> ModmailResult<Vec<Thread>> {
+    let rows = sqlx::query(
+        r#"
+        SELECT t.id, t.user_id, t.user_name, t.channel_id
+        FROM threads t
+        WHERE t.status = 1
+          AND NOT EXISTS (SELECT 1 FROM scheduled_closures s WHERE s.thread_id = t.id)
+          AND COALESCE(
+                (SELECT MAX(m.created_at) FROM thread_messages m WHERE m.thread_id = t.id),
+                t.created_at
+              ) < ?
+        "#,
+    )
+    .bind(inactive_since.format("%Y-%m-%d %H:%M:%S").to_string())
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| Thread {
+            id: row.get("id"),
+            user_id: row.get("user_id"),
+            user_name: row.get("user_name"),
+            channel_id: row.get("channel_id"),
+        })
+        .collect())
 }
 
 pub async fn get_user_id_from_channel_id(channel_id: &str, pool: &SqlitePool) -> Option<i64> {
@@ -648,6 +679,69 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(closed_by, "staff-1");
+        db.cleanup().await;
+    }
+
+    async fn set_thread_created_at(pool: &SqlitePool, thread_id: &str, created_at: &str) {
+        sqlx::query("UPDATE threads SET created_at = ? WHERE id = ?")
+            .bind(created_at)
+            .bind(thread_id)
+            .execute(pool)
+            .await
+            .expect("set created_at");
+    }
+
+    async fn insert_message_at(pool: &SqlitePool, thread_id: &str, created_at: &str) {
+        sqlx::query(
+            "INSERT INTO thread_messages (thread_id, user_id, user_name, is_anonymous, content, thread_status, created_at) VALUES (?, 1, 'user', 0, 'hi', 1, ?)",
+        )
+        .bind(thread_id)
+        .bind(created_at)
+        .execute(pool)
+        .await
+        .expect("insert message");
+    }
+
+    #[tokio::test]
+    async fn inactive_threads_are_open_quiet_and_not_already_scheduled() {
+        let db = test_db().await;
+        let pool = db.pool.clone();
+        let long_ago = "2026-01-01 10:00:00";
+        let recently = "2026-01-01 11:50:00";
+        let cutoff = DateTime::parse_from_rfc3339("2026-01-01T11:30:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+
+        insert_open_thread(&pool, "quiet", 1).await;
+        set_thread_created_at(&pool, "quiet", long_ago).await;
+        insert_message_at(&pool, "quiet", long_ago).await;
+
+        insert_open_thread(&pool, "new", 2).await;
+        set_thread_created_at(&pool, "new", recently).await;
+
+        insert_open_thread(&pool, "talking", 3).await;
+        set_thread_created_at(&pool, "talking", long_ago).await;
+        insert_message_at(&pool, "talking", recently).await;
+
+        insert_open_thread(&pool, "scheduled", 4).await;
+        set_thread_created_at(&pool, "scheduled", long_ago).await;
+        upsert_scheduled_closure("scheduled", 0, false, "staff", "", "", "0", &pool)
+            .await
+            .unwrap();
+
+        insert_open_thread(&pool, "closed", 5).await;
+        set_thread_created_at(&pool, "closed", long_ago).await;
+        close_thread("closed", "staff", "", "", 0, &pool)
+            .await
+            .unwrap();
+
+        let ids: Vec<String> = get_inactive_threads(cutoff, &pool)
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|thread| thread.id)
+            .collect();
+        assert_eq!(ids, vec!["quiet".to_string()]);
         db.cleanup().await;
     }
 }

@@ -1,7 +1,7 @@
 use crate::prelude::config::*;
 use crate::prelude::types::*;
 use serenity::all::CreateCommand;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
@@ -93,6 +93,8 @@ impl CommandCatalog {
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn DynCommand>>,
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
+    disabled: HashSet<String>,
+    skipped: HashSet<&'static str>,
 }
 
 #[derive(Clone)]
@@ -103,16 +105,23 @@ pub struct CommandServices {
 }
 
 impl CommandRegistry {
-    pub fn new() -> Self {
+    pub fn with_disabled(disabled: &[String]) -> Self {
         Self {
             commands: HashMap::new(),
             text_names: HashMap::new(),
+            disabled: disabled.iter().cloned().collect(),
+            skipped: HashSet::new(),
         }
     }
 
     pub fn register<C: Command>(&mut self, command: C) {
         let command: Arc<dyn DynCommand> = Arc::new(command);
         let name = command.name();
+
+        if self.disabled.contains(name) {
+            self.skipped.insert(name);
+            return;
+        }
 
         if self.commands.contains_key(name) {
             panic!("command `{name}` is registered twice");
@@ -166,6 +175,17 @@ impl CommandRegistry {
         }
 
         (staff, community)
+    }
+
+    pub fn unknown_disabled(&self) -> Vec<&str> {
+        let mut unknown: Vec<&str> = self
+            .disabled
+            .iter()
+            .map(String::as_str)
+            .filter(|name| !self.skipped.contains(name))
+            .collect();
+        unknown.sort_unstable();
+        unknown
     }
 
     pub fn catalog(&self) -> CommandCatalog {
@@ -226,7 +246,38 @@ mod tests {
             pagination: PaginationStore::default(),
             maintenance_mode: Arc::default(),
         };
-        let mut registry = CommandRegistry::new();
+        let mut registry = CommandRegistry::with_disabled(&[]);
         register_all(&mut registry, &services);
+    }
+
+    fn registry_without(disabled: &[&str]) -> CommandRegistry {
+        let (_tx, rx) = tokio::sync::watch::channel(false);
+        let services = CommandServices {
+            shutdown: Arc::new(rx),
+            pagination: PaginationStore::default(),
+            maintenance_mode: Arc::default(),
+        };
+        let disabled: Vec<String> = disabled.iter().map(|name| name.to_string()).collect();
+        let mut registry = CommandRegistry::with_disabled(&disabled);
+        register_all(&mut registry, &services);
+        registry
+    }
+
+    #[test]
+    fn disabled_command_is_unreachable_on_every_surface() {
+        let registry = registry_without(&["new_thread"]);
+
+        assert!(registry.slash("new_thread").is_none());
+        assert!(registry.text("new_thread").is_none());
+        assert!(registry.text("nt").is_none());
+        assert!(!registry.catalog().names().contains(&"new_thread"));
+        assert!(registry.slash("reply").is_some());
+    }
+
+    #[test]
+    fn disabled_names_matching_no_command_are_reported() {
+        let registry = registry_without(&["new_thread", "nope"]);
+
+        assert_eq!(registry.unknown_disabled(), vec!["nope"]);
     }
 }

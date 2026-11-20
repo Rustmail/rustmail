@@ -150,6 +150,7 @@ pub async fn handle_setup_save(
         bot: bot_config,
         command: CommandConfig {
             prefix: payload.command_prefix,
+            disabled: Vec::new(),
         },
         thread: ThreadConfig {
             inbox_category_id: payload.inbox_category_id,
@@ -162,6 +163,7 @@ pub async fn handle_setup_save(
             create_ticket_by_create_channel: payload.create_ticket_by_create_channel,
             close_on_leave: payload.close_on_leave,
             auto_archive_duration: payload.auto_archive_duration,
+            inactivity_timeout: 0,
         },
         language: LanguageConfig {
             default_language: payload.default_language.clone(),
