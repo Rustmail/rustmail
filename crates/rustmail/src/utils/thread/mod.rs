@@ -4,6 +4,7 @@ pub mod get_thread_lock;
 pub mod panel_url;
 pub mod send_to_thread;
 pub mod user_recap;
+pub mod welcome;
 
 pub use category::*;
 pub use fetch_thread::*;
@@ -11,3 +12,4 @@ pub use get_thread_lock::*;
 pub use panel_url::*;
 pub use send_to_thread::*;
 pub use user_recap::*;
+pub use welcome::*;
