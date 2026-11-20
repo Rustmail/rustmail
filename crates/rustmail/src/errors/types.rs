@@ -51,7 +51,6 @@ pub enum CommandError {
     InvalidArguments(String),
     UnknownCommand(String),
     NotInThread(),
-    UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
     ClosureAlreadyScheduled(i64),
     NoSchedulableClosureToCancel,
@@ -171,9 +170,6 @@ impl fmt::Display for CommandError {
             CommandError::InvalidArguments(arg) => write!(f, "Invalid arguments: {}", arg),
             CommandError::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
-            CommandError::UserHasAlreadyAThread() => {
-                write!(f, "The user already has an open thread")
-            }
             CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => write!(
                 f,
                 "The user {} already has an open thread: {}",
