@@ -1,6 +1,6 @@
 use serenity::all::{
-    Attachment, ChannelId, CommandInteraction, Message, ResolvedTarget, ResolvedValue, RoleId,
-    UserId,
+    Attachment, ChannelId, CommandInteraction, Message, ResolvedOption, ResolvedTarget,
+    ResolvedValue, RoleId, UserId,
 };
 use std::collections::HashMap;
 
@@ -25,6 +25,7 @@ pub enum SlashTarget {
 
 #[derive(Debug, Clone, Default)]
 pub struct SlashOptions {
+    subcommand: Vec<String>,
     values: HashMap<String, OptionValue>,
     target: Option<SlashTarget>,
 }
@@ -33,9 +34,27 @@ pub struct SlashOptions {
 impl SlashOptions {
     pub fn from_interaction(command: &CommandInteraction) -> Self {
         let mut options = Self::default();
+        options.read(command.data.options());
 
-        for option in command.data.options() {
+        options.target = match command.data.target() {
+            Some(ResolvedTarget::User(user, _)) => Some(SlashTarget::User(user.id)),
+            Some(ResolvedTarget::Message(message)) => {
+                Some(SlashTarget::Message(Box::new(message.clone())))
+            }
+            _ => None,
+        };
+
+        options
+    }
+
+    fn read(&mut self, resolved: Vec<ResolvedOption<'_>>) {
+        for option in resolved {
             let value = match option.value {
+                ResolvedValue::SubCommand(nested) | ResolvedValue::SubCommandGroup(nested) => {
+                    self.subcommand.push(option.name.to_string());
+                    self.read(nested);
+                    continue;
+                }
                 ResolvedValue::String(v) => OptionValue::String(v.to_string()),
                 ResolvedValue::Integer(v) => OptionValue::Integer(v),
                 ResolvedValue::Number(v) => OptionValue::Number(v),
@@ -48,18 +67,17 @@ impl SlashOptions {
                 }
                 _ => continue,
             };
-            options.values.insert(option.name.to_string(), value);
+            self.values.insert(option.name.to_string(), value);
         }
+    }
 
-        options.target = match command.data.target() {
-            Some(ResolvedTarget::User(user, _)) => Some(SlashTarget::User(user.id)),
-            Some(ResolvedTarget::Message(message)) => {
-                Some(SlashTarget::Message(Box::new(message.clone())))
-            }
-            _ => None,
-        };
+    pub fn subcommand(&self) -> Vec<&str> {
+        self.subcommand.iter().map(String::as_str).collect()
+    }
 
-        options
+    pub fn with_subcommand(mut self, path: &[&str]) -> Self {
+        self.subcommand = path.iter().map(|name| name.to_string()).collect();
+        self
     }
 
     pub fn with(mut self, name: &str, value: OptionValue) -> Self {
@@ -147,6 +165,16 @@ mod tests {
         assert_eq!(options.boolean("silent"), Some(true));
         assert_eq!(options.boolean("time"), None);
         assert_eq!(options.string("missing"), None);
+    }
+
+    #[test]
+    fn subcommand_path() {
+        let options = SlashOptions::default()
+            .with_subcommand(&["timeout", "set"])
+            .with("minutes", OptionValue::Integer(5));
+        assert_eq!(options.subcommand(), ["timeout", "set"]);
+        assert_eq!(options.integer("minutes"), Some(5));
+        assert!(SlashOptions::default().subcommand().is_empty());
     }
 
     #[test]
