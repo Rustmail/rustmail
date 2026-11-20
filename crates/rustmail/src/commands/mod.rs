@@ -8,6 +8,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use tokio::sync::watch::Receiver;
 
 pub mod add_reminder;
@@ -157,28 +158,23 @@ pub struct CommandRegistry {
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
     legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     legacy_text: HashMap<&'static str, TextCommandFunc>,
-    shutdown: Arc<Receiver<bool>>,
-    pagination: PaginationStore,
+}
+
+#[derive(Clone)]
+pub struct CommandServices {
+    pub shutdown: Arc<Receiver<bool>>,
+    pub pagination: PaginationStore,
+    pub maintenance_mode: Arc<AtomicBool>,
 }
 
 impl CommandRegistry {
-    pub fn new(shutdown: Receiver<bool>, pagination: PaginationStore) -> Self {
+    pub fn new() -> Self {
         Self {
             commands: HashMap::new(),
             text_names: HashMap::new(),
             legacy_slash: HashMap::new(),
             legacy_text: HashMap::new(),
-            shutdown: Arc::new(shutdown),
-            pagination,
         }
-    }
-
-    pub fn pagination(&self) -> PaginationStore {
-        self.pagination.clone()
-    }
-
-    pub fn shutdown(&self) -> Arc<Receiver<bool>> {
-        self.shutdown.clone()
     }
 
     pub fn register<C: Command>(&mut self, command: C) {
@@ -281,7 +277,7 @@ impl CommandRegistry {
     }
 }
 
-pub fn register_all(registry: &mut CommandRegistry) {
+pub fn register_all(registry: &mut CommandRegistry, services: &CommandServices) {
     registry.register(CloseCommand);
     registry.register(RemoveReminderCommand);
     registry.register(ReplyCommand);
@@ -295,14 +291,16 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(RecoverCommand);
     registry.register(ForceCloseCommand);
     registry.register(DeleteCommand);
-    let pagination = registry.pagination();
-    registry.register(LogsCommand { pagination });
+    registry.register(LogsCommand {
+        pagination: services.pagination.clone(),
+    });
     registry.register(BaninfoCommand);
     registry.register(AddStaffCommand);
     registry.register(RemoveStaffCommand);
     registry.register(ReminderSubscriptionCommand);
-    let shutdown = registry.shutdown();
-    registry.register(AddReminderCommand { shutdown });
+    registry.register(AddReminderCommand {
+        shutdown: services.shutdown.clone(),
+    });
 
     registry.register_legacy_command(AlertCommand);
     registry.register_legacy_command(EditCommand);
@@ -331,7 +329,12 @@ mod tests {
     #[test]
     fn every_command_name_and_alias_is_unique() {
         let (_tx, rx) = tokio::sync::watch::channel(false);
-        let mut registry = CommandRegistry::new(rx, PaginationStore::default());
-        register_all(&mut registry);
+        let services = CommandServices {
+            shutdown: Arc::new(rx),
+            pagination: PaginationStore::default(),
+            maintenance_mode: Arc::default(),
+        };
+        let mut registry = CommandRegistry::new();
+        register_all(&mut registry, &services);
     }
 }

@@ -83,7 +83,6 @@ pub async fn run_bot(
     shutdown: &mut tokio::sync::watch::Receiver<bool>,
     mut command_rx: tokio::sync::mpsc::Receiver<BotCommand>,
 ) {
-    let shutdown_rx_command = shutdown.clone();
     let shutdown_rx = shutdown.clone();
 
     println!("Starting rustmail...");
@@ -124,8 +123,13 @@ pub async fn run_bot(
     cache_settings.max_messages = 10_000;
     cache_settings.time_to_live = Duration::from_secs(6 * 60 * 60);
 
-    let mut registry = CommandRegistry::new(shutdown_rx_command, pagination.clone());
-    register_all(&mut registry);
+    let services = CommandServices {
+        shutdown: Arc::new(shutdown.clone()),
+        pagination: pagination.clone(),
+        maintenance_mode: maintenance_mode.clone(),
+    };
+    let mut registry = CommandRegistry::new();
+    register_all(&mut registry, &services);
 
     let registry = Arc::new(registry);
 
@@ -140,7 +144,6 @@ pub async fn run_bot(
         .event_handler(GuildMessagesHandler::new(
             &config,
             registry.clone(),
-            shutdown_rx.clone(),
             maintenance_mode.clone(),
         ))
         .event_handler(TypingProxyHandler::new(&config))
@@ -150,7 +153,6 @@ pub async fn run_bot(
         .event_handler(InteractionHandler::new(
             &config,
             registry.clone(),
-            shutdown_rx,
             pagination,
             maintenance_mode,
         ))

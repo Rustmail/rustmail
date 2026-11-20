@@ -11,13 +11,11 @@ use crate::utils::{
 use serenity::all::{Context, EventHandler, Interaction};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tokio::sync::watch::Receiver;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
     pub config: Arc<Config>,
     pub registry: Arc<CommandRegistry>,
-    pub shutdown: Arc<Receiver<bool>>,
     pub pagination: PaginationStore,
     pub maintenance_mode: Arc<AtomicBool>,
 }
@@ -26,14 +24,12 @@ impl InteractionHandler {
     pub fn new(
         config: &Config,
         registry: Arc<CommandRegistry>,
-        shutdown: Receiver<bool>,
         pagination: PaginationStore,
         maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
         Self {
             config: Arc::new(config.clone()),
             registry,
-            shutdown: Arc::new(shutdown),
             pagination,
             maintenance_mode,
         }

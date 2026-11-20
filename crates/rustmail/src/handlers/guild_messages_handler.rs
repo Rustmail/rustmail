@@ -14,7 +14,6 @@ use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
 use std::{collections::HashMap, sync::Arc};
-use tokio::sync::watch::Receiver;
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
@@ -23,7 +22,6 @@ static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
 pub struct GuildMessagesHandler {
     pub config: Arc<Config>,
     pub registry: Arc<CommandRegistry>,
-    pub shutdown: Arc<Receiver<bool>>,
     pub maintenance_mode: Arc<AtomicBool>,
 }
 
@@ -31,13 +29,11 @@ impl GuildMessagesHandler {
     pub fn new(
         config: &Config,
         registry: Arc<CommandRegistry>,
-        shutdown: Receiver<bool>,
         maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
         Self {
             config: Arc::new(config.clone()),
             registry,
-            shutdown: Arc::new(shutdown),
             maintenance_mode,
         }
     }
