@@ -24,6 +24,7 @@ guild_id = 7118802972311856
 
 [command]
 prefix = "!"
+disabled = []
 
 [thread]
 inbox_category_id = 1376460638505960

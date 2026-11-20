@@ -122,9 +122,10 @@ staff_guild_id = 987654321098765432
 [command]
 ```
 
-| Option   | Type   | Required | Default | Description              |
-|----------|--------|----------|---------|--------------------------|
-| `prefix` | string | Yes      | `"!"`   | Prefix for text commands |
+| Option     | Type     | Required | Default | Description                                                                 |
+|------------|----------|----------|---------|-----------------------------------------------------------------------------|
+| `prefix`   | string   | Yes      | `"!"`   | Prefix for text commands                                                    |
+| `disabled` | string[] | No       | `[]`    | Command names (not aliases) to turn off, e.g. `["new_thread"]`. A disabled command is not registered: it disappears from slash commands, text commands and `help`. |
 
 ---
 
