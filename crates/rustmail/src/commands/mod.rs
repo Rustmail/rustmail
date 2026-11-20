@@ -290,10 +290,10 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(RenameCommand);
     registry.register(RecoverCommand);
     registry.register(ForceCloseCommand);
+    registry.register(DeleteCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
-    registry.register_legacy_command(DeleteCommand);
     registry.register_legacy_command(EditCommand);
     registry.register_legacy_command(HelpCommand);
     registry.register_legacy_command(MoveCommand);
@@ -311,7 +311,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, "alert", alert);
     wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
-    wrap_command!(registry, "delete", delete);
     wrap_command!(registry, ["addmod", "am"], add_staff);
     wrap_command!(registry, ["delmod", "dm"], remove_staff);
     wrap_command!(registry, "help", help);

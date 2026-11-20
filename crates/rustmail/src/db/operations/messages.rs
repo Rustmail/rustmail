@@ -179,7 +179,7 @@ pub async fn get_latest_thread_message(
 
     let latest = row.map(|row| ThreadMessage {
         _id: row.id,
-        _thread_id: row.thread_id,
+        thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
@@ -324,7 +324,7 @@ pub async fn get_thread_message_by_inbox_message_id(
 
     let latest: ThreadMessage = match row.map(|row| ThreadMessage {
         _id: row.id,
-        _thread_id: row.thread_id,
+        thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
@@ -368,7 +368,7 @@ pub async fn get_thread_message_by_message_id(
 
     let message: ThreadMessage = match row.map(|row| ThreadMessage {
         _id: row.id,
-        _thread_id: row.thread_id,
+        thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
@@ -414,7 +414,7 @@ pub async fn get_thread_message_by_dm_message_id(
 
     let message: ThreadMessage = match row.map(|row| ThreadMessage {
         _id: row.id,
-        _thread_id: row.thread_id,
+        thread_id: row.thread_id,
         user_id: row.user_id,
         user_name: row.user_name,
         is_anonymous: row.is_anonymous,
@@ -439,7 +439,7 @@ pub async fn get_thread_message_by_dm_message_id(
 #[derive(Debug, Clone)]
 pub struct ThreadMessage {
     pub _id: i64,
-    pub _thread_id: String,
+    pub thread_id: String,
     pub user_id: i64,
     pub user_name: String,
     pub is_anonymous: bool,
