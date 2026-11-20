@@ -241,6 +241,41 @@ impl DictionaryManager {
                 CommandError::AlertDoesNotExist => ("alert.alert_not_found".to_string(), None),
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
                 CommandError::TicketAlreadyTaken => ("take.ticket_already_taken".to_string(), None),
+                CommandError::StaffRoleIsEveryone { removing } => {
+                    let key = if *removing {
+                        "add_staff.role_everyone_forbidden_remove"
+                    } else {
+                        "add_staff.role_everyone_forbidden"
+                    };
+                    (key.to_string(), None)
+                }
+                CommandError::StaffRoleHasNoMembers { role, removing } => {
+                    let key = if *removing {
+                        "add_staff.role_no_members_remove"
+                    } else {
+                        "add_staff.role_no_members"
+                    };
+                    let params = HashMap::from([("role".to_string(), role.clone())]);
+                    (key.to_string(), Some(params))
+                }
+                CommandError::StaffRoleTooLarge {
+                    role,
+                    count,
+                    max,
+                    removing,
+                } => {
+                    let key = if *removing {
+                        "add_staff.role_too_many_remove"
+                    } else {
+                        "add_staff.role_too_many"
+                    };
+                    let params = HashMap::from([
+                        ("role".to_string(), role.clone()),
+                        ("count".to_string(), count.to_string()),
+                        ("max".to_string(), max.to_string()),
+                    ]);
+                    (key.to_string(), Some(params))
+                }
                 CommandError::TicketAlreadyReleased => {
                     ("release.ticket_already_taken".to_string(), None)
                 }

@@ -77,6 +77,19 @@ pub enum CommandError {
     ReminderRoleRequired(String),
     ReminderRoleNotFound(String),
     ReminderAlreadyCompleted(String),
+    StaffRoleIsEveryone {
+        removing: bool,
+    },
+    StaffRoleHasNoMembers {
+        role: String,
+        removing: bool,
+    },
+    StaffRoleTooLarge {
+        role: String,
+        count: usize,
+        max: usize,
+        removing: bool,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -184,6 +197,20 @@ impl fmt::Display for CommandError {
             CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
+            CommandError::StaffRoleIsEveryone { .. } => {
+                write!(
+                    f,
+                    "The @everyone role can't be added to or removed from a ticket"
+                )
+            }
+            CommandError::StaffRoleHasNoMembers { role, .. } => {
+                write!(f, "Role {} has no members", role)
+            }
+            CommandError::StaffRoleTooLarge {
+                role, count, max, ..
+            } => {
+                write!(f, "Role {} has {} members, more than {}", role, count, max)
+            }
             CommandError::TicketAlreadyReleased => write!(f, "Ticket already released"),
             CommandError::AlertSetFailed => write!(f, "Alert set failed"),
             CommandError::SnippetNotFound(name) => write!(f, "Snippet not found: {}", name),
