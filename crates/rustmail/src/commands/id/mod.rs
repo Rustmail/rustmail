@@ -1,6 +1,5 @@
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
-use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use serenity::all::CreateCommand;
@@ -48,12 +47,7 @@ impl Command for IdCommand {
             .as_ref()
             .ok_or_else(database_connection_failed)?;
 
-        if !is_a_ticket_channel(invocation.channel_id(), pool).await {
-            return Err(ModmailError::Thread(ThreadError::NotAThreadChannel));
-        }
-        let thread = get_thread_by_channel_id(&invocation.channel_id().to_string(), pool)
-            .await
-            .ok_or_else(thread_not_found)?;
+        let thread = current_ticket(invocation, pool).await?;
 
         let mut params = HashMap::new();
         params.insert("user".to_string(), format!("<@{}>", thread.user_id));
