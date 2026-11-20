@@ -218,7 +218,7 @@ impl<'a> MessageBuilder<'a> {
     }
 
     async fn get_user_avatar_url(&self, user_id: UserId) -> String {
-        match user_id.to_user(&self.ctx.http).await {
+        match user_id.to_user(&self.ctx).await {
             Ok(user) => user
                 .avatar_url()
                 .unwrap_or_else(|| user.default_avatar_url()),
@@ -535,7 +535,9 @@ impl<'a> MessageBuilder<'a> {
     pub async fn build_interaction_message_followup(&self) -> CreateInteractionResponseFollowup {
         let mut message = CreateInteractionResponseFollowup::new();
 
-        if self.should_use_embed().await {
+        if let Some(embed) = &self.custom_embed {
+            message = message.embed(embed.clone());
+        } else if self.should_use_embed().await {
             message = message.embed(self.build_embed().await);
             message = message.content("");
         } else {

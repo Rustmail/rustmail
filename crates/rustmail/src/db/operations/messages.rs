@@ -26,7 +26,7 @@ pub async fn insert_staff_message(
     let user_id = staff_user_id.get() as i64;
 
     let user_name = staff_user_id
-        .to_user(&ctx.http)
+        .to_user(ctx)
         .await
         .map(|user| user.name)
         .unwrap_or_else(|_| "Unknown".to_string());
@@ -273,7 +273,7 @@ pub async fn insert_internal_message(
     let user_name = msg
         .author
         .id
-        .to_user(&ctx.http)
+        .to_user(ctx)
         .await
         .map(|user| user.name)
         .unwrap_or_else(|_| "Unknown".to_string());

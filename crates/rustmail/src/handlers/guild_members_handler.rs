@@ -141,7 +141,7 @@ impl EventHandler for GuildMembersHandler {
             _ => 0u64,
         };
 
-        let _ = close_thread(
+        if let Err(e) = close_thread(
             &thread.id,
             &closed_by,
             &category_id,
@@ -149,6 +149,12 @@ impl EventHandler for GuildMembersHandler {
             required_permissions,
             pool,
         )
-        .await;
+        .await
+        {
+            eprintln!(
+                "Failed to close thread {} after member left: {e:?}",
+                thread.id
+            );
+        }
     }
 }

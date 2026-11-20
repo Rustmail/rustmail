@@ -5,11 +5,13 @@ use chrono::Local;
 use serenity::all::{ChannelId, Context, GuildId, RoleId, UserId};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 use tokio::select;
 use tokio::sync::watch::Receiver;
 use tokio::time::sleep;
+
+static REMINDER_TIMERS: LazyLock<KeyedTasks<i64>> = LazyLock::new(KeyedTasks::new);
 
 pub fn spawn_reminder(
     reminder: &Reminder,
@@ -25,7 +27,7 @@ pub fn spawn_reminder(
     let reminder = reminder.clone();
     let mut shutdown_rx = shutdown.as_ref().clone();
 
-    tokio::spawn(async move {
+    REMINDER_TIMERS.spawn(reminder.id, async move {
         let now = Local::now().timestamp();
         let delay_duration = if reminder.data.trigger_time > now {
             reminder.data.trigger_time - now
