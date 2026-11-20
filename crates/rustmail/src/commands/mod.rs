@@ -127,7 +127,7 @@ pub struct CommandRegistry {
     legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
     legacy_text: HashMap<&'static str, TextCommandFunc>,
     _shutdown: Arc<Receiver<bool>>,
-    _pagination: PaginationStore,
+    pagination: PaginationStore,
 }
 
 impl CommandRegistry {
@@ -138,8 +138,12 @@ impl CommandRegistry {
             legacy_slash: HashMap::new(),
             legacy_text: HashMap::new(),
             _shutdown: Arc::new(shutdown),
-            _pagination: pagination,
+            pagination,
         }
+    }
+
+    pub fn pagination(&self) -> PaginationStore {
+        self.pagination.clone()
     }
 
     pub fn _shutdown(&self) -> Arc<Receiver<bool>> {
@@ -277,6 +281,8 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(RecoverCommand);
     registry.register(ForceCloseCommand);
     registry.register(DeleteCommand);
+    let pagination = registry.pagination();
+    registry.register(LogsCommand { pagination });
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -287,7 +293,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(RemoveStaffCommand);
     registry.register_legacy_command(AddReminderCommand);
     registry.register_legacy_command(ReminderSubscriptionCommand);
-    registry.register_legacy_command(LogsCommand);
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
     registry.register_legacy_command(CategoryCommand);
@@ -301,7 +306,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["delmod", "dm"], remove_staff);
     wrap_command!(registry, "help", help);
     wrap_command!(registry, ["remind", "rem"], add_reminder);
-    wrap_command!(registry, "logs", logs);
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
     wrap_command!(registry, "category", category_command);
