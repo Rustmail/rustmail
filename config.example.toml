@@ -70,6 +70,7 @@ embed_color = "ffb800"
 [logs]
 show_log_on_edit = true
 show_log_on_delete = true
+hide_ticket_rename_logs = false
 
 [updates]
 enabled = true

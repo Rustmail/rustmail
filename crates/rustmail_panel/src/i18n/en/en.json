@@ -136,7 +136,8 @@
       "logs": {
         "title": "Logs",
         "show_edit": "Show Log on Edit",
-        "show_delete": "Show Log on Delete"
+        "show_delete": "Show Log on Delete",
+        "hide_ticket_renames": "Hide Ticket Rename Logs"
       },
       "reminders": {
         "title": "Reminders",

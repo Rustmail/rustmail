@@ -1637,6 +1637,19 @@ fn logs_reminder_section(props: &LogsReminderSectionProps) -> Html {
                 }}
             />
 
+            <CheckboxInput
+                label={i18n.t("panel.configuration.logs.hide_ticket_renames")}
+                checked={config.logs.hide_ticket_rename_logs}
+                on_change={{
+                    let config = config.clone();
+                    Callback::from(move |val: bool| {
+                        let mut cfg = (*config).clone();
+                        cfg.logs.hide_ticket_rename_logs = val;
+                        config.set(cfg);
+                    })
+                }}
+            />
+
             <h4 class="text-md font-semibold text-white border-b border-slate-600 pb-2 mt-6">{i18n.t("panel.configuration.reminders.title")}</h4>
 
             <ColorInput

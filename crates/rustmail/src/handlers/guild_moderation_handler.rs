@@ -4,10 +4,10 @@ use crate::prelude::db::*;
 use crate::prelude::features::*;
 use crate::prelude::i18n::*;
 use crate::prelude::utils::*;
-use serenity::all::audit_log::Action;
+use serenity::all::audit_log::{Action, Change};
 use serenity::all::{ButtonStyle, ChannelAction};
 use serenity::{
-    all::{AuditLogEntry, ChannelId, Context, EventHandler, GuildId},
+    all::{AuditLogEntry, ChannelId, Context, EventHandler, GuildId, UserId},
     async_trait,
 };
 
@@ -90,6 +90,21 @@ async fn manage_creating_ticket_via_opening_thread(
         .await;
 }
 
+fn is_bot_channel_rename(entry: &AuditLogEntry, bot_id: UserId) -> bool {
+    let Action::Channel(ChannelAction::Update) = entry.action else {
+        return false;
+    };
+    if entry.user_id != bot_id {
+        return false;
+    }
+    match entry.changes.as_deref() {
+        Some(changes) if !changes.is_empty() => changes
+            .iter()
+            .all(|change| matches!(change, Change::Name { .. })),
+        _ => false,
+    }
+}
+
 #[async_trait]
 impl EventHandler for GuildModerationHandler {
     async fn guild_audit_log_entry_create(
@@ -118,6 +133,12 @@ impl EventHandler for GuildModerationHandler {
             None => return,
         };
 
+        if self.config.logs.hide_ticket_rename_logs
+            && is_bot_channel_rename(&entry, ctx.cache.current_user().id)
+        {
+            return;
+        }
+
         let user = match entry.user_id.to_user(ctx.clone()).await {
             Ok(user) => user,
             Err(_) => {
@@ -127,5 +148,73 @@ impl EventHandler for GuildModerationHandler {
         };
 
         send_audit_log(&ctx, &self.config, &entry, &user, guild_id, logs_channel_id).await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::{Value, json};
+
+    const BOT_ID: u64 = 100;
+    const STAFF_ID: u64 = 200;
+    const CHANNEL_CREATE: u8 = 10;
+    const CHANNEL_UPDATE: u8 = 11;
+
+    fn entry(action_type: u8, user_id: u64, changes: Value) -> AuditLogEntry {
+        serde_json::from_value(json!({
+            "id": "1",
+            "target_id": "42",
+            "action_type": action_type,
+            "user_id": user_id.to_string(),
+            "changes": changes,
+        }))
+        .expect("valid audit log entry")
+    }
+
+    fn name_change() -> Value {
+        json!({ "key": "name", "old_value": "🔴・user・1m", "new_value": "🔴・user・2m" })
+    }
+
+    fn topic_change() -> Value {
+        json!({ "key": "topic", "old_value": "old", "new_value": "new" })
+    }
+
+    fn bot_id() -> UserId {
+        UserId::new(BOT_ID)
+    }
+
+    #[test]
+    fn bot_name_only_update_is_a_rename() {
+        let entry = entry(CHANNEL_UPDATE, BOT_ID, json!([name_change()]));
+        assert!(is_bot_channel_rename(&entry, bot_id()));
+    }
+
+    #[test]
+    fn staff_rename_is_kept() {
+        let entry = entry(CHANNEL_UPDATE, STAFF_ID, json!([name_change()]));
+        assert!(!is_bot_channel_rename(&entry, bot_id()));
+    }
+
+    #[test]
+    fn bot_update_touching_more_than_the_name_is_kept() {
+        let entry = entry(
+            CHANNEL_UPDATE,
+            BOT_ID,
+            json!([name_change(), topic_change()]),
+        );
+        assert!(!is_bot_channel_rename(&entry, bot_id()));
+    }
+
+    #[test]
+    fn bot_update_without_changes_is_kept() {
+        let entry = entry(CHANNEL_UPDATE, BOT_ID, json!([]));
+        assert!(!is_bot_channel_rename(&entry, bot_id()));
+    }
+
+    #[test]
+    fn bot_channel_creation_is_kept() {
+        let entry = entry(CHANNEL_CREATE, BOT_ID, json!([name_change()]));
+        assert!(!is_bot_channel_rename(&entry, bot_id()));
     }
 }

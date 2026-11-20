@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct LogsConfig {
     pub show_log_on_edit: bool,
     pub show_log_on_delete: bool,
+    #[serde(default)]
+    pub hide_ticket_rename_logs: bool,
 }
 
 impl Default for LogsConfig {
@@ -11,6 +13,7 @@ impl Default for LogsConfig {
         Self {
             show_log_on_edit: true,
             show_log_on_delete: true,
+            hide_ticket_rename_logs: false,
         }
     }
 }

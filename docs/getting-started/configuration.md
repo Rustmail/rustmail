@@ -359,6 +359,7 @@ show_success_on_delete = false
 [logs]
 show_log_on_edit = true
 show_log_on_delete = true
+hide_ticket_rename_logs = false
 
 [reminders]
 embed_color = "ffb800"
