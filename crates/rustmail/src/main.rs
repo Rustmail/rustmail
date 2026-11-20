@@ -106,7 +106,7 @@ fn print_help() {
     println!("    RUSTMAIL_PORT             Port (default: 3002)");
     println!();
     println!("DOCUMENTATION:");
-    println!("    https://docs.rustmail.rs");
+    println!("    https://rustmail-docs.akinat0r.dev");
     println!();
     println!("SOURCE CODE:");
     println!("    https://github.com/Rustmail/rustmail");

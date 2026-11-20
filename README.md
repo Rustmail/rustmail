@@ -71,7 +71,7 @@ The bot creates its SQLite database automatically on first run.
 | [Docker Deployment](docs/deployment/docker.md)         | Container deployment            |
 | [Architecture](docs/development/architecture.md)       | Technical overview              |
 
-Full documentation is available in the [docs](docs/) directory or on the [website](https://docs.rustmail.rs).
+Full documentation is available in the [docs](docs/) directory or on the [website](https://rustmail-docs.akinat0r.dev).
 
 ---
 
