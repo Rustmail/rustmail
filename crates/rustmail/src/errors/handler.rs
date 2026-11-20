@@ -14,6 +14,7 @@ pub struct ErrorHandler {
     user_languages: Arc<RwLock<HashMap<UserId, LanguagePreferences>>>,
     guild_languages: Arc<RwLock<HashMap<u64, Language>>>,
     default_language: Language,
+    command_prefix: String,
 }
 
 impl ErrorHandler {
@@ -23,6 +24,7 @@ impl ErrorHandler {
             user_languages: Arc::new(RwLock::new(HashMap::new())),
             guild_languages: Arc::new(RwLock::new(HashMap::new())),
             default_language: Language::English,
+            command_prefix: String::new(),
         }
     }
 
@@ -34,7 +36,13 @@ impl ErrorHandler {
             user_languages: Arc::new(RwLock::new(HashMap::new())),
             guild_languages: Arc::new(RwLock::new(HashMap::new())),
             default_language,
+            command_prefix: String::new(),
         }
+    }
+
+    pub fn with_command_prefix(mut self, prefix: &str) -> Self {
+        self.command_prefix = prefix.to_string();
+        self
     }
 
     pub async fn get_user_language(&self, user_id: UserId, guild_id: Option<u64>) -> Language {
@@ -74,7 +82,9 @@ impl ErrorHandler {
         };
 
         let dict_manager = self.dictionary_manager.read().await;
-        let message = dict_manager.translate_error(error, language);
+        let message = dict_manager
+            .translate_error(error, language)
+            .replace("{prefix}", &self.command_prefix);
 
         FormattedError {
             message,
