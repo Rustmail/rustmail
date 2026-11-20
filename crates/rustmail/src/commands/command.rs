@@ -48,7 +48,6 @@ pub trait Command: Send + Sync + 'static {
         false
     }
 
-    /// Slash answers are only shown to the invoking staff member, even in the staff guild.
     fn ephemeral(&self) -> bool {
         false
     }

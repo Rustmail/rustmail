@@ -32,7 +32,6 @@ impl Command for IdCommand {
         vec![CreateCommand::new("id").description(description)]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }

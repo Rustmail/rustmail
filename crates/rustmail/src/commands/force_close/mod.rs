@@ -36,7 +36,6 @@ impl Command for ForceCloseCommand {
         vec![CreateCommand::new("force_close").description(description)]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }
@@ -45,8 +44,6 @@ impl Command for ForceCloseCommand {
         Ok(())
     }
 
-    /// Deletes a channel `close` can't handle: the ticket of a user who left the server (already
-    /// closed when they left), or a channel in the inbox category with no ticket at all.
     async fn run(&self, _args: (), invocation: &Invocation, config: &Config) -> ModmailResult<()> {
         let pool = config
             .db_pool

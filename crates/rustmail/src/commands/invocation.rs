@@ -107,7 +107,6 @@ impl Invocation {
         }
     }
 
-    /// Replaces the content of a reply sent by `reply` or `reply_unrecorded`.
     pub async fn edit_reply(
         &self,
         reply: &mut Message,

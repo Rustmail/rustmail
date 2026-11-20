@@ -41,7 +41,6 @@ impl Command for VersionCommand {
         ]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }

@@ -52,7 +52,6 @@ impl Command for RenameCommand {
         parse_rename_slash(options)
     }
 
-    /// Sets or clears the label shown in the ticket channel name.
     async fn run(
         &self,
         args: RenameArgs,

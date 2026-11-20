@@ -3,16 +3,13 @@ use crate::prelude::errors::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RenameArgs {
-    /// `None` clears the label.
     pub label: Option<String>,
 }
 
-/// `[label]`: everything after the name; nothing clears the label.
 pub fn parse_rename_text(args: &str) -> ModmailResult<RenameArgs> {
     Ok(RenameArgs { label: label(args) })
 }
 
-/// Optional option `label`.
 pub fn parse_rename_slash(options: &SlashOptions) -> ModmailResult<RenameArgs> {
     Ok(RenameArgs {
         label: options.string("label").and_then(label),

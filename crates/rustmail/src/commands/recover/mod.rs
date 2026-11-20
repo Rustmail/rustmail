@@ -33,7 +33,6 @@ impl Command for RecoverCommand {
         vec![CreateCommand::new("recover").description(description)]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }
@@ -42,7 +41,6 @@ impl Command for RecoverCommand {
         Ok(())
     }
 
-    /// Fetches the DMs the bot missed while offline into their tickets, then sums it up.
     async fn run(&self, _args: (), invocation: &Invocation, config: &Config) -> ModmailResult<()> {
         config
             .db_pool

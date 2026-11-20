@@ -35,7 +35,6 @@ impl Command for PingCommand {
         vec![CreateCommand::new("ping").description(description)]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }
@@ -44,7 +43,6 @@ impl Command for PingCommand {
         Ok(())
     }
 
-    /// Measures the gateway heartbeat, a REST round trip, and how long the reply took to send.
     async fn run(&self, _args: (), invocation: &Invocation, config: &Config) -> ModmailResult<()> {
         let ctx = invocation.ctx();
         let shard_manager = ctx

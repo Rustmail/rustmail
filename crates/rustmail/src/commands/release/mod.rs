@@ -32,7 +32,6 @@ impl Command for ReleaseCommand {
         vec![CreateCommand::new("release").description(description)]
     }
 
-    /// Takes no arguments; anything after the name is ignored.
     fn parse_text(&self, _args: &str) -> ModmailResult<()> {
         Ok(())
     }
@@ -41,7 +40,6 @@ impl Command for ReleaseCommand {
         Ok(())
     }
 
-    /// Clears who handles the ticket.
     async fn run(&self, _args: (), invocation: &Invocation, config: &Config) -> ModmailResult<()> {
         let pool = config
             .db_pool
