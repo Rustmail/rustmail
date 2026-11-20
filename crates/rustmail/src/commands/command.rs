@@ -48,6 +48,11 @@ pub trait Command: Send + Sync + 'static {
         false
     }
 
+    /// Slash answers are only shown to the invoking staff member, even in the staff guild.
+    fn ephemeral(&self) -> bool {
+        false
+    }
+
     fn doc(&self, config: &Config) -> impl Future<Output = String> + Send;
 
     /// The slash and context menu definitions. Unused for `Surfaces::TextOnly`.
@@ -81,6 +86,7 @@ pub trait DynCommand: Send + Sync {
     fn aliases(&self) -> &'static [&'static str];
     fn surfaces(&self) -> Surfaces;
     fn community(&self) -> bool;
+    fn ephemeral(&self) -> bool;
     fn doc<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, String>;
     fn slash_definitions<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, Vec<CreateCommand>>;
     fn run_text<'a>(
@@ -112,6 +118,10 @@ impl<C: Command> DynCommand for C {
 
     fn community(&self) -> bool {
         Command::community(self)
+    }
+
+    fn ephemeral(&self) -> bool {
+        Command::ephemeral(self)
     }
 
     fn doc<'a>(&'a self, config: &'a Config) -> BoxFuture<'a, String> {

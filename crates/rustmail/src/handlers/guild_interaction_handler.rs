@@ -182,8 +182,14 @@ impl EventHandler for InteractionHandler {
                     Some(SlashEntry::Command(handler)) => {
                         // The dispatcher defers, so the visibility rule lives in one place and
                         // guard errors from the command can always be answered with a followup.
-                        let ephemeral = responds_ephemerally(&command, &config);
-                        if let Err(e) = defer_response(&ctx, &command, &config).await {
+                        let ephemeral =
+                            handler.ephemeral() || responds_ephemerally(&command, &config);
+                        let deferred = if ephemeral {
+                            defer_response_ephemeral(&ctx, &command).await
+                        } else {
+                            defer_response(&ctx, &command, &config).await
+                        };
+                        if let Err(e) = deferred {
                             eprintln!("Failed to defer command {}: {}", command.data.name, e);
                             return;
                         }
