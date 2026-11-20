@@ -6,3 +6,6 @@ generate-integrity = false
 stage = "post_build"
 command = "sh"
 command_arguments = ["-c", "find ../rustmail/static -name '*.wasm' -exec wasm-opt -Oz {} -o {} \\;"]
+
+[tools]
+tailwindcss = "3.3.5"
