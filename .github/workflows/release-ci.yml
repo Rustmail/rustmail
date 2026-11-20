@@ -15,7 +15,7 @@ env:
 jobs:
   build-frontend:
     name: Build Frontend (WASM)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SQLX_OFFLINE: true
     steps:
@@ -50,7 +50,7 @@ jobs:
   build-and-test:
     name: Build & Test
     needs: build-frontend
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SQLX_OFFLINE: true
     steps:
@@ -74,7 +74,7 @@ jobs:
   create-release:
     name: Create Release
     needs: build-and-test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -103,22 +103,22 @@ jobs:
         include:
           # ── Linux x86_64 (glibc) ──
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-22.04
+            os: ubuntu-24.04
           # ── Linux x86_64 (musl / static) ──
           - target: x86_64-unknown-linux-musl
-            os: ubuntu-22.04
+            os: ubuntu-24.04
           # ── Linux ARM64 (glibc) ──
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-22.04
+            os: ubuntu-24.04
           # ── Linux ARM64 (musl / static) ──
           - target: aarch64-unknown-linux-musl
-            os: ubuntu-22.04
+            os: ubuntu-24.04
           # ── macOS Intel (cross-compiled on Apple Silicon) ──
           - target: x86_64-apple-darwin
-            os: macos-14
+            os: macos-15
           # ── macOS Apple Silicon ──
           - target: aarch64-apple-darwin
-            os: macos-14
+            os: macos-15
           # ── Windows x64 ──
           - target: x86_64-pc-windows-msvc
             os: windows-latest

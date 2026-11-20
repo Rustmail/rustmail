@@ -5,7 +5,7 @@ on:
 jobs:
   build_and_test:
     name: Rustmail - latest
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SQLX_OFFLINE: true
       CARGO_TERM_COLOR: always
