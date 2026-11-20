@@ -344,6 +344,7 @@ Key settings affecting ticket behavior:
 | `close_message`        | Sent when ticket closes            |
 | `time_to_close_thread` | Default scheduled close time       |
 | `close_on_leave`       | Auto-close when user leaves server |
+| `inactivity_timeout`   | Auto-close after N quiet minutes   |
 | `embedded_message`     | Display messages as embeds         |
 | `block_quote`          | Use block quotes for messages      |
 
