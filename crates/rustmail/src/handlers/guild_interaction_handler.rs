@@ -120,11 +120,10 @@ impl EventHandler for InteractionHandler {
 
                 let ctx = ctx.clone();
                 let command = command.clone();
-                let options = command.data.options().clone();
                 let config = self.config.clone();
 
                 match self.registry.slash(command.data.name.as_str()) {
-                    Some(SlashEntry::Command(handler)) => {
+                    Some(handler) => {
                         let ephemeral =
                             handler.ephemeral() || responds_ephemerally(&command, &config);
                         let deferred = if ephemeral {
@@ -144,19 +143,6 @@ impl EventHandler for InteractionHandler {
                             .await
                         {
                             invocation.reply_error(&config, &e).await;
-                        }
-                    }
-                    Some(SlashEntry::Legacy(handler)) => {
-                        let result = handler
-                            .run(&ctx, &command, &options, &config, Arc::new(self.clone()))
-                            .await;
-
-                        if let Err(e) = result
-                            && let Some(error_handler) = &self.config.error_handler
-                        {
-                            let _ = error_handler
-                                .reply_to_command_with_error(&ctx, &command, &e)
-                                .await;
                         }
                     }
                     None => eprintln!("Command {} not found", command.data.name),

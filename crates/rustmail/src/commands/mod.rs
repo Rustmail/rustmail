@@ -1,10 +1,6 @@
 use crate::prelude::config::*;
-use crate::prelude::errors::*;
-use crate::prelude::handlers::*;
 use crate::prelude::types::*;
-use crate::wrap_command;
-use serenity::all::{CommandInteraction, Context, CreateCommand, Message, ResolvedOption};
-use std::any::Any;
+use serenity::all::CreateCommand;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -73,91 +69,30 @@ pub use version::*;
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
-pub trait RegistrableCommand: Any + Send + Sync {
-    fn as_community(&self) -> Option<&dyn CommunityRegistrable> {
-        None
-    }
-
-    fn name(&self) -> &'static str;
-
-    fn doc<'a>(&self, config: &'a Config) -> BoxFuture<'a, String>;
-
-    fn register(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>>;
-
-    fn run(
-        &self,
-        ctx: &Context,
-        command: &CommandInteraction,
-        options: &[ResolvedOption<'_>],
-        config: &Config,
-        handler: Arc<InteractionHandler>,
-    ) -> BoxFuture<'_, ModmailResult<()>>;
-}
-
-pub trait CommunityRegistrable: RegistrableCommand {
-    fn register_community(&self, config: &Config) -> BoxFuture<'_, Vec<CreateCommand>>;
-}
-
-pub type TextCommandFunc = Arc<
-    dyn for<'a> Fn(
-            Context,
-            Message,
-            &'a Config,
-            Arc<GuildMessagesHandler>,
-        ) -> BoxFuture<'a, ModmailResult<()>>
-        + Send
-        + Sync
-        + 'static,
->;
-
-pub enum SlashEntry {
-    Command(Arc<dyn DynCommand>),
-    Legacy(Arc<dyn RegistrableCommand>),
-}
-
-pub enum TextEntry {
-    Command(Arc<dyn DynCommand>),
-    Legacy(TextCommandFunc),
-}
-
 pub struct CommandCatalog {
     commands: HashMap<&'static str, Arc<dyn DynCommand>>,
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
-    legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
 }
 
 impl CommandCatalog {
     pub fn names(&self) -> Vec<&'static str> {
-        let mut names: Vec<_> = self
-            .commands
-            .keys()
-            .chain(self.legacy_slash.keys())
-            .copied()
-            .collect();
+        let mut names: Vec<_> = self.commands.keys().copied().collect();
         names.sort_unstable();
         names
     }
 
     pub async fn doc(&self, name: &str, config: &Config) -> Option<String> {
-        if let Some(command) = self
+        let command = self
             .commands
             .get(name)
-            .or_else(|| self.text_names.get(name))
-        {
-            return Some(command.doc(config).await);
-        }
-        match self.legacy_slash.get(name) {
-            Some(command) => Some(command.doc(config).await),
-            None => None,
-        }
+            .or_else(|| self.text_names.get(name))?;
+        Some(command.doc(config).await)
     }
 }
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn DynCommand>>,
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
-    legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
-    legacy_text: HashMap<&'static str, TextCommandFunc>,
 }
 
 #[derive(Clone)]
@@ -172,8 +107,6 @@ impl CommandRegistry {
         Self {
             commands: HashMap::new(),
             text_names: HashMap::new(),
-            legacy_slash: HashMap::new(),
-            legacy_text: HashMap::new(),
         }
     }
 
@@ -181,7 +114,7 @@ impl CommandRegistry {
         let command: Arc<dyn DynCommand> = Arc::new(command);
         let name = command.name();
 
-        if self.commands.contains_key(name) || self.legacy_slash.contains_key(name) {
+        if self.commands.contains_key(name) {
             panic!("command `{name}` is registered twice");
         }
         self.commands.insert(name, command.clone());
@@ -194,50 +127,25 @@ impl CommandRegistry {
         }
     }
 
-    pub fn register_legacy_command<C: RegistrableCommand + 'static>(&mut self, command: C) {
-        let name = command.name();
-        if self.commands.contains_key(name)
-            || self.legacy_slash.insert(name, Arc::new(command)).is_some()
-        {
-            panic!("slash command `{name}` is registered twice");
-        }
-    }
-
-    pub fn register_legacy_text_command(&mut self, names: &[&'static str], func: TextCommandFunc) {
-        for &name in names {
-            self.claim_text_name(name);
-            self.legacy_text.insert(name, func.clone());
-        }
-    }
-
     fn claim_text_name(&self, name: &str) {
-        if self.text_names.contains_key(name) || self.legacy_text.contains_key(name) {
+        if self.text_names.contains_key(name) {
             panic!("text command name `{name}` is registered twice");
         }
     }
 
-    pub fn slash(&self, name: &str) -> Option<SlashEntry> {
-        if let Some(command) = self.commands.get(name)
-            && command.surfaces().slash()
-        {
-            return Some(SlashEntry::Command(command.clone()));
-        }
-        self.legacy_slash.get(name).cloned().map(SlashEntry::Legacy)
+    pub fn slash(&self, name: &str) -> Option<Arc<dyn DynCommand>> {
+        self.commands
+            .get(name)
+            .filter(|command| command.surfaces().slash())
+            .cloned()
     }
 
-    pub fn text(&self, name: &str) -> Option<TextEntry> {
-        if let Some(command) = self.text_names.get(name) {
-            return Some(TextEntry::Command(command.clone()));
-        }
-        self.legacy_text.get(name).cloned().map(TextEntry::Legacy)
+    pub fn text(&self, name: &str) -> Option<Arc<dyn DynCommand>> {
+        self.text_names.get(name).cloned()
     }
 
     pub fn is_community(&self, name: &str) -> bool {
-        match self.slash(name) {
-            Some(SlashEntry::Command(command)) => command.community(),
-            Some(SlashEntry::Legacy(command)) => command.as_community().is_some(),
-            None => false,
-        }
+        self.slash(name).is_some_and(|command| command.community())
     }
 
     pub async fn slash_definitions(
@@ -257,13 +165,6 @@ impl CommandRegistry {
             }
         }
 
-        for command in self.legacy_slash.values() {
-            staff.append(&mut command.register(config).await);
-            if let Some(commu) = command.as_community() {
-                community.append(&mut commu.register_community(config).await);
-            }
-        }
-
         (staff, community)
     }
 
@@ -271,7 +172,6 @@ impl CommandRegistry {
         CommandCatalog {
             commands: self.commands.clone(),
             text_names: self.text_names.clone(),
-            legacy_slash: self.legacy_slash.clone(),
         }
     }
 }

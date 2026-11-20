@@ -206,32 +206,11 @@ impl EventHandler for GuildMessagesHandler {
                 return;
             }
 
-            match self.registry.text(command_name) {
-                Some(TextEntry::Command(command)) => {
-                    let invocation = Invocation::text(ctx.clone(), msg.clone());
-                    if let Err(error) = command.run_text(args, &invocation, &self.config).await {
-                        invocation.reply_error(&self.config, &error).await;
-                    }
+            if let Some(command) = self.registry.text(command_name) {
+                let invocation = Invocation::text(ctx.clone(), msg.clone());
+                if let Err(error) = command.run_text(args, &invocation, &self.config).await {
+                    invocation.reply_error(&self.config, &error).await;
                 }
-                Some(TextEntry::Legacy(command_func)) => {
-                    if let Err(error) = command_func(
-                        ctx.clone(),
-                        msg.clone(),
-                        &self.config.clone(),
-                        Arc::new(self.clone()),
-                    )
-                    .await
-                    {
-                        if let Some(error_handler) = &self.config.error_handler {
-                            let _ = error_handler
-                                .reply_to_msg_with_error(&ctx, &msg, &error)
-                                .await;
-                        } else {
-                            eprintln!("Command error: {}", error);
-                        }
-                    }
-                }
-                None => {}
             }
             return;
         }
