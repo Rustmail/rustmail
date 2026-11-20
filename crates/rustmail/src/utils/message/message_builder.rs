@@ -36,7 +36,6 @@ pub enum MessageSender {
 pub enum MessageTarget {
     Channel(ChannelId),
     User(UserId),
-    Reply(Box<Message>),
 }
 
 #[derive(Debug, Clone)]
@@ -158,11 +157,6 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn to_user(mut self, user_id: UserId) -> Self {
         self.target = Some(MessageTarget::User(user_id));
-        self
-    }
-
-    pub fn reply_to(mut self, message: Message) -> Self {
-        self.target = Some(MessageTarget::Reply(Box::from(message)));
         self
     }
 
@@ -436,28 +430,6 @@ impl<'a> MessageBuilder<'a> {
                 };
 
                 dm_message_id = Some(message.id.to_string());
-
-                Ok(message)
-            }
-            MessageTarget::Reply(original_message) => {
-                let db_thread_id =
-                    match get_thread_by_channel_id(&original_message.channel_id.to_string(), pool)
-                        .await
-                    {
-                        Some(thread) => Some(thread.id.clone()),
-                        None => None,
-                    };
-
-                thread_id = db_thread_id;
-
-                let message = match original_message
-                    .channel_id
-                    .send_message(&self.ctx.http, message)
-                    .await
-                {
-                    Ok(message) => message,
-                    Err(err) => return Err(ModmailError::from(err)),
-                };
 
                 Ok(message)
             }

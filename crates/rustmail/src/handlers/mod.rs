@@ -9,7 +9,6 @@ pub mod guild_moderation_handler;
 pub mod ready_handler;
 pub mod typing_proxy_handler;
 
-pub use audit_log::*;
 pub use guild_ban_handler::*;
 pub use guild_handler::*;
 pub use guild_interaction_handler::*;
