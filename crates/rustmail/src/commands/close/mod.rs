@@ -237,19 +237,13 @@ async fn log_ticket_closed(thread: &Thread, invocation: &Invocation, config: &Co
         return;
     }
 
-    let base_url = config
-        .bot
-        .redirect_url
-        .trim_end_matches("/api/auth/callback")
-        .trim_end_matches('/');
-
     let mut params = HashMap::new();
     params.insert("staff".to_string(), invocation.user_id().to_string());
     params.insert("username".to_string(), thread.user_name.clone());
     params.insert("user_id".to_string(), thread.user_id.to_string());
     params.insert(
         "panel_url".to_string(),
-        format!("{}/panel/tickets/{}", base_url, thread.id),
+        panel_ticket_url(config, &thread.id),
     );
 
     let _ = MessageBuilder::system_message(invocation.ctx(), config)
