@@ -122,7 +122,7 @@ impl Command for AnonReplyCommand {
     }
 }
 
-async fn send_staff_reply(
+pub async fn send_staff_reply(
     args: ReplyArgs,
     invocation: &Invocation,
     config: &Config,

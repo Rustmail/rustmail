@@ -238,6 +238,7 @@ impl DictionaryManager {
                 CommandError::AlertDoesNotExist => ("alert.alert_not_found".to_string(), None),
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
                 CommandError::TicketAlreadyTaken => ("take.ticket_already_taken".to_string(), None),
+                CommandError::SnippetUsage { key } => (key.to_string(), None),
                 CommandError::StaffRoleIsEveryone { removing } => {
                     let key = if *removing {
                         "add_staff.role_everyone_forbidden_remove"
