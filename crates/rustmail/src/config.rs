@@ -376,4 +376,10 @@ show_log_on_delete = true
 
         assert_eq!(reparsed.updates, config.updates);
     }
+
+    #[test]
+    fn example_config_parses() {
+        let example = include_str!("../../../config.example.toml");
+        toml::from_str::<ConfigResponse>(example).expect("config.example.toml must parse");
+    }
 }
