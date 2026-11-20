@@ -1,33 +1,34 @@
 [bot]
-token = "MTQyMjU1OTIyNjIwM.GWv0F5.v9sdNf59KZyWL0jVk_eqokcY-jnQ7X8upVBXYw"
+token = "YOUR_BOT_TOKEN"
 status = "DM FOR SUPPORT"
 welcome_message = "Message received! Our staff will get back to you as soon as possible."
 close_message = "Thank you for contacting support! Your ticket is now closed."
 typing_proxy_from_user = true
 typing_proxy_from_staff = true
-enable_logs = true
+enable_rustmail_logs = true
+enable_discord_logs = true
 enable_features = true
 enable_panel = true
-client_id = 1422559226685450
-client_secret = "YWaq7VQM28PjfoNuWJPVpcs3gWFXI"
-redirect_url = "http://192.168.2.92:3002/api/auth/callback"
+client_id = 123456789012345678
+client_secret = "YOUR_CLIENT_SECRET"
+redirect_url = "http://localhost:3002/api/auth/callback"
 timezone = "Europe/Paris"
-logs_channel_id = 14043597305635899
-features_channel_id = 14069404548309076
-ip = "http://192.168.2.92"
-panel_super_admin_users = [6891484871962727]
+logs_channel_id = 123456789012345678
+features_channel_id = 123456789012345678
+ip = "http://localhost"
+panel_super_admin_users = [123456789012345678]
 panel_super_admin_roles = []
 
 [bot.mode]
 type = "single"
-guild_id = 7118802972311856
+guild_id = 123456789012345678
 
 [command]
 prefix = "!"
 disabled = []
 
 [thread]
-inbox_category_id = 1376460638505960
+inbox_category_id = 123456789012345678
 embedded_message = true
 user_message_color = "3d54ff"
 staff_message_color = "ff3126"
@@ -40,7 +41,7 @@ auto_archive_duration = 10080
 inactivity_timeout = 0
 
 [language]
-default_language = "fr"
+default_language = "en"
 fallback_language = "en"
 supported_languages = [
     "en",
@@ -77,4 +78,4 @@ hide_ticket_rename_logs = false
 [updates]
 enabled = true
 check_interval_hours = 6
-notify_channel_id = 14043597305635899
+notify_channel_id = 123456789012345678
