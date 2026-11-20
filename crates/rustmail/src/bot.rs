@@ -128,8 +128,11 @@ pub async fn run_bot(
         pagination: pagination.clone(),
         maintenance_mode: maintenance_mode.clone(),
     };
-    let mut registry = CommandRegistry::new();
+    let mut registry = CommandRegistry::with_disabled(&config.command.disabled);
     register_all(&mut registry, &services);
+    for name in registry.unknown_disabled() {
+        eprintln!("[config] command.disabled: no command named `{name}`");
+    }
 
     let registry = Arc::new(registry);
 

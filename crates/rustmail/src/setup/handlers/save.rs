@@ -150,6 +150,7 @@ pub async fn handle_setup_save(
         bot: bot_config,
         command: CommandConfig {
             prefix: payload.command_prefix,
+            disabled: Vec::new(),
         },
         thread: ThreadConfig {
             inbox_category_id: payload.inbox_category_id,
