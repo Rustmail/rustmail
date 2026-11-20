@@ -146,9 +146,9 @@ commands/
 ├── mod.rs               # CommandRegistry and register_all
 ├── command.rs           # Command trait
 ├── invocation.rs        # Invocation: who ran a command, where, and how to reply
-├── slash_options.rs     # SlashOptions: owned slash options and context menu target
-├── close/               # Migrated: mod.rs (definition + run) and args.rs (parsers + tests)
-├── reply/               # Legacy: slash_command/, text_command/, common.rs
+├── slash_options.rs     # SlashOptions: owned slash options, subcommand path, context menu target
+├── ticket.rs            # Shared helpers: the ticket of the invoking channel, its status
+├── close/               # One folder per command: mod.rs (definition + run), args.rs (parsers + tests)
 └── ...
 ```
 
@@ -156,11 +156,14 @@ A command implements the `Command` trait once for both surfaces (slash and text)
 
 - `parse_text` turns what follows the command name into a typed `Args`, and `parse_slash` does the same from `SlashOptions`. Both are pure and unit-tested.
 - `run(args, &Invocation, &Config)` holds the behaviour. It answers with `invocation.reply(...)` or `invocation.reply_translated(...)`, and reports problems by returning an error.
-- `name`, `aliases`, `surfaces` (both, slash only, text only), `community` and `slash_definitions` describe it.
+- `name`, `aliases`, `surfaces` (both, slash only, text only), `ephemeral`, `community`, `slash_definitions` and `community_definitions` describe it.
+- Subcommands are read by `SlashOptions::subcommand()`, e.g. `["roles", "add"]` for `/category roles add`.
 
 The dispatchers (`handlers/guild_interaction_handler.rs`, `handlers/guild_messages_handler.rs`) own everything around `run`: the staff check, maintenance mode, deferring slash commands (ephemerally outside the staff guild), and answering errors on either surface. Commands never defer.
 
-Commands not migrated yet still use the legacy `RegistrableCommand` trait (slash) and `wrap_command!` (text). `CommandRegistry` serves both kinds, and panics at startup if two commands share a name or alias.
+Every command is registered in `register_all` (`commands/mod.rs`). What a command needs from the running bot (shutdown receiver, logs pagination store, maintenance flag) comes from `CommandServices` and is stored on the command struct. `CommandRegistry` panics at startup if two commands share a name or alias.
+
+Errors returned by a command are shown as an error embed in the invoker's language; `{prefix}` in an error message is replaced by the configured command prefix.
 
 ---
 
