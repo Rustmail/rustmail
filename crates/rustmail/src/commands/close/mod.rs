@@ -11,8 +11,7 @@ use crate::prelude::modules::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
 use serenity::all::{
-    Channel, ChannelId, CommandOptionType, Context, CreateCommand, CreateCommandOption, GuildId,
-    PermissionOverwriteType, RoleId, UserId,
+    ChannelId, CommandOptionType, CreateCommand, CreateCommandOption, GuildId, UserId,
 };
 use sqlx::SqlitePool;
 use std::collections::HashMap;
@@ -257,53 +256,6 @@ async fn log_ticket_closed(thread: &Thread, invocation: &Invocation, config: &Co
         .to_channel(ChannelId::new(logs_channel_id))
         .send(true)
         .await;
-}
-
-struct ChannelSnapshot {
-    category_id: String,
-    category_name: String,
-    required_permissions: u64,
-}
-
-impl ChannelSnapshot {
-    async fn take(ctx: &Context, channel_id: ChannelId) -> Self {
-        let Ok(Channel::Guild(channel)) = channel_id.to_channel(&ctx.http).await else {
-            return Self {
-                category_id: String::new(),
-                category_name: String::new(),
-                required_permissions: 0,
-            };
-        };
-
-        let guild_id = channel.guild_id;
-        let category_name = match channel.parent_id {
-            Some(parent_id) => parent_id.name(&ctx.http).await.unwrap_or_default(),
-            None => String::new(),
-        };
-
-        let everyone_role_id = RoleId::new(guild_id.get());
-        let mut required_permissions = guild_id
-            .to_partial_guild(&ctx.http)
-            .await
-            .ok()
-            .and_then(|g| g.roles.get(&everyone_role_id).map(|r| r.permissions.bits()))
-            .unwrap_or(0);
-        for overwrite in &channel.permission_overwrites {
-            if let PermissionOverwriteType::Role(_) = overwrite.kind {
-                required_permissions =
-                    (required_permissions & !overwrite.deny.bits()) | overwrite.allow.bits();
-            }
-        }
-
-        Self {
-            category_id: channel
-                .parent_id
-                .map(|id| id.to_string())
-                .unwrap_or_default(),
-            category_name,
-            required_permissions,
-        }
-    }
 }
 
 pub fn format_duration(seconds: u64) -> String {

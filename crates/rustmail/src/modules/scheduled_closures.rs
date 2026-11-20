@@ -2,7 +2,7 @@ use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::utils::*;
 use chrono::Utc;
-use serenity::all::{ChannelId, Context, UserId};
+use serenity::all::{Channel, ChannelId, Context, PermissionOverwriteType, RoleId, UserId};
 use sqlx::SqlitePool;
 use std::sync::LazyLock;
 use tokio::time::{Duration, sleep};
@@ -145,5 +145,52 @@ pub async fn hydrate_scheduled_closures(ctx: &Context, config: &Config) {
 
     for sc in list {
         schedule_one(ctx, config, sc.thread_id, sc.close_at);
+    }
+}
+
+pub struct ChannelSnapshot {
+    pub category_id: String,
+    pub category_name: String,
+    pub required_permissions: u64,
+}
+
+impl ChannelSnapshot {
+    pub async fn take(ctx: &Context, channel_id: ChannelId) -> Self {
+        let Ok(Channel::Guild(channel)) = channel_id.to_channel(&ctx.http).await else {
+            return Self {
+                category_id: String::new(),
+                category_name: String::new(),
+                required_permissions: 0,
+            };
+        };
+
+        let guild_id = channel.guild_id;
+        let category_name = match channel.parent_id {
+            Some(parent_id) => parent_id.name(&ctx.http).await.unwrap_or_default(),
+            None => String::new(),
+        };
+
+        let everyone_role_id = RoleId::new(guild_id.get());
+        let mut required_permissions = guild_id
+            .to_partial_guild(&ctx.http)
+            .await
+            .ok()
+            .and_then(|g| g.roles.get(&everyone_role_id).map(|r| r.permissions.bits()))
+            .unwrap_or(0);
+        for overwrite in &channel.permission_overwrites {
+            if let PermissionOverwriteType::Role(_) = overwrite.kind {
+                required_permissions =
+                    (required_permissions & !overwrite.deny.bits()) | overwrite.allow.bits();
+            }
+        }
+
+        Self {
+            category_id: channel
+                .parent_id
+                .map(|id| id.to_string())
+                .unwrap_or_default(),
+            category_name,
+            required_permissions,
+        }
     }
 }
