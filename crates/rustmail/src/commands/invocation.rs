@@ -107,6 +107,27 @@ impl Invocation {
         }
     }
 
+    /// Replaces the content of a reply sent by `reply` or `reply_unrecorded`.
+    pub async fn edit_reply(
+        &self,
+        reply: &mut Message,
+        builder: MessageBuilder<'_>,
+    ) -> ModmailResult<()> {
+        match &self.source {
+            Source::Slash { command, .. } => {
+                let edit = builder.build_interaction_message_followup().await;
+                *reply = command
+                    .edit_followup(&self.ctx.http, reply.id, edit)
+                    .await?;
+            }
+            Source::Text(_) => {
+                let edit = builder.build_edit_message().await;
+                reply.edit(&self.ctx.http, edit).await?;
+            }
+        }
+        Ok(())
+    }
+
     /// Answers with a translated system message, in the invoking user's language.
     pub async fn reply_translated(
         &self,
