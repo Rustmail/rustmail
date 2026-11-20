@@ -284,6 +284,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(BaninfoCommand);
     registry.register(AddStaffCommand);
     registry.register(RemoveStaffCommand);
+    registry.register(ReminderSubscriptionCommand);
 
     registry.register_legacy_command(AlertCommand);
     registry.register_legacy_command(EditCommand);
@@ -291,7 +292,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
     registry.register_legacy_command(AddReminderCommand);
-    registry.register_legacy_command(ReminderSubscriptionCommand);
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
     registry.register_legacy_command(CategoryCommand);
