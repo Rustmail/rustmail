@@ -281,6 +281,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(ReplyCommand);
     registry.register(AnonReplyCommand);
     registry.register(VersionCommand);
+    registry.register(IdCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -288,7 +289,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(EditCommand);
     registry.register_legacy_command(ForceCloseCommand);
     registry.register_legacy_command(HelpCommand);
-    registry.register_legacy_command(IdCommand);
     registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
     registry.register_legacy_command(RecoverCommand);
@@ -314,7 +314,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["force_close", "fc"], force_close);
     wrap_command!(registry, ["addmod", "am"], add_staff);
     wrap_command!(registry, ["delmod", "dm"], remove_staff);
-    wrap_command!(registry, "id", id);
     wrap_command!(registry, "help", help);
     wrap_command!(registry, ["remind", "rem"], add_reminder);
     wrap_command!(registry, "logs", logs);
