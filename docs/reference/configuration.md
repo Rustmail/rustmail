@@ -218,11 +218,11 @@ Control feedback messages shown to staff.
 
 Control what actions are logged.
 
-| Option               | Type | Required | Default | Description           |
-|----------------------|------|----------|---------|-----------------------|
-| `show_log_on_edit`   | bool | Yes      | `true`  | Log message edits     |
-| `show_log_on_delete` | bool | Yes      | `true`  | Log message deletions |
-| `hide_ticket_rename_logs` | bool | No | `false` | Hide audit logs for ticket channel renames made by the bot (status and elapsed time) |
+| Option                    | Type | Required | Default | Description                                                                                         |
+|---------------------------|------|----------|---------|-----------------------------------------------------------------------------------------------------|
+| `show_log_on_edit`        | bool | Yes      | `true`  | Log message edits                                                                                   |
+| `show_log_on_delete`      | bool | Yes      | `true`  | Log message deletions                                                                               |
+| `hide_ticket_rename_logs` | bool | No       | `false` | Hide audit logs for channel renames made by the bot (ticket status, elapsed time, `rename` command) |
 
 ---
 
