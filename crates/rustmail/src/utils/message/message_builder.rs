@@ -901,46 +901,6 @@ impl<'a> StaffReply<'a> {
         }
         Ok(())
     }
-
-    pub async fn send_msg_and_record(
-        self,
-        pool: &SqlitePool,
-    ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self.thread_channel()?;
-        let top_role_name = self.get_top_role_name(thread_channel).await;
-
-        let thread_msg = self
-            .thread_message(&top_role_name)
-            .to_channel(thread_channel)
-            .send(false)
-            .await?;
-
-        Ok(self
-            .deliver_and_record(thread_msg, top_role_name, pool)
-            .await)
-    }
-
-    pub async fn send_command_and_record(
-        self,
-        command: &CommandInteraction,
-        pool: &SqlitePool,
-    ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self.thread_channel()?;
-        let top_role_name = self.get_top_role_name(thread_channel).await;
-
-        let response = self
-            .thread_message(&top_role_name)
-            .build_interaction_message_followup()
-            .await;
-        let thread_msg = command
-            .create_followup(&self.ctx.http, response)
-            .await
-            .map_err(ModmailError::from)?;
-
-        Ok(self
-            .deliver_and_record(thread_msg, top_role_name, pool)
-            .await)
-    }
 }
 
 pub struct UserIncoming<'a> {
