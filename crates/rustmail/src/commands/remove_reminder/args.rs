@@ -6,7 +6,6 @@ pub struct RemoveReminderArgs {
     pub id: i64,
 }
 
-/// `<reminder_id>`
 pub fn parse_remove_reminder_text(args: &str) -> ModmailResult<RemoveReminderArgs> {
     if args.is_empty() {
         return Err(ModmailError::Command(CommandError::MissingArguments));
@@ -17,7 +16,6 @@ pub fn parse_remove_reminder_text(args: &str) -> ModmailResult<RemoveReminderArg
     }
 }
 
-/// Option `id`, registered as a number: anything but a positive whole number is rejected.
 pub fn parse_remove_reminder_slash(options: &SlashOptions) -> ModmailResult<RemoveReminderArgs> {
     let value = options
         .number("id")

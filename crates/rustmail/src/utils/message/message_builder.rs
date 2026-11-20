@@ -789,8 +789,6 @@ impl<'a> StaffReply<'a> {
         }
     }
 
-    /// The copy posted in the ticket channel. Anonymous replies still name the staff member
-    /// there, so other staff know who answered.
     fn thread_message(&self, top_role_name: &Option<String>) -> MessageBuilder<'a> {
         let mut builder = if self.is_anonymous {
             MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
@@ -819,7 +817,6 @@ impl<'a> StaffReply<'a> {
             .add_attachments(self.attachments.clone())
     }
 
-    /// Sends the DM once the ticket copy is posted, then records both.
     async fn deliver_and_record(
         self,
         thread_msg: Message,
@@ -853,7 +850,6 @@ impl<'a> StaffReply<'a> {
             .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply").into())
     }
 
-    /// Posts the ticket copy as the answer to the invocation, then DMs the user.
     pub async fn send_and_record(
         self,
         invocation: &Invocation,

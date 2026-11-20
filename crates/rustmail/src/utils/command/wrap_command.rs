@@ -1,4 +1,3 @@
-/// Registers a text command function under one or more names: `wrap_command!(registry, ["close", "c"], close)`.
 #[macro_export]
 macro_rules! wrap_command {
     ($registry:expr, [$($name:expr),+], $func:expr) => {{

@@ -13,7 +13,6 @@ use chrono::Utc;
 use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, GuildId, UserId};
 use std::collections::HashMap;
 
-/// `/reply`, `!reply`, `!r`: answers the user of the ticket.
 pub struct ReplyCommand;
 
 impl Command for ReplyCommand {
@@ -88,7 +87,6 @@ impl Command for ReplyCommand {
     }
 }
 
-/// `!anonreply`, `!ar`: an anonymous reply. On slash it's `/reply anonymous:true`.
 pub struct AnonReplyCommand;
 
 impl Command for AnonReplyCommand {
@@ -124,7 +122,6 @@ impl Command for AnonReplyCommand {
     }
 }
 
-/// Posts the reply in the ticket and DMs it to the user, numbered and recorded.
 async fn send_staff_reply(
     args: ReplyArgs,
     invocation: &Invocation,
@@ -175,7 +172,6 @@ async fn send_staff_reply(
     ticket_status.last_message_at = Utc::now().timestamp();
     update_thread_status_db(&thread.id, &ticket_status, pool).await?;
 
-    // The text command is replaced by the numbered staff message.
     if let Some(message) = invocation.message() {
         let _ = message.delete(&ctx.http).await;
     }

@@ -5,14 +5,11 @@ use serenity::all::Attachment;
 #[derive(Debug, Clone, Default)]
 pub struct ReplyArgs {
     pub content: Option<String>,
-    /// Key of a snippet whose content replaces `content`.
     pub snippet: Option<String>,
-    /// Slash attachment option. Text replies take the invoking message's attachments instead.
     pub attachments: Vec<Attachment>,
     pub anonymous: bool,
 }
 
-/// `<message>`, or `{{snippet_key}}` to send a snippet.
 pub fn parse_reply_text(args: &str, anonymous: bool) -> ModmailResult<ReplyArgs> {
     let snippet = args
         .strip_prefix("{{")
@@ -27,7 +24,6 @@ pub fn parse_reply_text(args: &str, anonymous: bool) -> ModmailResult<ReplyArgs>
     })
 }
 
-/// Options `message`, `snippet`, `attachment` and `anonymous`.
 pub fn parse_reply_slash(options: &SlashOptions) -> ModmailResult<ReplyArgs> {
     Ok(ReplyArgs {
         content: options.string("message").map(str::to_string),

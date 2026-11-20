@@ -239,8 +239,6 @@ impl EventHandler for GuildMessagesHandler {
         if let Some((command_name, args)) =
             split_text_command(&msg.content, &self.config.command.prefix)
         {
-            // Text commands are staff-only, like the slash commands (which are not even
-            // registered in the community guild). Ignore everyone else silently.
             if let Some(guild_id) = msg.guild_id
                 && !is_staff_member(&ctx, &self.config, guild_id, msg.author.id).await
             {

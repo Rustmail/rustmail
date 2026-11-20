@@ -4,15 +4,12 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-/// Whether the answer to a slash command is ephemeral: outside the staff guild (community guild in
-/// dual mode) only the invoking staff member sees the bot's answer (and any error).
 pub fn responds_ephemerally(command: &CommandInteraction, config: &Config) -> bool {
     command
         .guild_id
         .is_some_and(|id| id.get() != config.bot.get_staff_guild_id())
 }
 
-/// Defers a slash command, ephemerally when `responds_ephemerally` says so.
 pub async fn defer_response(
     ctx: &Context,
     command: &CommandInteraction,

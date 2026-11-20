@@ -111,17 +111,13 @@ pub type TextCommandFunc = Arc<
         + 'static,
 >;
 
-/// A command found by its slash name.
 pub enum SlashEntry {
     Command(Arc<dyn DynCommand>),
-    /// Not yet migrated to `Command`.
     Legacy(Arc<dyn RegistrableCommand>),
 }
 
-/// A command found by its text name or alias.
 pub enum TextEntry {
     Command(Arc<dyn DynCommand>),
-    /// Not yet migrated to `Command`.
     Legacy(TextCommandFunc),
 }
 
@@ -150,8 +146,6 @@ impl CommandRegistry {
         self._shutdown.clone()
     }
 
-    /// Registers a command on the surfaces it supports, under its name and aliases.
-    /// Panics if a name or alias is already taken.
     pub fn register<C: Command>(&mut self, command: C) {
         let command: Arc<dyn DynCommand> = Arc::new(command);
         let name = command.name();
@@ -169,7 +163,6 @@ impl CommandRegistry {
         }
     }
 
-    /// Panics if the name is already registered.
     pub fn register_legacy_command<C: RegistrableCommand + 'static>(&mut self, command: C) {
         let name = command.name();
         if self.commands.contains_key(name)
@@ -179,7 +172,6 @@ impl CommandRegistry {
         }
     }
 
-    /// Registers a legacy text command under its names. Panics if a name is already taken.
     pub fn register_legacy_text_command(&mut self, names: &[&'static str], func: TextCommandFunc) {
         for &name in names {
             self.claim_text_name(name);
@@ -209,7 +201,6 @@ impl CommandRegistry {
         self.legacy_text.get(name).cloned().map(TextEntry::Legacy)
     }
 
-    /// Whether the slash command is also registered in the community guild.
     pub fn is_community(&self, name: &str) -> bool {
         match self.slash(name) {
             Some(SlashEntry::Command(command)) => command.community(),
@@ -218,7 +209,6 @@ impl CommandRegistry {
         }
     }
 
-    /// Slash definitions for the staff guild and for the community guild.
     pub async fn slash_definitions(
         &self,
         config: &Config,
@@ -247,8 +237,6 @@ impl CommandRegistry {
         (staff, community)
     }
 
-    /// Names listed by help, sorted. Legacy text-only commands aren't listed: their text names
-    /// can't be told apart from the aliases of slash commands.
     pub fn names(&self) -> Vec<&'static str> {
         let mut names: Vec<_> = self
             .commands
@@ -260,7 +248,6 @@ impl CommandRegistry {
         names
     }
 
-    /// The help text of a command, found by name or text alias.
     pub async fn doc(&self, name: &str, config: &Config) -> Option<String> {
         if let Some(command) = self
             .commands
@@ -276,7 +263,6 @@ impl CommandRegistry {
     }
 }
 
-/// Registers every command, slash and text. Called once when the bot starts.
 pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(CloseCommand);
     registry.register(RemoveReminderCommand);
@@ -330,7 +316,6 @@ mod tests {
     fn every_command_name_and_alias_is_unique() {
         let (_tx, rx) = tokio::sync::watch::channel(false);
         let mut registry = CommandRegistry::new(rx, PaginationStore::default());
-        // register_* panic on a duplicate name or alias.
         register_all(&mut registry);
     }
 }

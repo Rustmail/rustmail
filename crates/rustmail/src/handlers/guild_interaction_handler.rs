@@ -123,10 +123,6 @@ impl EventHandler for InteractionHandler {
                 }
             }
             Interaction::Command(command) => {
-                // Every command is staff-only. Discord registration alone doesn't enforce it:
-                // in single mode everything lives in the shared guild, and community commands
-                // are visible to every community member. Community commands may be run from
-                // either guild, the others only from the staff guild.
                 let community_command = self.registry.is_community(command.data.name.as_str());
                 let is_staff = match command.guild_id {
                     Some(_) if community_command => {
@@ -180,8 +176,6 @@ impl EventHandler for InteractionHandler {
 
                 match self.registry.slash(command.data.name.as_str()) {
                     Some(SlashEntry::Command(handler)) => {
-                        // The dispatcher defers, so the visibility rule lives in one place and
-                        // guard errors from the command can always be answered with a followup.
                         let ephemeral =
                             handler.ephemeral() || responds_ephemerally(&command, &config);
                         let deferred = if ephemeral {

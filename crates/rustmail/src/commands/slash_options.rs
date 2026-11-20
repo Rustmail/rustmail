@@ -4,7 +4,6 @@ use serenity::all::{
 };
 use std::collections::HashMap;
 
-/// A slash option value, owned so `Command::parse_slash` can be tested without serenity types.
 #[derive(Debug, Clone)]
 pub enum OptionValue {
     String(String),
@@ -17,8 +16,6 @@ pub enum OptionValue {
     Attachment(Box<Attachment>),
 }
 
-/// What a context menu command was used on.
-// Read once the context menu commands migrate to `Command`.
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum SlashTarget {
@@ -26,14 +23,12 @@ pub enum SlashTarget {
     Message(Box<Message>),
 }
 
-/// The options of a slash command (and the target of a context menu command).
 #[derive(Debug, Clone, Default)]
 pub struct SlashOptions {
     values: HashMap<String, OptionValue>,
     target: Option<SlashTarget>,
 }
 
-// Accessors for every option kind; commands use the ones they need.
 #[allow(dead_code)]
 impl SlashOptions {
     pub fn from_interaction(command: &CommandInteraction) -> Self {

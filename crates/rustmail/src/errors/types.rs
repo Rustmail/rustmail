@@ -82,7 +82,6 @@ pub enum CommandError {
 #[derive(Debug, Clone)]
 pub enum ThreadError {
     ThreadNotFound,
-    /// Carries the user's name.
     UserNotInTheServer(String),
     UserStillInServer,
     NotAThreadChannel,

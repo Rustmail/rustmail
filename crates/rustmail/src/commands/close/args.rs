@@ -6,18 +6,15 @@ use std::time::Duration;
 pub enum CloseAction {
     Now,
     After(Duration),
-    /// Cancel the scheduled closure.
     Cancel,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CloseArgs {
     pub action: CloseAction,
-    /// Don't send the close message to the user.
     pub silent: bool,
 }
 
-/// `[duration] [-s|--silent] [cancel|-c|--cancel]`, in any order. `cancel` wins over a duration.
 pub fn parse_close_text(args: &str) -> ModmailResult<CloseArgs> {
     let mut silent = false;
     let mut cancel = false;
@@ -46,7 +43,6 @@ pub fn parse_close_text(args: &str) -> ModmailResult<CloseArgs> {
     })
 }
 
-/// Options `time_before_close`, `silent` and `cancel`.
 pub fn parse_close_slash(options: &SlashOptions) -> ModmailResult<CloseArgs> {
     let duration = match options.string("time_before_close") {
         Some(spec) => Some(parse_duration_spec(spec).ok_or_else(|| invalid_arguments(spec))?),
@@ -71,7 +67,6 @@ fn invalid_arguments(arg: &str) -> ModmailError {
     ModmailError::Command(CommandError::InvalidArguments(arg.to_string()))
 }
 
-/// Parses `1d2h30m10s`-style durations; a trailing bare number counts as seconds.
 pub fn parse_duration_spec(spec: &str) -> Option<Duration> {
     if spec.is_empty() {
         return None;

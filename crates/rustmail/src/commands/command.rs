@@ -4,7 +4,6 @@ use crate::prelude::errors::*;
 use serenity::all::CreateCommand;
 use std::future::Future;
 
-/// Where a command can be run from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Surfaces {
     Both,
@@ -22,19 +21,11 @@ impl Surfaces {
     }
 }
 
-/// One action staff can run, written once for both surfaces.
-///
-/// Each surface only parses its input into `Args`; `run` holds the behaviour. The dispatchers
-/// own everything around it: the staff and maintenance checks, deferring slash commands (with the
-/// ephemeral rule), and answering errors returned by `parse_*` or `run`. So a command never
-/// defers, and reports problems by returning an error rather than sending a message itself.
 pub trait Command: Send + Sync + 'static {
     type Args: Send;
 
-    /// The slash command name, also the main text name.
     fn name(&self) -> &'static str;
 
-    /// Extra text names.
     fn aliases(&self) -> &'static [&'static str] {
         &[]
     }
@@ -43,7 +34,6 @@ pub trait Command: Send + Sync + 'static {
         Surfaces::Both
     }
 
-    /// Also registered in the community guild (dual mode). Still staff-only.
     fn community(&self) -> bool {
         false
     }
@@ -54,7 +44,6 @@ pub trait Command: Send + Sync + 'static {
 
     fn doc(&self, config: &Config) -> impl Future<Output = String> + Send;
 
-    /// The slash and context menu definitions. Unused for `Surfaces::TextOnly`.
     fn slash_definitions(
         &self,
         _config: &Config,
@@ -62,7 +51,6 @@ pub trait Command: Send + Sync + 'static {
         async { Vec::new() }
     }
 
-    /// Parses what follows the command name in a text command.
     fn parse_text(&self, _args: &str) -> ModmailResult<Self::Args> {
         Err(invalid_command())
     }
@@ -79,7 +67,6 @@ pub trait Command: Send + Sync + 'static {
     ) -> impl Future<Output = ModmailResult<()>> + Send;
 }
 
-/// Object-safe form of `Command`, stored by the registry.
 pub trait DynCommand: Send + Sync {
     fn name(&self) -> &'static str;
     fn aliases(&self) -> &'static [&'static str];

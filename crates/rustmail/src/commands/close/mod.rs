@@ -223,7 +223,6 @@ async fn close_now(
     Ok(())
 }
 
-/// Seconds left before the thread's scheduled closure, if one is still pending.
 async fn remaining_scheduled_seconds(thread_id: &str, pool: &SqlitePool) -> Option<i64> {
     let existing = get_scheduled_closure(thread_id, pool).await.ok()??;
     let remaining = existing.close_at - Utc::now().timestamp();
@@ -266,11 +265,9 @@ async fn log_ticket_closed(thread: &Thread, invocation: &Invocation, config: &Co
         .await;
 }
 
-/// What a closed thread remembers of its channel, so it can be reopened in the same place.
 struct ChannelSnapshot {
     category_id: String,
     category_name: String,
-    /// `@everyone` permissions with the role overwrites applied.
     required_permissions: u64,
 }
 

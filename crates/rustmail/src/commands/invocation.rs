@@ -4,14 +4,12 @@ use crate::prelude::utils::*;
 use serenity::all::{ChannelId, CommandInteraction, Context, GuildId, Message, User, UserId};
 use std::collections::HashMap;
 
-/// One run of a `Command`, from either surface. Knows who ran it, where, and how to answer.
 pub struct Invocation {
     ctx: Context,
     source: Source,
 }
 
 enum Source {
-    /// Already deferred by the dispatcher; `ephemeral` is the visibility it deferred with.
     Slash {
         command: Box<CommandInteraction>,
         ephemeral: bool,
@@ -19,7 +17,6 @@ enum Source {
     Text(Box<Message>),
 }
 
-// Accessors for what commands may need; each command uses a subset.
 #[allow(dead_code)]
 impl Invocation {
     pub fn slash(ctx: Context, command: CommandInteraction, ephemeral: bool) -> Self {
@@ -68,8 +65,6 @@ impl Invocation {
         }
     }
 
-    /// The invoking message, for text commands that need more than the arguments
-    /// (attachments, the message being replied to).
     pub fn message(&self) -> Option<&Message> {
         match &self.source {
             Source::Text(message) => Some(message),
@@ -84,13 +79,10 @@ impl Invocation {
         }
     }
 
-    /// Answers the invocation: a followup for slash commands, a message in the invoking channel
-    /// for text commands. The message is recorded in the ticket when the channel is one.
     pub async fn reply(&self, builder: MessageBuilder<'_>) -> ModmailResult<Message> {
         self.post(builder, true).await
     }
 
-    /// Like `reply`, for callers that record the message themselves (staff replies).
     pub async fn reply_unrecorded(&self, builder: MessageBuilder<'_>) -> ModmailResult<Message> {
         self.post(builder, false).await
     }
@@ -127,7 +119,6 @@ impl Invocation {
         Ok(())
     }
 
-    /// Answers with a translated system message, in the invoking user's language.
     pub async fn reply_translated(
         &self,
         config: &Config,
@@ -145,7 +136,6 @@ impl Invocation {
         self.reply(builder).await
     }
 
-    /// Answers with an error embed. Used by the dispatchers when a command returns an error.
     pub async fn reply_error(&self, config: &Config, error: &ModmailError) {
         let Some(error_handler) = &config.error_handler else {
             eprintln!("Command error: {}", error);

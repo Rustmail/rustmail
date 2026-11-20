@@ -1,5 +1,3 @@
-/// Splits a prefixed message into the command name and its trimmed arguments.
-/// Returns `None` when the message doesn't start with the prefix.
 pub fn split_text_command<'a>(content: &'a str, prefix: &str) -> Option<(&'a str, &'a str)> {
     let rest = content.strip_prefix(prefix)?;
     match rest.find(char::is_whitespace) {
