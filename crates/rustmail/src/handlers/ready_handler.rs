@@ -150,6 +150,7 @@ impl EventHandler for ReadyHandler {
             println!("[startup] Starting background tasks");
             load_reminders(&ctx, &self.config, &pool.clone(), self.shutdown.clone()).await;
             update_threads_status(&ctx, &pool.clone(), (*self.shutdown).clone());
+            close_inactive_tickets(&ctx, &self.config, (*self.shutdown).clone());
         } else {
             println!("[startup] New gateway session, background tasks already running");
         }

@@ -14,6 +14,8 @@ pub struct ThreadConfig {
     pub close_on_leave: bool,
     #[serde(default = "default_auto_archive_duration")]
     pub auto_archive_duration: u16,
+    #[serde(default)]
+    pub inactivity_timeout: u64,
 }
 
 fn default_close_on_leave() -> bool {
@@ -37,6 +39,7 @@ impl Default for ThreadConfig {
             create_ticket_by_create_channel: false,
             close_on_leave: false,
             auto_archive_duration: 10080,
+            inactivity_timeout: 0,
         }
     }
 }

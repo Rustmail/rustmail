@@ -155,13 +155,17 @@ pub struct ChannelSnapshot {
 }
 
 impl ChannelSnapshot {
+    pub fn empty() -> Self {
+        Self {
+            category_id: String::new(),
+            category_name: String::new(),
+            required_permissions: 0,
+        }
+    }
+
     pub async fn take(ctx: &Context, channel_id: ChannelId) -> Self {
         let Ok(Channel::Guild(channel)) = channel_id.to_channel(&ctx.http).await else {
-            return Self {
-                category_id: String::new(),
-                category_name: String::new(),
-                required_permissions: 0,
-            };
+            return Self::empty();
         };
 
         let guild_id = channel.guild_id;

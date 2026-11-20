@@ -163,6 +163,7 @@ pub async fn handle_setup_save(
             create_ticket_by_create_channel: payload.create_ticket_by_create_channel,
             close_on_leave: payload.close_on_leave,
             auto_archive_duration: payload.auto_archive_duration,
+            inactivity_timeout: 0,
         },
         language: LanguageConfig {
             default_language: payload.default_language.clone(),
