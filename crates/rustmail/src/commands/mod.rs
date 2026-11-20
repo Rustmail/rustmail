@@ -285,6 +285,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(VersionCommand);
     registry.register(IdCommand);
     registry.register(PingCommand);
+    registry.register(TakeCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -299,7 +300,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(AddReminderCommand);
     registry.register_legacy_command(ReminderSubscriptionCommand);
     registry.register_legacy_command(LogsCommand);
-    registry.register_legacy_command(TakeCommand);
     registry.register_legacy_command(ReleaseCommand);
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
@@ -319,7 +319,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, "help", help);
     wrap_command!(registry, ["remind", "rem"], add_reminder);
     wrap_command!(registry, "logs", logs);
-    wrap_command!(registry, "take", take);
     wrap_command!(registry, "release", release);
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
