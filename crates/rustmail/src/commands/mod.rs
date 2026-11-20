@@ -301,20 +301,19 @@ pub fn register_all(registry: &mut CommandRegistry, services: &CommandServices) 
     registry.register(AddReminderCommand {
         shutdown: services.shutdown.clone(),
     });
+    registry.register(MoveCommand);
     registry.register(StatusCommand {
         maintenance_mode: services.maintenance_mode.clone(),
     });
 
     registry.register_legacy_command(AlertCommand);
     registry.register_legacy_command(EditCommand);
-    registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(CategoryCommand);
 
     wrap_command!(registry, ["edit", "e"], edit);
     wrap_command!(registry, "alert", alert);
-    wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "category", category_command);
