@@ -137,7 +137,10 @@ pub fn load_config(path: &str) -> Option<Config> {
 
     let default_lang = config_response.language.get_default_language();
     let fallback_lang = config_response.language.get_fallback_language();
-    let error_handler = Arc::new(ErrorHandler::with_languages(default_lang, fallback_lang));
+    let error_handler = Arc::new(
+        ErrorHandler::with_languages(default_lang, fallback_lang)
+            .with_command_prefix(&config_response.command.prefix),
+    );
 
     Some(Config {
         bot,

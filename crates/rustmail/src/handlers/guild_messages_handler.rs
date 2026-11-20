@@ -4,10 +4,8 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::modules::*;
-use crate::prelude::types::*;
 use crate::prelude::utils::*;
-use crate::wrap_command;
-use serenity::all::{GuildId, MessageId, Permissions, UserId};
+use serenity::all::{GuildId, MessageId, UserId};
 use serenity::{
     all::{ChannelId, Context, EventHandler, Message, MessageUpdateEvent},
     async_trait,
@@ -15,82 +13,29 @@ use serenity::{
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use tokio::sync::Mutex as AsyncMutex;
-use tokio::sync::watch::Receiver;
+use std::{collections::HashMap, sync::Arc};
 
 static SUPPRESSED_DELETES: LazyLock<Mutex<HashSet<u64>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
 
-type CommandFunc = Arc<StaticCommandFunc>;
-type StaticCommandFunc = dyn for<'a> Fn(
-        Context,
-        Message,
-        &'a Config,
-        Arc<GuildMessagesHandler>,
-    ) -> Pin<Box<dyn Future<Output = ModmailResult<()>> + Send + 'a>>
-    + Send
-    + Sync
-    + 'static;
-
 #[derive(Clone)]
 pub struct GuildMessagesHandler {
     pub config: Arc<Config>,
-    pub commands: Arc<AsyncMutex<HashMap<String, CommandFunc>>>,
     pub registry: Arc<CommandRegistry>,
-    pub shutdown: Arc<Receiver<bool>>,
-    pub pagination: PaginationStore,
     pub maintenance_mode: Arc<AtomicBool>,
 }
 
 impl GuildMessagesHandler {
-    pub async fn new(
+    pub fn new(
         config: &Config,
         registry: Arc<CommandRegistry>,
-        shutdown: Receiver<bool>,
-        pagination: PaginationStore,
         maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
-        let h = Self {
+        Self {
             config: Arc::new(config.clone()),
-            commands: Arc::new(AsyncMutex::new(HashMap::new())),
             registry,
-            shutdown: Arc::new(shutdown),
-            pagination,
             maintenance_mode,
-        };
-
-        let mut lock = h.commands.lock().await;
-
-        wrap_command!(lock, ["reply", "r"], reply);
-        wrap_command!(lock, ["edit", "e"], edit);
-        wrap_command!(lock, ["close", "c"], close);
-        wrap_command!(lock, "recover", recover);
-        wrap_command!(lock, "alert", alert);
-        wrap_command!(lock, ["move", "mv"], move_thread);
-        wrap_command!(lock, ["nt", "new_thread"], new_thread);
-        wrap_command!(lock, "delete", delete);
-        wrap_command!(lock, ["anonreply", "ar"], anonreply);
-        wrap_command!(lock, ["force_close", "fc"], force_close);
-        wrap_command!(lock, ["addmod", "am"], add_staff);
-        wrap_command!(lock, ["delmod", "dm"], remove_staff);
-        wrap_command!(lock, "id", id);
-        wrap_command!(lock, "help", help);
-        wrap_command!(lock, ["remind", "rem"], add_reminder);
-        wrap_command!(lock, ["unremind", "urem"], remove_reminder);
-        wrap_command!(lock, "logs", logs);
-        wrap_command!(lock, "take", take);
-        wrap_command!(lock, "release", release);
-        wrap_command!(lock, "ping", ping);
-        wrap_command!(lock, ["snippet", "s"], snippet_command);
-        wrap_command!(lock, "status", status_command);
-        wrap_command!(lock, "category", category_command);
-        wrap_command!(lock, ["rename", "rn"], rename_ticket);
-        wrap_command!(lock, ["baninfo", "bi"], baninfo);
-        wrap_command!(lock, ["version", "v"], version);
-
-        drop(lock);
-        h
+        }
     }
 }
 
@@ -209,49 +154,6 @@ async fn manage_incoming_message(
     Ok(())
 }
 
-async fn is_user_maintenance_exempt(ctx: &Context, msg: &Message, config: &Config) -> bool {
-    let user_id = msg.author.id.get();
-
-    if config.bot.panel_super_admin_users.contains(&user_id) {
-        return true;
-    }
-
-    let guild_id = match msg.guild_id {
-        Some(id) => id,
-        None => return false,
-    };
-
-    let member = match guild_id.member(&ctx.http, msg.author.id).await {
-        Ok(m) => m,
-        Err(_) => return false,
-    };
-
-    if !config.bot.panel_super_admin_roles.is_empty() {
-        for role_id in &member.roles {
-            if config.bot.panel_super_admin_roles.contains(&role_id.get()) {
-                return true;
-            }
-        }
-    }
-
-    let guild = match guild_id.to_partial_guild(&ctx.http).await {
-        Ok(g) => g,
-        Err(_) => return false,
-    };
-
-    if guild.owner_id == msg.author.id {
-        return true;
-    }
-
-    member.roles.iter().any(|role_id| {
-        guild
-            .roles
-            .get(role_id)
-            .map(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
-            .unwrap_or(false)
-    })
-}
-
 #[async_trait]
 impl EventHandler for GuildMessagesHandler {
     async fn message(&self, ctx: Context, msg: Message) {
@@ -283,16 +185,9 @@ impl EventHandler for GuildMessagesHandler {
             return;
         }
 
-        let message_content = &msg.content;
-        if message_content.starts_with(&self.config.command.prefix) {
-            let mut command_name = &message_content[1..];
-
-            if let Some(i) = message_content.find(" ") {
-                command_name = &message_content[self.config.command.prefix.len()..i];
-            }
-
-            // Text commands are staff-only, like the slash commands (which are not even
-            // registered in the community guild). Ignore everyone else silently.
+        if let Some((command_name, args)) =
+            split_text_command(&msg.content, &self.config.command.prefix)
+        {
             if let Some(guild_id) = msg.guild_id
                 && !is_staff_member(&ctx, &self.config, guild_id, msg.author.id).await
             {
@@ -300,7 +195,7 @@ impl EventHandler for GuildMessagesHandler {
             }
 
             if self.maintenance_mode.load(Ordering::Relaxed)
-                && !is_user_maintenance_exempt(&ctx, &msg, &self.config).await
+                && !is_bot_admin(&ctx, &self.config, msg.guild_id, msg.author.id).await
             {
                 let _ = MessageBuilder::system_message(&ctx, &self.config)
                     .translated_content("status.maintenance_mode_active", None, None, None)
@@ -311,23 +206,10 @@ impl EventHandler for GuildMessagesHandler {
                 return;
             }
 
-            let commands_lock = self.commands.lock().await;
-
-            if let Some(command_func) = commands_lock.get(command_name)
-                && let Err(error) = command_func(
-                    ctx.clone(),
-                    msg.clone(),
-                    &self.config.clone(),
-                    Arc::new(self.clone()),
-                )
-                .await
-            {
-                if let Some(error_handler) = &self.config.error_handler {
-                    let _ = error_handler
-                        .reply_to_msg_with_error(&ctx, &msg, &error)
-                        .await;
-                } else {
-                    eprintln!("Command error: {}", error);
+            if let Some(command) = self.registry.text(command_name) {
+                let invocation = Invocation::text(ctx.clone(), msg.clone());
+                if let Err(error) = command.run_text(args, &invocation, &self.config).await {
+                    invocation.reply_error(&self.config, &error).await;
                 }
             }
             return;
@@ -500,9 +382,13 @@ impl EventHandler for GuildMessagesHandler {
                 };
 
                 if let Some(inbox_message_id) = message.inbox_message_id {
-                    if let Err(e) =
-                        edit_inbox_message(&ctx, channel_id_parse, &inbox_message_id, edit_msg)
-                            .await
+                    let Ok(inbox_id) = inbox_message_id.parse::<u64>() else {
+                        eprintln!("Invalid inbox message id: {}", inbox_message_id);
+                        return;
+                    };
+                    if let Err(e) = channel_id_parse
+                        .edit_message(&ctx.http, MessageId::new(inbox_id), edit_msg)
+                        .await
                     {
                         eprintln!("Failed to edit mirrored staff message: {}", e);
                         return;

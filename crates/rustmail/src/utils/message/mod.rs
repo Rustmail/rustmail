@@ -1,7 +1,6 @@
 pub mod message_builder;
 pub mod reply_intent;
 
-pub mod category;
 pub mod ui_components;
 
 pub mod ui {
@@ -11,7 +10,6 @@ pub mod ui {
     }
 }
 
-pub use category::*;
 pub use message_builder::*;
 pub use reply_intent::*;
 pub use ui::*;

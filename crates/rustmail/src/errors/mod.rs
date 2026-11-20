@@ -13,14 +13,6 @@ pub mod common {
         validation_error,
     };
 
-    pub fn not_found(entity: &str) -> ModmailError {
-        database_error!(NotFound, entity)
-    }
-
-    pub fn incorrect_message_id(entity: &str) -> ModmailError {
-        message_error!(MessageNotFound, entity)
-    }
-
     pub fn permission_denied() -> ModmailError {
         permission_error!(InsufficientPermissions)
     }

@@ -1,10 +1,8 @@
 use crate::prelude::commands::*;
 use crate::prelude::config::*;
-use crate::prelude::features::*;
-use crate::prelude::i18n::*;
 use crate::prelude::types::*;
 use crate::prelude::utils::*;
-use serenity::all::{ButtonStyle, ComponentInteraction, Context};
+use serenity::all::{ComponentInteraction, Context};
 use serenity::builder::CreateInteractionResponse;
 
 pub const LOGS_PAGE_SIZE: usize = 10;
@@ -22,15 +20,10 @@ async fn handle_logs_action(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut store = pagination.lock().await;
 
-    let next_button =
-        get_translated_message(config, "logs_command.next", None, None, None, None).await;
-    let prev_button =
-        get_translated_message(config, "logs_command.prev", None, None, None, None).await;
-
     if let Some(ctx_data) = store.get_mut(session_id) {
         if page == 0 && ctx_data.current_page > 0 {
             ctx_data.current_page -= 1;
-        } else if page == 1 && ctx_data.current_page < LOGS_PAGE_SIZE {
+        } else if page == 1 && has_next_logs_page(ctx_data.current_page, ctx_data.logs.len()) {
             ctx_data.current_page += 1;
         } else {
             return Ok(());
@@ -48,20 +41,13 @@ async fn handle_logs_action(
             return Ok(());
         }
 
-        let components = make_buttons(&[
-            (
-                &prev_button.to_string(),
-                &format!("command:logs_prev:{}", session_id),
-                ButtonStyle::Primary,
-                ctx_data.current_page == 0,
-            ),
-            (
-                &next_button.to_string(),
-                &format!("command:logs_next:{}", session_id),
-                ButtonStyle::Primary,
-                (ctx_data.current_page + 1) * 10 >= ctx_data.logs.len(),
-            ),
-        ]);
+        let components = logs_page_buttons(
+            config,
+            session_id,
+            ctx_data.current_page,
+            ctx_data.logs.len(),
+        )
+        .await;
 
         let response = MessageBuilder::system_message(ctx, config)
             .content(new_content)

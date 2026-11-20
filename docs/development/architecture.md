@@ -143,18 +143,27 @@ Commands are defined in `rustmail/src/commands/`:
 
 ```
 commands/
-├── mod.rs               # Command registration
-├── help/
-├── reply/
-├── close/
-├── new_thread/
+├── mod.rs               # CommandRegistry and register_all
+├── command.rs           # Command trait
+├── invocation.rs        # Invocation: who ran a command, where, and how to reply
+├── slash_options.rs     # SlashOptions: owned slash options, subcommand path, context menu target
+├── ticket.rs            # Shared helpers: the ticket of the invoking channel, its status
+├── close/               # One folder per command: mod.rs (definition + run), args.rs (parsers + tests)
 └── ...
 ```
 
-Each command module contains:
-- Command definition (slash command builder)
-- Text command parser
-- Handler function
+A command implements the `Command` trait once for both surfaces (slash and text):
+
+- `parse_text` turns what follows the command name into a typed `Args`, and `parse_slash` does the same from `SlashOptions`. Both are pure and unit-tested.
+- `run(args, &Invocation, &Config)` holds the behaviour. It answers with `invocation.reply(...)` or `invocation.reply_translated(...)`, and reports problems by returning an error.
+- `name`, `aliases`, `surfaces` (both, slash only, text only), `ephemeral`, `community`, `slash_definitions` and `community_definitions` describe it.
+- Subcommands are read by `SlashOptions::subcommand()`, e.g. `["roles", "add"]` for `/category roles add`.
+
+The dispatchers (`handlers/guild_interaction_handler.rs`, `handlers/guild_messages_handler.rs`) own everything around `run`: the staff check, maintenance mode, deferring slash commands (ephemerally outside the staff guild), and answering errors on either surface. Commands never defer.
+
+Every command is registered in `register_all` (`commands/mod.rs`). What a command needs from the running bot (shutdown receiver, logs pagination store, maintenance flag) comes from `CommandServices` and is stored on the command struct. `CommandRegistry` panics at startup if two commands share a name or alias.
+
+Errors returned by a command are shown as an error embed in the invoker's language; `{prefix}` in an error message is replaced by the configured command prefix.
 
 ---
 
@@ -349,9 +358,9 @@ GitHub Actions workflow:
 
 ### Adding Commands
 
-1. Create module in `rustmail/src/commands/`
-2. Implement slash and text command handlers
-3. Register in `commands/mod.rs`
+1. Create `rustmail/src/commands/<name>/` with `mod.rs` (a struct implementing `Command`) and `args.rs` (the `Args` type, `parse_text`/`parse_slash` and their tests). See `commands/close/`.
+2. Register it with `registry.register(...)` in `register_all` (`commands/mod.rs`) and re-export it from `commands/mod.rs`.
+3. Add the i18n keys to every file in `i18n/language/`, and document the command in `docs/guides/commands.md`.
 
 ### Adding API Endpoints
 

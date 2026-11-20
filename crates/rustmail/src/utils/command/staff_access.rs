@@ -1,8 +1,6 @@
 use crate::prelude::config::*;
-use serenity::all::{ChannelId, Context, GuildId, UserId};
+use serenity::all::{ChannelId, Context, GuildId, Permissions, UserId};
 
-/// Whether `user_id` may use staff commands in `guild_id`: the staff guild only, and only for
-/// staff (see [`is_staff_user`]).
 pub async fn is_staff_member(
     ctx: &Context,
     config: &Config,
@@ -12,11 +10,6 @@ pub async fn is_staff_member(
     guild_id.get() == config.bot.get_staff_guild_id() && is_staff_user(ctx, config, user_id).await
 }
 
-/// Whether `user_id` is staff, wherever the command was invoked from.
-///
-/// Dual mode: staff are the members of the staff guild.
-/// Single mode: staff are the members who can see the inbox category (which is also who can see
-/// the tickets). Configured super admins are always staff.
 pub async fn is_staff_user(ctx: &Context, config: &Config, user_id: UserId) -> bool {
     if config.bot.panel_super_admin_users.contains(&user_id.get()) {
         return true;
@@ -65,4 +58,38 @@ pub async fn is_staff_user(ctx: &Context, config: &Config, user_id: UserId) -> b
     };
 
     permissions.view_channel()
+}
+
+pub async fn is_bot_admin(
+    ctx: &Context,
+    config: &Config,
+    guild_id: Option<GuildId>,
+    user_id: UserId,
+) -> bool {
+    if config.bot.panel_super_admin_users.contains(&user_id.get()) {
+        return true;
+    }
+    let Some(guild_id) = guild_id else {
+        return false;
+    };
+    let Ok(member) = guild_id.member(ctx, user_id).await else {
+        return false;
+    };
+    if member
+        .roles
+        .iter()
+        .any(|role| config.bot.panel_super_admin_roles.contains(&role.get()))
+    {
+        return true;
+    }
+    let Ok(guild) = guild_id.to_partial_guild(&ctx.http).await else {
+        return false;
+    };
+    guild.owner_id == user_id
+        || member.roles.iter().any(|role_id| {
+            guild
+                .roles
+                .get(role_id)
+                .is_some_and(|role| role.permissions.contains(Permissions::ADMINISTRATOR))
+        })
 }

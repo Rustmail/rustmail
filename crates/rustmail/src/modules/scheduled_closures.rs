@@ -98,13 +98,7 @@ async fn execute_scheduled_closure(
     if config.bot.enable_rustmail_logs
         && let Some(logs_channel_id) = config.bot.logs_channel_id
     {
-        let base_url = config
-            .bot
-            .redirect_url
-            .trim_end_matches("/api/auth/callback")
-            .trim_end_matches('/');
-
-        let panel_url = format!("{}/panel/tickets/{}", base_url, thread.id);
+        let panel_url = panel_ticket_url(config, &thread.id);
 
         let mut params = std::collections::HashMap::new();
         params.insert("username".to_string(), thread.user_name.clone());

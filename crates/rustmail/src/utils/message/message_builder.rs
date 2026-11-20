@@ -1,3 +1,4 @@
+use crate::prelude::commands::Invocation;
 use crate::prelude::config::*;
 use crate::prelude::db::*;
 use crate::prelude::errors::*;
@@ -6,7 +7,7 @@ use crate::prelude::utils::*;
 use serenity::all::{
     ChannelId, Colour, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponseFollowup, CreateMessage,
-    EditMessage, Message, Timestamp, UserId,
+    EditMessage, Message, MessageId, Timestamp, UserId,
 };
 use serenity::builder::{CreateActionRow, CreateInteractionResponseMessage};
 use sqlx::SqlitePool;
@@ -35,7 +36,6 @@ pub enum MessageSender {
 pub enum MessageTarget {
     Channel(ChannelId),
     User(UserId),
-    Reply(Box<Message>),
 }
 
 #[derive(Debug, Clone)]
@@ -157,11 +157,6 @@ impl<'a> MessageBuilder<'a> {
 
     pub fn to_user(mut self, user_id: UserId) -> Self {
         self.target = Some(MessageTarget::User(user_id));
-        self
-    }
-
-    pub fn reply_to(mut self, message: Message) -> Self {
-        self.target = Some(MessageTarget::Reply(Box::from(message)));
         self
     }
 
@@ -438,28 +433,6 @@ impl<'a> MessageBuilder<'a> {
 
                 Ok(message)
             }
-            MessageTarget::Reply(original_message) => {
-                let db_thread_id =
-                    match get_thread_by_channel_id(&original_message.channel_id.to_string(), pool)
-                        .await
-                    {
-                        Some(thread) => Some(thread.id.clone()),
-                        None => None,
-                    };
-
-                thread_id = db_thread_id;
-
-                let message = match original_message
-                    .channel_id
-                    .send_message(&self.ctx.http, message)
-                    .await
-                {
-                    Ok(message) => message,
-                    Err(err) => return Err(ModmailError::from(err)),
-                };
-
-                Ok(message)
-            }
         };
 
         let message = match message {
@@ -591,12 +564,6 @@ impl<'a> MessageBuilder<'a> {
 
     pub async fn build(self) -> CreateMessage {
         self.build_create_message().await
-    }
-
-    pub async fn send_and_forget(self) {
-        if let Err(e) = self.send(true).await {
-            eprintln!("Failed to send message: {}", e);
-        }
     }
 
     pub async fn send_interaction_followup(
@@ -761,52 +728,42 @@ impl<'a> StaffReply<'a> {
     }
 
     async fn build_and_send_message(&self, top_role_name: Option<String>) -> Option<Message> {
-        if let Some(dm_user) = self.dm_user_id {
-            let mut dm_builder = if self.is_anonymous {
-                MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
-            } else {
-                MessageBuilder::staff_message(
-                    self.ctx,
-                    self.config,
-                    self.staff_user_id,
-                    self.staff_username.clone(),
-                )
-            };
-            if !self.is_anonymous
-                && let Some(role_name) = &top_role_name
-            {
-                dm_builder = dm_builder.with_role(role_name.clone());
+        let dm_user = self.dm_user_id?;
+        match self.dm_message(dm_user, &top_role_name).send(true).await {
+            Ok(m) => Some(m),
+            Err(e) => {
+                eprintln!("Failed to send DM to user: {}", e);
+                None
             }
-
-            dm_builder = dm_builder
-                .content(self.content.clone())
-                .add_attachments(self.attachments.clone())
-                .color(hex_string_to_int(&self.config.thread.staff_message_color) as u32)
-                .to_user(dm_user);
-
-            match dm_builder.send(true).await {
-                Ok(m) => Some(m),
-                Err(e) => {
-                    eprintln!("Failed to send DM to user: {}", e);
-                    None
-                }
-            }
-        } else {
-            None
         }
     }
 
-    pub async fn send_msg_and_record(
-        self,
-        pool: &SqlitePool,
-    ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self
-            .thread_channel
-            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
+    fn dm_message(&self, dm_user: UserId, top_role_name: &Option<String>) -> MessageBuilder<'a> {
+        let mut dm_builder = if self.is_anonymous {
+            MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
+        } else {
+            MessageBuilder::staff_message(
+                self.ctx,
+                self.config,
+                self.staff_user_id,
+                self.staff_username.clone(),
+            )
+        };
+        if !self.is_anonymous
+            && let Some(role_name) = top_role_name
+        {
+            dm_builder = dm_builder.with_role(role_name.clone());
+        }
 
-        let top_role_name: Option<String> = self.get_top_role_name(thread_channel).await;
+        dm_builder
+            .content(self.content.clone())
+            .add_attachments(self.attachments.clone())
+            .color(hex_string_to_int(&self.config.thread.staff_message_color) as u32)
+            .to_user(dm_user)
+    }
 
-        let mut thread_builder = if self.is_anonymous {
+    fn thread_message(&self, top_role_name: &Option<String>) -> MessageBuilder<'a> {
+        let mut builder = if self.is_anonymous {
             MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
                 .as_staff(
                     self.staff_user_id,
@@ -822,87 +779,23 @@ impl<'a> StaffReply<'a> {
         };
 
         if !self.is_anonymous
-            && let Some(role_name) = &top_role_name
+            && let Some(role_name) = top_role_name
         {
-            thread_builder = thread_builder.with_role(role_name.clone());
+            builder = builder.with_role(role_name.clone());
         }
 
-        thread_builder = thread_builder
+        builder
             .content(self.content.clone())
             .with_message_number(self.message_number)
             .add_attachments(self.attachments.clone())
-            .to_channel(thread_channel);
-
-        let thread_msg = thread_builder.send(false).await?;
-
-        let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
-
-        let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
-        if let Err(e) = insert_staff_message(
-            self.ctx,
-            &thread_msg,
-            dm_id_opt,
-            &self.thread_id,
-            self.staff_user_id,
-            self.is_anonymous,
-            pool,
-            self.config,
-            Some(self.message_number as i64),
-        )
-        .await
-        {
-            eprintln!("Error inserting staff message: {}", e);
-        }
-
-        Ok((thread_msg, dm_msg_opt))
     }
 
-    pub async fn send_command_and_record(
+    async fn deliver_and_record(
         self,
-        command: &CommandInteraction,
+        thread_msg: Message,
+        top_role_name: Option<String>,
         pool: &SqlitePool,
-    ) -> Result<(Message, Option<Message>), ModmailError> {
-        let thread_channel = self
-            .thread_channel
-            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply"))?;
-
-        let top_role_name: Option<String> = self.get_top_role_name(thread_channel).await;
-
-        let mut thread_builder = if self.is_anonymous {
-            MessageBuilder::anonymous_staff_message(self.ctx, self.config, self.staff_user_id)
-        } else {
-            MessageBuilder::staff_message(
-                self.ctx,
-                self.config,
-                self.staff_user_id,
-                self.staff_username.clone(),
-            )
-        };
-        if !self.is_anonymous
-            && let Some(role_name) = &top_role_name
-        {
-            thread_builder = thread_builder.with_role(role_name.clone());
-        }
-
-        thread_builder = thread_builder
-            .content(self.content.clone())
-            .with_message_number(self.message_number)
-            .add_attachments(self.attachments.clone())
-            .to_channel(thread_channel);
-
-        let thread_msg_response = thread_builder.build_interaction_message_followup().await;
-
-        let thread_msg = match command
-            .create_followup(&self.ctx.http, thread_msg_response)
-            .await
-        {
-            Ok(m) => m,
-            Err(e) => {
-                println!("Failed to send follow-up message: {}", e);
-                return Err(ModmailError::from(e));
-            }
-        };
-
+    ) -> (Message, Option<Message>) {
         let dm_msg_opt: Option<Message> = self.build_and_send_message(top_role_name).await;
 
         let dm_id_opt = dm_msg_opt.as_ref().map(|m| m.id.to_string());
@@ -922,7 +815,65 @@ impl<'a> StaffReply<'a> {
             eprintln!("Error inserting staff message: {}", e);
         }
 
-        Ok((thread_msg, dm_msg_opt))
+        (thread_msg, dm_msg_opt)
+    }
+
+    fn thread_channel(&self) -> Result<ChannelId, ModmailError> {
+        self.thread_channel
+            .ok_or_else(|| serenity::Error::Other("No thread channel for StaffReply").into())
+    }
+
+    pub async fn send_and_record(
+        self,
+        invocation: &Invocation,
+        pool: &SqlitePool,
+    ) -> Result<(Message, Option<Message>), ModmailError> {
+        let thread_channel = self.thread_channel()?;
+        let top_role_name = self.get_top_role_name(thread_channel).await;
+
+        let thread_msg = invocation
+            .reply_unrecorded(self.thread_message(&top_role_name))
+            .await?;
+
+        Ok(self
+            .deliver_and_record(thread_msg, top_role_name, pool)
+            .await)
+    }
+
+    pub async fn edit_sent(
+        self,
+        thread_message_id: MessageId,
+        dm_message_id: Option<MessageId>,
+    ) -> Result<(), ModmailError> {
+        let thread_channel = self.thread_channel()?;
+        let top_role_name = self.get_top_role_name(thread_channel).await;
+        let edit_failed =
+            |e: serenity::Error| ModmailError::Message(MessageError::EditFailed(e.to_string()));
+
+        let thread_edit = self
+            .thread_message(&top_role_name)
+            .build_edit_message()
+            .await;
+        thread_channel
+            .edit_message(&self.ctx.http, thread_message_id, thread_edit)
+            .await
+            .map_err(edit_failed)?;
+
+        if let (Some(dm_message_id), Some(dm_user)) = (dm_message_id, self.dm_user_id) {
+            let dm_edit = self
+                .dm_message(dm_user, &top_role_name)
+                .build_edit_message()
+                .await;
+            let dm_channel = dm_user
+                .create_dm_channel(self.ctx)
+                .await
+                .map_err(|e| ModmailError::Message(MessageError::DmAccessFailed(e.to_string())))?;
+            dm_channel
+                .edit_message(&self.ctx.http, dm_message_id, dm_edit)
+                .await
+                .map_err(edit_failed)?;
+        }
+        Ok(())
     }
 }
 

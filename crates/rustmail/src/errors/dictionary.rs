@@ -222,8 +222,10 @@ impl DictionaryManager {
                         Some(params),
                     )
                 }
-                CommandError::ClosureAlreadyScheduled => {
-                    ("close.closure_already_scheduled".to_string(), None)
+                CommandError::ClosureAlreadyScheduled(seconds) => {
+                    let mut params = HashMap::new();
+                    params.insert("seconds".to_string(), seconds.to_string());
+                    ("close.closure_already_scheduled".to_string(), Some(params))
                 }
                 CommandError::NoSchedulableClosureToCancel => {
                     ("close.no_scheduled_closures_to_cancel".to_string(), None)
@@ -232,13 +234,57 @@ impl DictionaryManager {
                 CommandError::DiscordDeleteFailed => {
                     ("command.discord_delete_failed".to_string(), None)
                 }
-                CommandError::ReminderAlreadyExists => {
-                    ("reminder.reminder_already_exists".to_string(), None)
-                }
                 CommandError::NotInThread() => ("command.not_in_thread".to_string(), None),
                 CommandError::AlertDoesNotExist => ("alert.alert_not_found".to_string(), None),
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
                 CommandError::TicketAlreadyTaken => ("take.ticket_already_taken".to_string(), None),
+                CommandError::Usage { key } => (key.to_string(), None),
+                CommandError::TicketCategoryNotFound => ("category.not_found".to_string(), None),
+                CommandError::TicketCategoryAlreadyExists => {
+                    ("category.already_exists".to_string(), None)
+                }
+                CommandError::TooManyEnabledTicketCategories { max } => (
+                    "category.too_many_enabled".to_string(),
+                    Some(HashMap::from([("max".to_string(), max.to_string())])),
+                ),
+                CommandError::InvalidDiscordCategory => {
+                    ("category.invalid_discord_category".to_string(), None)
+                }
+                CommandError::StaffRoleIsEveryone { removing } => {
+                    let key = if *removing {
+                        "add_staff.role_everyone_forbidden_remove"
+                    } else {
+                        "add_staff.role_everyone_forbidden"
+                    };
+                    (key.to_string(), None)
+                }
+                CommandError::StaffRoleHasNoMembers { role, removing } => {
+                    let key = if *removing {
+                        "add_staff.role_no_members_remove"
+                    } else {
+                        "add_staff.role_no_members"
+                    };
+                    let params = HashMap::from([("role".to_string(), role.clone())]);
+                    (key.to_string(), Some(params))
+                }
+                CommandError::StaffRoleTooLarge {
+                    role,
+                    count,
+                    max,
+                    removing,
+                } => {
+                    let key = if *removing {
+                        "add_staff.role_too_many_remove"
+                    } else {
+                        "add_staff.role_too_many"
+                    };
+                    let params = HashMap::from([
+                        ("role".to_string(), role.clone()),
+                        ("count".to_string(), count.to_string()),
+                        ("max".to_string(), max.to_string()),
+                    ]);
+                    (key.to_string(), Some(params))
+                }
                 CommandError::TicketAlreadyReleased => {
                     ("release.ticket_already_taken".to_string(), None)
                 }
@@ -301,19 +347,17 @@ impl DictionaryManager {
                     params.insert("reminder_id".to_string(), reminder_id.clone());
                     ("reminder.already_complete".to_string(), Some(params))
                 }
-                CommandError::CommandFailed(msg) => {
-                    let mut params = HashMap::new();
-                    params.insert("error".to_string(), msg.clone());
-                    ("command.command_failed".to_string(), Some(params))
-                }
-                _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
                 ThreadError::ThreadNotFound => ("thread.not_found".to_string(), None),
                 ThreadError::UserStillInServer => ("thread.user_still_in_server".to_string(), None),
                 ThreadError::NotAThreadChannel => ("thread.not_a_thread_channel".to_string(), None),
                 ThreadError::CategoryNotFound => ("thread.category_not_found".to_string(), None),
-                _ => ("thread.not_found".to_string(), None),
+                ThreadError::UserNotInTheServer(username) => {
+                    let mut params = HashMap::new();
+                    params.insert("username".to_string(), username.clone());
+                    ("user.left_server".to_string(), Some(params))
+                }
             },
             ModmailError::Message(msg_err) => match msg_err {
                 MessageError::MessageNotFound(msg) => {
@@ -330,14 +374,6 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("input".to_string(), input.clone());
                     ("validation.invalid_input".to_string(), Some(params))
-                }
-                ValidationError::RequiredFieldMissing(field) => {
-                    let mut params = HashMap::new();
-                    params.insert("field".to_string(), field.clone());
-                    (
-                        "validation.required_field_missing".to_string(),
-                        Some(params),
-                    )
                 }
             },
             ModmailError::Permission(_) => {

@@ -1,14 +1,11 @@
-use crate::commands::status::BotStatus as PresenceStatus;
-use crate::i18n::get_translated_message;
+use crate::commands::status::{PresenceMode, apply_presence};
 use crate::prelude::types::*;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serenity::all::ActivityData;
 use std::str::FromStr;
 use std::sync::Arc;
-use std::sync::atomic::Ordering;
 use tokio::sync::Mutex;
 
 pub async fn handle_status_bot(State(bot_state): State<Arc<Mutex<BotState>>>) -> impl IntoResponse {
@@ -42,7 +39,7 @@ pub async fn handle_set_presence(
     State(bot_state): State<Arc<Mutex<BotState>>>,
     Json(payload): Json<PresenceStatusRequest>,
 ) -> impl IntoResponse {
-    let presence = match PresenceStatus::from_str(&payload.status) {
+    let presence = match PresenceMode::from_str(&payload.status) {
         Ok(s) => s,
         Err(_) => {
             return (
@@ -75,35 +72,7 @@ pub async fn handle_set_presence(
         }
     };
 
-    match presence {
-        PresenceStatus::Online => {
-            state_lock.maintenance_mode.store(false, Ordering::Relaxed);
-            ctx.set_activity(Some(ActivityData::playing(&config.bot.status)));
-            ctx.online();
-        }
-        PresenceStatus::Idle => {
-            ctx.idle();
-        }
-        PresenceStatus::Dnd => {
-            ctx.dnd();
-        }
-        PresenceStatus::Invisible => {
-            ctx.invisible();
-        }
-        PresenceStatus::Maintenance => {
-            state_lock.maintenance_mode.store(true, Ordering::Relaxed);
-            let maintenance_status = futures::executor::block_on(get_translated_message(
-                &config,
-                "status.maintenance_activity",
-                None,
-                None,
-                None,
-                None,
-            ));
-            ctx.set_activity(Some(ActivityData::playing(&maintenance_status)));
-            ctx.dnd();
-        }
-    }
+    apply_presence(ctx, &config, presence, &state_lock.maintenance_mode).await;
 
     let mut presence_guard = state_lock.presence_status.write().await;
     *presence_guard = payload.status.clone();

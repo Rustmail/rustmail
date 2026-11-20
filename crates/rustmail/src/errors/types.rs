@@ -40,7 +40,6 @@ pub enum DiscordError {
     UserIsABot,
     ChannelCreationFailed,
     FailedToFetchCategories,
-    FailedToMoveChannel,
     CategoryFull,
     ShardManagerNotFound,
 }
@@ -51,15 +50,12 @@ pub enum CommandError {
     MissingArguments,
     InvalidArguments(String),
     UnknownCommand(String),
-    CommandFailed(String),
     NotInThread(),
-    UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
-    ClosureAlreadyScheduled,
+    ClosureAlreadyScheduled(i64),
     NoSchedulableClosureToCancel,
     SendDmFailed,
     DiscordDeleteFailed,
-    ReminderAlreadyExists,
     AlertDoesNotExist,
     InvalidReminderFormat,
     TicketAlreadyTaken,
@@ -77,12 +73,34 @@ pub enum CommandError {
     ReminderRoleRequired(String),
     ReminderRoleNotFound(String),
     ReminderAlreadyCompleted(String),
+    Usage {
+        key: &'static str,
+    },
+    TicketCategoryNotFound,
+    TicketCategoryAlreadyExists,
+    TooManyEnabledTicketCategories {
+        max: usize,
+    },
+    InvalidDiscordCategory,
+    StaffRoleIsEveryone {
+        removing: bool,
+    },
+    StaffRoleHasNoMembers {
+        role: String,
+        removing: bool,
+    },
+    StaffRoleTooLarge {
+        role: String,
+        count: usize,
+        max: usize,
+        removing: bool,
+    },
 }
 
 #[derive(Debug, Clone)]
 pub enum ThreadError {
     ThreadNotFound,
-    UserNotInTheServer,
+    UserNotInTheServer(String),
     UserStillInServer,
     NotAThreadChannel,
     CategoryNotFound,
@@ -105,7 +123,6 @@ pub enum ConfigError {
 #[derive(Debug, Clone)]
 pub enum ValidationError {
     InvalidInput(String),
-    RequiredFieldMissing(String),
 }
 
 #[derive(Debug, Clone)]
@@ -148,7 +165,6 @@ impl fmt::Display for DiscordError {
             DiscordError::UserIsABot => write!(f, "User is a rustmail"),
             DiscordError::ChannelCreationFailed => write!(f, "Failed to create channel"),
             DiscordError::FailedToFetchCategories => write!(f, "Failed to fetch categories"),
-            DiscordError::FailedToMoveChannel => write!(f, "Failed to move_thread channel"),
             DiscordError::CategoryFull => write!(f, "Discord category has too many channels"),
             DiscordError::ShardManagerNotFound => write!(f, "Shard manager not found"),
         }
@@ -162,17 +178,13 @@ impl fmt::Display for CommandError {
             CommandError::MissingArguments => write!(f, "Missing arguments"),
             CommandError::InvalidArguments(arg) => write!(f, "Invalid arguments: {}", arg),
             CommandError::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
-            CommandError::CommandFailed(msg) => write!(f, "Command failed: {}", msg),
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
-            CommandError::UserHasAlreadyAThread() => {
-                write!(f, "The user already has an open thread")
-            }
             CommandError::UserHasAlreadyAThreadWithLink(user, channel_id) => write!(
                 f,
                 "The user {} already has an open thread: {}",
                 user, channel_id
             ),
-            CommandError::ClosureAlreadyScheduled => {
+            CommandError::ClosureAlreadyScheduled(_) => {
                 write!(f, "Thread closure is already scheduled")
             }
             CommandError::NoSchedulableClosureToCancel => {
@@ -180,10 +192,32 @@ impl fmt::Display for CommandError {
             }
             CommandError::SendDmFailed => write!(f, "Failed to send DM to user"),
             CommandError::DiscordDeleteFailed => write!(f, "Failed to delete message on Discord"),
-            CommandError::ReminderAlreadyExists => write!(f, "A reminder already exists"),
             CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
+            CommandError::Usage { key } => write!(f, "Usage: {}", key),
+            CommandError::TicketCategoryNotFound => write!(f, "Ticket category not found"),
+            CommandError::TicketCategoryAlreadyExists => {
+                write!(f, "A ticket category with this name already exists")
+            }
+            CommandError::TooManyEnabledTicketCategories { max } => {
+                write!(f, "Too many ticket categories enabled (max {})", max)
+            }
+            CommandError::InvalidDiscordCategory => write!(f, "Invalid Discord category id"),
+            CommandError::StaffRoleIsEveryone { .. } => {
+                write!(
+                    f,
+                    "The @everyone role can't be added to or removed from a ticket"
+                )
+            }
+            CommandError::StaffRoleHasNoMembers { role, .. } => {
+                write!(f, "Role {} has no members", role)
+            }
+            CommandError::StaffRoleTooLarge {
+                role, count, max, ..
+            } => {
+                write!(f, "Role {} has {} members, more than {}", role, count, max)
+            }
             CommandError::TicketAlreadyReleased => write!(f, "Ticket already released"),
             CommandError::AlertSetFailed => write!(f, "Alert set failed"),
             CommandError::SnippetNotFound(name) => write!(f, "Snippet not found: {}", name),
@@ -220,7 +254,7 @@ impl fmt::Display for ThreadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ThreadError::ThreadNotFound => write!(f, "Thread not found"),
-            ThreadError::UserNotInTheServer => write!(f, "User has left the server"),
+            ThreadError::UserNotInTheServer(_) => write!(f, "User has left the server"),
             ThreadError::UserStillInServer => write!(
                 f,
                 "User still in the server. Use the 'close' command to close this ticket."
@@ -255,9 +289,6 @@ impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ValidationError::InvalidInput(input) => write!(f, "Invalid input: {}", input),
-            ValidationError::RequiredFieldMissing(field) => {
-                write!(f, "Required field missing: {}", field)
-            }
         }
     }
 }

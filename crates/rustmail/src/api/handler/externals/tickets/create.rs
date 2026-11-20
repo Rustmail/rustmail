@@ -1,4 +1,3 @@
-use crate::commands::send_welcome_message;
 use crate::db::repr::{ApiKey, Permission};
 use crate::prelude::api::*;
 use crate::prelude::db::*;
@@ -244,7 +243,7 @@ pub async fn handle_external_ticket_create(
                 staff_user.id
             );
         } else {
-            send_welcome_message(&ctx, &channel, &config, &user, true).await;
+            send_ticket_welcome(&ctx, &config, &channel, &user, true).await;
 
             if let Err(e) = MessageBuilder::system_message(&ctx, &config)
                 .mention(vec![staff_user.id])

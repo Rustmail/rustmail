@@ -85,45 +85,7 @@ pub async fn create_or_get_thread_for_user(
         };
 
     if is_new_thread {
-        let community_guild_id = GuildId::new(config.bot.get_community_guild_id());
-        let member_join_date = get_member_join_date_for_user(ctx, user_id, community_guild_id)
-            .await
-            .unwrap_or_else(|| "Unknown".to_string());
-
-        let logs_count = match get_logs_from_user_id(&user_id.clone().to_string(), pool).await {
-            Ok(logs) => logs.len(),
-            Err(_) => 0,
-        };
-
-        let params = {
-            let mut p = HashMap::new();
-            p.insert("logs_count".to_string(), logs_count.to_string());
-            p.insert("prefix".to_string(), config.command.prefix.clone());
-            p
-        };
-
-        let logs_info = get_translated_message(
-            config,
-            "new_thread.show_logs",
-            Some(&params),
-            None,
-            None,
-            None,
-        )
-        .await;
-
-        let open_thread_message = get_user_recap(
-            user_id,
-            &username.to_string(),
-            &member_join_date,
-            &logs_info,
-        );
-
-        let _ = MessageBuilder::system_message(ctx, config)
-            .to_channel(target_channel_id)
-            .content(open_thread_message)
-            .send(true)
-            .await;
+        post_ticket_recap(ctx, config, target_channel_id, user_id, &username).await;
 
         let _ = MessageBuilder::system_message(ctx, config)
             .content(&config.bot.welcome_message)
