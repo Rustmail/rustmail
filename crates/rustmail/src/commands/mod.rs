@@ -119,6 +119,39 @@ pub enum TextEntry {
     Legacy(TextCommandFunc),
 }
 
+pub struct CommandCatalog {
+    commands: HashMap<&'static str, Arc<dyn DynCommand>>,
+    text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
+    legacy_slash: HashMap<&'static str, Arc<dyn RegistrableCommand>>,
+}
+
+impl CommandCatalog {
+    pub fn names(&self) -> Vec<&'static str> {
+        let mut names: Vec<_> = self
+            .commands
+            .keys()
+            .chain(self.legacy_slash.keys())
+            .copied()
+            .collect();
+        names.sort_unstable();
+        names
+    }
+
+    pub async fn doc(&self, name: &str, config: &Config) -> Option<String> {
+        if let Some(command) = self
+            .commands
+            .get(name)
+            .or_else(|| self.text_names.get(name))
+        {
+            return Some(command.doc(config).await);
+        }
+        match self.legacy_slash.get(name) {
+            Some(command) => Some(command.doc(config).await),
+            None => None,
+        }
+    }
+}
+
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Arc<dyn DynCommand>>,
     text_names: HashMap<&'static str, Arc<dyn DynCommand>>,
@@ -239,28 +272,11 @@ impl CommandRegistry {
         (staff, community)
     }
 
-    pub fn names(&self) -> Vec<&'static str> {
-        let mut names: Vec<_> = self
-            .commands
-            .keys()
-            .chain(self.legacy_slash.keys())
-            .copied()
-            .collect();
-        names.sort_unstable();
-        names
-    }
-
-    pub async fn doc(&self, name: &str, config: &Config) -> Option<String> {
-        if let Some(command) = self
-            .commands
-            .get(name)
-            .or_else(|| self.text_names.get(name))
-        {
-            return Some(command.doc(config).await);
-        }
-        match self.legacy_slash.get(name) {
-            Some(command) => Some(command.doc(config).await),
-            None => None,
+    pub fn catalog(&self) -> CommandCatalog {
+        CommandCatalog {
+            commands: self.commands.clone(),
+            text_names: self.text_names.clone(),
+            legacy_slash: self.legacy_slash.clone(),
         }
     }
 }
@@ -290,7 +306,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
 
     registry.register_legacy_command(AlertCommand);
     registry.register_legacy_command(EditCommand);
-    registry.register_legacy_command(HelpCommand);
     registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
     registry.register_legacy_command(SnippetCommand);
@@ -301,10 +316,12 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, "alert", alert);
     wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
-    wrap_command!(registry, "help", help);
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
     wrap_command!(registry, "category", category_command);
+
+    let catalog = registry.catalog();
+    registry.register(HelpCommand { catalog });
 }
 
 #[cfg(test)]
