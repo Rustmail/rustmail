@@ -234,9 +234,6 @@ impl DictionaryManager {
                 CommandError::DiscordDeleteFailed => {
                     ("command.discord_delete_failed".to_string(), None)
                 }
-                CommandError::ReminderAlreadyExists => {
-                    ("reminder.reminder_already_exists".to_string(), None)
-                }
                 CommandError::NotInThread() => ("command.not_in_thread".to_string(), None),
                 CommandError::AlertDoesNotExist => ("alert.alert_not_found".to_string(), None),
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
@@ -338,11 +335,6 @@ impl DictionaryManager {
                     params.insert("reminder_id".to_string(), reminder_id.clone());
                     ("reminder.already_complete".to_string(), Some(params))
                 }
-                CommandError::CommandFailed(msg) => {
-                    let mut params = HashMap::new();
-                    params.insert("error".to_string(), msg.clone());
-                    ("command.command_failed".to_string(), Some(params))
-                }
                 _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
@@ -371,14 +363,6 @@ impl DictionaryManager {
                     let mut params = HashMap::new();
                     params.insert("input".to_string(), input.clone());
                     ("validation.invalid_input".to_string(), Some(params))
-                }
-                ValidationError::RequiredFieldMissing(field) => {
-                    let mut params = HashMap::new();
-                    params.insert("field".to_string(), field.clone());
-                    (
-                        "validation.required_field_missing".to_string(),
-                        Some(params),
-                    )
                 }
             },
             ModmailError::Permission(_) => {

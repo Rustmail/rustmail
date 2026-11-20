@@ -40,7 +40,6 @@ pub enum DiscordError {
     UserIsABot,
     ChannelCreationFailed,
     FailedToFetchCategories,
-    FailedToMoveChannel,
     CategoryFull,
     ShardManagerNotFound,
 }
@@ -51,7 +50,6 @@ pub enum CommandError {
     MissingArguments,
     InvalidArguments(String),
     UnknownCommand(String),
-    CommandFailed(String),
     NotInThread(),
     UserHasAlreadyAThread(),
     UserHasAlreadyAThreadWithLink(String, String),
@@ -59,7 +57,6 @@ pub enum CommandError {
     NoSchedulableClosureToCancel,
     SendDmFailed,
     DiscordDeleteFailed,
-    ReminderAlreadyExists,
     AlertDoesNotExist,
     InvalidReminderFormat,
     TicketAlreadyTaken,
@@ -118,7 +115,6 @@ pub enum ConfigError {
 #[derive(Debug, Clone)]
 pub enum ValidationError {
     InvalidInput(String),
-    RequiredFieldMissing(String),
 }
 
 #[derive(Debug, Clone)]
@@ -161,7 +157,6 @@ impl fmt::Display for DiscordError {
             DiscordError::UserIsABot => write!(f, "User is a rustmail"),
             DiscordError::ChannelCreationFailed => write!(f, "Failed to create channel"),
             DiscordError::FailedToFetchCategories => write!(f, "Failed to fetch categories"),
-            DiscordError::FailedToMoveChannel => write!(f, "Failed to move_thread channel"),
             DiscordError::CategoryFull => write!(f, "Discord category has too many channels"),
             DiscordError::ShardManagerNotFound => write!(f, "Shard manager not found"),
         }
@@ -175,7 +170,6 @@ impl fmt::Display for CommandError {
             CommandError::MissingArguments => write!(f, "Missing arguments"),
             CommandError::InvalidArguments(arg) => write!(f, "Invalid arguments: {}", arg),
             CommandError::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
-            CommandError::CommandFailed(msg) => write!(f, "Command failed: {}", msg),
             CommandError::NotInThread() => write!(f, "This command can only be used in a thread"),
             CommandError::UserHasAlreadyAThread() => {
                 write!(f, "The user already has an open thread")
@@ -193,7 +187,6 @@ impl fmt::Display for CommandError {
             }
             CommandError::SendDmFailed => write!(f, "Failed to send DM to user"),
             CommandError::DiscordDeleteFailed => write!(f, "Failed to delete message on Discord"),
-            CommandError::ReminderAlreadyExists => write!(f, "A reminder already exists"),
             CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
@@ -282,9 +275,6 @@ impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ValidationError::InvalidInput(input) => write!(f, "Invalid input: {}", input),
-            ValidationError::RequiredFieldMissing(field) => {
-                write!(f, "Required field missing: {}", field)
-            }
         }
     }
 }
