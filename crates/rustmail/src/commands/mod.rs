@@ -288,6 +288,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(TakeCommand);
     registry.register(ReleaseCommand);
     registry.register(RenameCommand);
+    registry.register(RecoverCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -297,7 +298,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(HelpCommand);
     registry.register_legacy_command(MoveCommand);
     registry.register_legacy_command(NewThreadCommand);
-    registry.register_legacy_command(RecoverCommand);
     registry.register_legacy_command(RemoveStaffCommand);
     registry.register_legacy_command(AddReminderCommand);
     registry.register_legacy_command(ReminderSubscriptionCommand);
@@ -308,7 +308,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(BaninfoCommand);
 
     wrap_command!(registry, ["edit", "e"], edit);
-    wrap_command!(registry, "recover", recover);
     wrap_command!(registry, "alert", alert);
     wrap_command!(registry, ["move", "mv"], move_thread);
     wrap_command!(registry, ["new_thread", "nt"], new_thread);
