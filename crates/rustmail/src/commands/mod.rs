@@ -283,6 +283,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(DeleteCommand);
     let pagination = registry.pagination();
     registry.register(LogsCommand { pagination });
+    registry.register(BaninfoCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -296,7 +297,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
     registry.register_legacy_command(CategoryCommand);
-    registry.register_legacy_command(BaninfoCommand);
 
     wrap_command!(registry, ["edit", "e"], edit);
     wrap_command!(registry, "alert", alert);
@@ -309,7 +309,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
     wrap_command!(registry, "category", category_command);
-    wrap_command!(registry, ["baninfo", "bi"], baninfo);
 }
 
 #[cfg(test)]
