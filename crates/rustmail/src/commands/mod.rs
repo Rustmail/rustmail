@@ -287,6 +287,7 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register(PingCommand);
     registry.register(TakeCommand);
     registry.register(ReleaseCommand);
+    registry.register(RenameCommand);
 
     registry.register_legacy_command(AddStaffCommand);
     registry.register_legacy_command(AlertCommand);
@@ -304,7 +305,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     registry.register_legacy_command(SnippetCommand);
     registry.register_legacy_command(StatusCommand);
     registry.register_legacy_command(CategoryCommand);
-    registry.register_legacy_command(RenameCommand);
     registry.register_legacy_command(BaninfoCommand);
 
     wrap_command!(registry, ["edit", "e"], edit);
@@ -322,7 +322,6 @@ pub fn register_all(registry: &mut CommandRegistry) {
     wrap_command!(registry, ["snippet", "s"], snippet_command);
     wrap_command!(registry, "status", status_command);
     wrap_command!(registry, "category", category_command);
-    wrap_command!(registry, ["rename", "rn"], rename_ticket);
     wrap_command!(registry, ["baninfo", "bi"], baninfo);
 }
 
