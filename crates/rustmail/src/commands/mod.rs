@@ -305,13 +305,10 @@ pub fn register_all(registry: &mut CommandRegistry, services: &CommandServices) 
     registry.register(NewThreadCommand);
     registry.register(AlertCommand);
     registry.register(SnippetCommand);
+    registry.register(CategoryCommand);
     registry.register(StatusCommand {
         maintenance_mode: services.maintenance_mode.clone(),
     });
-
-    registry.register_legacy_command(CategoryCommand);
-
-    wrap_command!(registry, "category", category_command);
 
     let catalog = registry.catalog();
     registry.register(HelpCommand { catalog });

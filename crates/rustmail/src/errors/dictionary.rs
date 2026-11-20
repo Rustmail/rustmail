@@ -239,6 +239,17 @@ impl DictionaryManager {
                 CommandError::InvalidReminderFormat => ("add_reminder.helper".to_string(), None),
                 CommandError::TicketAlreadyTaken => ("take.ticket_already_taken".to_string(), None),
                 CommandError::Usage { key } => (key.to_string(), None),
+                CommandError::TicketCategoryNotFound => ("category.not_found".to_string(), None),
+                CommandError::TicketCategoryAlreadyExists => {
+                    ("category.already_exists".to_string(), None)
+                }
+                CommandError::TooManyEnabledTicketCategories { max } => (
+                    "category.too_many_enabled".to_string(),
+                    Some(HashMap::from([("max".to_string(), max.to_string())])),
+                ),
+                CommandError::InvalidDiscordCategory => {
+                    ("category.invalid_discord_category".to_string(), None)
+                }
                 CommandError::StaffRoleIsEveryone { removing } => {
                     let key = if *removing {
                         "add_staff.role_everyone_forbidden_remove"
@@ -336,7 +347,6 @@ impl DictionaryManager {
                     params.insert("reminder_id".to_string(), reminder_id.clone());
                     ("reminder.already_complete".to_string(), Some(params))
                 }
-                _ => ("command.invalid_format".to_string(), None),
             },
             ModmailError::Thread(thread_err) => match thread_err {
                 ThreadError::ThreadNotFound => ("thread.not_found".to_string(), None),

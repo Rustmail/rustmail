@@ -76,6 +76,12 @@ pub enum CommandError {
     Usage {
         key: &'static str,
     },
+    TicketCategoryNotFound,
+    TicketCategoryAlreadyExists,
+    TooManyEnabledTicketCategories {
+        max: usize,
+    },
+    InvalidDiscordCategory,
     StaffRoleIsEveryone {
         removing: bool,
     },
@@ -190,6 +196,14 @@ impl fmt::Display for CommandError {
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
             CommandError::Usage { key } => write!(f, "Usage: {}", key),
+            CommandError::TicketCategoryNotFound => write!(f, "Ticket category not found"),
+            CommandError::TicketCategoryAlreadyExists => {
+                write!(f, "A ticket category with this name already exists")
+            }
+            CommandError::TooManyEnabledTicketCategories { max } => {
+                write!(f, "Too many ticket categories enabled (max {})", max)
+            }
+            CommandError::InvalidDiscordCategory => write!(f, "Invalid Discord category id"),
             CommandError::StaffRoleIsEveryone { .. } => {
                 write!(
                     f,
