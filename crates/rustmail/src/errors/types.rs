@@ -73,7 +73,7 @@ pub enum CommandError {
     ReminderRoleRequired(String),
     ReminderRoleNotFound(String),
     ReminderAlreadyCompleted(String),
-    SnippetUsage {
+    Usage {
         key: &'static str,
     },
     StaffRoleIsEveryone {
@@ -189,7 +189,7 @@ impl fmt::Display for CommandError {
             CommandError::AlertDoesNotExist => write!(f, "Alert does not exist"),
             CommandError::InvalidReminderFormat => write!(f, "Invalid reminder format"),
             CommandError::TicketAlreadyTaken => write!(f, "Ticket already taken"),
-            CommandError::SnippetUsage { key } => write!(f, "Snippet usage: {}", key),
+            CommandError::Usage { key } => write!(f, "Usage: {}", key),
             CommandError::StaffRoleIsEveryone { .. } => {
                 write!(
                     f,

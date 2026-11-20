@@ -95,7 +95,7 @@ fn check_length(content: &str) -> ModmailResult<()> {
 }
 
 fn usage(key: &'static str) -> ModmailError {
-    ModmailError::Command(CommandError::SnippetUsage { key })
+    ModmailError::Command(CommandError::Usage { key })
 }
 
 #[cfg(test)]
@@ -104,7 +104,7 @@ mod tests {
 
     fn usage_key(result: ModmailResult<SnippetArgs>) -> &'static str {
         match result {
-            Err(ModmailError::Command(CommandError::SnippetUsage { key })) => key,
+            Err(ModmailError::Command(CommandError::Usage { key })) => key,
             other => panic!("expected usage, got {other:?}"),
         }
     }
