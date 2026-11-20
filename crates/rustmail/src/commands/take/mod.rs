@@ -55,10 +55,9 @@ impl Command for TakeCommand {
         }
         status.taken_by = Some(staff_id);
 
-        let key = if save_ticket_status(invocation, &ticket, &status, pool).await? {
-            "take.confirmation"
-        } else {
-            "take.confirmation_rate_limited"
+        let key = match save_ticket_status(invocation, &ticket, &status, pool).await? {
+            ChannelRename::Applied => "take.confirmation",
+            ChannelRename::Delayed => "take.confirmation_rate_limited",
         };
 
         let mut params = HashMap::new();

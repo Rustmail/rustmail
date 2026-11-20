@@ -53,10 +53,9 @@ impl Command for ReleaseCommand {
             return Err(ModmailError::Command(CommandError::TicketAlreadyReleased));
         }
 
-        let key = if save_ticket_status(invocation, &ticket, &status, pool).await? {
-            "release.confirmation"
-        } else {
-            "release.confirmation_rate_limited"
+        let key = match save_ticket_status(invocation, &ticket, &status, pool).await? {
+            ChannelRename::Applied => "release.confirmation",
+            ChannelRename::Delayed => "release.confirmation_rate_limited",
         };
 
         let mut params = HashMap::new();

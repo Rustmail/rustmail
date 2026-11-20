@@ -20,14 +20,24 @@ pub async fn ticket_status(ticket: &Thread, pool: &SqlitePool) -> ModmailResult<
         .ok_or_else(thread_not_found)
 }
 
+pub enum ChannelRename {
+    Applied,
+    Delayed,
+}
+
 pub async fn save_ticket_status(
     invocation: &Invocation,
     ticket: &Thread,
     status: &TicketState,
     pool: &SqlitePool,
-) -> ModmailResult<bool> {
+) -> ModmailResult<ChannelRename> {
     update_thread_status_db(&ticket.id, status, pool).await?;
-    Ok(update_thread_status_ui(invocation.ctx(), status)
+    let applied = update_thread_status_ui(invocation.ctx(), status)
         .await
-        .unwrap_or(true))
+        .unwrap_or(true);
+    Ok(if applied {
+        ChannelRename::Applied
+    } else {
+        ChannelRename::Delayed
+    })
 }

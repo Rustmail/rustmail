@@ -66,13 +66,13 @@ impl Command for RenameCommand {
         let ticket = current_ticket(invocation, pool).await?;
         let mut status = ticket_status(&ticket, pool).await?;
         status.label = args.label.clone();
-        let applied = save_ticket_status(invocation, &ticket, &status, pool).await?;
+        let rename = save_ticket_status(invocation, &ticket, &status, pool).await?;
 
-        let key = match (args.label.is_some(), applied) {
-            (true, true) => "rename.confirmation",
-            (true, false) => "rename.confirmation_rate_limited",
-            (false, true) => "rename.cleared",
-            (false, false) => "rename.cleared_rate_limited",
+        let key = match (args.label.is_some(), rename) {
+            (true, ChannelRename::Applied) => "rename.confirmation",
+            (true, ChannelRename::Delayed) => "rename.confirmation_rate_limited",
+            (false, ChannelRename::Applied) => "rename.cleared",
+            (false, ChannelRename::Delayed) => "rename.cleared_rate_limited",
         };
         let params = args
             .label
