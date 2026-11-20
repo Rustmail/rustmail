@@ -4,7 +4,6 @@ use crate::prelude::db::*;
 use crate::prelude::errors::*;
 use crate::prelude::i18n::*;
 use crate::prelude::modules::*;
-use crate::prelude::types::*;
 use crate::prelude::utils::*;
 use serenity::all::{GuildId, MessageId, Permissions, UserId};
 use serenity::{
@@ -25,7 +24,6 @@ pub struct GuildMessagesHandler {
     pub config: Arc<Config>,
     pub registry: Arc<CommandRegistry>,
     pub shutdown: Arc<Receiver<bool>>,
-    pub pagination: PaginationStore,
     pub maintenance_mode: Arc<AtomicBool>,
 }
 
@@ -34,14 +32,12 @@ impl GuildMessagesHandler {
         config: &Config,
         registry: Arc<CommandRegistry>,
         shutdown: Receiver<bool>,
-        pagination: PaginationStore,
         maintenance_mode: Arc<AtomicBool>,
     ) -> Self {
         Self {
             config: Arc::new(config.clone()),
             registry,
             shutdown: Arc::new(shutdown),
-            pagination,
             maintenance_mode,
         }
     }

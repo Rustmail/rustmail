@@ -141,7 +141,6 @@ pub async fn run_bot(
             &config,
             registry.clone(),
             shutdown_rx.clone(),
-            pagination.clone(),
             maintenance_mode.clone(),
         ))
         .event_handler(TypingProxyHandler::new(&config))
