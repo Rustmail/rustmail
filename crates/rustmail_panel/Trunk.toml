@@ -8,4 +8,4 @@ command = "sh"
 command_arguments = ["-c", "find ../rustmail/static -name '*.wasm' -exec wasm-opt -Oz {} -o {} \\;"]
 
 [tools]
-tailwindcss = "3.3.5"
+tailwindcss = "3.4.17"
