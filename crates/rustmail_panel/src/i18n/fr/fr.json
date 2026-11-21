@@ -8,14 +8,19 @@
     "error": "Erreur"
   },
   "navbar": {
-    "home": "Accueil",
+    "home": "Vue d'ensemble",
     "config": "Configuration",
     "apikeys": "Clés API",
     "tickets": "Tickets",
     "categories": "Catégories",
     "bans": "Bans",
     "administration": "Administration",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "section_settings": "Réglages",
+    "bot_online": "Bot en ligne",
+    "bot_offline": "Bot hors ligne",
+    "menu": "Menu",
+    "language": "Langue"
   },
   "panel": {
     "title": "Panel Rustmail",
@@ -253,35 +258,51 @@
     },
     "administration": {
       "title": "Administration",
-      "description": "Gérez les permissions d'accès au panel",
-      "loading": "Chargement...",
-      "grant_permission": "Accorder une permission",
-      "subject_type": "Type de sujet",
+      "description": "Choisissez qui peut ouvrir le panel et ce qu'il peut modifier",
+      "loading": "Chargement des accès",
+      "grant_permission": "Accorder un accès",
+      "subject_type": "Accorder à",
       "user": "Utilisateur",
       "role": "Rôle",
       "select_user": "Sélectionner un utilisateur",
       "select_role": "Sélectionner un rôle",
-      "select_permissions": "Sélectionner les permissions",
+      "select_permissions": "Permissions",
       "grant_button": "Accorder",
       "grant_button_count": "Accorder {count} permissions",
       "granting": "Attribution...",
-      "active_permissions": "Permissions actives",
-      "no_permissions": "Aucune permission active",
+      "active_permissions": "Accès actifs",
+      "no_permissions": "Personne n'a encore accès au panel, hormis les super admins",
       "add": "Ajouter",
       "remove_all": "Tout retirer",
       "removing": "Suppression...",
-      "available_permissions": "Permissions disponibles",
+      "available_permissions": "Ajouter une permission",
       "close": "Fermer",
       "cancel": "Annuler",
       "permissions": {
         "view_panel": "Voir le panel",
         "manage_bot": "Gérer le bot",
-        "manage_config": "Gérer la config",
+        "manage_config": "Gérer la configuration",
         "manage_tickets": "Gérer les tickets",
         "manage_api_keys": "Gérer les clés API",
         "manage_permissions": "Gérer les permissions",
         "manage_categories": "Gérer les catégories",
         "view_bans": "Voir les bans"
+      },
+      "grant_help": "Donnez une ou plusieurs permissions du panel à un utilisateur ou un rôle Discord",
+      "selected": "{count} sélectionnées",
+      "subjects": "{count} sujets",
+      "remove_all_title": "Retirer tous les accès de {name} ?",
+      "remove_all_help": "Toutes les permissions listées ici seront retirées. Les super admins définis dans la configuration gardent un accès complet.",
+      "remove": "Retirer",
+      "permission_help": {
+        "view_panel": "Ouvrir le panel et voir la vue d'ensemble",
+        "manage_bot": "Démarrer, arrêter et redémarrer le bot",
+        "manage_config": "Modifier les réglages de Rustmail",
+        "manage_tickets": "Lire et télécharger les transcriptions",
+        "manage_api_keys": "Créer et révoquer des clés API",
+        "manage_permissions": "Accorder et retirer des accès au panel",
+        "manage_categories": "Créer, modifier et supprimer des catégories",
+        "view_bans": "Voir les membres bannis"
       }
     },
     "bans": {
@@ -343,12 +364,12 @@
       }
     },
     "forbidden": {
-      "title": "Accès refusé",
-      "message": "Vous n'avez pas la permission nécessaire pour accéder à cette page.",
-      "required_permission": "Permission requise :",
+      "title": "Vous ne pouvez pas ouvrir {page}",
+      "message": "Votre compte Discord n'a pas la permission requise pour cette page. Demandez à un administrateur de vous l'accorder depuis Administration.",
+      "required_permission": "Permission requise",
       "help": "Contactez un administrateur si vous pensez que vous devriez avoir accès à cette section.",
-      "back_home": "Retour à l'accueil",
-      "checking_permissions": "Vérification des permissions..."
+      "back_home": "Retour à la vue d'ensemble",
+      "checking_permissions": "Vérification des permissions"
     },
     "statistics": {
       "title": "Statistiques",

@@ -46,7 +46,7 @@ pub fn wizard_layout(props: &LayoutProps) -> Html {
 
             // Language Switcher in top right corner
             <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-50">
-                <LanguageSwitcher placement="nav" />
+                <LanguageSwitcher />
             </div>
 
             <div class="w-full max-w-4xl flex flex-col gap-8">

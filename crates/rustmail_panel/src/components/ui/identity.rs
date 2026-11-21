@@ -32,6 +32,14 @@ pub fn avatar(props: &AvatarProps) -> Html {
             <img src={url} alt="" {style} class="shrink-0 rounded-full bg-surface-hover object-cover" />
         };
     }
+    let letters = initials(&props.name);
+    if letters.is_empty() {
+        return html! {
+            <span {style} class="inline-flex shrink-0 items-center justify-center rounded-full bg-surface-hover text-fg-secondary">
+                <super::icon::Icon name={super::icon::IconName::User} />
+            </span>
+        };
+    }
     let tone = if props.member {
         "bg-blurple text-white"
     } else {
@@ -39,7 +47,7 @@ pub fn avatar(props: &AvatarProps) -> Html {
     };
     html! {
         <span {style} class={classes!("inline-flex", "shrink-0", "items-center", "justify-center", "rounded-full", "font-medium", tone)}>
-            {initials(&props.name)}
+            {letters}
         </span>
     }
 }

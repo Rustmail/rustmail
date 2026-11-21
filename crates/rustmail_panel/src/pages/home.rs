@@ -25,7 +25,7 @@ pub fn home() -> Html {
                     </a>
                 </div>
             </section>
-            <LanguageSwitcher placement="top-left" />
+            <LanguageSwitcher />
         </>
     }
 }

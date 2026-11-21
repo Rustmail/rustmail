@@ -14,16 +14,35 @@ pub enum PanelPermission {
 }
 
 impl PanelPermission {
-    pub fn to_display(&self) -> &str {
+    pub const ALL: [PanelPermission; 8] = [
+        PanelPermission::ViewPanel,
+        PanelPermission::ManageTickets,
+        PanelPermission::ViewBans,
+        PanelPermission::ManageCategories,
+        PanelPermission::ManageConfig,
+        PanelPermission::ManageBot,
+        PanelPermission::ManageApiKeys,
+        PanelPermission::ManagePermissions,
+    ];
+
+    pub fn key(&self) -> &'static str {
         match self {
-            PanelPermission::ViewPanel => "View Panel",
-            PanelPermission::ManageBot => "Manage Bot",
-            PanelPermission::ManageConfig => "Manage Config",
-            PanelPermission::ManageTickets => "Manage Tickets",
-            PanelPermission::ManageApiKeys => "Manage API Keys",
-            PanelPermission::ManagePermissions => "Manage Permissions",
-            PanelPermission::ManageCategories => "Manage Categories",
-            PanelPermission::ViewBans => "View Bans",
+            PanelPermission::ViewPanel => "view_panel",
+            PanelPermission::ManageBot => "manage_bot",
+            PanelPermission::ManageConfig => "manage_config",
+            PanelPermission::ManageTickets => "manage_tickets",
+            PanelPermission::ManageApiKeys => "manage_api_keys",
+            PanelPermission::ManagePermissions => "manage_permissions",
+            PanelPermission::ManageCategories => "manage_categories",
+            PanelPermission::ViewBans => "view_bans",
         }
+    }
+
+    pub fn label_key(&self) -> String {
+        format!("panel.administration.permissions.{}", self.key())
+    }
+
+    pub fn description_key(&self) -> String {
+        format!("panel.administration.permission_help.{}", self.key())
     }
 }

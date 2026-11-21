@@ -3,8 +3,9 @@ use crate::components::bans::BansPage;
 use crate::components::categories::CategoriesPage;
 use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
-use crate::components::navbar::RustmailNavbar;
+use crate::components::sidebar::AppShell;
 use crate::components::ticket::{TicketDetails, TicketsList};
+use crate::components::ui::Loading;
 use crate::components::update_banner::UpdateBanner;
 use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
@@ -107,33 +108,24 @@ pub fn panel() -> Html {
         });
     }
 
-    let avatar_url = (*avatar).clone().unwrap_or_default();
+    let avatar_url = (*avatar).clone().map(AttrValue::from);
     let user_permissions = (*permissions).clone();
 
-    html! {
-        <>
-            {
-                match *authorized {
-                    None => html! {
-                        <section class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                            <p class="text-gray-400 animate-pulse">{i18n.t("panel.check_access")}</p>
-                        </section>
-                    },
-                    Some(true) => html! {
-                        <BrowserRouter>
-                            <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.clone()} />
-                            <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                                <UpdateBanner />
-                                <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                                    <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />
-                                </main>
-                            </section>
-                        </BrowserRouter>
-                    },
-                    Some(false) => html! {},
-                }
-            }
-        </>
+    match *authorized {
+        None => html! {
+            <div class="flex min-h-screen items-center justify-center bg-surface-page">
+                <Loading label={i18n.t("panel.check_access")} />
+            </div>
+        },
+        Some(true) => html! {
+            <BrowserRouter>
+                <AppShell permissions={user_permissions} avatar_url={avatar_url}>
+                    <UpdateBanner />
+                    <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />
+                </AppShell>
+            </BrowserRouter>
+        },
+        Some(false) => html! {},
     }
 }
 

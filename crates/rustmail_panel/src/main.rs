@@ -1,4 +1,5 @@
 mod components;
+mod hooks;
 mod i18n;
 mod pages;
 mod router;
