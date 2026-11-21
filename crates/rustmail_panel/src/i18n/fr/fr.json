@@ -451,8 +451,8 @@
       }
     },
     "update": {
-      "available": "Une nouvelle version de Rustmail est disponible.",
-      "view_release": "Voir la release",
+      "available": "Une nouvelle version de Rustmail est disponible",
+      "view_release": "Notes de version",
       "dismiss": "Masquer"
     }
   },
