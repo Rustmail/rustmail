@@ -80,7 +80,6 @@ pub struct ValidateTokenRequest {
 pub struct BotInfo {
     pub id: String,
     pub username: String,
-    pub avatar: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]

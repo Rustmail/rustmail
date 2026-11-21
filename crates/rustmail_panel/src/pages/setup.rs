@@ -1,3 +1,4 @@
+use crate::components::ui::Loading;
 use crate::components::wizard::auth::authed_get;
 use crate::components::wizard::layout::WizardLayout;
 use crate::components::wizard::persistence::{clear_progress, load_progress, save_progress};
@@ -9,6 +10,7 @@ use crate::components::wizard::step5_language::Step5Language;
 use crate::components::wizard::step6_review::Step6Review;
 use crate::components::wizard::success::SuccessScreen;
 use crate::components::wizard::types::WizardData;
+use crate::components::wizard::unauthorized::Unauthorized;
 use crate::components::wizard::welcome::Welcome;
 use crate::i18n::yew::use_translation;
 use serde::Deserialize;
@@ -73,19 +75,19 @@ pub fn setup() -> Html {
         use_effect_with((), move |_| {
             spawn_local(async move {
                 let mut completed_mode = None;
-                if let Ok(resp) = authed_get("/api/setup/status").send().await {
-                    if let Ok(status) = resp.json::<StatusResponse>().await {
-                        if status.completed {
-                            completed_mode = Some(PageMode::Completed {
-                                panel_url: status.panel_url.unwrap_or_default(),
-                                api_port: status.api_port.unwrap_or(3002),
-                            });
-                        } else if let Some(token) = status.token_prefill {
-                            let mut data = (*wizard_data).clone();
-                            if data.token.is_empty() {
-                                data.token = token;
-                                wizard_data.set(data);
-                            }
+                if let Ok(resp) = authed_get("/api/setup/status").send().await
+                    && let Ok(status) = resp.json::<StatusResponse>().await
+                {
+                    if status.completed {
+                        completed_mode = Some(PageMode::Completed {
+                            panel_url: status.panel_url.unwrap_or_default(),
+                            api_port: status.api_port.unwrap_or(3002),
+                        });
+                    } else if let Some(token) = status.token_prefill {
+                        let mut data = (*wizard_data).clone();
+                        if data.token.is_empty() {
+                            data.token = token;
+                            wizard_data.set(data);
                         }
                     }
                 }
@@ -110,15 +112,6 @@ pub fn setup() -> Html {
             || ()
         });
     }
-
-    let step_names = vec![
-        i18n.t("wizard.steps.step1.title").to_string(),
-        i18n.t("wizard.steps.step2.title").to_string(),
-        i18n.t("wizard.steps.step3.title").to_string(),
-        i18n.t("wizard.steps.step4.title").to_string(),
-        i18n.t("wizard.steps.step5.title").to_string(),
-        i18n.t("wizard.steps.step6.title").to_string(),
-    ];
 
     let on_update_data = {
         let wizard_data = wizard_data.clone();
@@ -145,19 +138,11 @@ pub fn setup() -> Html {
 
     match (*page_mode).clone() {
         PageMode::Loading => html! {
-            <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-                <div class="text-gray-400 animate-pulse">{ i18n.t("wizard.loading") }</div>
-            </div>
+            <main class="flex min-h-screen items-center justify-center bg-surface-page">
+                <Loading label={i18n.t("wizard.loading")} />
+            </main>
         },
-        PageMode::Unauthorized => html! {
-            <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 px-4 text-center">
-                <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center text-red-400 ring-4 ring-red-500/10">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-white">{ i18n.t("wizard.unauthorized_title") }</h1>
-                <p class="text-gray-400 max-w-md">{ i18n.t("wizard.unauthorized_description") }</p>
-            </div>
-        },
+        PageMode::Unauthorized => html! { <Unauthorized /> },
         PageMode::Completed {
             panel_url,
             api_port,
@@ -175,33 +160,19 @@ pub fn setup() -> Html {
             }
         }
         PageMode::Wizard => {
-            let title = match *current_step {
-                0 => i18n.t("wizard.steps.step1.title"),
-                1 => i18n.t("wizard.steps.step2.title"),
-                2 => i18n.t("wizard.steps.step3.title"),
-                3 => i18n.t("wizard.steps.step4.title"),
-                4 => i18n.t("wizard.steps.step5.title"),
-                _ => i18n.t("wizard.steps.step6.title"),
-            };
-
-            let description = match *current_step {
-                0 => i18n.t("wizard.steps.step1.description"),
-                1 => i18n.t("wizard.steps.step2.description"),
-                2 => i18n.t("wizard.steps.step3.description"),
-                3 => i18n.t("wizard.steps.step4.description"),
-                4 => i18n.t("wizard.steps.step5.description"),
-                _ => i18n.t("wizard.steps.step6.description"),
+            let on_saved = {
+                let page_mode = page_mode.clone();
+                let wizard_data = wizard_data.clone();
+                Callback::from(move |_| {
+                    page_mode.set(PageMode::Completed {
+                        panel_url: wizard_data.panel_url.clone(),
+                        api_port: wizard_data.api_port,
+                    })
+                })
             };
 
             html! {
-                <WizardLayout
-                    current_step={*current_step}
-                    total_steps={step_names.len()}
-                    step_names={step_names}
-                    title={title.to_string()}
-                    description={description.to_string()}
-                    on_restart={on_restart}
-                >
+                <WizardLayout current_step={*current_step} on_restart={on_restart}>
                     if *current_step == 0 {
                         <Step1Token
                             data={(*wizard_data).clone()}
@@ -244,6 +215,7 @@ pub fn setup() -> Html {
                         <Step6Review
                             data={(*wizard_data).clone()}
                             on_prev={on_prev_step}
+                            {on_saved}
                             on_unauthorized={on_unauthorized}
                         />
                     }

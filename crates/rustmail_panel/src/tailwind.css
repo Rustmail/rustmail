@@ -1,3 +1,123 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --surface-sunken: 17 17 17;
+    --surface-page: 9 9 11;
+    --surface: 17 17 17;
+    --surface-raised: 24 24 27;
+    --surface-hover: 39 39 42;
+    --surface-inverse: 250 250 250;
+    --fg: 250 250 250;
+    --fg-secondary: 161 161 170;
+    --fg-muted: 113 113 122;
+    --fg-inverse: 9 9 11;
+    --line: 39 39 42;
+    --line-strong: 63 63 70;
+    --accent: 249 115 22;
+    --accent-hover: 251 146 60;
+    --accent-fg: 253 186 116;
+    --accent-subtle: 34 10 4;
+    --blurple: 88 101 242;
+    --blurple-fg: 127 140 243;
+    --positive: 134 239 172;
+    --positive-subtle: 4 39 19;
+    --negative: 252 165 165;
+    --negative-subtle: 31 8 8;
+    --warning: 253 224 71;
+    --warning-subtle: 40 19 4;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --surface-sunken: 250 250 250;
+      --surface-page: 255 255 255;
+      --surface: 255 255 255;
+      --surface-raised: 244 244 245;
+      --surface-hover: 228 228 231;
+      --surface-inverse: 24 24 27;
+      --fg: 9 9 11;
+      --fg-secondary: 82 82 91;
+      --fg-muted: 113 113 122;
+      --fg-inverse: 250 250 250;
+      --line: 228 228 231;
+      --line-strong: 212 212 216;
+      --accent: 234 88 12;
+      --accent-hover: 194 65 12;
+      --accent-fg: 146 49 10;
+      --accent-subtle: 255 237 213;
+      --blurple-fg: 71 82 196;
+      --positive: 17 105 50;
+      --positive-subtle: 220 252 231;
+      --negative: 153 25 25;
+      --negative-subtle: 254 226 226;
+      --warning: 132 82 9;
+      --warning-subtle: 254 249 195;
+    }
+  }
+
+  html {
+    @apply bg-surface-page text-fg font-sans antialiased;
+    font-feature-settings: "tnum" 0;
+  }
+
+  body {
+    @apply min-h-screen text-sm;
+  }
+
+  ::selection {
+    @apply bg-accent/30;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-1 ring-offset-surface-page;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-md border border-line bg-surface;
+  }
+
+  .input {
+    @apply h-10 w-full rounded border border-line bg-transparent px-3 text-sm text-fg placeholder:text-fg-muted transition-colors duration-150 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50;
+  }
+
+  .input-mono {
+    @apply font-mono text-[13px];
+  }
+
+  .textarea {
+    @apply w-full rounded border border-line bg-transparent px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted transition-colors duration-150 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent;
+  }
+
+  .label {
+    @apply text-sm font-medium leading-5 text-fg;
+  }
+
+  .help {
+    @apply text-xs text-fg-muted;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}

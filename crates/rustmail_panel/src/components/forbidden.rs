@@ -1,3 +1,4 @@
+use crate::components::ui::{Button, Icon, IconName, Loading};
 use crate::i18n::yew::use_translation;
 use crate::pages::panel::PanelRoute;
 use yew::prelude::*;
@@ -11,51 +12,40 @@ pub struct Forbidden403Props {
 #[function_component(Forbidden403)]
 pub fn forbidden_403(props: &Forbidden403Props) -> Html {
     let (i18n, _set_language) = use_translation();
-    let navigator = use_navigator().unwrap();
+    let navigator = use_navigator();
 
-    let go_home = {
-        let navigator = navigator.clone();
-        Callback::from(move |_| {
-            navigator.push(&PanelRoute::Home);
-        })
-    };
+    let go_home = Callback::from(move |_| {
+        if let Some(nav) = &navigator {
+            nav.push(&PanelRoute::Home);
+        }
+    });
 
     html! {
-        <div class="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] px-4">
-            <div class="max-w-md w-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl p-8 border border-slate-700 text-center">
-                <div class="flex justify-center mb-6">
-                    <div class="bg-red-500/10 p-4 rounded-full">
-                        <svg class="w-16 h-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                    </div>
+        <div class="flex min-h-[70vh] items-center justify-center">
+            <div class="flex w-full max-w-[440px] flex-col gap-4">
+                <span class="inline-flex size-10 items-center justify-center rounded-xl border border-line bg-surface-raised text-fg-secondary">
+                    <Icon name={IconName::Lock} />
+                </span>
+                <h1 class="text-section font-semibold text-fg">
+                    {i18n.t("panel.forbidden.title").replace("{page}", &props.required_permission)}
+                </h1>
+                <p class="text-sm text-fg-secondary">{i18n.t("panel.forbidden.message")}</p>
+                <div class="flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2.5">
+                    <span class="flex-1 text-[13px] text-fg-secondary">{i18n.t("panel.forbidden.required_permission")}</span>
+                    <span class="rounded border border-line-strong bg-surface-raised px-1.5 py-0.5 font-mono text-xs text-fg">
+                        {props.required_permission.clone()}
+                    </span>
                 </div>
-
-                <h1 class="text-3xl font-bold text-white mb-3">{i18n.t("panel.forbidden.title")}</h1>
-
-                <p class="text-gray-400 mb-2">
-                    {i18n.t("panel.forbidden.message")}
-                </p>
-
-                <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 mb-6">
-                    <p class="text-sm text-gray-500 mb-1">{i18n.t("panel.forbidden.required_permission")}</p>
-                    <p class="text-lg font-semibold text-red-400">{&props.required_permission}</p>
+                <div class="pt-2">
+                    <Button icon={IconName::ArrowLeft} onclick={go_home}>{i18n.t("panel.forbidden.back_home")}</Button>
                 </div>
-
-                <p class="text-sm text-gray-500 mb-6">
-                    {i18n.t("panel.forbidden.help")}
-                </p>
-
-                <button
-                    onclick={go_home}
-                    class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    <span>{i18n.t("panel.forbidden.back_home")}</span>
-                </button>
             </div>
         </div>
     }
+}
+
+#[function_component(CheckingPermissions)]
+pub fn checking_permissions() -> Html {
+    let (i18n, _set_language) = use_translation();
+    html! { <Loading label={i18n.t("panel.forbidden.checking_permissions")} class="min-h-[60vh]" /> }
 }

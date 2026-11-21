@@ -1,82 +1,55 @@
+use crate::components::ui::{Icon, IconName, select_value};
 use crate::i18n::yew::use_translation;
 use yew::prelude::*;
 
+const LANGUAGES: [(&str, &str); 2] = [("en", "English"), ("fr", "Français")];
+
 #[derive(Properties, PartialEq, Clone)]
 pub struct LanguageSwitcherProps {
-    #[prop_or("top-left".to_string())]
-    pub placement: String,
+    #[prop_or_default]
+    pub compact: bool,
+    #[prop_or_default]
+    pub class: Classes,
 }
 
 #[function_component(LanguageSwitcher)]
 pub fn language_switcher(props: &LanguageSwitcherProps) -> Html {
     let (i18n, set_language) = use_translation();
-
-    let language_ref = use_node_ref();
-    let language_state = use_state(|| "".to_string());
-
-    {
-        let language_state = language_state.clone();
-        let i18n = i18n.clone();
-        use_effect(move || {
-            let current = i18n.get_current_language().to_string();
-            if *language_state != current {
-                language_state.set(current);
-            }
-            || ()
-        });
-    }
-
-    let onchange = {
-        let language_ref = language_ref.clone();
-        let language_state = language_state.clone();
-        let set_language = set_language.clone();
-
-        Callback::from(move |_| {
-            if let Some(select) = language_ref.cast::<web_sys::HtmlSelectElement>() {
-                let value = select.value();
-                language_state.set(value.clone());
-                set_language.emit(value);
-            }
-        })
+    let current = i18n.get_current_language().to_string();
+    let label = if props.compact {
+        current.to_uppercase()
+    } else {
+        LANGUAGES
+            .iter()
+            .find(|(code, _)| *code == current)
+            .map(|(_, name)| name.to_string())
+            .unwrap_or_else(|| current.to_uppercase())
     };
 
-    let container_classes = if props.placement == "nav" {
-        "relative inline-flex items-center ml-4"
+    let onchange = Callback::from(move |e: Event| set_language.emit(select_value(&e)));
+
+    let frame = if props.compact {
+        "h-7 gap-1 px-1.5 hover:bg-surface-raised"
     } else {
-        "absolute top-6 left-6"
+        "h-8 gap-1.5 border border-line pl-2.5 pr-2 hover:bg-surface-raised"
     };
 
     html! {
-        <div class={container_classes}>
-            <div class="relative inline-flex items-center">
-                <select
-                    ref={language_ref}
-                    value={(*language_state).clone()}
-                    onchange={onchange}
-                    class="
-                        appearance-none
-                        bg-gray-900/90 text-gray-200
-                        border border-white/10
-                        rounded-xl
-                        px-3 py-2 pr-8
-                        text-sm font-medium
-                        hover:bg-gray-800/80
-                        focus:outline-none focus:ring-2 focus:ring-blue-500
-                        transition
-                        cursor-pointer
-                        backdrop-blur-md
-                    "
-                >
-                    <option value="en">{ "🇺🇸 English" }</option>
-                    <option value="fr">{ "🇫🇷 Français" }</option>
-                </select>
-
-                <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <label class={classes!("relative", "inline-flex", "cursor-pointer", "items-center", "rounded-md", "text-fg-secondary", "transition-colors", "duration-150", frame, props.class.clone())}>
+            <Icon name={IconName::Languages} />
+            <span class={if props.compact { "font-mono text-xs" } else { "text-[13px] font-medium" }}>{label}</span>
+            if !props.compact {
+                <Icon name={IconName::ChevronDown} class="text-fg-muted" />
+            }
+            <select
+                aria-label={i18n.t("navbar.language")}
+                class="absolute inset-0 cursor-pointer opacity-0"
+                {onchange}
+            >
+                { for LANGUAGES.iter().map(|(code, name)| html! {
+                    <option value={*code} selected={*code == current}>{*name}</option>
+                }) }
+            </select>
+        </label>
     }
 }

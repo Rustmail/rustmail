@@ -1,10 +1,14 @@
+use crate::components::ui::{Field, ToggleRow, input_value};
 use crate::components::wizard::auth::{authed_post, handle_validation_response};
+use crate::components::wizard::parts::{StepNav, VerifiedLine, VerifyRow};
 use crate::components::wizard::types::{
     ValidateChannelRequest, ValidateChannelResponse, WizardData,
 };
 use crate::i18n::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+
+const CATEGORY_CHANNEL_KIND: u8 = 4;
 
 #[derive(Properties, PartialEq)]
 pub struct Step3Props {
@@ -15,14 +19,68 @@ pub struct Step3Props {
     pub on_unauthorized: Callback<()>,
 }
 
+fn normalized_hex(value: &str) -> String {
+    value.trim().trim_start_matches('#').to_uppercase()
+}
+
+#[derive(Properties, PartialEq)]
+struct ColorFieldProps {
+    label: AttrValue,
+    value: UseStateHandle<String>,
+}
+
+#[function_component(ColorField)]
+fn color_field(props: &ColorFieldProps) -> Html {
+    let hex = normalized_hex(&props.value);
+    let on_pick = {
+        let state = props.value.clone();
+        Callback::from(move |e: Event| {
+            let input: web_sys::HtmlInputElement = e.target_unchecked_into();
+            state.set(normalized_hex(&input.value()));
+        })
+    };
+    let on_type = {
+        let state = props.value.clone();
+        Callback::from(move |e: InputEvent| state.set(normalized_hex(&input_value(&e))))
+    };
+    html! {
+        <div class="flex min-w-0 flex-col gap-1.5">
+            <span class="label">{props.label.clone()}</span>
+            <div class="flex h-9 items-center gap-2 rounded-lg border border-line bg-surface-raised px-2.5 transition-colors duration-150 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/25">
+                <label
+                    class="relative size-4 shrink-0 cursor-pointer rounded border border-line-strong"
+                    style={format!("background-color:#{hex}")}
+                >
+                    <input
+                        type="color"
+                        aria-label={props.label.clone()}
+                        class="absolute inset-0 size-full cursor-pointer opacity-0"
+                        value={format!("#{hex}")}
+                        onchange={on_pick}
+                    />
+                </label>
+                <span class="font-mono text-[13px] text-fg-muted">{"#"}</span>
+                <input
+                    type="text"
+                    maxlength="7"
+                    aria-label={props.label.clone()}
+                    class="min-w-0 flex-1 bg-transparent font-mono text-[13px] text-fg focus:outline-none"
+                    value={hex}
+                    oninput={on_type}
+                />
+            </div>
+        </div>
+    }
+}
+
 #[function_component(Step3Thread)]
 pub fn step3_thread(props: &Step3Props) -> Html {
     let (i18n, _) = use_translation();
     let inbox_category_id = use_state(|| props.data.inbox_category_id.clone());
     let command_prefix = use_state(|| props.data.command_prefix.clone());
-    let user_color = use_state(|| props.data.user_message_color.clone());
-    let staff_color = use_state(|| props.data.staff_message_color.clone());
-    let system_color = use_state(|| props.data.system_message_color.clone());
+    let user_color = use_state(|| normalized_hex(&props.data.user_message_color));
+    let staff_color = use_state(|| normalized_hex(&props.data.staff_message_color));
+    let system_color = use_state(|| normalized_hex(&props.data.system_message_color));
 
     let embedded_message = use_state(|| props.data.embedded_message);
     let block_quote = use_state(|| props.data.block_quote);
@@ -32,7 +90,6 @@ pub fn step3_thread(props: &Step3Props) -> Html {
     let is_validating = use_state(|| false);
     let validation_result = use_state(|| None::<ValidateChannelResponse>);
 
-    // Use staff_guild_id if dual mode, else single_guild_id
     let target_guild_id = if props.data.server_mode == "dual" {
         props.data.staff_guild_id.clone()
     } else {
@@ -46,8 +103,9 @@ pub fn step3_thread(props: &Step3Props) -> Html {
         let is_validating = is_validating.clone();
         let validation_result = validation_result.clone();
         let on_unauthorized = props.on_unauthorized.clone();
+        let not_category_message = i18n.t("wizard.steps.step3.not_category");
 
-        Callback::from(move |_| {
+        Callback::from(move |_: MouseEvent| {
             let cat_id = (*category_id).clone();
             if cat_id.trim().is_empty() {
                 return;
@@ -59,6 +117,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
             let validation_result = validation_result.clone();
             let is_validating = is_validating.clone();
             let on_unauthorized = on_unauthorized.clone();
+            let not_category_message = not_category_message.clone();
 
             spawn_local(async move {
                 let req_body = ValidateChannelRequest {
@@ -79,11 +138,11 @@ pub fn step3_thread(props: &Step3Props) -> Html {
                 {
                     if data.valid {
                         if let Some(chan) = &data.channel {
-                            if chan.kind != 4 {
+                            if chan.kind != CATEGORY_CHANNEL_KIND {
                                 validation_result.set(Some(ValidateChannelResponse {
                                     valid: false,
                                     channel: Some(chan.clone()),
-                                    error: Some("The specified ID is not a category".to_string()),
+                                    error: Some(not_category_message),
                                 }));
                             } else {
                                 validation_result.set(Some(data));
@@ -99,7 +158,14 @@ pub fn step3_thread(props: &Step3Props) -> Html {
         })
     };
 
-    let is_valid = validation_result.as_ref().map(|r| r.valid).unwrap_or(false);
+    let current = (*validation_result).clone();
+    let is_valid = current.as_ref().map(|r| r.valid).unwrap_or(false);
+    let category_error = current
+        .as_ref()
+        .filter(|r| !r.valid)
+        .and_then(|r| r.error.clone())
+        .map(AttrValue::from);
+    let category = current.filter(|r| r.valid).and_then(|r| r.channel);
 
     let on_next = {
         let props_on_next = props.on_next.clone();
@@ -116,7 +182,7 @@ pub fn step3_thread(props: &Step3Props) -> Html {
         let create_ticket_by_create_channel = create_ticket_by_create_channel.clone();
         let close_on_leave = close_on_leave.clone();
 
-        Callback::from(move |_| {
+        Callback::from(move |_: MouseEvent| {
             let mut new_data = data.clone();
             new_data.inbox_category_id = (*inbox_category_id).clone();
             new_data.command_prefix = (*command_prefix).clone();
@@ -135,164 +201,97 @@ pub fn step3_thread(props: &Step3Props) -> Html {
 
     let on_prev = {
         let props_on_prev = props.on_prev.clone();
-        Callback::from(move |_| {
-            props_on_prev.emit(());
+        Callback::from(move |_: MouseEvent| props_on_prev.emit(()))
+    };
+
+    let on_category_input = {
+        let inbox_category_id = inbox_category_id.clone();
+        let validation_result = validation_result.clone();
+        Callback::from(move |e: InputEvent| {
+            inbox_category_id.set(input_value(&e));
+            validation_result.set(None);
         })
     };
 
+    let on_prefix_input = {
+        let state = command_prefix.clone();
+        Callback::from(move |e: InputEvent| state.set(input_value(&e)))
+    };
+
+    let toggle = |state: &UseStateHandle<bool>| {
+        let state = state.clone();
+        Callback::from(move |checked: bool| state.set(checked))
+    };
+
     html! {
-        <div class="flex flex-col gap-6 animate-fade-in">
-            // Inbox Category
-            <div class="flex flex-col gap-2 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step3.category_label") }</label>
-                <div class="flex gap-3">
+        <>
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-3">
+                    <Field label={i18n.t("wizard.steps.step3.category_label")} error={category_error}>
+                        <VerifyRow
+                            on_verify={on_validate_category}
+                            verifying={*is_validating}
+                            disabled={inbox_category_id.trim().is_empty()}
+                        >
+                            <input
+                                type="text"
+                                inputmode="numeric"
+                                class="input input-mono"
+                                placeholder={i18n.t("wizard.steps.step3.category_placeholder")}
+                                value={(*inbox_category_id).clone()}
+                                oninput={on_category_input}
+                            />
+                        </VerifyRow>
+                    </Field>
+                    if let Some(category) = category {
+                        <VerifiedLine
+                            text={i18n.t("wizard.steps.step3.found_category").replace("{name}", &category.name)}
+                            meta={category.id.clone()}
+                        />
+                    }
+                </div>
+
+                <Field
+                    label={i18n.t("wizard.steps.step3.prefix_label")}
+                    help={i18n.t("wizard.steps.step3.prefix_help")}
+                    class="max-w-[220px]"
+                >
                     <input
                         type="text"
-                        class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                        placeholder={i18n.t("wizard.steps.step3.category_placeholder")}
-                        value={(*inbox_category_id).clone()}
-                        onchange={
-                            let inbox_category_id = inbox_category_id.clone();
-                            let validation_result = validation_result.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                inbox_category_id.set(input.value());
-                                validation_result.set(None);
-                            })
-                        }
+                        class="input input-mono"
+                        placeholder={i18n.t("wizard.steps.step3.prefix_placeholder")}
+                        value={(*command_prefix).clone()}
+                        oninput={on_prefix_input}
                     />
-                    <button
-                        class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
-                        onclick={on_validate_category}
-                        disabled={*is_validating || inbox_category_id.trim().is_empty()}
-                    >
-                        if *is_validating {
-                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        } else {
-                            { i18n.t("wizard.common.verify") }
-                        }
-                    </button>
-                </div>
-                if let Some(res) = (*validation_result).as_ref() {
-                    if res.valid {
-                        if let Some(chan) = &res.channel {
-                            <div class="mt-3 flex items-center gap-3 text-sm text-green-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                { format!("Found category: {}", chan.name) }
-                            </div>
-                        }
-                    } else if let Some(error) = &res.error {
-                        <div class="mt-3 flex items-center gap-3 text-sm text-red-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            { error }
-                        </div>
-                    }
-                }
-            </div>
+                </Field>
 
-            // Other Settings (no validation required)
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                // Left Column
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step3.prefix_label") }</label>
-                        <input
-                            type="text"
-                            placeholder={i18n.t("wizard.steps.step3.prefix_placeholder")}
-                            class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                            value={(*command_prefix).clone()}
-                            onchange={
-                                let state = command_prefix.clone();
-                                Callback::from(move |e: Event| {
-                                    let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                    state.set(input.value());
-                                })
-                            }
-                        />
-                    </div>
-
-                    <div class="flex items-center gap-3 mt-2">
-                        <input
-                            type="checkbox"
-                            id="embedded_message"
-                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                            checked={*embedded_message}
-                            onchange={
-                                let state = embedded_message.clone();
-                                Callback::from(move |e: Event| {
-                                    let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                    state.set(input.checked());
-                                })
-                            }
-                        />
-                        <label for="embedded_message" class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.embed_label") }</label>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <input
-                            type="checkbox"
-                            id="block_quote"
-                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                            checked={*block_quote}
-                            onchange={
-                                let state = block_quote.clone();
-                                Callback::from(move |e: Event| {
-                                    let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                    state.set(input.checked());
-                                })
-                            }
-                        />
-                        <label for="block_quote" class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.use_block_quotes") }</label>
-                    </div>
+                <div class="flex flex-col">
+                    <ToggleRow
+                        label={i18n.t("wizard.steps.step3.embed_label")}
+                        help={i18n.t("wizard.steps.step3.embed_help")}
+                        checked={*embedded_message}
+                        onchange={toggle(&embedded_message)}
+                    />
+                    <ToggleRow
+                        label={i18n.t("wizard.steps.step3.use_block_quotes")}
+                        help={i18n.t("wizard.steps.step3.block_quotes_help")}
+                        checked={*block_quote}
+                        onchange={toggle(&block_quote)}
+                    />
                 </div>
 
-                // Right Column (Colors)
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.user_message_color") }</label>
-                        <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*user_color).clone().replace("#", ""))}
-                            onchange={let state = user_color.clone(); Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })}
-                        />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.staff_message_color") }</label>
-                        <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*staff_color).clone().replace("#", ""))}
-                            onchange={let state = staff_color.clone(); Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })}
-                        />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm text-gray-300">{ i18n.t("wizard.steps.step3.system_message_color") }</label>
-                        <input type="color" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" value={format!("#{}", (*system_color).clone().replace("#", ""))}
-                            onchange={let state = system_color.clone(); Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })}
-                        />
-                    </div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <ColorField label={i18n.t("wizard.steps.step3.user_message_color")} value={user_color.clone()} />
+                    <ColorField label={i18n.t("wizard.steps.step3.staff_message_color")} value={staff_color.clone()} />
+                    <ColorField label={i18n.t("wizard.steps.step3.system_message_color")} value={system_color.clone()} />
                 </div>
             </div>
-
-            <div class="flex justify-between pt-4 mt-2 border-t border-slate-800/50">
-                <button
-                    class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
-                    onclick={on_prev}
-                >
-                    { i18n.t("wizard.common.back") }
-                </button>
-                <button
-                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    onclick={on_next}
-                    disabled={!is_valid}
-                >
-                    { i18n.t("wizard.common.next") }
-                </button>
-            </div>
-        </div>
+            <StepNav
+                on_back={on_prev}
+                {on_next}
+                next_disabled={!is_valid}
+                hint={i18n.t("wizard.steps.step3.verify_hint")}
+            />
+        </>
     }
 }

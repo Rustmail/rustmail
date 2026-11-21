@@ -1,92 +1,146 @@
 use crate::components::language_switcher::LanguageSwitcher;
-use crate::components::wizard::progress_bar::ProgressBar;
+use crate::components::ui::{Button, ButtonSize, ButtonVariant, Icon, IconName, Modal};
+use crate::components::wizard::parts::{STEP_KEYS, step_title_key};
 use crate::i18n::yew::use_translation;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct LayoutProps {
     pub current_step: usize,
-    pub total_steps: usize,
-    pub step_names: Vec<String>,
-    pub title: String,
-    pub description: String,
     pub on_restart: Callback<()>,
     pub children: Children,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum StepState {
+    Done,
+    Current,
+    Upcoming,
+}
+
+fn step_marker(state: StepState, number: usize) -> Html {
+    let frame = match state {
+        StepState::Done => "border-line-strong bg-surface-raised text-fg",
+        StepState::Current => "border-accent bg-accent-subtle text-accent-fg",
+        StepState::Upcoming => "border-line text-fg-muted",
+    };
+    html! {
+        <span class={classes!("inline-flex", "size-6", "shrink-0", "items-center", "justify-center", "rounded-full", "border", "font-mono", "text-xs", frame)}>
+            if state == StepState::Done {
+                <Icon name={IconName::Check} size={12} />
+            } else {
+                {number}
+            }
+        </span>
+    }
 }
 
 #[function_component(WizardLayout)]
 pub fn wizard_layout(props: &LayoutProps) -> Html {
     let (i18n, _) = use_translation();
+    let confirming_restart = use_state(|| false);
 
-    let on_restart_click = {
+    let open_restart = {
+        let confirming_restart = confirming_restart.clone();
+        Callback::from(move |_: MouseEvent| confirming_restart.set(true))
+    };
+    let close_restart = {
+        let confirming_restart = confirming_restart.clone();
+        Callback::from(move |_| confirming_restart.set(false))
+    };
+    let confirm_restart = {
+        let confirming_restart = confirming_restart.clone();
         let on_restart = props.on_restart.clone();
-        let confirm_message = i18n.t("wizard.restart_confirm").to_string();
-        Callback::from(move |_| {
-            let confirmed = web_sys::window()
-                .and_then(|w| w.confirm_with_message(&confirm_message).ok())
-                .unwrap_or(false);
-            if confirmed {
-                on_restart.emit(());
-            }
+        Callback::from(move |_: MouseEvent| {
+            confirming_restart.set(false);
+            on_restart.emit(());
         })
     };
+    let cancel_restart = {
+        let close_restart = close_restart.clone();
+        Callback::from(move |_: MouseEvent| close_restart.emit(()))
+    };
+
+    let step_key = STEP_KEYS[props.current_step.min(STEP_KEYS.len() - 1)];
+    let position = i18n
+        .t("wizard.step_of")
+        .replace("{current}", &(props.current_step + 1).to_string())
+        .replace("{total}", &STEP_KEYS.len().to_string());
 
     html! {
-        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans relative">
-
-            <div class="absolute top-4 left-4 sm:top-8 sm:left-8 z-50">
-                <button
-                    class="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5"
-                    onclick={on_restart_click}
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    { i18n.t("wizard.restart") }
-                </button>
-            </div>
-
-            // Language Switcher in top right corner
-            <div class="absolute top-4 right-4 sm:top-8 sm:right-8 z-50">
-                <LanguageSwitcher placement="nav" />
-            </div>
-
-            <div class="w-full max-w-4xl flex flex-col gap-8">
-
-                // Header with logo and title
-                <div class="flex flex-col items-center text-center gap-4">
-                    <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                            { i18n.t("wizard.title") }
-                        </h1>
-                        <p class="text-gray-400 mt-2">{ i18n.t("wizard.progress") }</p>
-                    </div>
+        <div class="flex min-h-screen bg-surface-page">
+            <aside class="sticky top-0 hidden h-screen w-80 shrink-0 flex-col border-r border-line bg-surface-sunken p-6 md:flex">
+                <div class="flex items-center gap-2.5">
+                    <img src="/logo.png" alt="" class="size-7" />
+                    <span class="text-base font-medium text-fg">{i18n.t("wizard.title")}</span>
                 </div>
+                <ol class="mt-8 flex flex-col gap-1">
+                    { for STEP_KEYS.iter().enumerate().map(|(index, key)| {
+                        let state = if index < props.current_step {
+                            StepState::Done
+                        } else if index == props.current_step {
+                            StepState::Current
+                        } else {
+                            StepState::Upcoming
+                        };
+                        let row = if state == StepState::Current { "bg-surface-raised" } else { "" };
+                        let name = if state == StepState::Upcoming { "text-fg-secondary" } else { "text-fg" };
+                        html! {
+                            <li
+                                aria-current={(state == StepState::Current).then_some("step")}
+                                class={classes!("flex", "items-start", "gap-3", "rounded-lg", "px-2", "py-2", row)}
+                            >
+                                {step_marker(state, index + 1)}
+                                <div class="flex min-w-0 flex-col">
+                                    <span class={classes!("text-sm", "font-medium", name)}>{i18n.t(&step_title_key(key))}</span>
+                                    <span class="truncate text-xs text-fg-muted">{i18n.t(&format!("wizard.steps.{key}.caption"))}</span>
+                                </div>
+                            </li>
+                        }
+                    }) }
+                </ol>
+                <div class="mt-auto flex items-center justify-between gap-2">
+                    <Button variant={ButtonVariant::Ghost} size={ButtonSize::Sm} icon={IconName::RotateCcw} onclick={open_restart.clone()}>
+                        {i18n.t("wizard.restart")}
+                    </Button>
+                    <LanguageSwitcher />
+                </div>
+            </aside>
 
-                // Progress Bar
-                <ProgressBar
-                    current_step={props.current_step}
-                    total_steps={props.total_steps}
-                    step_names={props.step_names.clone()}
+            <main class="min-w-0 flex-1 px-6 pb-16 pt-10 md:px-24 md:pt-[72px]">
+                <div class="mx-auto flex w-full max-w-[640px] flex-col gap-8 md:mx-0">
+                    <div class="flex items-center justify-between gap-2 md:hidden">
+                        <Button variant={ButtonVariant::Ghost} size={ButtonSize::Sm} icon={IconName::RotateCcw} onclick={open_restart}>
+                            {i18n.t("wizard.restart")}
+                        </Button>
+                        <LanguageSwitcher compact=true />
+                    </div>
+                    <header class="flex flex-col gap-2">
+                        <span class="font-mono text-xs text-fg-muted">{position}</span>
+                        <h1 class="text-title font-semibold text-fg">{i18n.t(&step_title_key(step_key))}</h1>
+                        <p class="text-sm text-fg-secondary">{i18n.t(&format!("wizard.steps.{step_key}.description"))}</p>
+                    </header>
+                    { for props.children.iter() }
+                </div>
+            </main>
+
+            if *confirming_restart {
+                <Modal
+                    title={i18n.t("wizard.restart_title")}
+                    description={i18n.t("wizard.restart_confirm")}
+                    on_close={close_restart}
+                    footer={html! {
+                        <>
+                            <Button variant={ButtonVariant::Ghost} onclick={cancel_restart}>
+                                {i18n.t("wizard.common.cancel")}
+                            </Button>
+                            <Button variant={ButtonVariant::Danger} icon={IconName::RotateCcw} onclick={confirm_restart}>
+                                {i18n.t("wizard.restart")}
+                            </Button>
+                        </>
+                    }}
                 />
-
-                // Main Content Card
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-                    <div class="px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-800 bg-slate-900/50">
-                        <h2 class="text-xl font-semibold text-white">{ &props.title }</h2>
-                        <p class="text-sm text-gray-400 mt-1">{ &props.description }</p>
-                    </div>
-
-                    <div class="p-6 sm:p-8 flex-1">
-                        { for props.children.iter() }
-                    </div>
-                </div>
-
-            </div>
+            }
         </div>
     }
 }

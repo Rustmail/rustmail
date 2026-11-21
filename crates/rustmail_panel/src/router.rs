@@ -1,5 +1,5 @@
 use crate::pages::administration::Administration;
-use crate::pages::error::Error;
+use crate::pages::error::{Error, NotFound};
 use crate::pages::home::Home;
 use crate::pages::panel::Panel;
 use crate::pages::setup::Setup;
@@ -32,6 +32,6 @@ pub fn switch(routes: Route) -> Html {
         Route::Setup => html! { <Setup /> },
         Route::Administration => html! { <Administration /> },
         Route::Error => html! { <Error /> },
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::NotFound => html! { <NotFound /> },
     }
 }

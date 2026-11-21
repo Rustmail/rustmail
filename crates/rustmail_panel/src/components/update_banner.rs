@@ -1,3 +1,4 @@
+use crate::components::ui::{ButtonSize, ButtonVariant, Icon, IconButton, IconName};
 use crate::i18n::yew::use_translation;
 use gloo_net::http::Request;
 use rustmail_types::VersionInfo;
@@ -75,34 +76,19 @@ pub fn update_banner() -> Html {
         .unwrap_or_else(|| "https://github.com/Rustmail/rustmail/releases".to_string());
 
     html! {
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-            <div class="flex items-center justify-between gap-4 px-4 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/30">
-                <p class="text-sm text-indigo-200">
-                    { i18n.t("panel.update.available") }
-                    <span class="text-xs text-gray-500 ml-2">
-                        { format!("v{} → {}", info.current, latest) }
-                    </span>
-                </p>
-
-                <div class="flex items-center gap-3 shrink-0">
-                    <a
-                        href={release_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-sm font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-2"
-                    >
-                        { i18n.t("panel.update.view_release") }
-                    </a>
-                    <button
-                        onclick={on_dismiss}
-                        aria-label={i18n.t("panel.update.dismiss")}
-                        title={i18n.t("panel.update.dismiss")}
-                        class="text-gray-500 hover:text-gray-300 transition-colors px-1"
-                    >
-                        { "✕" }
-                    </button>
-                </div>
-            </div>
+        <div class="flex h-11 items-center gap-3 rounded-xl border border-line bg-surface pl-3.5 pr-2">
+            <Icon name={IconName::ArrowUpRight} class="text-accent-fg" />
+            <p class="min-w-0 flex-1 truncate text-sm text-fg">
+                { i18n.t("panel.update.available") }
+                <span class="ml-3 font-mono text-xs text-fg-muted">
+                    { format!("v{} → {}", info.current, latest) }
+                </span>
+            </p>
+            <a href={release_url} target="_blank" rel="noopener noreferrer" class={crate::components::ui::button_classes(ButtonVariant::Ghost, ButtonSize::Sm)}>
+                <Icon name={IconName::ExternalLink} />
+                { i18n.t("panel.update.view_release") }
+            </a>
+            <IconButton icon={IconName::X} label={i18n.t("panel.update.dismiss")} onclick={on_dismiss} />
         </div>
     }
 }

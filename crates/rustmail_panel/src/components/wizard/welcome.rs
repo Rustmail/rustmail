@@ -1,4 +1,7 @@
+use crate::components::language_switcher::LanguageSwitcher;
+use crate::components::ui::{Button, ButtonVariant, IconName};
 use crate::components::wizard::auth::authed_get;
+use crate::components::wizard::parts::{STEP_KEYS, step_title_key};
 use crate::i18n::yew::use_translation;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -20,12 +23,16 @@ pub fn welcome(props: &WelcomeProps) -> Html {
         let on_unauthorized = props.on_unauthorized.clone();
         let is_checking = is_checking.clone();
         let error = error.clone();
+        let unexpected_message = i18n.t("wizard.welcome_unexpected_response");
+        let network_message = i18n.t("wizard.network_error");
 
-        Callback::from(move |_| {
+        Callback::from(move |_: MouseEvent| {
             let on_start = on_start.clone();
             let on_unauthorized = on_unauthorized.clone();
             let is_checking = is_checking.clone();
             let error = error.clone();
+            let unexpected_message = unexpected_message.clone();
+            let network_message = network_message.clone();
 
             is_checking.set(true);
             error.set(None);
@@ -36,8 +43,8 @@ pub fn welcome(props: &WelcomeProps) -> Html {
                 match res {
                     Ok(resp) if resp.status() == 401 => on_unauthorized.emit(()),
                     Ok(resp) if resp.ok() => on_start.emit(()),
-                    Ok(_) => error.set(Some("Unexpected server response".to_string())),
-                    Err(_) => error.set(Some("Network error".to_string())),
+                    Ok(_) => error.set(Some(unexpected_message)),
+                    Err(_) => error.set(Some(network_message)),
                 }
 
                 is_checking.set(false);
@@ -46,26 +53,36 @@ pub fn welcome(props: &WelcomeProps) -> Html {
     };
 
     html! {
-        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 px-4 text-center animate-fade-in">
-            <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 ring-4 ring-indigo-500/10">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-            </div>
-            <h1 class="text-3xl font-bold text-white">{ i18n.t("wizard.welcome_title") }</h1>
-            <p class="text-gray-400 max-w-md">{ i18n.t("wizard.welcome_description") }</p>
-            <button
-                class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
-                onclick={on_click}
-                disabled={*is_checking}
-            >
-                if *is_checking {
-                    <svg class="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                } else {
-                    { i18n.t("wizard.welcome_start") }
+        <main class="flex min-h-screen items-center justify-center bg-surface-page px-6 py-16">
+            <div class="flex w-full max-w-[480px] flex-col gap-6">
+                <img src="/logo.png" alt="" class="size-11" />
+                <div class="flex flex-col gap-3">
+                    <h1 class="text-title font-semibold text-fg">{i18n.t("wizard.welcome_title")}</h1>
+                    <p class="text-sm text-fg-secondary">{i18n.t("wizard.welcome_description")}</p>
+                </div>
+                <ol class="flex flex-col gap-2">
+                    { for STEP_KEYS.iter().enumerate().map(|(index, key)| html! {
+                        <li class="flex items-baseline gap-3 text-sm text-fg">
+                            <span class="w-3 shrink-0 font-mono text-xs text-fg-muted">{index + 1}</span>
+                            {i18n.t(&step_title_key(key))}
+                        </li>
+                    }) }
+                </ol>
+                <div class="flex items-center gap-2">
+                    <Button
+                        variant={ButtonVariant::Primary}
+                        icon={IconName::ArrowRight}
+                        loading={*is_checking}
+                        onclick={on_click}
+                    >
+                        {i18n.t("wizard.welcome_start")}
+                    </Button>
+                    <LanguageSwitcher />
+                </div>
+                if let Some(err) = (*error).as_ref() {
+                    <p class="text-[13px] text-negative">{err}</p>
                 }
-            </button>
-            if let Some(err) = (*error).as_ref() {
-                <p class="text-sm text-red-400">{ err }</p>
-            }
-        </div>
+            </div>
+        </main>
     }
 }

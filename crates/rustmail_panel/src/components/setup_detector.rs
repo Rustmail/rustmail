@@ -28,14 +28,12 @@ pub fn setup_detector() -> Html {
                 is_checking.set(false);
             } else {
                 spawn_local(async move {
-                    if let Ok(resp) = Request::get("/api/setup/status").send().await {
-                        if let Ok(status) = resp.json::<SetupStatusResponse>().await {
-                            if status.setup_required {
-                                if let Some(nav) = navigator {
-                                    nav.push(&Route::Setup);
-                                }
-                            }
-                        }
+                    if let Ok(resp) = Request::get("/api/setup/status").send().await
+                        && let Ok(status) = resp.json::<SetupStatusResponse>().await
+                        && status.setup_required
+                        && let Some(nav) = navigator
+                    {
+                        nav.push(&Route::Setup);
                     }
                     is_checking.set(false);
                 });

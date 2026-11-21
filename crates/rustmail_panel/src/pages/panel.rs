@@ -3,8 +3,9 @@ use crate::components::bans::BansPage;
 use crate::components::categories::CategoriesPage;
 use crate::components::configuration::ConfigurationPage;
 use crate::components::home::Home;
-use crate::components::navbar::RustmailNavbar;
+use crate::components::sidebar::AppShell;
 use crate::components::ticket::{TicketDetails, TicketsList};
+use crate::components::ui::Loading;
 use crate::components::update_banner::UpdateBanner;
 use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
@@ -61,7 +62,7 @@ pub fn panel() -> Html {
     }
 
     let authorized = authorized.clone();
-    use_effect_with((*authorized).clone(), move |auth| {
+    use_effect_with(*authorized, move |auth| {
         if matches!(auth, Some(false)) {
             let win = window();
             let _ = win.location().set_href("/error?message=Access+Denied");
@@ -90,50 +91,41 @@ pub fn panel() -> Html {
         });
     }
 
-    let permissions = use_state(|| Vec::<PanelPermission>::new());
+    let permissions = use_state(Vec::<PanelPermission>::new);
     {
         let permissions = permissions.clone();
         use_effect_with((), move |()| {
             let permissions = permissions.clone();
 
             spawn_local(async move {
-                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
-                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
-                        permissions.set(perms);
-                    }
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await
+                    && let Ok(perms) = resp.json::<Vec<PanelPermission>>().await
+                {
+                    permissions.set(perms);
                 }
             });
             || ()
         });
     }
 
-    let avatar_url = (*avatar).clone().unwrap_or_default();
+    let avatar_url = (*avatar).clone().map(AttrValue::from);
     let user_permissions = (*permissions).clone();
 
-    html! {
-        <>
-            {
-                match *authorized {
-                    None => html! {
-                        <section class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                            <p class="text-gray-400 animate-pulse">{i18n.t("panel.check_access")}</p>
-                        </section>
-                    },
-                    Some(true) => html! {
-                        <BrowserRouter>
-                            <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.clone()} />
-                            <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                                <UpdateBanner />
-                                <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                                    <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />
-                                </main>
-                            </section>
-                        </BrowserRouter>
-                    },
-                    Some(false) => html! {},
-                }
-            }
-        </>
+    match *authorized {
+        None => html! {
+            <div class="flex min-h-screen items-center justify-center bg-surface-page">
+                <Loading label={i18n.t("panel.check_access")} />
+            </div>
+        },
+        Some(true) => html! {
+            <BrowserRouter>
+                <AppShell permissions={user_permissions} avatar_url={avatar_url}>
+                    <UpdateBanner />
+                    <Switch<PanelRoute> render={move |route| switch(route, navigator.clone())} />
+                </AppShell>
+            </BrowserRouter>
+        },
+        Some(false) => html! {},
     }
 }
 

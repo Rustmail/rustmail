@@ -1,3 +1,4 @@
+use crate::components::ui::{Button, ButtonVariant, Icon, IconName};
 use crate::components::wizard::auth::authed_post;
 use crate::components::wizard::persistence::clear_progress;
 use crate::i18n::yew::use_translation;
@@ -51,70 +52,82 @@ pub fn success_screen(props: &SuccessScreenProps) -> Html {
     let is_restarting = use_state(|| false);
     let restart_error = use_state(|| None::<String>);
 
-    html! {
-        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans">
-            <div class="flex flex-col items-center justify-center py-12 animate-fade-in text-center gap-4 max-w-lg">
-                <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 mb-2 ring-4 ring-green-500/10">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-2xl font-bold text-white">{ i18n.t("wizard.steps.step6.save_success") }</h2>
-                <p class="text-gray-400 max-w-md">
-                    { i18n.t("wizard.steps.step6.success_desc") }
-                </p>
-                <div class="mt-6 p-4 bg-slate-900 border border-slate-700 rounded-lg max-w-md w-full">
-                    <p class="text-sm text-indigo-300 font-medium mb-2">{ i18n.t("wizard.steps.step6.apply_changes") }</p>
-                    <ol class="text-sm text-gray-400 text-left list-decimal pl-5 space-y-2">
-                        <li>{ i18n.t("wizard.steps.step6.instruction_1") }</li>
-                        <li>{ i18n.t("wizard.steps.step6.instruction_2") }</li>
-                        <li>{ i18n.t("wizard.steps.step6.instruction_3").replace("{url}", &target_url) }</li>
-                    </ol>
-                </div>
-                <button
-                    class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={*is_restarting}
-                    onclick={
-                        let on_unauthorized = props.on_unauthorized.clone();
-                        let is_restarting = is_restarting.clone();
-                        let restart_error = restart_error.clone();
-                        Callback::from(move |_| {
-                            let target = target_url.clone();
-                            let on_unauthorized = on_unauthorized.clone();
-                            let is_restarting = is_restarting.clone();
-                            let restart_error = restart_error.clone();
+    let on_restart = {
+        let on_unauthorized = props.on_unauthorized.clone();
+        let is_restarting = is_restarting.clone();
+        let restart_error = restart_error.clone();
+        let target_url = target_url.clone();
+        let failure_message = i18n.t("wizard.steps.step6.restart_failed");
+        Callback::from(move |_: MouseEvent| {
+            let target = target_url.clone();
+            let on_unauthorized = on_unauthorized.clone();
+            let is_restarting = is_restarting.clone();
+            let restart_error = restart_error.clone();
+            let failure_message = failure_message.clone();
 
-                            is_restarting.set(true);
-                            restart_error.set(None);
+            is_restarting.set(true);
+            restart_error.set(None);
 
-                            spawn_local(async move {
-                                match authed_post("/api/setup/restart").send().await {
-                                    Ok(resp) if resp.status() == 401 => {
-                                        on_unauthorized.emit(());
-                                    }
-                                    Ok(resp) if resp.ok() => {
-                                        gloo_timers::future::TimeoutFuture::new(2000).await;
-                                        clear_progress();
-                                        let _ = web_sys::window().unwrap().location().set_href(&target);
-                                        return;
-                                    }
-                                    _ => {
-                                        restart_error.set(Some(
-                                            "Failed to restart the bot. Please try again.".to_string(),
-                                        ));
-                                    }
-                                }
-
-                                is_restarting.set(false);
-                            });
-                        })
+            spawn_local(async move {
+                match authed_post("/api/setup/restart").send().await {
+                    Ok(resp) if resp.status() == 401 => {
+                        on_unauthorized.emit(());
                     }
-                >
-
-                    { i18n.t("wizard.steps.step6.restart_bot") }
-                </button>
-                if let Some(error) = (*restart_error).as_ref() {
-                    <p class="text-sm text-red-400">{ error }</p>
+                    Ok(resp) if resp.ok() => {
+                        gloo_timers::future::TimeoutFuture::new(2000).await;
+                        clear_progress();
+                        let _ = web_sys::window().unwrap().location().set_href(&target);
+                        return;
+                    }
+                    _ => {
+                        restart_error.set(Some(failure_message));
+                    }
                 }
+
+                is_restarting.set(false);
+            });
+        })
+    };
+
+    let instructions = [
+        i18n.t("wizard.steps.step6.instruction_1"),
+        i18n.t("wizard.steps.step6.instruction_2")
+            .replace("{url}", &target_url),
+        i18n.t("wizard.steps.step6.instruction_3"),
+    ];
+
+    html! {
+        <main class="flex min-h-screen items-center justify-center bg-surface-page px-6 py-16">
+            <div class="card flex w-full max-w-[520px] flex-col gap-5 p-6">
+                <span class="inline-flex size-9 items-center justify-center rounded-xl bg-positive-subtle text-positive">
+                    <Icon name={IconName::CircleCheck} />
+                </span>
+                <div class="flex flex-col gap-2">
+                    <h1 class="text-section font-semibold text-fg">{i18n.t("wizard.steps.step6.save_success")}</h1>
+                    <p class="text-sm text-fg-secondary">{i18n.t("wizard.steps.step6.success_desc")}</p>
+                </div>
+                <ol class="flex flex-col gap-2">
+                    { for instructions.iter().enumerate().map(|(index, text)| html! {
+                        <li class="flex gap-3 text-sm text-fg">
+                            <span class="w-3 shrink-0 font-mono text-xs leading-5 text-fg-muted">{index + 1}</span>
+                            <span class="min-w-0 break-words">{text.clone()}</span>
+                        </li>
+                    }) }
+                </ol>
+                if let Some(error) = (*restart_error).as_ref() {
+                    <p class="text-[13px] text-negative">{error}</p>
+                }
+                <div class="flex justify-end">
+                    <Button
+                        variant={ButtonVariant::Primary}
+                        icon={IconName::RotateCcw}
+                        loading={*is_restarting}
+                        onclick={on_restart}
+                    >
+                        {i18n.t("wizard.steps.step6.restart_bot")}
+                    </Button>
+                </div>
             </div>
-        </div>
+        </main>
     }
 }

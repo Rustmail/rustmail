@@ -1,9 +1,15 @@
-use crate::components::forbidden::Forbidden403;
-use crate::components::navbar::RustmailNavbar;
+use crate::components::forbidden::{CheckingPermissions, Forbidden403};
+use crate::components::sidebar::AppShell;
+use crate::components::ui::{
+    Avatar, Button, ButtonSize, ButtonVariant, CardHeader, Checkbox, Chip, EmptyState, Field, Icon,
+    IconName, Loading, Modal, Segmented, Select,
+};
+use crate::hooks::{use_user_avatar, use_user_permissions};
 use crate::i18n::yew::use_translation;
 use crate::types::PanelPermission;
 use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -34,709 +40,500 @@ pub struct PermissionEntry {
     pub granted_at: i64,
 }
 
-#[derive(serde::Deserialize, Debug, serde::Serialize)]
-pub struct UserAvatar {
-    pub avatar_url: Option<String>,
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct Subject {
+    kind: String,
+    id: String,
+}
+
+async fn fetch_permissions() -> Vec<PermissionEntry> {
+    match Request::get("/api/admin/permissions").send().await {
+        Ok(resp) => resp
+            .json::<Vec<PermissionEntry>>()
+            .await
+            .unwrap_or_default(),
+        Err(_) => Vec::new(),
+    }
+}
+
+async fn grant(kind: &str, id: &str, permission: &PanelPermission) -> bool {
+    let body = serde_json::json!({
+        "subject_type": kind,
+        "subject_id": id,
+        "permission": permission,
+    });
+    match Request::post("/api/admin/permissions")
+        .header("Content-Type", "application/json")
+        .body(body.to_string())
+    {
+        Ok(req) => req.send().await.map(|r| r.ok()).unwrap_or(false),
+        Err(_) => false,
+    }
+}
+
+async fn revoke(id: i64) -> bool {
+    Request::delete(&format!("/api/admin/permissions/{}", id))
+        .send()
+        .await
+        .map(|r| r.ok())
+        .unwrap_or(false)
 }
 
 #[function_component(Administration)]
 pub fn administration() -> Html {
     let (i18n, _set_language) = use_translation();
-    let members = use_state(|| Vec::<Member>::new());
-    let roles = use_state(|| Vec::<Role>::new());
-    let permissions = use_state(|| Vec::<PermissionEntry>::new());
-    let loading = use_state(|| true);
-    let avatar = use_state(|| None::<String>);
+    let user_permissions = use_user_permissions();
+    let avatar = use_user_avatar();
 
-    let selected_subject_type = use_state(|| "user".to_string());
-    let selected_subject_id = use_state(|| String::new());
-    let selected_permissions = use_state(|| Vec::<String>::new());
-    let editing_id = use_state(|| None::<i64>);
-    let adding_to_subject = use_state(|| None::<(String, String)>);
-
-    {
-        let avatar = avatar.clone();
-        use_effect_with((), move |_| {
-            spawn_local(async move {
-                if let Ok(resp) = Request::get("/api/user/avatar").send().await {
-                    if let Ok(user_avatar) = resp.json::<UserAvatar>().await {
-                        avatar.set(user_avatar.avatar_url);
-                    }
-                }
-            });
-        });
-    }
-
-    let user_permissions = use_state(|| None::<Vec<PanelPermission>>);
-    {
-        let user_permissions = user_permissions.clone();
-        use_effect_with((), move |_| {
-            spawn_local(async move {
-                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
-                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
-                        user_permissions.set(Some(perms));
-                    }
-                }
-            });
-        });
-    }
-
-    let avatar_url = (*avatar).clone().unwrap_or_default();
-    let has_permission = if let Some(perms) = (*user_permissions).as_ref() {
-        perms.contains(&PanelPermission::ManagePermissions)
-    } else {
-        false
+    let shell = |content: Html| -> Html {
+        html! {
+            <AppShell permissions={user_permissions.clone().unwrap_or_default()} avatar_url={avatar.clone()}>
+                {content}
+            </AppShell>
+        }
     };
 
-    if user_permissions.is_none() {
-        return html! {
-            <>
-                <RustmailNavbar avatar_url={avatar_url.clone()} permissions={vec![]} />
-                <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                    <div class="flex items-center justify-center min-h-[70vh]">
-                        <div class="text-gray-400 text-lg animate-pulse">{i18n.t("panel.forbidden.checking_permissions")}</div>
-                    </div>
-                </section>
-            </>
-        };
+    match &user_permissions {
+        None => shell(html! { <CheckingPermissions /> }),
+        Some(perms) if !perms.contains(&PanelPermission::ManagePermissions) => {
+            shell(html! { <Forbidden403 required_permission={i18n.t("navbar.administration")} /> })
+        }
+        Some(_) => shell(html! { <AdministrationContent /> }),
     }
+}
 
-    if !has_permission {
-        return html! {
-            <>
-                <RustmailNavbar avatar_url={avatar_url.clone()} permissions={user_permissions.as_ref().unwrap().clone()} />
-                <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                    <Forbidden403 required_permission={i18n.t("navbar.administration")} />
-                </section>
-            </>
-        };
-    }
+#[function_component(AdministrationContent)]
+fn administration_content() -> Html {
+    let (i18n, _set_language) = use_translation();
+    let members = use_state(Vec::<Member>::new);
+    let roles = use_state(Vec::<Role>::new);
+    let entries = use_state(Vec::<PermissionEntry>::new);
+    let loading = use_state(|| true);
+
+    let subject_kind = use_state(|| AttrValue::from("role"));
+    let subject_id = use_state(String::new);
+    let selected = use_state(Vec::<PanelPermission>::new);
+    let granting = use_state(|| false);
+    let adding_to = use_state(|| None::<Subject>);
+    let confirm_remove = use_state(|| None::<(Subject, String)>);
 
     {
         let members = members.clone();
         let roles = roles.clone();
-        let permissions = permissions.clone();
+        let entries = entries.clone();
         let loading = loading.clone();
-
         use_effect_with((), move |_| {
             spawn_local(async move {
-                if let Ok(resp) = Request::get("/api/admin/members").send().await {
-                    if let Ok(data) = resp.json::<Vec<Member>>().await {
-                        members.set(data);
-                    }
+                if let Ok(resp) = Request::get("/api/admin/members").send().await
+                    && let Ok(data) = resp.json::<Vec<Member>>().await
+                {
+                    members.set(data);
                 }
-
-                if let Ok(resp) = Request::get("/api/admin/roles").send().await {
-                    if let Ok(data) = resp.json::<Vec<Role>>().await {
-                        roles.set(data);
-                    }
+                if let Ok(resp) = Request::get("/api/admin/roles").send().await
+                    && let Ok(data) = resp.json::<Vec<Role>>().await
+                {
+                    roles.set(data);
                 }
-
-                if let Ok(resp) = Request::get("/api/admin/permissions").send().await {
-                    if let Ok(data) = resp.json::<Vec<PermissionEntry>>().await {
-                        permissions.set(data);
-                    }
-                }
-
+                entries.set(fetch_permissions().await);
                 loading.set(false);
             });
+            || ()
         });
     }
 
-    let perms = (*user_permissions).as_ref().unwrap().clone();
+    if *loading {
+        return html! { <Loading label={i18n.t("panel.administration.loading")} class="min-h-[60vh]" /> };
+    }
 
-    let get_subject_display = |subject_type: &str, subject_id: &str| -> String {
-        if subject_type == "user" {
-            members
-                .iter()
-                .find(|m| m.user_id == subject_id)
-                .map(|m| format!("{}#{}", m.username, m.discriminator))
-                .unwrap_or_else(|| subject_id.to_string())
-        } else {
-            roles
-                .iter()
-                .find(|r| r.role_id == subject_id)
-                .map(|r| r.name.clone())
-                .unwrap_or_else(|| subject_id.to_string())
+    let display_name = {
+        let members = (*members).clone();
+        let roles = (*roles).clone();
+        move |subject: &Subject| -> String {
+            if subject.kind == "user" {
+                members
+                    .iter()
+                    .find(|m| m.user_id == subject.id)
+                    .map(|m| m.username.clone())
+                    .unwrap_or_else(|| subject.id.clone())
+            } else {
+                roles
+                    .iter()
+                    .find(|r| r.role_id == subject.id)
+                    .map(|r| format!("@{}", r.name))
+                    .unwrap_or_else(|| subject.id.clone())
+            }
         }
     };
 
-    use std::collections::HashMap;
-    let mut grouped_permissions: HashMap<(String, String), Vec<(i64, PanelPermission)>> =
-        HashMap::new();
-    for perm in permissions.iter() {
-        let key = (perm.subject_type.clone(), perm.subject_id.clone());
-        grouped_permissions
-            .entry(key)
-            .or_insert_with(Vec::new)
-            .push((perm.id, perm.permission.clone()));
+    let mut grouped: BTreeMap<Subject, Vec<(i64, PanelPermission)>> = BTreeMap::new();
+    for entry in entries.iter() {
+        grouped
+            .entry(Subject {
+                kind: entry.subject_type.clone(),
+                id: entry.subject_id.clone(),
+            })
+            .or_default()
+            .push((entry.id, entry.permission.clone()));
     }
+
+    let on_kind = {
+        let subject_kind = subject_kind.clone();
+        let subject_id = subject_id.clone();
+        Callback::from(move |kind: AttrValue| {
+            subject_kind.set(kind);
+            subject_id.set(String::new());
+        })
+    };
+
+    let subject_options: Vec<(AttrValue, AttrValue)> = {
+        let placeholder = if *subject_kind == "user" {
+            i18n.t("panel.administration.select_user")
+        } else {
+            i18n.t("panel.administration.select_role")
+        };
+        let mut options = vec![(AttrValue::from(""), AttrValue::from(placeholder))];
+        if *subject_kind == "user" {
+            options.extend(members.iter().map(|m| {
+                (
+                    AttrValue::from(m.user_id.clone()),
+                    AttrValue::from(m.username.clone()),
+                )
+            }));
+        } else {
+            options.extend(roles.iter().map(|r| {
+                (
+                    AttrValue::from(r.role_id.clone()),
+                    AttrValue::from(format!("@{}", r.name)),
+                )
+            }));
+        }
+        options
+    };
+
+    let on_subject = {
+        let subject_id = subject_id.clone();
+        Callback::from(move |value: String| subject_id.set(value))
+    };
+
+    let on_grant = {
+        let subject_kind = subject_kind.clone();
+        let subject_id = subject_id.clone();
+        let selected = selected.clone();
+        let entries = entries.clone();
+        let granting = granting.clone();
+        Callback::from(move |_| {
+            let kind = subject_kind.to_string();
+            let id = (*subject_id).clone();
+            let perms = (*selected).clone();
+            if id.is_empty() || perms.is_empty() {
+                return;
+            }
+            let selected = selected.clone();
+            let entries = entries.clone();
+            let granting = granting.clone();
+            granting.set(true);
+            spawn_local(async move {
+                for perm in &perms {
+                    grant(&kind, &id, perm).await;
+                }
+                entries.set(fetch_permissions().await);
+                selected.set(Vec::new());
+                granting.set(false);
+            });
+        })
+    };
+
+    let permission_tiles = PanelPermission::ALL.iter().map(|perm| {
+        let checked = selected.contains(perm);
+        let toggle = {
+            let selected = selected.clone();
+            let perm = perm.clone();
+            Callback::from(move |_| {
+                let mut next = (*selected).clone();
+                if let Some(pos) = next.iter().position(|p| *p == perm) {
+                    next.remove(pos);
+                } else {
+                    next.push(perm.clone());
+                }
+                selected.set(next);
+            })
+        };
+        let toggle_box = {
+            let toggle = toggle.clone();
+            Callback::from(move |_: bool| toggle.emit(()))
+        };
+        let frame = if checked {
+            "border-line-strong bg-surface-raised"
+        } else {
+            "border-line hover:bg-surface-raised/50"
+        };
+        html! {
+            <div
+                key={perm.key()}
+                role="button"
+                class={classes!("flex", "cursor-pointer", "items-start", "gap-2.5", "rounded-xl", "border", "p-3", "transition-colors", "duration-150", frame)}
+                onclick={toggle.reform(|_: MouseEvent| ())}
+            >
+                <span class="pt-0.5">
+                    <Checkbox checked={checked} onchange={toggle_box} label={i18n.t(&perm.label_key())} />
+                </span>
+                <span class="flex min-w-0 flex-col gap-0.5">
+                    <span class="text-sm font-medium text-fg">{i18n.t(&perm.label_key())}</span>
+                    <span class="text-xs text-fg-muted">{i18n.t(&perm.description_key())}</span>
+                </span>
+            </div>
+        }
+    });
+
+    let selected_count = selected.len();
+    let grant_label = if selected_count == 0 {
+        i18n.t("panel.administration.grant_button")
+    } else {
+        i18n.t("panel.administration.grant_button_count")
+            .replace("{count}", &selected_count.to_string())
+    };
+
+    let rows = grouped.iter().map(|(subject, perms)| {
+        let name = display_name(subject);
+        let is_user = subject.kind == "user";
+        let avatar_url = if is_user {
+            members
+                .iter()
+                .find(|m| m.user_id == subject.id)
+                .and_then(|m| m.avatar.clone())
+                .filter(|a| a.starts_with("http"))
+                .map(AttrValue::from)
+        } else {
+            None
+        };
+        let identity = if is_user {
+            html! { <Avatar name={name.clone()} url={avatar_url} size={32} /> }
+        } else {
+            html! {
+                <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-raised text-fg-secondary">
+                    <Icon name={IconName::Users} />
+                </span>
+            }
+        };
+
+        let chips = perms.iter().map(|(id, perm)| {
+            let on_remove = {
+                let entries = entries.clone();
+                let id = *id;
+                Callback::from(move |_| {
+                    let entries = entries.clone();
+                    spawn_local(async move {
+                        revoke(id).await;
+                        entries.set(fetch_permissions().await);
+                    });
+                })
+            };
+            html! {
+                <Chip key={*id} on_remove={on_remove} remove_label={i18n.t("panel.administration.remove")}>
+                    {i18n.t(&perm.label_key())}
+                </Chip>
+            }
+        });
+
+        let missing: Vec<PanelPermission> = PanelPermission::ALL
+            .iter()
+            .filter(|p| !perms.iter().any(|(_, have)| have == *p))
+            .cloned()
+            .collect();
+        let is_adding = adding_to.as_ref() == Some(subject);
+        let toggle_add = {
+            let adding_to = adding_to.clone();
+            let subject = subject.clone();
+            Callback::from(move |_| {
+                if adding_to.as_ref() == Some(&subject) {
+                    adding_to.set(None);
+                } else {
+                    adding_to.set(Some(subject.clone()));
+                }
+            })
+        };
+        let add_list = if is_adding {
+            html! {
+                <div class="flex w-full flex-wrap items-center gap-1.5 pt-1">
+                    <span class="mr-1 text-xs text-fg-muted">{i18n.t("panel.administration.available_permissions")}</span>
+                    { for missing.iter().map(|perm| {
+                        let onclick = {
+                            let entries = entries.clone();
+                            let adding_to = adding_to.clone();
+                            let subject = subject.clone();
+                            let perm = perm.clone();
+                            Callback::from(move |_| {
+                                let entries = entries.clone();
+                                let adding_to = adding_to.clone();
+                                let subject = subject.clone();
+                                let perm = perm.clone();
+                                spawn_local(async move {
+                                    grant(&subject.kind, &subject.id, &perm).await;
+                                    entries.set(fetch_permissions().await);
+                                    adding_to.set(None);
+                                });
+                            })
+                        };
+                        html! {
+                            <button type="button" key={perm.key()} class="inline-flex h-6 items-center gap-1 rounded-md border border-dashed border-line-strong px-2 text-xs text-fg-secondary transition-colors hover:bg-surface-raised hover:text-fg" {onclick}>
+                                <Icon name={IconName::Plus} size={12} />
+                                {i18n.t(&perm.label_key())}
+                            </button>
+                        }
+                    }) }
+                </div>
+            }
+        } else {
+            html! {}
+        };
+
+        let ask_remove = {
+            let confirm_remove = confirm_remove.clone();
+            let subject = subject.clone();
+            let name = name.clone();
+            Callback::from(move |_| confirm_remove.set(Some((subject.clone(), name.clone()))))
+        };
+
+        html! {
+            <div key={format!("{}:{}", subject.kind, subject.id)} class="flex flex-col gap-3 border-t border-line px-6 py-4 md:flex-row md:items-start md:gap-4">
+                <div class="flex w-56 shrink-0 items-center gap-2.5">
+                    {identity}
+                    <div class="flex min-w-0 flex-col">
+                        <span class="truncate text-sm font-medium text-fg">{name.clone()}</span>
+                        <span class="text-xs text-fg-muted">
+                            {if is_user { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                    { for chips }
+                    if !missing.is_empty() {
+                        <Button variant={ButtonVariant::Ghost} size={ButtonSize::Sm} icon={IconName::Plus} onclick={toggle_add}>
+                            {i18n.t("panel.administration.add")}
+                        </Button>
+                    }
+                    {add_list}
+                </div>
+                <Button variant={ButtonVariant::Ghost} size={ButtonSize::Sm} icon={IconName::TrashTwo} onclick={ask_remove}>
+                    {i18n.t("panel.administration.remove_all")}
+                </Button>
+            </div>
+        }
+    });
+
+    let remove_modal = if let Some((subject, name)) = (*confirm_remove).clone() {
+        let close = {
+            let confirm_remove = confirm_remove.clone();
+            Callback::from(move |_| confirm_remove.set(None))
+        };
+        let confirm = {
+            let confirm_remove = confirm_remove.clone();
+            let entries = entries.clone();
+            let ids: Vec<i64> = grouped
+                .get(&subject)
+                .map(|p| p.iter().map(|(id, _)| *id).collect())
+                .unwrap_or_default();
+            Callback::from(move |_| {
+                let confirm_remove = confirm_remove.clone();
+                let entries = entries.clone();
+                let ids = ids.clone();
+                spawn_local(async move {
+                    for id in ids {
+                        revoke(id).await;
+                    }
+                    entries.set(fetch_permissions().await);
+                    confirm_remove.set(None);
+                });
+            })
+        };
+        html! {
+            <Modal
+                title={i18n.t("panel.administration.remove_all_title").replace("{name}", &name)}
+                description={i18n.t("panel.administration.remove_all_help")}
+                on_close={close.clone()}
+                width={440}
+                footer={html! {
+                    <>
+                        <Button variant={ButtonVariant::Ghost} onclick={close.reform(|_: MouseEvent| ())}>{i18n.t("panel.administration.cancel")}</Button>
+                        <Button variant={ButtonVariant::Danger} icon={IconName::TrashTwo} onclick={confirm}>{i18n.t("panel.administration.remove_all")}</Button>
+                    </>
+                }}
+            />
+        }
+    } else {
+        html! {}
+    };
 
     html! {
         <>
-            <RustmailNavbar avatar_url={avatar_url.clone()} permissions={perms.clone()} />
-            <section class="pt-24 min-h-screen bg-gradient-to-b from-slate-900 to-black text-white">
-                {if *loading {
-                    html! {
-                        <div class="flex flex-col items-center justify-center min-h-[80vh]">
-                            <div class="relative">
-                                <div class="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
-                                <div class="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
-                            </div>
-                            <p class="mt-6 text-gray-400 text-lg font-medium animate-pulse">{i18n.t("panel.administration.loading")}</p>
-                            <div class="mt-4 flex space-x-2">
-                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                                <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-                                <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
-                            </div>
-                        </div>
+            <crate::components::ui::PageHeader
+                title={i18n.t("panel.administration.title")}
+                description={i18n.t("panel.administration.description")}
+            />
+
+            <section class="card flex flex-col gap-5 p-6">
+                <CardHeader
+                    title={i18n.t("panel.administration.grant_permission")}
+                    description={i18n.t("panel.administration.grant_help")}
+                />
+                <div class="flex flex-wrap items-end gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <span class="label">{i18n.t("panel.administration.subject_type")}</span>
+                        <Segmented
+                            options={vec![
+                                (AttrValue::from("user"), AttrValue::from(i18n.t("panel.administration.user"))),
+                                (AttrValue::from("role"), AttrValue::from(i18n.t("panel.administration.role"))),
+                            ]}
+                            value={(*subject_kind).clone()}
+                            onchange={on_kind}
+                        />
+                    </div>
+                    <Field
+                        label={if *subject_kind == "user" { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
+                        class="w-full max-w-xs"
+                    >
+                        <Select value={AttrValue::from((*subject_id).clone())} options={subject_options} onchange={on_subject} />
+                    </Field>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <span class="label">{i18n.t("panel.administration.select_permissions")}</span>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        { for permission_tiles }
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    if selected_count > 0 {
+                        <span class="text-[13px] text-fg-muted">
+                            {i18n.t("panel.administration.selected").replace("{count}", &selected_count.to_string())}
+                        </span>
                     }
-                } else {
-                    html! {
-                        <div class="container mx-auto p-6 max-w-7xl">
-                            <div class="mb-8">
-                                <h1 class="text-4xl font-bold text-white mb-2">{i18n.t("panel.administration.title")}</h1>
-                                <p class="text-gray-400">{i18n.t("panel.administration.description")}</p>
-                            </div>
-
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl p-8 border border-slate-700 mb-8">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
-                        <div class={format!("p-3 rounded-lg mr-4 {}", if editing_id.is_some() { "bg-orange-500/10" } else { "bg-blue-500/10" })}>
-                            <svg class={format!("w-6 h-6 {}", if editing_id.is_some() { "text-orange-400" } else { "text-blue-400" })} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {if editing_id.is_some() {
-                                    html! {
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    }
-                                } else {
-                                    html! {
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    }
-                                }}
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">
-                                {i18n.t("panel.administration.grant_permission")}
-                            </h2>
-                            <p class="text-gray-400 text-sm">
-                                {i18n.t("panel.administration.description")}
-                            </p>
-                        </div>
-                    </div>
-                    {if editing_id.is_some() {
-                        html! {
-                            <button
-                                onclick={{
-                                    let editing_id = editing_id.clone();
-                                    let selected_subject_type = selected_subject_type.clone();
-                                    let selected_subject_id = selected_subject_id.clone();
-                                    let selected_permissions = selected_permissions.clone();
-                                    Callback::from(move |_| {
-                                        editing_id.set(None);
-                                        selected_subject_type.set("user".to_string());
-                                        selected_subject_id.set(String::new());
-                                        selected_permissions.set(Vec::new());
-                                    })
-                                }}
-                                class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
-                            >
-                                {i18n.t("panel.administration.cancel")}
-                            </button>
-                        }
-                    } else {
-                        html! {}
-                    }}
+                    <Button
+                        variant={ButtonVariant::Primary}
+                        loading={*granting}
+                        disabled={subject_id.is_empty() || selected_count == 0}
+                        onclick={on_grant}
+                    >
+                        {grant_label}
+                    </Button>
                 </div>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-2">{i18n.t("panel.administration.subject_type")}</label>
-                        <select
-                            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            value={(*selected_subject_type).clone()}
-                            onchange={{
-                                let selected_subject_type = selected_subject_type.clone();
-                                let selected_subject_id = selected_subject_id.clone();
-                                Callback::from(move |e: Event| {
-                                    let target = e.target_dyn_into::<web_sys::HtmlSelectElement>();
-                                    if let Some(select) = target {
-                                        selected_subject_type.set(select.value());
-                                        selected_subject_id.set(String::new());
-                                    }
-                                })
-                            }}
-                        >
-                            <option value="user">{format!("👤 {}", i18n.t("panel.administration.user"))}</option>
-                            <option value="role">{format!("🏷️ {}", i18n.t("panel.administration.role"))}</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-2">
-                            {if *selected_subject_type == "user" { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
-                        </label>
-                        <select
-                            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            value={(*selected_subject_id).clone()}
-                            onchange={{
-                                let selected_subject_id = selected_subject_id.clone();
-                                Callback::from(move |e: Event| {
-                                    let target = e.target_dyn_into::<web_sys::HtmlSelectElement>();
-                                    if let Some(select) = target {
-                                        selected_subject_id.set(select.value());
-                                    }
-                                })
-                            }}
-                        >
-                            <option value="">{if *selected_subject_type == "user" { i18n.t("panel.administration.select_user") } else { i18n.t("panel.administration.select_role") }}</option>
-                            {if *selected_subject_type == "user" {
-                                members.iter().map(|member| html! {
-                                    <option key={member.user_id.clone()} value={member.user_id.clone()}>
-                                        {format!("{}#{}", member.username, member.discriminator)}
-                                    </option>
-                                }).collect::<Html>()
-                            } else {
-                                roles.iter().map(|role| html! {
-                                    <option key={role.role_id.clone()} value={role.role_id.clone()}>
-                                        {&role.name}
-                                    </option>
-                                }).collect::<Html>()
-                            }}
-                        </select>
-                    </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-3">{i18n.t("panel.administration.select_permissions")}</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {
-                                vec![
-                                    ("view_panel", i18n.t("panel.administration.permissions.view_panel")),
-                                    ("manage_bot", i18n.t("panel.administration.permissions.manage_bot")),
-                                    ("manage_config", i18n.t("panel.administration.permissions.manage_config")),
-                                    ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
-                                    ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
-                                    ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
-                                    ("manage_categories", i18n.t("panel.administration.permissions.manage_categories")),
-                                    ("view_bans", i18n.t("panel.administration.permissions.view_bans")),
-                                ].iter().map(|(value, label)| {
-                                let is_checked = selected_permissions.contains(&value.to_string());
-                                let selected_permissions_clone = selected_permissions.clone();
-                                let value_str = value.to_string();
-
-                                html! {
-                                    <label
-                                        key={value.to_string()}
-                                        class={format!("flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all {}",
-                                            if is_checked {
-                                                "border-blue-500 bg-blue-500/10"
-                                            } else {
-                                                "border-slate-600 bg-slate-900/50 hover:border-slate-500"
-                                            }
-                                        )}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={is_checked}
-                                            onchange={{
-                                                Callback::from(move |e: Event| {
-                                                    let target = e.target_dyn_into::<web_sys::HtmlInputElement>();
-                                                    if let Some(checkbox) = target {
-                                                        let mut perms = (*selected_permissions_clone).clone();
-                                                        if checkbox.checked() {
-                                                            if !perms.contains(&value_str) {
-                                                                perms.push(value_str.clone());
-                                                            }
-                                                        } else {
-                                                            perms.retain(|p| p != &value_str);
-                                                        }
-                                                        selected_permissions_clone.set(perms);
-                                                    }
-                                                })
-                                            }}
-                                            class="w-4 h-4 text-blue-600 bg-slate-800 border-slate-600 rounded focus:ring-blue-500"
-                                        />
-                                        <span class="ml-2 text-sm font-medium text-gray-200">{label}</span>
-                                    </label>
-                                }
-                            }).collect::<Html>()
-                            }
-                        </div>
-                    </div>
-
-                    <div>
-                        <button
-                            disabled={(*selected_subject_id).is_empty() || (*selected_permissions).is_empty()}
-                            onclick={{
-                                let permissions_state = permissions.clone();
-                                let subject_type = selected_subject_type.clone();
-                                let subject_id = selected_subject_id.clone();
-                                let perms_list = selected_permissions.clone();
-                                let edit_id = editing_id.clone();
-                                let reset_subject_type = selected_subject_type.clone();
-                                let reset_subject_id = selected_subject_id.clone();
-                                let reset_permissions = selected_permissions.clone();
-                                let reset_editing = editing_id.clone();
-                                Callback::from(move |_| {
-                                    let permissions = permissions_state.clone();
-                                    let st = (*subject_type).clone();
-                                    let sid = (*subject_id).clone();
-                                    let perms = (*perms_list).clone();
-                                    let eid = (*edit_id).clone();
-                                    let reset_st = reset_subject_type.clone();
-                                    let reset_sid = reset_subject_id.clone();
-                                    let reset_perms = reset_permissions.clone();
-                                    let reset_edit = reset_editing.clone();
-
-                                    if sid.is_empty() || perms.is_empty() {
-                                        return;
-                                    }
-
-                                    spawn_local(async move {
-                                        let mut success = true;
-
-                                        if let Some(id) = eid {
-                                            if Request::delete(&format!("/api/admin/permissions/{}", id)).send().await.is_err() {
-                                                success = false;
-                                            }
-                                        }
-
-                                        if success {
-                                            for perm in &perms {
-                                                let body = serde_json::json!({
-                                                    "subject_type": st,
-                                                    "subject_id": sid,
-                                                    "permission": perm
-                                                });
-
-                                                let req = Request::post("/api/admin/permissions")
-                                                    .header("Content-Type", "application/json")
-                                                    .body(body.to_string());
-
-                                                if let Ok(request) = req {
-                                                    if request.send().await.is_err() {
-                                                        success = false;
-                                                        break;
-                                                    }
-                                                } else {
-                                                    success = false;
-                                                    break;
-                                                }
-                                            }
-                                        }
-
-                                        if success {
-                                            if let Ok(resp) = Request::get("/api/admin/permissions").send().await {
-                                                if let Ok(data) = resp.json::<Vec<PermissionEntry>>().await {
-                                                    permissions.set(data);
-                                                    if eid.is_some() {
-                                                        reset_st.set("user".to_string());
-                                                        reset_sid.set(String::new());
-                                                        reset_perms.set(Vec::new());
-                                                    } else {
-                                                        reset_perms.set(Vec::new());
-                                                    }
-                                                    reset_edit.set(None);
-                                                }
-                                            }
-                                        }
-                                    });
-                                })
-                            }}
-                            class={format!("w-full px-4 py-3 bg-gradient-to-r {} disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2",
-                                if editing_id.is_some() { "from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800" } else { "from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800" }
-                            )}
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {if editing_id.is_some() {
-                                    html! {
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    }
-                                } else {
-                                    html! {
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    }
-                                }}
-                            </svg>
-                            <span>
-                                {
-                                    if (*selected_permissions).is_empty() {
-                                        i18n.t("panel.administration.grant_button")
-                                    } else {
-                                        i18n.t("panel.administration.grant_button_count").replace("{count}", &(*selected_permissions).len().to_string())
-                                    }
-                                }
-                            </span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="p-6 border-b border-slate-700">
-                    <div class="flex items-center">
-                        <div class="bg-purple-500/10 p-3 rounded-lg mr-4">
-                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">{i18n.t("panel.administration.active_permissions")}</h2>
-                            <p class="text-gray-400 text-sm">{format!("{} permission(s)", permissions.len())}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-6">
-                    {if grouped_permissions.is_empty() {
-                        html! {
-                            <div class="text-center py-12">
-                                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                                </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-300">{i18n.t("panel.administration.no_permissions")}</h3>
-                                <p class="mt-1 text-sm text-gray-500">{i18n.t("panel.administration.description")}</p>
-                            </div>
-                        }
-                    } else {
-                        html! {
-                            <div class="space-y-4">
-                                {grouped_permissions.iter().map(|((subject_type, subject_id), perms_list)| {
-                                    let subject_display = get_subject_display(subject_type, subject_id);
-                                    let is_user = subject_type == "user";
-                                    let permissions_clone = permissions.clone();
-                                    let st = subject_type.clone();
-                                    let sid = subject_id.clone();
-
-                                    let is_adding = if let Some((s_type, s_id)) = adding_to_subject.as_ref() {
-                                        s_type == &st && s_id == &sid
-                                    } else {
-                                        false
-                                    };
-                                    let all_perms = vec![
-                                        ("view_panel", i18n.t("panel.administration.permissions.view_panel")),
-                                        ("manage_bot", i18n.t("panel.administration.permissions.manage_bot")),
-                                        ("manage_config", i18n.t("panel.administration.permissions.manage_config")),
-                                        ("manage_tickets", i18n.t("panel.administration.permissions.manage_tickets")),
-                                        ("manage_api_keys", i18n.t("panel.administration.permissions.manage_api_keys")),
-                                        ("manage_permissions", i18n.t("panel.administration.permissions.manage_permissions")),
-                                        ("manage_categories", i18n.t("panel.administration.permissions.manage_categories")),
-                                    ("view_bans", i18n.t("panel.administration.permissions.view_bans")),
-                                    ];
-                                    let current_perms: Vec<String> = perms_list.iter().map(|(_, p)| {
-                                        match p {
-                                            PanelPermission::ViewPanel => "view_panel",
-                                            PanelPermission::ManageBot => "manage_bot",
-                                            PanelPermission::ManageConfig => "manage_config",
-                                            PanelPermission::ManageTickets => "manage_tickets",
-                                            PanelPermission::ManageApiKeys => "manage_api_keys",
-                                            PanelPermission::ManagePermissions => "manage_permissions",
-                                            PanelPermission::ManageCategories => "manage_categories",
-                                            PanelPermission::ViewBans => "view_bans",
-                                        }.to_string()
-                                    }).collect();
-
-                                    html! {
-                                        <div key={format!("{}_{}", subject_type, subject_id)} class="bg-slate-800/50 rounded-lg p-5 border border-slate-700">
-                                            <div class="flex items-start space-x-4">
-                                                <div class={format!("p-2 rounded-lg {}", if is_user { "bg-blue-500/10" } else { "bg-purple-500/10" })}>
-                                                    {if is_user {
-                                                        html! {
-                                                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                                            </svg>
-                                                        }
-                                                    } else {
-                                                        html! {
-                                                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                            </svg>
-                                                        }
-                                                    }}
-                                                </div>
-                                                <div class="flex-1">
-                                                    <div class="flex items-center space-x-2 mb-3">
-                                                        <span class="font-bold text-white text-lg">{subject_display}</span>
-                                                        <span class="px-2 py-0.5 text-xs rounded-full bg-slate-700 text-gray-300">
-                                                            {if is_user { i18n.t("panel.administration.user") } else { i18n.t("panel.administration.role") }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex flex-wrap gap-2">
-                                                        {perms_list.iter().map(|(perm_id, perm)| {
-                                                            let pid = *perm_id;
-                                                            let permissions_clone2 = permissions_clone.clone();
-                                                            let remove_callback = Callback::from(move |_| {
-                                                                let permissions = permissions_clone2.clone();
-                                                                spawn_local(async move {
-                                                                    if Request::delete(&format!("/api/admin/permissions/{}", pid)).send().await.is_ok() {
-                                                                        if let Ok(resp) = Request::get("/api/admin/permissions").send().await {
-                                                                            if let Ok(data) = resp.json::<Vec<PermissionEntry>>().await {
-                                                                                permissions.set(data);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                });
-                                                            });
-
-                                                            html! {
-                                                                <div key={pid} class="inline-flex items-center space-x-1 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 text-sm font-medium">
-                                                                    <span>{perm.to_display()}</span>
-                                                                    <button
-                                                                        onclick={remove_callback}
-                                                                        class="ml-1 hover:bg-red-500/20 rounded-full p-0.5 transition"
-                                                                    >
-                                                                        <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                        </svg>
-                                                                    </button>
-                                                                </div>
-                                                            }
-                                                        }).collect::<Html>()}
-
-                                                        {html! {
-                                                                <>
-                                                                    {if is_adding {
-                                                                        html! {
-                                                                            <div class="w-full mt-2 p-3 bg-slate-900/80 rounded-lg border border-slate-600">
-                                                                                <div class="flex items-center justify-between mb-2">
-                                                                                    <span class="text-sm font-semibold text-gray-300">{i18n.t("panel.administration.available_permissions")}</span>
-                                                                                    <button
-                                                                                        onclick={{
-                                                                                            let adding_to_subject = adding_to_subject.clone();
-                                                                                            Callback::from(move |_| {
-                                                                                                adding_to_subject.set(None);
-                                                                                            })
-                                                                                        }}
-                                                                                        class="text-gray-400 hover:text-gray-300"
-                                                                                    >
-                                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                                        </svg>
-                                                                                    </button>
-                                                                                </div>
-                                                                                <div class="space-y-1">
-                                                                                    {all_perms.iter().filter(|(value, _)| !current_perms.contains(&value.to_string())).map(|(value, label)| {
-                                                                                        let permissions_clone4 = permissions_clone.clone();
-                                                                                        let adding_to_subject_clone = adding_to_subject.clone();
-                                                                                        let st_clone2 = st.clone();
-                                                                                        let sid_clone2 = sid.clone();
-                                                                                        let value_str = value.to_string();
-
-                                                                                        html! {
-                                                                                            <button
-                                                                                                key={value.to_string()}
-                                                                                                onclick={{
-                                                                                                    Callback::from(move |_| {
-                                                                                                        let permissions = permissions_clone4.clone();
-                                                                                                        let adding = adding_to_subject_clone.clone();
-                                                                                                        let st = st_clone2.clone();
-                                                                                                        let sid = sid_clone2.clone();
-                                                                                                        let perm = value_str.clone();
-
-                                                                                                        spawn_local(async move {
-                                                                                                            let body = serde_json::json!({
-                                                                                                                "subject_type": st,
-                                                                                                                "subject_id": sid,
-                                                                                                                "permission": perm
-                                                                                                            });
-
-                                                                                                            let req = Request::post("/api/admin/permissions")
-                                                                                                                .header("Content-Type", "application/json")
-                                                                                                                .body(body.to_string());
-
-                                                                                                            if let Ok(request) = req {
-                                                                                                                if request.send().await.is_ok() {
-                                                                                                                    if let Ok(resp) = Request::get("/api/admin/permissions").send().await {
-                                                                                                                        if let Ok(data) = resp.json::<Vec<PermissionEntry>>().await {
-                                                                                                                            permissions.set(data);
-                                                                                                                            adding.set(None);
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        });
-                                                                                                    })
-                                                                                                }}
-                                                                                                class="w-full text-left px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-sm text-gray-200 transition"
-                                                                                            >
-                                                                                                {label}
-                                                                                            </button>
-                                                                                        }
-                                                                                    }).collect::<Html>()}
-                                                                                </div>
-                                                                            </div>
-                                                                        }
-                                                                    } else {
-                                                                        html! {
-                                                                            <button
-                                                                                onclick={{
-                                                                                    let adding_to_subject = adding_to_subject.clone();
-                                                                                    let st_clone = st.clone();
-                                                                                    let sid_clone = sid.clone();
-                                                                                    Callback::from(move |_| {
-                                                                                        adding_to_subject.set(Some((st_clone.clone(), sid_clone.clone())));
-                                                                                    })
-                                                                                }}
-                                                                                class="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 rounded-full text-blue-400 text-sm font-medium transition"
-                                                                            >
-                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                                                                </svg>
-                                                                                <span>{i18n.t("panel.administration.add")}</span>
-                                                                            </button>
-                                                                        }
-                                                                    }}
-                                                                </>
-                                                            }
-                                                        }
-
-                                                        <button
-                                                            onclick={{
-                                                                let permissions_clone3 = permissions_clone.clone();
-                                                                let perm_ids: Vec<i64> = perms_list.iter().map(|(id, _)| *id).collect();
-                                                                Callback::from(move |_| {
-                                                                    let permissions = permissions_clone3.clone();
-                                                                    let ids = perm_ids.clone();
-                                                                    spawn_local(async move {
-                                                                        let mut success = true;
-                                                                        for pid in ids {
-                                                                            if Request::delete(&format!("/api/admin/permissions/{}", pid)).send().await.is_err() {
-                                                                                success = false;
-                                                                                break;
-                                                                            }
-                                                                        }
-                                                                        if success {
-                                                                            if let Ok(resp) = Request::get("/api/admin/permissions").send().await {
-                                                                                if let Ok(data) = resp.json::<Vec<PermissionEntry>>().await {
-                                                                                    permissions.set(data);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                })
-                                                            }}
-                                                            class="inline-flex items-center space-x-1 px-3 py-1.5 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 rounded-full text-red-400 text-sm font-medium transition"
-                                                        >
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                            </svg>
-                                                            <span>{i18n.t("panel.administration.remove_all")}</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                }).collect::<Html>()}
-                            </div>
-                        }
-                    }}
-                </div>
-            </div>
-                        </div>
-                    }
-                }}
             </section>
+
+            <section class="card overflow-hidden">
+                <div class="flex items-center gap-2 px-6 py-5">
+                    <h2 class="text-base font-semibold text-fg">{i18n.t("panel.administration.active_permissions")}</h2>
+                    <span class="text-[13px] text-fg-muted">
+                        {i18n.t("panel.administration.subjects").replace("{count}", &grouped.len().to_string())}
+                    </span>
+                </div>
+                if grouped.is_empty() {
+                    <div class="border-t border-line">
+                        <EmptyState icon={IconName::Shield} title={i18n.t("panel.administration.no_permissions")} />
+                    </div>
+                } else {
+                    { for rows }
+                }
+            </section>
+            {remove_modal}
         </>
     }
 }
