@@ -76,7 +76,7 @@ pub fn update_banner() -> Html {
         .unwrap_or_else(|| "https://github.com/Rustmail/rustmail/releases".to_string());
 
     html! {
-        <div class="flex h-11 items-center gap-3 rounded-[10px] border border-line bg-surface pl-3.5 pr-2">
+        <div class="flex h-11 items-center gap-3 rounded-xl border border-line bg-surface pl-3.5 pr-2">
             <Icon name={IconName::ArrowUpRight} class="text-accent-fg" />
             <p class="min-w-0 flex-1 truncate text-sm text-fg">
                 { i18n.t("panel.update.available") }

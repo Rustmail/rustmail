@@ -86,7 +86,7 @@ pub fn home() -> Html {
                 {brand()}
                 <div class="flex flex-1 flex-col justify-center gap-6 py-16">
                     <div class="flex flex-col gap-4">
-                        <h1 class="max-w-[460px] text-display font-medium text-fg">
+                        <h1 class="max-w-[460px] text-display font-semibold text-fg">
                             {i18n.t("home.headline")}
                         </h1>
                         <p class="max-w-[460px] text-base text-fg-secondary">{i18n.t("home.subhead")}</p>
@@ -94,7 +94,7 @@ pub fn home() -> Html {
                     <div>
                         <a
                             href="/api/auth/login"
-                            class="inline-flex h-11 items-center gap-2 rounded-[10px] bg-blurple px-5 text-sm font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] transition-colors duration-150 hover:bg-blurple/90"
+                            class="inline-flex h-11 items-center gap-2 rounded-xl bg-blurple px-5 text-sm font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] transition-colors duration-150 hover:bg-blurple/90"
                         >
                             <Icon name={IconName::MessageSquare} />
                             {i18n.t("home.connect_button")}

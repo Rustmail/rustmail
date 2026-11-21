@@ -315,7 +315,7 @@ fn ticket_counts(props: &TicketCountsProps) -> Html {
                 html! {
                     <div class={classes!("flex", "flex-col", "gap-1", "p-5", divider)}>
                         <span class="text-[13px] text-fg-secondary">{label}</span>
-                        <span class="tnum text-figure font-medium text-fg">{group_digits(value)}</span>
+                        <span class="tnum text-figure font-semibold text-fg">{group_digits(value)}</span>
                         if let Some(caption) = caption {
                             <span class="text-xs text-fg-muted">{caption}</span>
                         }
@@ -670,7 +670,7 @@ fn response_times(props: &ResponseTimesProps) -> Html {
                 { for metrics.into_iter().map(|(label, value)| html! {
                     <div class="flex flex-col gap-1">
                         <span class="text-[13px] text-fg-secondary">{label}</span>
-                        <span class="tnum text-section font-medium text-fg">{value}</span>
+                        <span class="tnum text-section font-semibold text-fg">{value}</span>
                     </div>
                 }) }
             </div>

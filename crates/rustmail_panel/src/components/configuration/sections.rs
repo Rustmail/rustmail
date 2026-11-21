@@ -271,7 +271,7 @@ fn mode_option(props: &ModeOptionProps) -> Html {
             type="button"
             role="radio"
             aria-checked={props.selected.to_string()}
-            class={classes!("flex", "items-start", "gap-3", "rounded-[10px]", "border", "bg-surface-raised", "px-4", "py-3", "text-left", "transition-colors", "duration-150", frame)}
+            class={classes!("flex", "items-start", "gap-3", "rounded-xl", "border", "bg-surface-raised", "px-4", "py-3", "text-left", "transition-colors", "duration-150", frame)}
             {onclick}
         >
             if props.selected {

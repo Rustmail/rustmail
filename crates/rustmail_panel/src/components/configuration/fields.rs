@@ -45,7 +45,7 @@ pub fn settings_card(props: &SettingsCardProps) -> Html {
     html! {
         <section id={props.id.clone()} class="card flex scroll-mt-7 flex-col gap-5 p-6">
             <header class="flex flex-col gap-1">
-                <h2 class="text-section font-medium text-fg">{props.title.clone()}</h2>
+                <h2 class="text-section font-semibold text-fg">{props.title.clone()}</h2>
                 <p class="text-[13px] text-fg-secondary">{props.description.clone()}</p>
             </header>
             {props.children.clone()}

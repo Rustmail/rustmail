@@ -117,7 +117,7 @@ pub fn wizard_layout(props: &LayoutProps) -> Html {
                     </div>
                     <header class="flex flex-col gap-2">
                         <span class="font-mono text-xs text-fg-muted">{position}</span>
-                        <h1 class="text-title font-medium text-fg">{i18n.t(&step_title_key(step_key))}</h1>
+                        <h1 class="text-title font-semibold text-fg">{i18n.t(&step_title_key(step_key))}</h1>
                         <p class="text-sm text-fg-secondary">{i18n.t(&format!("wizard.steps.{step_key}.description"))}</p>
                     </header>
                     { for props.children.iter() }

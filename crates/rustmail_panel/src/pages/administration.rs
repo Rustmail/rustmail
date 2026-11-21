@@ -271,7 +271,7 @@ fn administration_content() -> Html {
             <div
                 key={perm.key()}
                 role="button"
-                class={classes!("flex", "cursor-pointer", "items-start", "gap-2.5", "rounded-[10px]", "border", "p-3", "transition-colors", "duration-150", frame)}
+                class={classes!("flex", "cursor-pointer", "items-start", "gap-2.5", "rounded-xl", "border", "p-3", "transition-colors", "duration-150", frame)}
                 onclick={toggle.reform(|_: MouseEvent| ())}
             >
                 <span class="pt-0.5">
@@ -520,7 +520,7 @@ fn administration_content() -> Html {
 
             <section class="card overflow-hidden">
                 <div class="flex items-center gap-2 px-6 py-5">
-                    <h2 class="text-base font-medium text-fg">{i18n.t("panel.administration.active_permissions")}</h2>
+                    <h2 class="text-base font-semibold text-fg">{i18n.t("panel.administration.active_permissions")}</h2>
                     <span class="text-[13px] text-fg-muted">
                         {i18n.t("panel.administration.subjects").replace("{count}", &grouped.len().to_string())}
                     </span>

@@ -332,7 +332,7 @@ fn categories_content() -> Html {
         html! {
             <section class="flex flex-col gap-3">
                 <div class="flex items-baseline gap-2">
-                    <h2 class="text-base font-medium text-fg">{count_label}</h2>
+                    <h2 class="text-base font-semibold text-fg">{count_label}</h2>
                     <span class="text-[13px] text-fg-muted">
                         {i18n.t("panel.categories.enabled_count").replace("{count}", &enabled_count.to_string())}
                     </span>

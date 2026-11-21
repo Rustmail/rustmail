@@ -23,10 +23,10 @@ pub fn forbidden_403(props: &Forbidden403Props) -> Html {
     html! {
         <div class="flex min-h-[70vh] items-center justify-center">
             <div class="flex w-full max-w-[440px] flex-col gap-4">
-                <span class="inline-flex size-10 items-center justify-center rounded-[10px] border border-line bg-surface-raised text-fg-secondary">
+                <span class="inline-flex size-10 items-center justify-center rounded-xl border border-line bg-surface-raised text-fg-secondary">
                     <Icon name={IconName::Lock} />
                 </span>
-                <h1 class="text-section font-medium text-fg">
+                <h1 class="text-section font-semibold text-fg">
                     {i18n.t("panel.forbidden.title").replace("{page}", &props.required_permission)}
                 </h1>
                 <p class="text-sm text-fg-secondary">{i18n.t("panel.forbidden.message")}</p>

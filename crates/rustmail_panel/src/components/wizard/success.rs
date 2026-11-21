@@ -99,11 +99,11 @@ pub fn success_screen(props: &SuccessScreenProps) -> Html {
     html! {
         <main class="flex min-h-screen items-center justify-center bg-surface-page px-6 py-16">
             <div class="card flex w-full max-w-[520px] flex-col gap-5 p-6">
-                <span class="inline-flex size-9 items-center justify-center rounded-[10px] bg-positive-subtle text-positive">
+                <span class="inline-flex size-9 items-center justify-center rounded-xl bg-positive-subtle text-positive">
                     <Icon name={IconName::CircleCheck} />
                 </span>
                 <div class="flex flex-col gap-2">
-                    <h1 class="text-section font-medium text-fg">{i18n.t("wizard.steps.step6.save_success")}</h1>
+                    <h1 class="text-section font-semibold text-fg">{i18n.t("wizard.steps.step6.save_success")}</h1>
                     <p class="text-sm text-fg-secondary">{i18n.t("wizard.steps.step6.success_desc")}</p>
                 </div>
                 <ol class="flex flex-col gap-2">

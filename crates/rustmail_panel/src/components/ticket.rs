@@ -450,7 +450,7 @@ fn tickets_list_content() -> Html {
     html! {
         <>
             <header class="flex flex-col gap-1">
-                <h1 class="text-title font-medium text-fg">{i18n.t("panel.tickets.title")}</h1>
+                <h1 class="text-title font-semibold text-fg">{i18n.t("panel.tickets.title")}</h1>
                 <p class="tnum text-sm text-fg-secondary">{count_label}</p>
             </header>
             <div class="flex flex-wrap items-center gap-3">
@@ -737,7 +737,7 @@ fn ticket_details_content(props: &TicketDetailsProps) -> Html {
             <header class="flex flex-wrap items-end gap-4">
                 <div class="flex min-w-0 flex-1 flex-col gap-2">
                     <div class="flex items-center gap-3">
-                        <h1 class="text-title font-medium text-fg">{i18n.t("panel.tickets.column_ticket")}</h1>
+                        <h1 class="text-title font-semibold text-fg">{i18n.t("panel.tickets.column_ticket")}</h1>
                         <TicketStub number={ticket.short_id()} />
                     </div>
                     <div class="flex flex-wrap items-center gap-2 text-sm text-fg-secondary">
@@ -782,7 +782,7 @@ fn ticket_details_content(props: &TicketDetailsProps) -> Html {
                 </section>
                 <aside class="flex flex-col gap-6 lg:sticky lg:top-6">
                     <section class="card flex flex-col gap-4 p-5">
-                        <h2 class="text-base font-medium text-fg">{i18n.t("panel.tickets.column_member")}</h2>
+                        <h2 class="text-base font-semibold text-fg">{i18n.t("panel.tickets.column_member")}</h2>
                         <div class="flex items-center gap-3">
                             <Avatar name={ticket.user_name.clone()} member={true} size={40} />
                             <div class="flex min-w-0 flex-col">
@@ -808,7 +808,7 @@ fn ticket_details_content(props: &TicketDetailsProps) -> Html {
                         </div>
                     </section>
                     <section class="card flex flex-col gap-3 p-5">
-                        <h2 class="text-base font-medium text-fg">{i18n.t("panel.tickets.column_messages")}</h2>
+                        <h2 class="text-base font-semibold text-fg">{i18n.t("panel.tickets.column_messages")}</h2>
                         <div class="flex flex-col gap-2.5">
                             { for MessageType::ALL.iter().map(|&kind| html! {
                                 <div class="flex items-center gap-2.5 text-[13px]">

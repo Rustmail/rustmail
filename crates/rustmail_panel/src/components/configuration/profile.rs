@@ -241,7 +241,7 @@ pub fn discord_profile_card(props: &DiscordProfileCardProps) -> Html {
         html! {
             <>
                 <div
-                    class="relative h-[88px] overflow-hidden rounded-[10px] border border-line bg-surface-raised"
+                    class="relative h-[88px] overflow-hidden rounded-xl border border-line bg-surface-raised"
                     ondragover={allow_drop()}
                     ondrop={dropped_file(pick_banner.clone())}
                 >

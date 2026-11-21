@@ -57,7 +57,7 @@ pub fn welcome(props: &WelcomeProps) -> Html {
             <div class="flex w-full max-w-[480px] flex-col gap-6">
                 <img src="/logo.png" alt="" class="size-11" />
                 <div class="flex flex-col gap-3">
-                    <h1 class="text-title font-medium text-fg">{i18n.t("wizard.welcome_title")}</h1>
+                    <h1 class="text-title font-semibold text-fg">{i18n.t("wizard.welcome_title")}</h1>
                     <p class="text-sm text-fg-secondary">{i18n.t("wizard.welcome_description")}</p>
                 </div>
                 <ol class="flex flex-col gap-2">

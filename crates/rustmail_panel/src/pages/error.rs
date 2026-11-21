@@ -46,7 +46,7 @@ pub fn error() -> Html {
 
     html! {
         <CenteredColumn>
-            <h1 class="text-section font-medium text-fg">{i18n.t("error.title")}</h1>
+            <h1 class="text-section font-semibold text-fg">{i18n.t("error.title")}</h1>
             <div class="flex flex-col gap-1 rounded-lg bg-negative-subtle px-3 py-2.5">
                 <span class="text-xs text-fg-secondary">{i18n.t("error.server_message")}</span>
                 <span class="break-words font-mono text-[13px] text-negative">{message}</span>
@@ -69,7 +69,7 @@ pub fn not_found() -> Html {
         <CenteredColumn>
             <div class="flex flex-col gap-2">
                 <span class="font-mono text-xs text-fg-muted">{"404"}</span>
-                <h1 class="text-section font-medium text-fg">{i18n.t("not_found.title")}</h1>
+                <h1 class="text-section font-semibold text-fg">{i18n.t("not_found.title")}</h1>
                 <p class="text-sm text-fg-secondary">{i18n.t("not_found.description")}</p>
             </div>
             <div>
