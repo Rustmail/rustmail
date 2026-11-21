@@ -1,11 +1,27 @@
 {
   "home": {
     "welcome": "Bienvenue. Pour continuer, veuillez vous connecter avec votre compte Discord.",
-    "connect_button": "Se connecter"
+    "connect_button": "Continuer avec Discord",
+    "headline": "Répondez aux MP de votre serveur en équipe",
+    "subhead": "Connectez-vous avec le compte Discord auquel votre serveur a donné accès au panel.",
+    "preview": {
+      "category": "Signaler un membre",
+      "open": "Ouvert",
+      "staff": "Staff",
+      "message_1": "Quelqu'un dans #trading m'envoie des liens de faux giveaways en MP alors que j'ai dit non. J'ai bloqué un compte et un autre est apparu une heure plus tard.",
+      "message_2": "Merci du signalement. Tu peux envoyer les pseudos des deux comptes ? On va vérifier s'ils partagent une IP avec des alts connus.",
+      "message_3": "Bien sûr, c'est giveaway.bot.7 et freenitro_hub.",
+      "typing": "{name} est en train d'écrire"
+    }
   },
   "back_to_home": "Retour à l'accueil",
   "error": {
-    "error": "Erreur"
+    "error": "Erreur",
+    "title": "La connexion n'a pas abouti",
+    "server_message": "Message du serveur",
+    "help": "Réessayez. Si le problème persiste, vérifiez que le bot est en ligne et que votre compte a toujours accès au panel.",
+    "back": "Retour à la connexion",
+    "unknown": "Erreur inconnue"
   },
   "navbar": {
     "home": "Vue d'ensemble",
@@ -677,5 +693,10 @@
         "saving": "Sauvegarde..."
       }
     }
+  },
+  "not_found": {
+    "title": "Cette page n'existe pas",
+    "description": "Le lien est peut-être obsolète, ou la page a été déplacée.",
+    "back": "Retour au panel"
   }
 }

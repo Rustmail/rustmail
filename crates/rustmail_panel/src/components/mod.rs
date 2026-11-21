@@ -5,7 +5,6 @@ pub mod configuration;
 pub mod forbidden;
 pub mod home;
 pub mod language_switcher;
-pub mod logout_button;
 pub mod setup_detector;
 pub mod sidebar;
 pub mod statistics;

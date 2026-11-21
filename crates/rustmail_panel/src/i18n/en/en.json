@@ -1,11 +1,27 @@
 {
   "home": {
     "welcome": "Welcome. To continue, please log in with your Discord account.",
-    "connect_button": "Sign in"
+    "connect_button": "Continue with Discord",
+    "headline": "Answer your server's DMs as a team",
+    "subhead": "Sign in with the Discord account your server gave panel access to.",
+    "preview": {
+      "category": "Report a member",
+      "open": "Open",
+      "staff": "Staff",
+      "message_1": "Someone in #trading keeps DMing me fake giveaway links after I said no. I blocked one account and another showed up an hour later.",
+      "message_2": "Thanks for flagging it. Can you send the usernames of both accounts? We'll check if they share an IP with known alts.",
+      "message_3": "Sure, it's giveaway.bot.7 and freenitro_hub.",
+      "typing": "{name} is typing"
+    }
   },
   "back_to_home": "Back to home",
   "error": {
-    "error": "Error"
+    "error": "Error",
+    "title": "Sign-in didn't go through",
+    "server_message": "Message from the server",
+    "help": "Try again. If it keeps happening, check that the bot is online and that your account still has panel access.",
+    "back": "Back to sign in",
+    "unknown": "Unknown error"
   },
   "navbar": {
     "home": "Overview",
@@ -678,5 +694,10 @@
         "saving": "Saving..."
       }
     }
+  },
+  "not_found": {
+    "title": "This page doesn't exist",
+    "description": "The link may be outdated, or the page was moved.",
+    "back": "Back to the panel"
   }
 }
