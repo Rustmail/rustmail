@@ -75,19 +75,19 @@ pub fn setup() -> Html {
         use_effect_with((), move |_| {
             spawn_local(async move {
                 let mut completed_mode = None;
-                if let Ok(resp) = authed_get("/api/setup/status").send().await {
-                    if let Ok(status) = resp.json::<StatusResponse>().await {
-                        if status.completed {
-                            completed_mode = Some(PageMode::Completed {
-                                panel_url: status.panel_url.unwrap_or_default(),
-                                api_port: status.api_port.unwrap_or(3002),
-                            });
-                        } else if let Some(token) = status.token_prefill {
-                            let mut data = (*wizard_data).clone();
-                            if data.token.is_empty() {
-                                data.token = token;
-                                wizard_data.set(data);
-                            }
+                if let Ok(resp) = authed_get("/api/setup/status").send().await
+                    && let Ok(status) = resp.json::<StatusResponse>().await
+                {
+                    if status.completed {
+                        completed_mode = Some(PageMode::Completed {
+                            panel_url: status.panel_url.unwrap_or_default(),
+                            api_port: status.api_port.unwrap_or(3002),
+                        });
+                    } else if let Some(token) = status.token_prefill {
+                        let mut data = (*wizard_data).clone();
+                        if data.token.is_empty() {
+                            data.token = token;
+                            wizard_data.set(data);
                         }
                     }
                 }

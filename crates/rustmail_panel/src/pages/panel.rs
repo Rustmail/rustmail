@@ -62,7 +62,7 @@ pub fn panel() -> Html {
     }
 
     let authorized = authorized.clone();
-    use_effect_with((*authorized).clone(), move |auth| {
+    use_effect_with(*authorized, move |auth| {
         if matches!(auth, Some(false)) {
             let win = window();
             let _ = win.location().set_href("/error?message=Access+Denied");
@@ -91,17 +91,17 @@ pub fn panel() -> Html {
         });
     }
 
-    let permissions = use_state(|| Vec::<PanelPermission>::new());
+    let permissions = use_state(Vec::<PanelPermission>::new);
     {
         let permissions = permissions.clone();
         use_effect_with((), move |()| {
             let permissions = permissions.clone();
 
             spawn_local(async move {
-                if let Ok(resp) = Request::get("/api/user/permissions").send().await {
-                    if let Ok(perms) = resp.json::<Vec<PanelPermission>>().await {
-                        permissions.set(perms);
-                    }
+                if let Ok(resp) = Request::get("/api/user/permissions").send().await
+                    && let Ok(perms) = resp.json::<Vec<PanelPermission>>().await
+                {
+                    permissions.set(perms);
                 }
             });
             || ()
