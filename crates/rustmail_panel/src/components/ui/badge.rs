@@ -5,7 +5,6 @@ pub enum Tone {
     #[default]
     Neutral,
     Positive,
-    Negative,
     Warning,
     Accent,
 }
@@ -22,7 +21,6 @@ pub fn badge(props: &BadgeProps) -> Html {
     let tone = match props.tone {
         Tone::Neutral => "bg-surface-raised text-fg-secondary",
         Tone::Positive => "bg-positive-subtle text-positive",
-        Tone::Negative => "bg-negative-subtle text-negative",
         Tone::Warning => "bg-warning-subtle text-warning",
         Tone::Accent => "bg-accent-subtle text-accent-fg",
     };
