@@ -7,6 +7,7 @@ use crate::hooks::use_user_permissions;
 use crate::i18n::yew::use_translation;
 use crate::pages::panel::PanelRoute;
 use crate::types::PanelPermission;
+use crate::utils::format::group_digits;
 use crate::utils::markdown::markdown_to_html_safe;
 use chrono::{DateTime, NaiveDateTime};
 use gloo_net::http::Request;
@@ -237,22 +238,6 @@ impl DateFormatter {
             .timestamp_ms()
             .map(|ms| self.time(ms))
             .unwrap_or_else(|| message.created_at.clone())
-    }
-}
-
-fn group_digits(value: i64) -> String {
-    let digits = value.abs().to_string();
-    let mut grouped = String::new();
-    for (index, c) in digits.chars().enumerate() {
-        if index > 0 && (digits.len() - index) % 3 == 0 {
-            grouped.push('\u{202f}');
-        }
-        grouped.push(c);
-    }
-    if value < 0 {
-        format!("-{}", grouped)
-    } else {
-        grouped
     }
 }
 

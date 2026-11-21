@@ -4,6 +4,7 @@ use crate::components::ui::{
 };
 use crate::i18n::config::I18n;
 use crate::i18n::yew::use_translation;
+use crate::utils::format::group_digits;
 use gloo_net::http::Request;
 use rustmail_types::{
     CategoryStats, DailyActivity, StaffMember, Statistics, StatisticsOverview, TopPerformer,
@@ -93,22 +94,6 @@ fn optional_duration(seconds: Option<i64>, i18n: &I18n) -> String {
     seconds
         .map(|s| format_duration(s, i18n))
         .unwrap_or_else(|| "-".to_string())
-}
-
-fn format_count(value: i64) -> String {
-    let digits = value.abs().to_string();
-    let mut grouped = String::new();
-    for (index, digit) in digits.chars().enumerate() {
-        if index > 0 && (digits.len() - index) % 3 == 0 {
-            grouped.push('\u{202f}');
-        }
-        grouped.push(digit);
-    }
-    if value < 0 {
-        format!("-{}", grouped)
-    } else {
-        grouped
-    }
 }
 
 struct CalendarDate {
@@ -293,7 +278,7 @@ fn ticket_counts(props: &TicketCountsProps) -> Html {
     let o = &props.overview;
     let month_caption = i18n
         .t("panel.statistics.closed_month_caption")
-        .replace("{count}", &format_count(o.closed_this_month));
+        .replace("{count}", &group_digits(o.closed_this_month));
 
     let cells = [
         (
@@ -330,7 +315,7 @@ fn ticket_counts(props: &TicketCountsProps) -> Html {
                 html! {
                     <div class={classes!("flex", "flex-col", "gap-1", "p-5", divider)}>
                         <span class="text-[13px] text-fg-secondary">{label}</span>
-                        <span class="tnum text-figure font-medium text-fg">{format_count(value)}</span>
+                        <span class="tnum text-figure font-medium text-fg">{group_digits(value)}</span>
                         if let Some(caption) = caption {
                             <span class="text-xs text-fg-muted">{caption}</span>
                         }
@@ -437,11 +422,11 @@ fn activity_chart(props: &ActivityChartProps) -> Html {
         <div class="flex items-center gap-4 text-xs text-fg-secondary">
             <span class="flex items-center gap-1.5">
                 <span class="h-0.5 w-3 rounded-full bg-accent" />
-                {format!("{} · {}", i18n.t("panel.statistics.created"), format_count(total_created))}
+                {format!("{} · {}", i18n.t("panel.statistics.created"), group_digits(total_created))}
             </span>
             <span class="flex items-center gap-1.5">
                 <span class="h-0.5 w-3 rounded-full bg-fg-muted" />
-                {format!("{} · {}", i18n.t("panel.statistics.closed"), format_count(total_closed))}
+                {format!("{} · {}", i18n.t("panel.statistics.closed"), group_digits(total_closed))}
             </span>
         </div>
     };
@@ -702,7 +687,7 @@ struct CategoryBreakdownProps {
 fn category_breakdown(props: &CategoryBreakdownProps) -> Html {
     let (i18n, _) = use_translation();
     let mut ranked = props.categories.clone();
-    ranked.sort_by(|a, b| b.count.cmp(&a.count));
+    ranked.sort_by_key(|c| std::cmp::Reverse(c.count));
 
     html! {
         <section class="card flex flex-1 flex-col gap-4 p-6">
@@ -715,7 +700,7 @@ fn category_breakdown(props: &CategoryBreakdownProps) -> Html {
                         <div class="flex flex-col gap-2">
                             <div class="flex items-baseline gap-3">
                                 <span class="min-w-0 flex-1 truncate text-sm text-fg">{&category.name}</span>
-                                <span class="font-mono tnum text-xs text-fg-secondary">{format_count(category.count)}</span>
+                                <span class="font-mono tnum text-xs text-fg-secondary">{group_digits(category.count)}</span>
                                 <span class="w-12 text-right font-mono tnum text-xs text-fg-muted">{format!("{:.1}%", category.percentage)}</span>
                             </div>
                             <div class="h-1 overflow-hidden rounded-full bg-surface-raised">
@@ -759,7 +744,7 @@ fn staff_section(props: &StaffSectionProps) -> Html {
         p.most_messages.clone().map(|performer| {
             let value = format!(
                 "{} {}",
-                format_count(performer.value),
+                group_digits(performer.value),
                 i18n.t("panel.statistics.messages")
             );
             (i18n.t("panel.statistics.most_messages"), performer, value)
@@ -767,7 +752,7 @@ fn staff_section(props: &StaffSectionProps) -> Html {
         p.most_tickets_closed.clone().map(|performer| {
             let value = format!(
                 "{} {}",
-                format_count(performer.value),
+                group_digits(performer.value),
                 i18n.t("panel.statistics.tickets")
             );
             (
@@ -853,8 +838,8 @@ fn staff_section(props: &StaffSectionProps) -> Html {
                                                 <span class="truncate text-sm text-fg">{&member.username}</span>
                                             </span>
                                         </td>
-                                        <td class="pr-5 text-right font-mono tnum text-[13px] text-fg-secondary">{format_count(member.messages_count)}</td>
-                                        <td class="pr-5 text-right font-mono tnum text-[13px] text-fg-secondary">{format_count(member.tickets_closed)}</td>
+                                        <td class="pr-5 text-right font-mono tnum text-[13px] text-fg-secondary">{group_digits(member.messages_count)}</td>
+                                        <td class="pr-5 text-right font-mono tnum text-[13px] text-fg-secondary">{group_digits(member.tickets_closed)}</td>
                                         <td class="pr-5 text-right font-mono tnum text-[13px] text-fg-secondary">{optional_duration(member.avg_response_time_seconds, &i18n)}</td>
                                     </tr>
                                 }) }
