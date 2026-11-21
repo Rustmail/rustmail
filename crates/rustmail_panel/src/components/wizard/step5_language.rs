@@ -1,6 +1,21 @@
+use crate::components::ui::{Field, Select, ToggleRow, input_value, textarea_value};
+use crate::components::wizard::parts::StepNav;
 use crate::components::wizard::types::WizardData;
 use crate::i18n::yew::use_translation;
 use yew::prelude::*;
+
+pub const LOCALES: [(&str, &str); 2] = [("en", "English (en)"), ("fr", "Français (fr)")];
+
+const TIMEZONES: [&str; 8] = [
+    "UTC",
+    "Europe/Paris",
+    "Europe/London",
+    "Europe/Berlin",
+    "America/New_York",
+    "America/Los_Angeles",
+    "Asia/Tokyo",
+    "Australia/Sydney",
+];
 
 #[derive(Properties, PartialEq)]
 pub struct Step5Props {
@@ -36,7 +51,7 @@ pub fn step5_language(props: &Step5Props) -> Html {
         let close_message = close_message.clone();
         let check_updates = check_updates.clone();
 
-        Callback::from(move |_| {
+        Callback::from(move |_: MouseEvent| {
             let mut new_data = data.clone();
             new_data.locale = (*locale).clone();
             new_data.timezone = (*timezone).clone();
@@ -52,147 +67,110 @@ pub fn step5_language(props: &Step5Props) -> Html {
 
     let on_prev = {
         let props_on_prev = props.on_prev.clone();
-        Callback::from(move |_| {
-            props_on_prev.emit(());
-        })
+        Callback::from(move |_: MouseEvent| props_on_prev.emit(()))
     };
 
+    let select_setter = |state: &UseStateHandle<String>| {
+        let state = state.clone();
+        Callback::from(move |value: String| state.set(value))
+    };
+    let textarea_setter = |state: &UseStateHandle<String>| {
+        let state = state.clone();
+        Callback::from(move |e: InputEvent| state.set(textarea_value(&e)))
+    };
+    let on_status_input = {
+        let state = status.clone();
+        Callback::from(move |e: InputEvent| state.set(input_value(&e)))
+    };
+    let on_check_updates = {
+        let state = check_updates.clone();
+        Callback::from(move |checked: bool| state.set(checked))
+    };
+
+    let locale_options: Vec<(AttrValue, AttrValue)> = LOCALES
+        .iter()
+        .map(|(code, name)| (AttrValue::from(*code), AttrValue::from(*name)))
+        .collect();
+    let timezone_options: Vec<(AttrValue, AttrValue)> = TIMEZONES
+        .iter()
+        .map(|zone| (AttrValue::from(*zone), AttrValue::from(*zone)))
+        .collect();
+
     html! {
-        <div class="flex flex-col gap-6 animate-fade-in">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.language_label") }</label>
-                    <select
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none"
-                        value={(*locale).clone()}
-                        onchange={
-                            let state = locale.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlSelectElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })
-                        }
+        <>
+            <div class="flex flex-col gap-6">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Field label={i18n.t("wizard.steps.step5.language_label")}>
+                        <Select
+                            value={AttrValue::from((*locale).clone())}
+                            options={locale_options}
+                            onchange={select_setter(&locale)}
+                        />
+                    </Field>
+                    <Field
+                        label={i18n.t("wizard.steps.step5.timezone_label")}
+                        help={i18n.t("wizard.steps.step5.timezone_help")}
                     >
-                        <option value="en">{ "English (en)" }</option>
-                        <option value="fr">{ "Français (fr)" }</option>
-                    </select>
+                        <Select
+                            value={AttrValue::from((*timezone).clone())}
+                            options={timezone_options}
+                            onchange={select_setter(&timezone)}
+                        />
+                    </Field>
                 </div>
 
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.timezone_label") }</label>
-                    <select
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none"
-                        value={(*timezone).clone()}
-                        onchange={
-                            let state = timezone.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlSelectElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })
-                        }
-                    >
-                        <option value="UTC">{ "UTC" }</option>
-                        <option value="Europe/Paris">{ "Europe/Paris" }</option>
-                        <option value="Europe/London">{ "Europe/London" }</option>
-                        <option value="Europe/Berlin">{ "Europe/Berlin" }</option>
-                        <option value="America/New_York">{ "America/New_York" }</option>
-                        <option value="America/Los_Angeles">{ "America/Los_Angeles" }</option>
-                        <option value="Asia/Tokyo">{ "Asia/Tokyo" }</option>
-                        <option value="Australia/Sydney">{ "Australia/Sydney" }</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-4 bg-slate-800/30 p-5 rounded-xl border border-slate-700/50 mt-2">
-                <h3 class="text-white font-medium mb-1">{ i18n.t("wizard.steps.step5.bot_messages_title") }</h3>
-
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.bot_status_label") }</label>
+                <Field
+                    label={i18n.t("wizard.steps.step5.bot_status_label")}
+                    help={i18n.t("wizard.steps.step5.bot_status_help")}
+                >
                     <input
                         type="text"
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                        class="input"
                         placeholder={i18n.t("wizard.steps.step5.bot_status_placeholder")}
                         value={(*status).clone()}
-                        onchange={
-                            let state = status.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })
-                        }
+                        oninput={on_status_input}
                     />
-                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.bot_status_help") }</p>
-                </div>
+                </Field>
 
-                <div class="flex flex-col gap-2 mt-2">
-                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.welcome_label") }</label>
+                <Field
+                    label={i18n.t("wizard.steps.step5.welcome_label")}
+                    help={i18n.t("wizard.steps.step5.welcome_help")}
+                >
                     <textarea
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none h-24"
+                        rows="3"
+                        class="textarea resize-none"
                         placeholder={i18n.t("wizard.steps.step5.welcome_placeholder")}
                         value={(*direct_message).clone()}
-                        onchange={
-                            let state = direct_message.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlTextAreaElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })
-                        }
+                        oninput={textarea_setter(&direct_message)}
                     />
-                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.welcome_help") }</p>
-                </div>
+                </Field>
 
-                <div class="flex flex-col gap-2 mt-2">
-                    <label class="text-sm font-medium text-gray-400">{ i18n.t("wizard.steps.step5.close_label") }</label>
+                <Field
+                    label={i18n.t("wizard.steps.step5.close_label")}
+                    help={i18n.t("wizard.steps.step5.close_help")}
+                >
                     <textarea
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none h-24"
+                        rows="3"
+                        class="textarea resize-none"
                         placeholder={i18n.t("wizard.steps.step5.close_placeholder")}
                         value={(*close_message).clone()}
-                        onchange={
-                            let state = close_message.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlTextAreaElement = e.target_unchecked_into();
-                                state.set(input.value());
-                            })
-                        }
+                        oninput={textarea_setter(&close_message)}
                     />
-                    <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.close_help") }</p>
-                </div>
-            </div>
+                </Field>
 
-            <div class="flex flex-col gap-2 bg-slate-800/30 p-5 rounded-xl border border-slate-700/50">
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input
-                        type="checkbox"
-                        class="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
-                        checked={*check_updates}
-                        onchange={
-                            let state = check_updates.clone();
-                            Callback::from(move |e: Event| {
-                                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                state.set(input.checked());
-                            })
-                        }
-                    />
-                    <span class="text-sm font-medium text-gray-300">{ i18n.t("wizard.steps.step5.check_updates_label") }</span>
-                </label>
-                <p class="text-xs text-gray-500">{ i18n.t("wizard.steps.step5.check_updates_help") }</p>
+                <ToggleRow
+                    label={i18n.t("wizard.steps.step5.check_updates_label")}
+                    help={i18n.t("wizard.steps.step5.check_updates_help")}
+                    checked={*check_updates}
+                    onchange={on_check_updates}
+                />
             </div>
-
-            <div class="flex justify-between pt-4 mt-2 border-t border-slate-800/50">
-                <button
-                    class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
-                    onclick={on_prev}
-                >
-                    { i18n.t("wizard.common.back") }
-                </button>
-                <button
-                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    onclick={on_next}
-                    disabled={!is_valid}
-                >
-                    { i18n.t("wizard.common.next") }
-                </button>
-            </div>
-        </div>
+            <StepNav
+                on_back={on_prev}
+                {on_next}
+                next_disabled={!is_valid}
+                hint={i18n.t("wizard.steps.step5.messages_hint")}
+            />
+        </>
     }
 }
