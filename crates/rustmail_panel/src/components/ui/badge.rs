@@ -19,7 +19,7 @@ pub struct BadgeProps {
 #[function_component(Badge)]
 pub fn badge(props: &BadgeProps) -> Html {
     let tone = match props.tone {
-        Tone::Neutral => "bg-surface-raised text-fg-secondary",
+        Tone::Neutral => "bg-surface-hover text-fg",
         Tone::Positive => "bg-positive-subtle text-positive",
         Tone::Warning => "bg-warning-subtle text-warning",
         Tone::Accent => "bg-accent-subtle text-accent-fg",

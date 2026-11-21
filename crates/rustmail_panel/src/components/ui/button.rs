@@ -18,19 +18,17 @@ pub enum ButtonSize {
 }
 
 pub fn button_classes(variant: ButtonVariant, size: ButtonSize) -> Classes {
-    let base = "inline-flex items-center justify-center rounded-lg font-medium text-[13px] leading-5 whitespace-nowrap select-none transition-[background-color,border-color,color,transform,opacity] duration-150 ease-out active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none";
+    let base = "inline-flex items-center justify-center rounded font-medium leading-5 whitespace-nowrap select-none transition-[background-color,border-color,color,transform,opacity] duration-150 ease-out active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none";
     let size = match size {
-        ButtonSize::Md => "h-9 px-3.5 gap-2",
-        ButtonSize::Sm => "h-7 px-2.5 gap-1.5",
+        ButtonSize::Md => "h-10 px-4 gap-2 text-sm",
+        ButtonSize::Sm => "h-8 px-3 gap-1.5 text-[13px]",
     };
     let variant = match variant {
-        ButtonVariant::Primary => {
-            "bg-surface-inverse text-fg-inverse hover:bg-surface-inverse/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-        }
+        ButtonVariant::Primary => "bg-surface-inverse text-fg-inverse hover:bg-surface-inverse/90",
         ButtonVariant::Secondary => {
-            "border border-line bg-surface-raised text-fg hover:bg-surface-hover"
+            "border border-line bg-transparent text-fg hover:bg-surface-raised"
         }
-        ButtonVariant::Ghost => "text-fg-secondary hover:bg-surface-raised hover:text-fg",
+        ButtonVariant::Ghost => "text-fg hover:bg-surface-raised",
         ButtonVariant::Danger => "bg-negative-subtle text-negative hover:bg-negative/20",
     };
     classes!(base, size, variant)
@@ -120,7 +118,7 @@ pub fn icon_button(props: &IconButtonProps) -> Html {
     html! {
         <button
             type="button"
-            class={classes!("inline-flex", "size-8", "items-center", "justify-center", "rounded-lg", "text-fg-muted", "transition-colors", "duration-150", "hover:bg-surface-raised", "hover:text-fg", "disabled:opacity-40", props.class.clone())}
+            class={classes!("inline-flex", "size-8", "items-center", "justify-center", "rounded", "text-fg-muted", "transition-colors", "duration-150", "hover:bg-surface-raised", "hover:text-fg", "disabled:opacity-40", props.class.clone())}
             aria-label={props.label.clone()}
             title={props.label.clone()}
             disabled={props.disabled}

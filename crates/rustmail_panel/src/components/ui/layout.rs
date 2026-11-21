@@ -15,7 +15,7 @@ pub fn page_header(props: &PageHeaderProps) -> Html {
     html! {
         <header class="flex flex-wrap items-end gap-4">
             <div class="flex min-w-0 flex-1 flex-col gap-1">
-                <h1 class="text-title font-medium text-fg">{props.title.clone()}</h1>
+                <h1 class="text-title font-semibold text-fg">{props.title.clone()}</h1>
                 if let Some(description) = props.description.clone() {
                     <p class="text-sm text-fg-secondary">{description}</p>
                 }
@@ -39,7 +39,7 @@ pub fn card_header(props: &CardHeaderProps) -> Html {
     html! {
         <div class="flex items-start gap-4">
             <div class="flex min-w-0 flex-1 flex-col gap-1">
-                <h2 class="text-base font-medium text-fg">{props.title.clone()}</h2>
+                <h2 class="text-base font-semibold text-fg">{props.title.clone()}</h2>
                 if let Some(description) = props.description.clone() {
                     <p class="text-[13px] text-fg-secondary">{description}</p>
                 }
@@ -80,7 +80,7 @@ pub struct EmptyStateProps {
 pub fn empty_state(props: &EmptyStateProps) -> Html {
     html! {
         <div class="flex flex-col items-center gap-3 px-8 py-12 text-center">
-            <span class="inline-flex size-10 items-center justify-center rounded-[10px] bg-surface-raised text-fg-secondary">
+            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-surface-raised text-fg-secondary">
                 <Icon name={props.icon} />
             </span>
             <p class="text-base font-medium text-fg">{props.title.clone()}</p>
@@ -161,7 +161,7 @@ pub fn modal(props: &ModalProps) -> Html {
             >
                 <div class="flex items-start gap-3">
                     <div class="flex min-w-0 flex-1 flex-col gap-1">
-                        <h2 class="text-base font-medium text-fg">{props.title.clone()}</h2>
+                        <h2 class="text-base font-semibold text-fg">{props.title.clone()}</h2>
                         if let Some(description) = props.description.clone() {
                             <p class="text-[13px] text-fg-secondary">{description}</p>
                         }
@@ -196,7 +196,7 @@ pub fn segmented(props: &SegmentedProps) -> Html {
                     Callback::from(move |_| cb.emit(value.clone()))
                 };
                 let state = if active {
-                    "bg-surface-hover text-fg shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    "bg-surface-hover text-fg"
                 } else {
                     "text-fg-secondary hover:text-fg"
                 };

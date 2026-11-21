@@ -164,7 +164,7 @@ pub fn app_shell(props: &AppShellProps) -> Html {
             })
         };
         let state = if active {
-            "bg-surface-raised text-fg shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+            "bg-surface-raised text-fg"
         } else {
             "text-fg-secondary hover:bg-surface-raised/60 hover:text-fg"
         };
@@ -190,7 +190,7 @@ pub fn app_shell(props: &AppShellProps) -> Html {
     let status_card = match *bot_online {
         None => html! {},
         Some(online) => html! {
-            <div class="flex items-center gap-2.5 rounded-[10px] border border-line bg-surface px-3 py-2.5">
+            <div class="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3 py-2.5">
                 <StatusDot class={if online { "bg-positive" } else { "bg-negative" }} />
                 <div class="flex min-w-0 flex-col">
                     <span class="text-sm font-medium text-fg">

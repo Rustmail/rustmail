@@ -19,14 +19,14 @@ pub fn switch(props: &SwitchProps) -> Html {
         Callback::from(move |_| onchange.emit(!checked))
     };
     let track = if props.checked {
-        "bg-accent border-accent"
+        "bg-accent"
     } else {
-        "bg-surface-hover border-line-strong"
+        "bg-surface-hover"
     };
     let knob = if props.checked {
-        "translate-x-[14px] bg-fg"
+        "translate-x-4"
     } else {
-        "translate-x-0 bg-fg-muted"
+        "translate-x-0"
     };
     html! {
         <button
@@ -35,10 +35,10 @@ pub fn switch(props: &SwitchProps) -> Html {
             aria-checked={props.checked.to_string()}
             aria-label={props.label.clone()}
             disabled={props.disabled}
-            class={classes!("relative", "inline-flex", "h-[18px]", "w-8", "shrink-0", "items-center", "rounded-full", "border", "px-px", "transition-colors", "duration-150", "disabled:opacity-40", track)}
+            class={classes!("relative", "inline-flex", "h-5", "w-9", "shrink-0", "items-center", "rounded-full", "p-0.5", "transition-colors", "duration-150", "disabled:opacity-40", track)}
             {onclick}
         >
-            <span class={classes!("size-3.5", "rounded-full", "transition-transform", "duration-150", "ease-out", knob)} />
+            <span class={classes!("size-4", "rounded-full", "bg-white", "shadow-sm", "transition-transform", "duration-150", "ease-out", knob)} />
         </button>
     }
 }
@@ -64,9 +64,9 @@ pub fn checkbox(props: &CheckboxProps) -> Html {
         })
     };
     let state = if props.checked {
-        "bg-surface-inverse border-surface-inverse text-fg-inverse"
+        "bg-accent border-accent text-white"
     } else {
-        "bg-surface-raised border-line-strong"
+        "bg-transparent border-line-strong"
     };
     html! {
         <button
@@ -75,7 +75,7 @@ pub fn checkbox(props: &CheckboxProps) -> Html {
             aria-checked={props.checked.to_string()}
             aria-label={props.label.clone()}
             disabled={props.disabled}
-            class={classes!("inline-flex", "size-4", "shrink-0", "items-center", "justify-center", "rounded", "border", "transition-colors", "duration-150", "disabled:opacity-40", state)}
+            class={classes!("inline-flex", "size-4", "shrink-0", "items-center", "justify-center", "rounded-sm", "border", "transition-colors", "duration-150", "disabled:opacity-40", state)}
             {onclick}
         >
             if props.checked {
